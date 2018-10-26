@@ -1,0 +1,505 @@
+Html,
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Roboto, sans-serif;
+}
+
+#loading {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+}
+
+.infoPanel {
+  position: absolute;
+}
+
+.InfoPanelPaper {
+  width: 400px;
+  margin: 20px;
+}
+
+.dialogTitleStyle {
+  font-size: 20px !important;
+  padding-top: 10px !important;
+  padding-bottom: 7px !important;
+}
+
+.resultsTitle {
+  padding-top: 15px;
+  padding-bottom: 2px;
+  padding-left: 20px;
+  font-family: Roboto, sans-serif;
+  background-color: rgb(0, 188, 212);
+  border: 0px;
+  color: white;
+  font-size: 20px;
+  font-weight: 400;
+  position: static;
+}
+
+.lowerToolbar {
+  padding: 8px;
+  height: 41px;
+}
+
+.ResultsPanePaper {
+  width: 400px;
+  margin: 20px;
+}
+
+.tab {
+  font-size: 12px !important;
+}
+
+.tabTitle {
+  font-Size: 14px;
+  color: rgb(255, 64, 129);
+}
+
+.run {
+  position: absolute;
+  bottom: 60px;
+  right: 43px;
+}
+
+.settings {
+  position: absolute;
+  bottom: 60px;
+  left: 43px;
+}
+
+.FileUploadForm {
+  margin-bottom: 4px;
+  padding-top: 10px;
+}
+
+.uploadControls {
+  font-size: 13px;
+  margin-top: 5px;
+}
+
+.uploadFileTD {
+  width: 155px;
+  background-color: #F7F7F7;
+  border-radius: 5px;
+  /*border: 1px solid #F0F0F0;*/
+}
+
+.uploadFileField {
+  padding: 2px;
+}
+
+.uploadFileFieldLabel {
+  display: inline-block;
+  padding-left: 5px;
+}
+
+.uploadFileFieldIcon {
+  display: inline-block;
+  padding-left: 5px;
+}
+
+.mandatoryIcon {
+  display: inline-block;
+  padding-left: 6px;
+}
+
+.footer {
+  background-color: rgb(0, 188, 212);
+  color: white;
+  font-size: 13px;
+  padding: 8px 27px;
+}
+
+.email {
+  text-decoration: underline;
+}
+
+.tabPanel {}
+
+.tabs {
+  height: 500px;
+}
+
+.resultsTabs {
+  height: 385px;
+}
+
+#log {
+  height: 300px;
+  width: 360px;
+  font-size: 12px;
+  overflow-x: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 5px;
+  margin-left: -2px;
+}
+
+.ReactTable {
+  font-size: 12px;
+  margin-left: -2px;
+}
+
+.rt-td {
+  padding: 0px 5px !important;
+}
+
+#popup {
+  position: absolute;
+  background-color: white;
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 10px, rgba(0, 0, 0, 0.23) 0px 3px 10px;
+}
+
+.popupHeader {
+  background-color: rgb(0, 188, 212);
+  color: white;
+  padding: 5px;
+  font-family: Roboto, sans-serif;
+}
+
+.summary_infoTable {
+  width: 360px;
+  height: 300px;
+}
+
+.infoTable {
+  width: 307px;
+  height: 366px;
+}
+
+.rt-tr-group {
+  cursor: pointer !important;
+}
+
+table input {
+  font-size: 13px;
+}
+
+.uploadDiv {
+  cursor: pointer;
+}
+
+.projectNameEditBox {
+  z-index: 1000000;
+  font-family: Roboto, sans-serif;
+  background-color: rgb(0, 188, 212);
+  border: 0px;
+  color: white;
+  font-size: 20px;
+  font-weight: 400;
+  position: static;
+  margin-left: 10px;
+}
+
+.descriptionEditBox {
+  z-index: 1000000;
+  margin-left: -1px;
+  font-family: Roboto, sans-serif;
+  border: 1px lightgray solid;
+  font-size: 13px;
+  width: 350px;
+  height: 22px;
+  margin-top: 1px;
+  margin-bottom: 11px;
+}
+
+.projectSpinner {
+  position: absolute;
+  top: 18px;
+  margin-left: 136px;
+}
+
+.optionsSpinner {
+  position: absolute;
+  top: 18px;
+  margin-left: 90px;
+}
+
+.runParametersSpinner {
+  position: absolute;
+  top: 18px;
+  margin-left: 166px;
+}
+
+.loginSpinner {
+  position: absolute;
+  top: 15px;
+  margin-left: 66px;
+}
+
+.resendSpinner {
+  position: absolute;
+  top: 18px;
+  margin-left: 145px;
+
+}
+
+.newUserSpinner {
+  position: absolute;
+  top: 18px;
+  margin-left: 100px;
+
+}
+
+.runningSpinner {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+}
+
+.progressSpinner {
+  position: fixed;
+  top: 18px;
+  margin-left: 91px;
+}
+
+.projectsBtn {
+  min-width: 24px !important;
+  min-height: 24px !important;
+  height: 24px !important;
+  margin-left:4px;
+  margin-right: 4px;
+}
+
+.fontAwesome {
+  vertical-align: baseline !important;
+  font-size: 15px !important;
+  height: 25px;
+}
+
+.chooseRenderer {
+  position: absolute;
+  right: 20px;
+  top: 20px;
+  padding: 10px;
+  background-color: white;
+}
+
+.mapboxHelp {
+  cursor: pointer;
+  margin-left: 10px;
+}
+
+.forgotLink {
+  cursor: pointer;
+  font-size: 12px;
+  text-decoration: underline;
+  color: cadetblue;
+  margin-left: 11px;
+
+}
+
+/*for the cells in the run parameters table so that they do not look different to the non-editable cells */
+
+div.rt-tbody>div>div>div>div {
+  background-color: rgba(0, 0, 0, 0) !important;
+}
+
+.runLabel {
+  margin-left: 29px;
+}
+
+.runs {
+  font-size: 10px;
+  padding: 10px;
+}
+
+.description {
+  font-size: 13px;
+  margin-bottom: 5px;
+}
+
+.createDate {
+  font-size: 13px;
+}
+
+.dialogGeneric {
+  padding-top: 0px !important;
+}
+
+.contentGeneric {
+  padding: 0px !important;
+}
+
+.dialog {
+  margin-left: 73px;
+  width: 500px !important;
+  padding-top: 0px !important;
+
+}
+
+.dialog2 {
+  margin-left: 123px;
+  margin-top: 38px;
+  width: 500px !important;
+  padding-top: 0px !important;
+
+}
+
+.dialog3 {
+  margin-left: 174px;
+  margin-top: 86px;
+  width: 500px !important;
+  padding-top: 0px !important;
+}
+
+.dialog4 {
+  margin-right: 73px;
+  margin-top: 86px;
+  width: 500px !important;
+  padding-top: 0px !important;
+}
+
+.projectsDialog {
+  margin-left: 73px;
+  width: 500px !important;
+  padding-top: 0px !important;
+  height: 566px !important;
+}
+
+.renderer {
+  margin: 0px 46px !important;
+}
+
+.renderers {}
+
+input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 50px white inset;
+}
+
+.newPUDialogPane {
+  /*width: 500px;*/
+  height: 390px;
+  /*margin-left: 80px;*/
+}
+
+.linearGauge {
+  margin-top: 5px;
+  display: inline-flex;
+  border: 1px solid lightgray;
+}
+
+.percentBar {
+  height: 18px;
+  color: white;
+  display: inline-block;
+  font-size: 11px;
+  text-align: center;
+  line-height: 20px;
+}
+
+.divider {
+  background-color: rgb(255, 64, 129);
+  position: absolute;
+  width: 2px;
+  /*margin-top:4px;*/
+}
+
+.protectedPercentBar {
+  background-color: rgb(0, 188, 212);
+} 
+
+.unprotectedPercentBar {
+  background-color: lightgray;
+}
+
+.targetShortfall {
+  background-color: lightgray;
+}
+
+.totalShortFall {
+  background-color: none;
+}
+
+.checkCircle {
+  display: inline-flex;
+  vertical-align: middle;
+  margin-left: 5px;
+  color: 'green';
+}
+
+.smallMenuItem {
+  line-height: 26px !important;
+  min-height: 16px !important;
+  font-size: 12px !important;
+}
+
+@-moz-keyframes spin {
+  from {
+    -moz-transform: rotate(0deg);
+  }
+  to {
+    -moz-transform: rotate(-360deg);
+  }
+}
+
+@-webkit-keyframes spin {
+  from {
+    -webkit-transform: rotate(0deg);
+  }
+  to {
+    -webkit-transform: rotate(-360deg);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+.spin {
+  -webkit-animation-name: spin;
+  -webkit-animation-duration: 1500ms;
+  -webkit-animation-iteration-count: infinite;
+  -webkit-animation-timing-function: linear;
+  -moz-animation-name: spin;
+  -moz-animation-duration: 1500ms;
+  -moz-animation-iteration-count: infinite;
+  -moz-animation-timing-function: linear;
+  -ms-animation-name: spin;
+  -ms-animation-duration: 1500ms;
+  -ms-animation-iteration-count: infinite;
+  -ms-animation-timing-function: linear;
+  -o-transition: rotate(3600deg);
+}
+
+.menuIcon {
+  margin-left: 20px;
+  cursor: pointer;
+}
+
+.toolbarIcon {
+  position: absolute !important;
+}
+
+.iconButton {
+  padding: 0px !important;
+  width: 24px !important;
+  height: 24px !important;
+  display: inline-flex !important;
+  line-height:24px !important;
+}
+
+.raisedButton {
+  padding: 0px !important;
+  min-width: 40px !important;
+  width: 24px !important;
+  height: 24px !important;
+}
+
+.titleBar {
+  background-color: rgb(0, 188, 212) !important;
+  vertical-align: middle;
+  padding-left: 20px;
+  padding-top: 14px;
+}
+.projectButton{
+  vertical-align: sub;
+}
+

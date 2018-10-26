@@ -1,0 +1,29 @@
+{
+  "name": "marxan",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "axios": "^0.18.0",
+    "classybrew": "0.0.3",
+    "jsonp-promise": "^0.1.2",
+    "mapbox": "^1.0.0-beta10",
+    "mapbox-gl": "^0.50.0",
+    "material-ui": "^0.20.0",
+    "rc-progress": "^2.2.5",
+    "react": "^16.3.2",
+    "react-dom": "^16.3.2",
+    "react-fontawesome": "^1.6.1",
+    "react-scripts": "1.1.4",
+    "react-table": "^6.8.2",
+    "recharts": "^1.0.0-beta.10",
+    "typeface-roboto": "0.0.54"
+  },
+  "scripts": {
+    "start": "PORT=8081 react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject"
+  },
+  "homepage": "http://beta.biopama.org/wireframes/marxan/build/",
+  "devDependencies": {}
+}
