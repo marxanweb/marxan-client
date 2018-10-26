@@ -849,7 +849,7 @@ class App extends React.Component {
       responseText = "Run succeeded but no data returned";
       // this.setState({ brew: {} });
     }
-    this.setState({ running: false, runsCompleted: 0, log: response.log.replace(/(\r\n|\n|\r)/g, "<br />"), outputsTabString: '', solutions: solutions, snackbarOpen: true, snackbarMessage: responseText});
+    this.setState({ running: false, runsCompleted: 0, log: response.log.replace(/(\r\n|\n|\r)/g, "<br />"), outputsTabString: '', solutions: solutions, snackbarOpen: true, snackbarMessage: responseText });
     //set the features tab as active
     this.features_tab_active();
   }
@@ -921,8 +921,8 @@ class App extends React.Component {
   }
 
   //get all data from the ssoln arrays
-  getSsolnData(data){
-    let arrays = data.map((item)=>{
+  getSsolnData(data) {
+    let arrays = data.map((item) => {
       return item[1];
     });
     return [].concat.apply([], arrays);
@@ -1255,6 +1255,8 @@ class App extends React.Component {
     this.showLayer(PLANNING_UNIT_LAYER_NAME);
     //change the opacity on the results layer to make it more transparent
     this.map.setPaintProperty(RESULTS_LAYER_NAME, "fill-opacity", RESULTS_LAYER_FILL_OPACITY_INACTIVE);
+    //change the opacity on all of the composite source layers to make them more transparent
+    // this.setOpacityBySource("composite", 0.5);
     //show the planning units edit layer 
     this.showLayer(PLANNING_UNIT_EDIT_LAYER_NAME);
     //render the planning_units_layer_edit layer
@@ -1265,6 +1267,8 @@ class App extends React.Component {
   pu_tab_inactive() {
     //change the opacity on the results layer to make it more opaque
     this.map.setPaintProperty(RESULTS_LAYER_NAME, "fill-opacity", RESULTS_LAYER_FILL_OPACITY_ACTIVE);
+    //change the opacity on all of the composite source layers to restore the opacity
+    // this.setOpacityBySource("composite", 1);
     //hide the planning units layer 
     this.hideLayer(PLANNING_UNIT_LAYER_NAME);
     //hide the planning units edit layer 
@@ -1276,6 +1280,32 @@ class App extends React.Component {
   }
   hideLayer(id) {
     this.map.setLayoutProperty(id, 'visibility', 'none');
+  }
+
+  //iterates through all the map layers and sets the opacity for all those layers with the source matching the passed source
+  setOpacityBySource(source, opacity) {
+    this.map.getStyle().layers.map((layer) => {
+      if (layer.source === source) {
+        switch (layer.type) {
+          case 'fill':
+            let opacity2 = (layer.id.substr(0,9) === 'hillshade') ? 0 : opacity;
+            this.map.setPaintProperty(layer.id, "fill-opacity", opacity2);
+            break;
+          case 'line':
+            this.map.setPaintProperty(layer.id, "line-opacity", opacity);
+            break;
+          case 'symbol':
+            this.map.setPaintProperty(layer.id, "text-opacity", opacity);
+            //also icon-opacity
+            this.map.setPaintProperty(layer.id, "icon-opacity", opacity);
+            break;
+          default:
+            // code
+        }
+      }else{
+        if (layer.id === 'background') this.map.setLayoutProperty(layer.id, 'visibility', 'none');
+      }
+    }, this);
   }
 
   startPuEditSession() {
