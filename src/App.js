@@ -912,17 +912,26 @@ class App extends React.Component {
       num = 0;
     let ssolnLength = this.getssolncount(data);
     data.map(function(item) {
-      num = Math.floor((item[1].length / ssolnLength) * sampleSize);
+      //use the ceiling function to force outliers to be in the classification, i.e. those planning units that were only selected in 1 solution
+      num = Math.ceil((item[1].length / ssolnLength) * sampleSize);
       sample.push(Array(num, ).fill(item[0]));
       return null;
     });
     return [].concat.apply([], sample);
   }
 
+  //get all data from the ssoln arrays
+  getSsolnData(data){
+    let arrays = data.map((item)=>{
+      return item[1];
+    });
+    return [].concat.apply([], arrays);
+  }
   //gets the classification and colorbrewer object for doing the rendering
   classifyData(data, numClasses, colorCode, classification) {
     //get a sample of the data to make the renderer classification
-    let sample = this.getssolnSample(data, 1000);
+    let sample = this.getssolnSample(data, 1000); //samples dont work
+    // let sample = this.getSsolnData(data); //get all the ssoln data
     //set the data 
     this.state.brew.setSeries(sample);
     //set the color code - see the color theory section on Joshua Tanners page here https://github.com/tannerjt/classybrew - for all the available colour codes
