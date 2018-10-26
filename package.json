@@ -24,6 +24,6 @@
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject"
   },
-  "homepage": "http://beta.biopama.org/wireframes/marxan/build/",
+  "homepage": "http://beta.biopama.org/marxan-client/build/",
   "devDependencies": {}
 }
