@@ -36,7 +36,6 @@ mapboxgl.accessToken = 'pk.eyJ1IjoiYmxpc2h0ZW4iLCJhIjoiMEZrNzFqRSJ9.0QBRA2HxTb8Y
 //CONSTANTS
 //THE MARXAN_ENDPOINT MUST ALSO BE CHANGED IN THE FILEUPLOAD.JS FILE 
 let MARXAN_ENDPOINT = "https://db-server-blishten.c9users.io/marxan/webAPI2.py/";
-let REST_ENDPOINT = "https://db-server-blishten.c9users.io/cgi-bin/services.py/biopama/marxan/";
 let TIMEOUT = 0; //disable timeout setting
 let DISABLE_LOGIN = false; //to not show the login form, set loggedIn to true
 let MAPBOX_USER = "blishten";
@@ -1510,12 +1509,12 @@ class App extends React.Component {
   }
   createNewPlanningUnitGrid() {
     this.setState({ creatingNewPlanningUnit: true });
-    jsonp(REST_ENDPOINT + "get_hexagons?iso3=" + this.state.iso3 + "&domain=" + this.state.domain + "&areakm2=" + this.state.areakm2, { timeout: 0 }).promise.then(function(response) {
+    jsonp(MARXAN_ENDPOINT + "createPlanningUnitGrid?iso3=" + this.state.iso3 + "&domain=" + this.state.domain + "&areakm2=" + this.state.areakm2, { timeout: 0 }).promise.then(function(response) {
       if (!this.checkForErrors(response)) {
         //feedback
-        this.setState({ snackbarOpen: true, snackbarMessage: "Planning grid: '" + response.records[0].get_hexagons.split(",")[1].replace(/"/gm, '').replace(")", "") + "' created" }); //response is (pu_cok_terrestrial_hexagons_10,"Cook Islands Terrestrial 10Km2 hexagon grid")
+        this.setState({ snackbarOpen: true, snackbarMessage: "Planning grid: '" + response.planning_unit_grid.split(",")[1].replace(/"/gm, '').replace(")", "") + "' created" }); //response is (pu_cok_terrestrial_hexagons_10,"Cook Islands Terrestrial 10Km2 hexagon grid")
         //upload this data to mapbox for visualisation
-        this.uploadToMapBox(response.records[0].get_hexagons.split(",")[0].replace(/"/gm, '').replace("(", ""), "hexagons");
+        this.uploadToMapBox(response.planning_unit_grid.split(",")[0].replace(/"/gm, '').replace("(", ""), "hexagons");
         //update the planning unit items
         this.getPlanningUnitGrids();
       }
@@ -1539,7 +1538,7 @@ class App extends React.Component {
     this.setState({ areakm2: value });
   }
   getCountries() {
-    jsonp(REST_ENDPOINT + "getcountries2", { timeout: 10000 }).promise.then(function(response) {
+    jsonp(MARXAN_ENDPOINT + "getCountries", { timeout: 10000 }).promise.then(function(response) {
       if (!this.checkForErrors(response)) {
         //valid response
         this.setState({ countries: response.records });
@@ -1583,7 +1582,7 @@ class App extends React.Component {
     }
     else {
       //load the interest features as all of the interest features from the marxan web database
-      jsonp(REST_ENDPOINT + "get_interest_features?format=json", { timeout: 10000 }).promise.then(function(response) {
+      jsonp(MARXAN_ENDPOINT + "getInterestFeatures?format=json", { timeout: 10000 }).promise.then(function(response) {
         if (!this.checkForErrors(response)) {
           this.setState({ allFeatures: response.records });
         }
