@@ -35,7 +35,8 @@ mapboxgl.accessToken = 'pk.eyJ1IjoiYmxpc2h0ZW4iLCJhIjoiMEZrNzFqRSJ9.0QBRA2HxTb8Y
 
 //CONSTANTS
 //THE MARXAN_ENDPOINT MUST ALSO BE CHANGED IN THE FILEUPLOAD.JS FILE 
-let MARXAN_ENDPOINT = "https://db-server-blishten.c9users.io/marxan/webAPI2.py/";
+// let MARXAN_ENDPOINT = "https://db-server-blishten.c9users.io/marxan/webAPI2.py/";
+let MARXAN_ENDPOINT = "https://db-server-blishten.c9users.io:8081/marxan-server/";
 let TIMEOUT = 0; //disable timeout setting
 let DISABLE_LOGIN = false; //to not show the login form, set loggedIn to true
 let MAPBOX_USER = "blishten";
@@ -421,7 +422,7 @@ class App extends React.Component {
         //if there is a PLANNING_UNIT_NAME passed then programmatically change the select box to this map 
         if (response.metadata.PLANNING_UNIT_NAME) this.changeTileset(MAPBOX_USER + "." + response.metadata.PLANNING_UNIT_NAME);
         //poll the server to see if results are available for this project - if there are these will be loaded
-        this.pollResults(true);
+        this.getResults();
       }
     }.bind(this));
   }
@@ -581,7 +582,7 @@ class App extends React.Component {
     jsonp(MARXAN_ENDPOINT + "deleteProject?user=" + this.state.user + "&project=" + name, { timeout: TIMEOUT }).promise.then(function(response) {
       if (!this.checkForErrors(response)) {
         //refresh the projects list
-        this.listProjects();
+        this.getProjects();
         //ui feedback
         this.setState({ snackbarOpen: true, snackbarMessage: response.info });
         //see if the user deleted the current project
@@ -607,7 +608,7 @@ class App extends React.Component {
     jsonp(MARXAN_ENDPOINT + "cloneProject?user=" + this.state.user + "&project=" + name, { timeout: TIMEOUT }).promise.then(function(response) {
       if (!this.checkForErrors(response)) {
         //refresh the projects list
-        this.listProjects();
+        this.getProjects();
         //ui feedback
         this.setState({ snackbarOpen: true, snackbarMessage: response.info });
       }
@@ -648,9 +649,9 @@ class App extends React.Component {
     }
   }
 
-  listProjects() {
+  getProjects() {
     this.setState({ loadingProjects: true });
-    jsonp(MARXAN_ENDPOINT + "listProjects?user=" + this.state.user, { timeout: TIMEOUT }).promise.then(function(response) {
+    jsonp(MARXAN_ENDPOINT + "getProjects?user=" + this.state.user, { timeout: TIMEOUT }).promise.then(function(response) {
       this.setState({ loadingProjects: false });
       if (!this.checkForErrors(response)) {
         this.setState({ projects: response.projects });
@@ -790,6 +791,16 @@ class App extends React.Component {
     }.bind(this));
   }
 
+  //gets the results for a project
+  getResults(){
+    //make the request to get the results
+    jsonp(MARXAN_ENDPOINT + "getResults?user=" + this.state.user + "&project=" + this.state.project, { timeout: TIMEOUT }).promise.then(function(response) {
+      if (!this.checkForErrors(response)) {
+          this.runCompleted(response);
+      }
+    }.bind(this));
+  }
+  
   //calls the marxan executeable and runs it
   startMarxanJob() {
     //update the ui to reflect the fact that a job is running
@@ -1125,8 +1136,8 @@ class App extends React.Component {
     this.zoomToBounds(tileset.bounds);
     //set the state
     this.setState({ tileset: tileset });
-    //programatically change the iucn category as the map doesn't respond to state changes
-    this.changeIucnCategory(this.state.metadata.IUCN_CATEGORY);
+    //filter the wdpa vector tiles as the map doesn't respond to state changes
+    this.filterWdpaByIucnCategory(this.state.metadata.IUCN_CATEGORY);
   }
 
   removeSpatialLayers() {
@@ -1547,6 +1558,15 @@ class App extends React.Component {
         this.setState({ loggingIn: false });
       }
     }.bind(this));
+    
+    var ws = new WebSocket("ws://db-server-blishten.c9users.io:8081/marxan-server/EchoWebSocket");
+    ws.onopen = function() {
+      ws.send("Hello, world");
+    };
+    ws.onmessage = function (evt) {
+       alert(evt.data);
+    };
+    
   }
 
   //uploads the names feature class to mapbox on the server
@@ -1878,7 +1898,7 @@ class App extends React.Component {
             userData={this.state.userData}
             loggedIn={this.state.loggedIn}
             activeTab={this.state.activeTab}
-            listProjects={this.listProjects.bind(this)}
+            getProjects={this.getProjects.bind(this)}
             projects={this.state.projects}
             project={this.state.project}
             metadata={this.state.metadata}

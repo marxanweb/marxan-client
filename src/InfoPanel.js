@@ -38,7 +38,7 @@ class InfoPanel extends React.Component {
   }
   openProjectsDialog() {
     this.setState({ projectsDialogOpen: true });
-    this.props.listProjects();
+    this.props.getProjects();
   }
   closeProjectsDialog() {
     this.setState({ projectsDialogOpen: false });
@@ -136,7 +136,7 @@ class InfoPanel extends React.Component {
                     logout={this.logout.bind(this)}
                     loadingProject={this.props.loadingProject}
                     loadingProjects={this.props.loadingProjects}
-                    listProjects={this.props.listProjects}
+                    getProjects={this.props.getProjects}
                     projects={this.props.projects}
                     project={this.props.project}
                     deleteProject={this.props.deleteProject}
