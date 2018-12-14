@@ -49,6 +49,7 @@ let RESULTS_LAYER_FILL_OPACITY_ACTIVE = 0.5;
 let RESULTS_LAYER_FILL_OPACITY_INACTIVE = 0.1;
 let WDPA_LAYER_NAME = "wdpa";
 let WDPA_LAYER_OPACITY = 0.9;
+var ws;
 
 Array.prototype.diff = function(a) {
   return this.filter(function(i) {
@@ -472,7 +473,7 @@ class App extends React.Component {
     var outFeatures = allInterestFeatures.map(function(item) {
       //see if the feature is in the current project
       var projectFeature = (ids.indexOf(item.id) > -1) ? projectFeatures[ids.indexOf(item.id)] : null;
-      //get the preprocessing for that feature
+      //get the preprocessing for that feature from the feature_preprocessing.dat file
       let preprocessing = this.getArrayItem(this.feature_preprocessing, item.id);
       //if the interest feature is in the current project then populate the data from that feature
       if (projectFeature) {
@@ -757,7 +758,8 @@ class App extends React.Component {
     });
     //iterate through the features and preprocess the ones that need preprocessing
     for (var i = 0; i < features.length; ++i) {
-      await this.preprocessFeature(features[i], false);
+      // await this.preprocessFeature(features[i], false);
+      await this.preprocessFeatureWebSockets(features[i], false);
     }
   }
 
@@ -773,7 +775,7 @@ class App extends React.Component {
     return Promise.all(promises);
   }
 
-  //preprocesses a feature - i.e. intersects it with the planning units grid and writes the intersection results into the puvspr.dat file ready for a marxan run
+  //preprocesses a feature using https and callbacks - i.e. intersects it with the planning units grid and writes the intersection results into the puvspr.dat file ready for a marxan run
   preprocessFeature(feature, hideDialogOnFinish = true) {
     //show the preprocessing dialog and the feature alias
     this.setState({ preprocessingFeature: true, preprocessingFeatureAlias: feature.alias });
@@ -788,6 +790,27 @@ class App extends React.Component {
         this.updateFeature(feature, "pu_count", Number(response.pu_count), true);
         this.updateFeature(feature, "pu_area", Number(response.pu_area), true);
       }
+    }.bind(this));
+  }
+
+  //preprocesses a feature using websockets - i.e. intersects it with the planning units grid and writes the intersection results into the puvspr.dat file ready for a marxan run - this will have no server timeout as its running using websockets
+  preprocessFeatureWebSockets(feature, hideDialogOnFinish = true) {
+    return new Promise(function(resolve, reject) {
+      ws = new WebSocket("wss://db-server-blishten.c9users.io:8081/marxan-server/preprocessFeature?user=" + this.state.user + "&project=" + this.state.project + "&planning_grid_name=" + this.state.metadata.PLANNING_UNIT_NAME + "&feature_class_name=" + feature.feature_class_name + "&id=" + feature.id);
+      ws.addEventListener("onopen", function(e){
+          document.getElementById("demo").innerHTML = "Hello World";
+      });
+      ws.onopen = function(e) {
+        console.log('WebSocket opened');
+      };
+      ws.onclose = function(e) {
+        console.log('WebSocket closed');
+      };
+      ws.onmessage = function (evt) {
+        console.log(evt.data);
+        let response = JSON.parse(evt.data);
+        if (response.hasOwnProperty('pu_count')) resolve(evt.data);
+      };
     }.bind(this));
   }
 
@@ -807,7 +830,7 @@ class App extends React.Component {
     this.setState({ running: true, log: 'Running...', active_pu: undefined, outputsTabString: 'Running...' });
     //make the request to get the marxan data
     jsonp(MARXAN_ENDPOINT + "runMarxan?user=" + this.state.user + "&project=" + this.state.project);
-    this.timer = setInterval(() => this.pollResults(false), 3000);
+    // this.timer = setInterval(() => this.pollResults(false), 3000);
   }
 
   //poll the server to see if the run has completed
@@ -1558,15 +1581,6 @@ class App extends React.Component {
         this.setState({ loggingIn: false });
       }
     }.bind(this));
-    
-    var ws = new WebSocket("ws://db-server-blishten.c9users.io:8081/marxan-server/EchoWebSocket");
-    ws.onopen = function() {
-      ws.send("Hello, world");
-    };
-    ws.onmessage = function (evt) {
-       alert(evt.data);
-    };
-    
   }
 
   //uploads the names feature class to mapbox on the server

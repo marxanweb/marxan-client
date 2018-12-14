@@ -20,7 +20,7 @@ class RunProgressDialog extends React.Component {
         return (
             <Dialog title="Running" children={c} 
                 overlayStyle={{display:'none'}} 
-            open={this.props.running || this.props.preprocessingFeature} 
+            // open={this.props.running || this.props.preprocessingFeature} 
             contentStyle={{width:'380px'}} 
             titleClassName={'dialogTitleStyle'}/>
         );

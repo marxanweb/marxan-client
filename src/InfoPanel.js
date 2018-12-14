@@ -224,7 +224,7 @@ class InfoPanel extends React.Component {
                     className="projectsBtn" 
                     style={{height:'24px'}}
                     onClick={this.props.runMarxan} 
-                    disabled={!this.props.runnable || this.props.preprocessingFeature || this.props.running || (this.props.features.length === 0) || this.state.puEditing} 
+                    // disabled={!this.props.runnable || this.props.preprocessingFeature || this.props.running || (this.props.features.length === 0) || this.state.puEditing}  
                   />  
                 </div>
             </Paper>
