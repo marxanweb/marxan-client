@@ -753,13 +753,15 @@ class App extends React.Component {
 
   //preprocess synchronously, i.e. one after another
   async preprocessAllFeaturesSync() {
-    var features = this.state.projectFeatures.filter(function(feature) {
-      return !feature.preprocessed;
-    });
+    var feature;
     //iterate through the features and preprocess the ones that need preprocessing
-    for (var i = 0; i < features.length; ++i) {
-      // await this.preprocessFeature(features[i], false);
-      await this.preprocessFeatureWebSockets(features[i], false);
+    for (var i = 0; i < this.state.projectFeatures.length; ++i) {
+      feature = this.state.projectFeatures[i];
+      if (!feature.preprocessed){
+        await this.preprocessFeatureWebSockets(feature, false);
+      }else{
+        //
+      }
     }
   }
 
@@ -797,20 +799,21 @@ class App extends React.Component {
   preprocessFeatureWebSockets(feature, hideDialogOnFinish = true) {
     return new Promise(function(resolve, reject) {
       ws = new WebSocket("wss://db-server-blishten.c9users.io:8081/marxan-server/preprocessFeature?user=" + this.state.user + "&project=" + this.state.project + "&planning_grid_name=" + this.state.metadata.PLANNING_UNIT_NAME + "&feature_class_name=" + feature.feature_class_name + "&id=" + feature.id);
-      ws.addEventListener("onopen", function(e){
-          document.getElementById("demo").innerHTML = "Hello World";
-      });
-      ws.onopen = function(e) {
-        console.log('WebSocket opened');
-      };
-      ws.onclose = function(e) {
-        console.log('WebSocket closed');
-      };
       ws.onmessage = function (evt) {
         console.log(evt.data);
         let response = JSON.parse(evt.data);
-        if (response.hasOwnProperty('pu_count')) resolve(evt.data);
-      };
+        if (response.hasOwnProperty('pu_count')) {
+        //if we want to hide the dialog after processing has finished then do so
+        if (hideDialogOnFinish) this.setState({preprocessingFeature: false });
+          //reset the preprocessingFeatureAlias to empty string
+          this.setState({ preprocessingFeatureAlias: "" });
+          //update the feature that has been preprocessed
+          this.updateFeature(feature, "preprocessed", true, true);
+          this.updateFeature(feature, "pu_count", Number(response.pu_count), true);
+          this.updateFeature(feature, "pu_area", Number(response.pu_area), true);
+          resolve(evt.data);
+        }
+      }.bind(this);
     }.bind(this));
   }
 
@@ -828,9 +831,14 @@ class App extends React.Component {
   startMarxanJob() {
     //update the ui to reflect the fact that a job is running
     this.setState({ running: true, log: 'Running...', active_pu: undefined, outputsTabString: 'Running...' });
-    //make the request to get the marxan data
-    jsonp(MARXAN_ENDPOINT + "runMarxan?user=" + this.state.user + "&project=" + this.state.project);
-    // this.timer = setInterval(() => this.pollResults(false), 3000);
+    return new Promise(function(resolve, reject) {
+      //make the request to get the marxan data
+      ws = new WebSocket("wss://db-server-blishten.c9users.io:8081/marxan-server/runMarxan?user=" + this.state.user + "&project=" + this.state.project);
+      ws.onmessage = function (evt) {
+        console.log(evt.data);
+        // let response = JSON.parse(evt.data);
+      }.bind(this);
+    }.bind(this));
   }
 
   //poll the server to see if the run has completed
