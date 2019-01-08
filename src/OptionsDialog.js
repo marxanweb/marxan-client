@@ -24,7 +24,7 @@ class OptionsDialog extends React.Component {
                 style={{display: this.props.open ? 'block' : 'none', marginLeft: '300px', left:'0px', width:'270px !important'}}
                 overlayStyle={{display:'none'}} 
                 className={'dialogGeneric'} 
-                title="Options" 
+                title="Marxan Settings" 
                 children={
                     <div>
                         <Checkbox label="Show planning unit popup" defaultChecked={this.props.userData.SHOWPOPUP} onCheck={(e, isInputChecked)=>this.setOption("SHOWPOPUP",isInputChecked)} style={{fontSize:'13px'}}/>

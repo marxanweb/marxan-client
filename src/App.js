@@ -3,13 +3,12 @@ import React from 'react';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import mapboxgl from 'mapbox-gl';
+import MapboxClient from 'mapbox';
 import jsonp from 'jsonp-promise';
 import InfoPanel from './InfoPanel.js';
 import Popup from './Popup.js';
 import Login from './login.js';
-import RunProgressDialog from './RunProgressDialog.js';
 import Snackbar from 'material-ui/Snackbar';
-import MapboxClient from 'mapbox';
 import classyBrew from 'classybrew';
 /*eslint-disable no-unused-vars*/
 import axios, { post } from 'axios';
@@ -20,23 +19,26 @@ import NewPlanningUnitDialog from './newProjectSteps/NewPlanningUnitDialog';
 import NewInterestFeatureDialog from './newProjectSteps/NewInterestFeatureDialog';
 import AllInterestFeaturesDialog from './AllInterestFeaturesDialog';
 import AllCostsDialog from './AllCostsDialog';
-import SettingsDialog from './SettingsDialog';
+import RunSettingsDialog from './RunSettingsDialog';
 import FilesDialog from './FilesDialog';
 import ResultsPane from './ResultsPane';
 import ClassificationDialog from './ClassificationDialog';
+import ClumpingDialog from './ClumpingDialog';
 import ImportWizard from './ImportWizard';
 import FlatButton from 'material-ui/FlatButton';
 import { white } from 'material-ui/styles/colors';
 import ArrowBack from 'material-ui/svg-icons/navigation/arrow-back';
-import ProcessingPADialog from './ProcessingPADialog';
 
 //GLOBAL VARIABLE IN MAPBOX CLIENT
 mapboxgl.accessToken = 'pk.eyJ1IjoiYmxpc2h0ZW4iLCJhIjoiMEZrNzFqRSJ9.0QBRA2HxTb8YHErUFRMPZg'; //this is my public access token for using in the Mapbox GL client - TODO change this to the logged in users public access token
 
 //CONSTANTS
-//THE MARXAN_ENDPOINT MUST ALSO BE CHANGED IN THE FILEUPLOAD.JS FILE 
-// let MARXAN_ENDPOINT = "https://db-server-blishten.c9users.io/marxan/webAPI2.py/";
-let MARXAN_ENDPOINT = "https://db-server-blishten.c9users.io:8081/marxan-server/";
+//THE MARXAN_ENDPOINT_HTTPS MUST ALSO BE CHANGED IN THE FILEUPLOAD.JS FILE 
+// let MARXAN_ENDPOINT_HTTPS = "https://db-server-blishten.c9users.io/marxan/webAPI2.py/";
+let MARXAN_REMOTE_SERVERS = ["db-server-blishten.c9users.io:8081/marxan-server/"];
+let MARXAN_LOCAL_SERVER = "localhost:8081/marxan-server/";
+let MARXAN_ENDPOINT_HTTPS = "https://" + MARXAN_REMOTE_SERVERS[0];
+let MARXAN_ENDPOINT_WSS = "wss://" + MARXAN_REMOTE_SERVERS[0];
 let TIMEOUT = 0; //disable timeout setting
 let DISABLE_LOGIN = false; //to not show the login form, set loggedIn to true
 let MAPBOX_USER = "blishten";
@@ -49,6 +51,7 @@ let RESULTS_LAYER_FILL_OPACITY_ACTIVE = 0.5;
 let RESULTS_LAYER_FILL_OPACITY_INACTIVE = 0.1;
 let WDPA_LAYER_NAME = "wdpa";
 let WDPA_LAYER_OPACITY = 0.9;
+let CLUMP_COUNT = 5;
 var ws;
 
 Array.prototype.diff = function(a) {
@@ -76,10 +79,7 @@ class App extends React.Component {
       files: {},
       running: false,
       runnable: false,
-      runsCompleted: 0,
-      numReps: 0,
       active_pu: undefined,
-      log: 'No data',
       dataAvailable: false,
       outputsTabString: 'No data',
       popup_point: { x: 0, y: 0 },
@@ -97,6 +97,7 @@ class App extends React.Component {
       settingsDialogOpen: false,
       classificationDialogOpen: false,
       importDialogOpen: false,
+      clumpingDialogOpen: false,
       resultsPaneOpen: true,
       preprocessingFeature: false,
       preprocessingProtectedAreas: false,
@@ -117,7 +118,20 @@ class App extends React.Component {
       countries: [],
       planning_units: [],
       planning_unit_grids: [],
-      activeTab: "project"
+      activeTab: "project",
+      activeResultsTab: "legend",
+      streamingLog:"Log not available until run completed.\n",
+      activeServer: MARXAN_REMOTE_SERVERS[0],
+      map0_paintProperty: [],
+      map1_paintProperty: [],
+      map2_paintProperty: [],
+      map3_paintProperty: [],
+      map4_paintProperty: [],
+      blmValues: [0,0.25,0.5,0.75,1],
+      blmMin: 0,
+      blmMax: 1, 
+      clumpingRunning: false,
+      pid: 0
     };
     this.planning_unit_statuses = [1, 2, 3];
   }
@@ -152,6 +166,9 @@ class App extends React.Component {
     this.map.addControl(new mapboxgl.ScaleControl());
     this.map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
     this.map.on("mousemove", this.mouseMove.bind(this));
+    this.map.on("moveend", function(evt){
+      this.setState({mapCentre:this.map.getCenter(), mapZoom:this.map.getZoom()});
+    }.bind(this));
   }
 
   closeSnackbar() {
@@ -192,6 +209,13 @@ class App extends React.Component {
     }
   }
 
+  startLogging(){
+    //switches the results pane to the log tab
+    this.log_tab_active();
+    //reset the state
+    this.setState({streamingLog: ""});
+  }
+  
   //utiliy method for getting all puids from normalised data, e.g. from [["VI", [7, 8, 9]], ["IV", [0, 1, 2, 3, 4]], ["V", [5, 6]]]
   getPuidsFromNormalisedData(normalisedData) {
     let puids = [];
@@ -212,7 +236,7 @@ class App extends React.Component {
   validateUser() {
     this.setState({ loggingIn: true });
     //get a list of existing users 
-    jsonp(MARXAN_ENDPOINT + "validateUser?user=" + this.state.user + "&password=" + this.state.password, { timeout: 10000 }).promise.then(function(response) {
+    jsonp(MARXAN_ENDPOINT_HTTPS + "validateUser?user=" + this.state.user + "&password=" + this.state.password, { timeout: 10000 }).promise.then(function(response) {
       if (!this.checkForErrors(response)) {
         //user validated - log them in
         this.login();
@@ -236,7 +260,7 @@ class App extends React.Component {
 
   resendPassword() {
     this.setState({ resending: true });
-    jsonp(MARXAN_ENDPOINT + "resendPassword?user=" + this.state.user, { timeout: TIMEOUT }).promise.then(function(response) {
+    jsonp(MARXAN_ENDPOINT_HTTPS + "resendPassword?user=" + this.state.user, { timeout: TIMEOUT }).promise.then(function(response) {
       this.setState({ resending: false });
       if (!this.checkForErrors(response)) {
         this.setState({ snackbarOpen: true, snackbarMessage: "Password resent" });
@@ -246,7 +270,7 @@ class App extends React.Component {
 
   //gets all the information for the user that is logging in
   getUserInfo() {
-    jsonp(MARXAN_ENDPOINT + "getUser?user=" + this.state.user, { timeout: TIMEOUT }).promise.then(function(response) {
+    jsonp(MARXAN_ENDPOINT_HTTPS + "getUser?user=" + this.state.user, { timeout: TIMEOUT }).promise.then(function(response) {
       if (!this.checkForErrors(response)) {
         this.setState({ project: response.userData.LASTPROJECT, userData: response.userData });
         //get the users tilesets from mapbox
@@ -293,10 +317,10 @@ class App extends React.Component {
       }
     };
     //post to the server
-    post(MARXAN_ENDPOINT + "updateUser", formData, config).then((response) => {
+    post(MARXAN_ENDPOINT_HTTPS + "updateUserParameters", formData, config).then((response) => {
       if (!this.checkForErrors(response.data)) {
         //if succesfull write the state back to the userData key
-        this.setState({ snackbarOpen: true, snackbarMessage: response.data.info, userData: this.newUserData, savingOptions: false, optionsDialogOpen: false });
+        this.setState({ userData: this.newUserData, savingOptions: false, optionsDialogOpen: false });
       }
     });
     //update the state
@@ -325,13 +349,8 @@ class App extends React.Component {
     this.setState({ filesDialogOpen: false });
   }
 
-  //updates the parameters for the current project back to the server
-  updateRunParams(array) {
-    //ui feedback
-    this.setState({ updatingRunParameters: true });
-    //convert the parameters array into an object
-    let parameters = {};
-    array.map((obj) => { parameters[obj.key] = obj.value; return null; });
+  //updates the project parameters for the current project back to the server (i.e. the input.dat file)
+  updateProjectParams(parameters) {
     //initialise the form data
     let formData = new FormData();
     //add the current user
@@ -346,24 +365,39 @@ class App extends React.Component {
       }
     };
     //post to the server
-    post(MARXAN_ENDPOINT + "updateRunParams", formData, config).then((response) => {
+    return post(MARXAN_ENDPOINT_HTTPS + "updateProjectParameters", formData, config);
+  }
+
+  //updates a single parameter in the input.dat file directly
+  updateProjectParameter(parameter, value) {
+    let obj = {};
+    obj[parameter] = value;
+    return this.updateProjectParams(obj);
+  }
+
+  //updates the run parameters for the current project
+  updateRunParams(array) {
+    //ui feedback
+    this.setState({ updatingRunParameters: true });
+    //convert the parameters array into an object
+    let parameters = {};
+    array.map((obj) => { parameters[obj.key] = obj.value; return null; });
+    //update
+    this.updateProjectParams(parameters).then(function(response){
       //ui feedback
       this.setState({ updatingRunParameters: false });
       if (!this.checkForErrors(response.data)) {
-        //get the number of runs from the run parameters array
-        let numReps = this.runParams.filter(function(item) { return item.key === "NUMREPS" })[0].value;
         //if succesfull write the state back 
-        this.setState({ runParams: this.runParams, filesDialogOpen: false, numReps: numReps });
-        console.log("Run parameter saved")
+        this.setState({ runParams: this.runParams, filesDialogOpen: false});
       }
-    });
+    }.bind(this));
     //save the local state to be able to update the state on callback
-    this.runParams = Object.assign(this.state.runParams, formData);
+    this.runParams = array;
   }
 
   //gets the planning unit grids
   getPlanningUnitGrids() {
-    return jsonp(MARXAN_ENDPOINT + "getPlanningUnitGrids", { timeout: TIMEOUT }).promise.then(function(response) {
+    return jsonp(MARXAN_ENDPOINT_HTTPS + "getPlanningUnitGrids", { timeout: TIMEOUT }).promise.then(function(response) {
       if (!this.checkForErrors(response)) {
         this.setState({ planning_unit_grids: response.planning_unit_grids });
       }
@@ -405,13 +439,11 @@ class App extends React.Component {
     this.setState({ loadingProject: true });
     //reset the results from any previous projects
     this.resetResults();
-    jsonp(MARXAN_ENDPOINT + "getProject?user=" + this.state.user + "&project=" + project, { timeout: TIMEOUT }).promise.then(function(response) {
+    jsonp(MARXAN_ENDPOINT_HTTPS + "getProject?user=" + this.state.user + "&project=" + project, { timeout: TIMEOUT }).promise.then(function(response) {
       this.setState({ loadingProject: false, loggingIn: false });
       if (!this.checkForErrors(response)) {
-        //get the number of runs from the run parameters array
-        let numReps = response.runParameters.filter(function(item) { return item.key === "NUMREPS" })[0].value;
         //set the state for the app based on the data that is returned from the server
-        this.setState({ loggedIn: true, project: response.project, runParams: response.runParameters, numReps: numReps, files: Object.assign(response.files), metadata: response.metadata, renderer: response.renderer, planning_units: response.planning_units });
+        this.setState({ loggedIn: true, project: response.project, runParams: response.runParameters, files: Object.assign(response.files), metadata: response.metadata, renderer: response.renderer, planning_units: response.planning_units });
         //set a local variable for the feature preprocessing - this is because we dont need to track state with these variables as they are not bound to anything
         this.feature_preprocessing = response.feature_preprocessing;
         //set a local variable for the protected area intersections - this is because we dont need to track state with these variables as they are not bound to anything
@@ -423,7 +455,7 @@ class App extends React.Component {
         //if there is a PLANNING_UNIT_NAME passed then programmatically change the select box to this map 
         if (response.metadata.PLANNING_UNIT_NAME) this.changeTileset(MAPBOX_USER + "." + response.metadata.PLANNING_UNIT_NAME);
         //poll the server to see if results are available for this project - if there are these will be loaded
-        this.getResults();
+        this.getResults(this.state.user, project);
       }
     }.bind(this));
   }
@@ -475,6 +507,8 @@ class App extends React.Component {
       var projectFeature = (ids.indexOf(item.id) > -1) ? projectFeatures[ids.indexOf(item.id)] : null;
       //get the preprocessing for that feature from the feature_preprocessing.dat file
       let preprocessing = this.getArrayItem(this.feature_preprocessing, item.id);
+      //add the required attributes to the features - these will be populated in the function calls preprocessFeature (pu_area, pu_count) and pollResults (protected_area, target_area)
+      this.addFeatureAttributes(item);
       //if the interest feature is in the current project then populate the data from that feature
       if (projectFeature) {
         item['selected'] = true;
@@ -484,27 +518,28 @@ class App extends React.Component {
         item['spf'] = projectFeature['spf'];
         item['target_value'] = projectFeature['target_value'];
       }
-      else {
-        item['selected'] = false;
-        item['preprocessed'] = false;
-        item['pu_area'] = -1;
-        item['pu_count'] = -1;
-        item['spf'] = 40;
-        item['target_value'] = 17;
-      }
-      //add the other required attributes to the features - these will be populated in the function calls preprocessFeature (pu_area, pu_count) and pollResults (protected_area, target_area)
-      // the -1 flag indicates that the values are unknown
-      item['target_area'] = -1;
-      item['protected_area'] = -1;
       return item;
     }, this);
     this.setState({ allFeatures: outFeatures, projectFeatures: outFeatures.filter(function(item) { return item.selected }) });
   }
 
+  //adds the required attributes for the features to work in the marxan web app - these are the default values
+  addFeatureAttributes(item){
+      // the -1 flag indicates that the values are unknown
+      item['selected'] = false;
+      item['preprocessed'] = false;
+      item['pu_area'] = -1;
+      item['pu_count'] = -1;
+      item['spf'] = 40;
+      item['target_value'] = 17;
+      item['target_area'] = -1;
+      item['protected_area'] = -1;
+  }
+
   //resets various variables and state in between users
   resetResults() {
     this.runMarxanResponse = {};
-    this.setState({ log: 'No data', solutions: [], dataAvailable: false, outputsTabString: 'No data' });
+    this.setState({ solutions: [], dataAvailable: false, outputsTabString: 'No data' });
   }
 
   //called after a file has been uploaded
@@ -520,16 +555,15 @@ class App extends React.Component {
     let formData = new FormData();
     formData.append('user', user);
     formData.append('password', password);
-    formData.append('name', name);
+    formData.append('fullname', name);
     formData.append('email', email);
     formData.append('mapboxaccesstoken', mapboxaccesstoken);
-    formData.append('project', 'Sample case study');
     const config = {
       headers: {
         'content-type': 'multipart/form-data'
       }
     };
-    post(MARXAN_ENDPOINT + "createUser", formData, config).then((response) => {
+    post(MARXAN_ENDPOINT_HTTPS + "createUser", formData, config).then((response) => {
       this.setState({ creatingNewUser: false });
       if (!this.checkForErrors(response.data)) {
         this.setState({ snackbarOpen: true, snackbarMessage: response.data.info + ". Close and login" });
@@ -565,7 +599,7 @@ class App extends React.Component {
         'content-type': 'multipart/form-data'
       }
     };
-    post(MARXAN_ENDPOINT + "createProjectFromWizard", formData, config).then((response) => {
+    post(MARXAN_ENDPOINT_HTTPS + "createProject", formData, config).then((response) => {
       this.setState({ loadingProjects: false });
       if (!this.checkForErrors(response.data)) {
         this.setState({ snackbarOpen: true, snackbarMessage: response.data.info });
@@ -580,7 +614,7 @@ class App extends React.Component {
   //REST call to delete a specific project
   deleteProject(name) {
     this.setState({ loadingProjects: true });
-    jsonp(MARXAN_ENDPOINT + "deleteProject?user=" + this.state.user + "&project=" + name, { timeout: TIMEOUT }).promise.then(function(response) {
+    jsonp(MARXAN_ENDPOINT_HTTPS + "deleteProject?user=" + this.state.user + "&project=" + name, { timeout: TIMEOUT }).promise.then(function(response) {
       if (!this.checkForErrors(response)) {
         //refresh the projects list
         this.getProjects();
@@ -594,7 +628,7 @@ class App extends React.Component {
           this.state.projects.some((project) => {
             if (project.name !== this.state.project) this.loadProject(project.name);
             return project.name !== this.state.project;
-          });
+          }, this);
         }
       }
       else {
@@ -606,7 +640,7 @@ class App extends React.Component {
 
   cloneProject(name) {
     this.setState({ loadingProjects: true });
-    jsonp(MARXAN_ENDPOINT + "cloneProject?user=" + this.state.user + "&project=" + name, { timeout: TIMEOUT }).promise.then(function(response) {
+    jsonp(MARXAN_ENDPOINT_HTTPS + "cloneProject?user=" + this.state.user + "&project=" + name, { timeout: TIMEOUT }).promise.then(function(response) {
       if (!this.checkForErrors(response)) {
         //refresh the projects list
         this.getProjects();
@@ -631,9 +665,9 @@ class App extends React.Component {
   renameProject(newName) {
     this.setState({ editingProjectName: false });
     if (newName !== '' && newName !== this.state.project) {
-      jsonp(MARXAN_ENDPOINT + "renameProject?user=" + this.state.user + "&project=" + this.state.project + "&newName=" + newName, { timeout: TIMEOUT }).promise.then(function(response) {
+      jsonp(MARXAN_ENDPOINT_HTTPS + "renameProject?user=" + this.state.user + "&project=" + this.state.project + "&newName=" + newName, { timeout: TIMEOUT }).promise.then(function(response) {
         if (!this.checkForErrors(response)) {
-          this.setState({ project: response.project, snackbarOpen: true, snackbarMessage: response.info });
+          this.setState({ project: newName, snackbarOpen: true, snackbarMessage: response.info });
         }
       }.bind(this));
     }
@@ -641,18 +675,16 @@ class App extends React.Component {
 
   renameDescription(newDesc) {
     this.setState({ editingDescription: false });
-    if (newDesc !== '' && newDesc !== this.state.metadata.DESCRIPTION) {
-      jsonp(MARXAN_ENDPOINT + "renameDescription?user=" + this.state.user + "&project=" + this.state.project + "&newDesc=" + newDesc, { timeout: TIMEOUT }).promise.then(function(response) {
+    this.updateProjectParameter("DESCRIPTION", newDesc).then(function(response) {
         if (!this.checkForErrors(response)) {
-          this.setState({ metadata: Object.assign(this.state.metadata, { DESCRIPTION: response.description }), snackbarOpen: true, snackbarMessage: response.info });
+          this.setState({ metadata: Object.assign(this.state.metadata, { DESCRIPTION: newDesc })});
         }
       }.bind(this));
     }
-  }
 
   getProjects() {
     this.setState({ loadingProjects: true });
-    jsonp(MARXAN_ENDPOINT + "getProjects?user=" + this.state.user, { timeout: TIMEOUT }).promise.then(function(response) {
+    jsonp(MARXAN_ENDPOINT_HTTPS + "getProjects?user=" + this.state.user, { timeout: TIMEOUT }).promise.then(function(response) {
       this.setState({ loadingProjects: false });
       if (!this.checkForErrors(response)) {
         this.setState({ projects: response.projects });
@@ -663,44 +695,38 @@ class App extends React.Component {
     }.bind(this));
   }
 
-  //updates a parameter in the input.dat file directly
-  updateParameter(parameter, value) {
-    jsonp(MARXAN_ENDPOINT + "updateParameter?user=" + this.state.user + "&project=" + this.state.project + "&parameter=" + parameter + "&value=" + value, { timeout: TIMEOUT }).promise.then(function(response) {
-      if (!this.checkForErrors(response)) {
-        //do something
-      }
-    }.bind(this));
-  }
-
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   ////////CODE TO PREPROCESS AND RUN MARXAN
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   //run a marxan job on the server
   runMarxan(e) {
-    //ui feedback
-    this.setState({ preprocessingFeature: true });
-
+    //start the logging
+    this.startLogging();
+    //sets the state to running
+    this.setState({running: true});
     //reset all of the protected and target areas for all features
     this.resetProtectedAreas();
-
     //update the spec.dat file with any that have been added or removed or changed target or spf
     this.updateSpecFile().then(function(value) {
-
       //when the species file has been updated, update the planning unit file 
       this.updatePuFile();
-
       //when the planning unit file has been updated, update the PuVSpr file - this does all the preprocessing
       this.updatePuvsprFile().then(function(value) {
-
         //start the marxan job
-        this.startMarxanJob();
-
-        //set processing to have ended
-        this.setState({ preprocessingFeature: false });
-
+        this.startMarxanJob(this.state.user, this.state.project).then(function(response){
+          //run completed - get the results
+          this.getResults(response.user, response.project);
+        }.bind(this));
       }.bind(this));
+    }.bind(this));
+  }
 
+  stopMarxan() {
+    jsonp(MARXAN_ENDPOINT_HTTPS + "stopMarxan?pid=" + this.state.pid, { timeout: 10000 }).promise.then(function(response) {
+      if (!this.checkForErrors(response)) {
+        this.setState({ running: false, pid: 0});
+      }
     }.bind(this));
   }
 
@@ -734,7 +760,7 @@ class App extends React.Component {
         'content-type': 'multipart/form-data'
       }
     };
-    return post(MARXAN_ENDPOINT + "updateSpecFile", formData, config).then((response) => {
+    return post(MARXAN_ENDPOINT_HTTPS + "updateSpecFile", formData, config).then((response) => {
       //check if there are no timeout errors or empty responses
       this.checkForErrors(response.data);
     });
@@ -747,164 +773,148 @@ class App extends React.Component {
 
   updatePuvsprFile() {
     //preprocess the features to create the puvspr.dat file on the server - this is done on demand when the project is run because the user may add/remove Conservation features willy nilly
-    let promise = this.preprocessAllFeaturesSync();
+    let promise = this.preprocessAllFeatures();
     return promise;
   }
 
+  //preprocess a single feature
+  async preprocessSingleFeature(feature){
+    this.startLogging();
+    this.preprocessFeature(feature);
+  }
+  
   //preprocess synchronously, i.e. one after another
-  async preprocessAllFeaturesSync() {
+  async preprocessAllFeatures() {
     var feature;
     //iterate through the features and preprocess the ones that need preprocessing
     for (var i = 0; i < this.state.projectFeatures.length; ++i) {
       feature = this.state.projectFeatures[i];
       if (!feature.preprocessed){
-        await this.preprocessFeatureWebSockets(feature, false);
+        await this.preprocessFeature(feature);
       }else{
         //
       }
     }
   }
 
-  //iterates through all of the features and preprocesses them asynchronously - i.e. all at once
-  preprocessAllFeatures() {
-    //return a promise array from each of the preprocessing jobs
-    let promises = this.state.projectFeatures.map(feature => {
-      if (!feature.preprocessed) {
-        return this.preprocessFeature(feature, false);
-      }
-    }, this);
-    //returns a single Promise that resolves when all of the promises in the promises array have resolved 
-    return Promise.all(promises);
-  }
-
-  //preprocesses a feature using https and callbacks - i.e. intersects it with the planning units grid and writes the intersection results into the puvspr.dat file ready for a marxan run
-  preprocessFeature(feature, hideDialogOnFinish = true) {
-    //show the preprocessing dialog and the feature alias
-    this.setState({ preprocessingFeature: true, preprocessingFeatureAlias: feature.alias });
-    return jsonp(MARXAN_ENDPOINT + "preprocessFeature?user=" + this.state.user + "&project=" + this.state.project + "&planning_grid_name=" + this.state.metadata.PLANNING_UNIT_NAME + "&feature_class_name=" + feature.feature_class_name + "&id=" + feature.id, { timeout: TIMEOUT }).promise.then(function(response) {
-      if (!this.checkForErrors(response)) {
-        //if we want to hide the dialog after processing has finished then do so
-        if (hideDialogOnFinish) this.setState({ preprocessingFeature: false });
-        //reset the preprocessingFeatureAlias to empty string
-        this.setState({ preprocessingFeatureAlias: "" });
-        //update the feature that has been preprocessed
-        this.updateFeature(feature, "preprocessed", true, true);
-        this.updateFeature(feature, "pu_count", Number(response.pu_count), true);
-        this.updateFeature(feature, "pu_area", Number(response.pu_area), true);
-      }
-    }.bind(this));
-  }
-
   //preprocesses a feature using websockets - i.e. intersects it with the planning units grid and writes the intersection results into the puvspr.dat file ready for a marxan run - this will have no server timeout as its running using websockets
-  preprocessFeatureWebSockets(feature, hideDialogOnFinish = true) {
+  preprocessFeature(feature) {
     return new Promise(function(resolve, reject) {
-      ws = new WebSocket("wss://db-server-blishten.c9users.io:8081/marxan-server/preprocessFeature?user=" + this.state.user + "&project=" + this.state.project + "&planning_grid_name=" + this.state.metadata.PLANNING_UNIT_NAME + "&feature_class_name=" + feature.feature_class_name + "&id=" + feature.id);
+      //switches the results pane to the log tab
+      this.log_tab_active();
+      this.setState({preprocessingFeature: true});
+      ws = new WebSocket(MARXAN_ENDPOINT_WSS + "preprocessFeature?user=" + this.state.user + "&project=" + this.state.project + "&planning_grid_name=" + this.state.metadata.PLANNING_UNIT_NAME + "&feature_class_name=" + feature.feature_class_name + "&alias=" + feature.alias + "&id=" + feature.id);
       ws.onmessage = function (evt) {
-        console.log(evt.data);
+        //TODO This code is duplicated in other websocket onmessage functions - sort out
         let response = JSON.parse(evt.data);
-        if (response.hasOwnProperty('pu_count')) {
-        //if we want to hide the dialog after processing has finished then do so
-        if (hideDialogOnFinish) this.setState({preprocessingFeature: false });
-          //reset the preprocessingFeatureAlias to empty string
-          this.setState({ preprocessingFeatureAlias: "" });
-          //update the feature that has been preprocessed
-          this.updateFeature(feature, "preprocessed", true, true);
-          this.updateFeature(feature, "pu_count", Number(response.pu_count), true);
-          this.updateFeature(feature, "pu_area", Number(response.pu_area), true);
-          resolve(evt.data);
+        switch (response.status) {
+          case 'Started': 
+            this.setState({streamingLog: this.state.streamingLog + response.info + "\n"});
+            break;
+          case 'Running': 
+            this.setState({streamingLog: this.state.streamingLog + response.info + " (elapsed time: " + response.elapsedtime + ")\n"});
+            break;
+          case 'Finished': 
+            //reset the preprocessing state
+            this.setState({preprocessingFeature: false, streamingLog: this.state.streamingLog + response.info + " (Total time: " + response.elapsedtime + ")\n\n" });
+            //update the feature that has been preprocessed
+            this.updateFeature(feature, "preprocessed", true, true);
+            this.updateFeature(feature, "pu_count", Number(response.pu_count), true);
+            this.updateFeature(feature, "pu_area", Number(response.pu_area), true);
+            resolve(evt.data);
+            break;
         }
       }.bind(this);
     }.bind(this));
   }
 
+  //calls the marxan executeable and runs it getting the output streamed through websockets
+  startMarxanJob(user, project, showLog = true) {
+    var logMessage = "";
+    return new Promise(function(resolve, reject) {
+      //update the ui to reflect the fact that a job is running
+      this.setState({active_pu: undefined, outputsTabString: 'Running...' });
+      //make the request to get the marxan data
+      ws = new WebSocket(MARXAN_ENDPOINT_WSS + "runMarxan?user=" + user + "&project=" + project);
+      ws.onmessage = function(evt){
+        let response = JSON.parse(evt.data);
+        switch (response.status) {
+          case 'pid': 
+            this.setState({pid: response.pid});
+            break;
+          case 'Started': 
+            logMessage = this.state.streamingLog + response.info + "\n\n";
+            break;
+          case 'Running': 
+            logMessage = this.state.streamingLog + response.info.replace(/(\n\n  Init)/gm,"\n  Init").replace(/(\n\n  ThermalAnnealing)/gm,"\n  ThermalAnnealing").replace(/(\n\n  Iterative)/gm,"\n  Iterative").replace(/(\n\n  Best)/gm,"\n  Best");
+            break;
+          case 'Finished': 
+            logMessage = this.state.streamingLog + "\n" + response.info + " (Total time: " + response.elapsedtime + ")\n";
+            resolve(response);
+            break;
+        }
+        if (showLog) this.setState({streamingLog: logMessage});
+      }.bind(this);
+    }.bind(this));
+  }
+
+  //called every time there is a message from the running marxan websocket
+  marxanJobMessageReceived (evt) {
+  }
+
   //gets the results for a project
-  getResults(){
+  getResults(user, project){
     //make the request to get the results
-    jsonp(MARXAN_ENDPOINT + "getResults?user=" + this.state.user + "&project=" + this.state.project, { timeout: TIMEOUT }).promise.then(function(response) {
+    jsonp(MARXAN_ENDPOINT_HTTPS + "getResults?user=" + user + "&project=" + project, { timeout: TIMEOUT }).promise.then(function(response) {
       if (!this.checkForErrors(response)) {
           this.runCompleted(response);
       }
     }.bind(this));
   }
   
-  //calls the marxan executeable and runs it
-  startMarxanJob() {
-    //update the ui to reflect the fact that a job is running
-    this.setState({ running: true, log: 'Running...', active_pu: undefined, outputsTabString: 'Running...' });
-    return new Promise(function(resolve, reject) {
-      //make the request to get the marxan data
-      ws = new WebSocket("wss://db-server-blishten.c9users.io:8081/marxan-server/runMarxan?user=" + this.state.user + "&project=" + this.state.project);
-      ws.onmessage = function (evt) {
-        console.log(evt.data);
-        // let response = JSON.parse(evt.data);
-      }.bind(this);
-    }.bind(this));
-  }
-
-  //poll the server to see if the run has completed
-  pollResults(checkForExistingRun) {
-    //make the request to get the marxan data
-    jsonp(MARXAN_ENDPOINT + "pollResults?user=" + this.state.user + "&project=" + this.state.project + "&numreps=" + this.state.numReps + "&checkForExistingRun=" + checkForExistingRun, { timeout: TIMEOUT }).promise.then(function(response) {
-      if (!this.checkForErrors(response)) {
-        //the response includes the summed solution so it has finished
-        if (response.ssoln) {
-          this.runCompleted(response);
-          //cancel the timer which polls the server to see when the run is complete
-          clearInterval(this.timer);
-          this.timer = null;
-        }
-        else {
-          this.setState({ runsCompleted: response.runsCompleted });
-        }
-      }
-      else {
-        this.setState({ running: false });
-      }
-    }.bind(this));
-  }
-
   //run completed
   runCompleted(response) {
-    var responseText;
+    var solutions;
     //get the response and store it in this component
     this.runMarxanResponse = response;
     //if we have some data to map then set the state to reflect this
-    (this.runMarxanResponse.ssoln && this.runMarxanResponse.ssoln.length > 0) ? this.setState({ dataAvailable: true }): this.setState({ dataAvailable: false });
-    //render the sum solution map
-    this.renderSolution(this.runMarxanResponse.ssoln, true);
-    //create the array of solutions to pass to the InfoPanels table
-    let solutions = response.sum;
-    //the array data are in the format "Run_Number","Score","Cost","Planning_Units" - so create an array of objects to pass to the outputs table
-    solutions = solutions.map(function(item) {
-      return { "Run_Number": item[0], "Score": Math.floor(item[1]), "Cost": Math.floor(item[2]), "Planning_Units": item[3], "Missing_Values": item[12] };
-    });
-    //add in the row for the summed solutions
-    solutions.splice(0, 0, { 'Run_Number': 'Sum', 'Score': '', 'Cost': '', 'Planning_Units': '', 'Missing_Values': '' });
-    //update the amount of each target that is protected in the current run from the output_mvbest.txt file
-    this.updateProtectedAmount();
-    //ui feedback
-    if (this.state.dataAvailable) {
-      responseText = response.info;
-    }
-    else {
-      responseText = "Run succeeded but no data returned";
+    if (this.runMarxanResponse.ssoln && this.runMarxanResponse.ssoln.length > 0) {
+      this.setState({ dataAvailable: true , snackbarOpen: true, snackbarMessage: response.info});
+      //render the sum solution map
+      this.renderSolution(this.runMarxanResponse.ssoln, true);
+      //create the array of solutions to pass to the InfoPanels table
+      solutions = response.summary;
+      //the array data are in the format "Run_Number","Score","Cost","Planning_Units" - so create an array of objects to pass to the outputs table
+      solutions = solutions.map(function(item) {
+        return { "Run_Number": item[0], "Score": Number(item[1]).toFixed(1), "Cost": Number(item[2]).toFixed(1), "Planning_Units": item[3], "Missing_Values": item[12] };
+      });
+      //add in the row for the summed solutions
+      solutions.splice(0, 0, { 'Run_Number': 'Sum', 'Score': '', 'Cost': '', 'Planning_Units': '', 'Missing_Values': '' });
+      //update the amount of each target that is protected in the current run from the output_mvbest.txt file
+      this.updateProtectedAmount(this.runMarxanResponse.mvbest);
+    }else{
+      this.setState({ dataAvailable: false });
+      solutions = [];
       // this.setState({ brew: {} });
     }
-    this.setState({ running: false, runsCompleted: 0, log: response.log.replace(/(\r\n|\n|\r)/g, "<br />"), outputsTabString: '', solutions: solutions, snackbarOpen: true, snackbarMessage: responseText });
+    //TODO There are bugs in Marxan which dont write the output_log.dat file correctly that need to be fixed - for now the log comes from this file or is streamed back from the server on a Marxan run (streaming is not supported on Windows)
+    this.setState({ running: false, outputsTabString: '', solutions: solutions });
     //set the features tab as active
     this.features_tab_active();
   }
 
   //gets the protected area information in m2 from the marxan run and populates the interest features with the values
-  updateProtectedAmount() {
+  updateProtectedAmount(mvData) {
     //iterate through the features and set the protected amount
     this.state.projectFeatures.map((feature) => {
       //get the matching item in the mvbest data
-      let mvbestItemIndex = this.runMarxanResponse.mvbest.findIndex(function(item) { return item[0] === feature.id; });
-      //get the mvbest data
-      let mvbestItem = this.runMarxanResponse.mvbest[mvbestItemIndex];
-      this.updateFeature(feature, "target_area", mvbestItem[2], true);
-      this.updateFeature(feature, "protected_area", mvbestItem[3], true);
+      let mvbestItemIndex = mvData.findIndex(function(item) { return item[0] === feature.id; });
+      if (mvbestItemIndex>-1){ //the mvbest file may not contain the data for the feature if the project has not been run since the feature was added
+        //get the missing values item for the specific feature
+        let mvItem = mvData[mvbestItemIndex];
+        this.updateFeature(feature, "target_area", mvItem[2], true);
+        this.updateFeature(feature, "protected_area", mvItem[3], true);
+      }
     }, this);
   }
 
@@ -919,22 +929,61 @@ class App extends React.Component {
     return s;
   }
 
-  //load a specific solution
+  //load a specific solution for the current project
   loadSolution(solution) {
     if (solution === "Sum") {
+      this.updateProtectedAmount(this.runMarxanResponse.mvbest);
       //load the sum of solutions which will already be loaded
       this.renderSolution(this.runMarxanResponse.ssoln, true);
     }
     else {
-      //request the data for the specific solution
-      jsonp(MARXAN_ENDPOINT + "loadSolution?user=" + this.state.user + "&project=" + this.state.project + "&solution=" + solution, { timeout: TIMEOUT }).promise.then(function(response) {
-        if (!this.checkForErrors(response)) {
+      this.getSolution(this.state.user, this.state.project, solution).then(function(response){
+          this.updateProtectedAmount(response.mv);
           this.renderSolution(response.solution, false);
-        }
       }.bind(this));
     }
   }
 
+  //load a solution from another project - used in the clumping dialog - when the solution is loaded the paint properties are set on the individual maps through state changes
+  loadOtherSolution(user, project, solution) {
+    this.getSolution(user, project, solution).then(function(response){
+      var paintProperties = this.getPaintProperties(response.solution, false, false);
+      //get the project that matches the project name from the this.projects property - this was set when the projectGroup was created
+      var _projects = this.projects.filter(function(item){return item.projectName == project});
+      //get which clump it is
+      var clump = _projects[0].clump;
+      switch (clump) {
+        case 0:
+          this.setState({map0_paintProperty: paintProperties});
+          break;
+        case 1:
+          this.setState({map1_paintProperty: paintProperties});
+          break;
+        case 2:
+          this.setState({map2_paintProperty: paintProperties});
+          break;
+        case 3:
+          this.setState({map3_paintProperty: paintProperties});
+          break;
+        case 4:
+          this.setState({map4_paintProperty: paintProperties});
+          break;
+      }
+    }.bind(this));
+  }
+  
+  //gets a solution and returns a promise
+  getSolution(user, project, solution){
+    return new Promise(function(resolve, reject) {
+      //request the data for the specific solution
+      jsonp(MARXAN_ENDPOINT_HTTPS + "getSolution?user=" + user + "&project=" + project + "&solution=" + solution, { timeout: TIMEOUT }).promise.then(function(response) {
+        if (!this.checkForErrors(response)) {
+          resolve(response);
+        }
+      }.bind(this));
+    }.bind(this));
+  }
+  
   //gets the total number of planning units in the ssoln and outputs the statistics of the distribution to state, e.g. 2 PUs with a value of 1, 3 with a value of 2 etc.
   getssolncount(data) {
     let total = 0;
@@ -990,7 +1039,6 @@ class App extends React.Component {
     this.state.brew.setNumClasses(numClasses);
     //if the colorCode is opacity then I will add it manually to the classbrew colorSchemes
     if (colorCode === 'opacity') {
-      // expression.push(row[1], "rgba(255, 0, 136," + (row[0] / this.state.runParams.NUMREPS) + ")");
       let newBrewColorScheme = Array(Number(this.state.renderer.NUMCLASSES)).fill("rgba(255,0,136,").map(function(item, index) { return item + ((1 / this) * (index + 1)) + ")"; }, this.state.renderer.NUMCLASSES);
       this.state.brew.colorSchemes.opacity = {
         [this.state.renderer.NUMCLASSES]: newBrewColorScheme
@@ -1004,7 +1052,7 @@ class App extends React.Component {
   //called when the renderer state has been updated - renders the solution and saves the renderer back to the server
   rendererStateUpdated(parameter, value) {
     this.renderSolution(this.runMarxanResponse.ssoln, true);
-    this.updateParameter(parameter, value);
+    this.updateProjectParameter(parameter, value);
   }
   //change the renderer, e.g. jenks, natural_breaks etc.
   changeRenderer(renderer) {
@@ -1037,13 +1085,22 @@ class App extends React.Component {
   //renders the solution - data is the REST response and sum is a flag to indicate if the data is the summed solution (true) or an individual solution (false)
   renderSolution(data, sum) {
     if (!data) return;
+    var paintProperties = this.getPaintProperties(data, sum, true);
+    //set the render paint property
+    this.map.setPaintProperty(RESULTS_LAYER_NAME, "fill-color", paintProperties.fillColor);
+    this.map.setPaintProperty(RESULTS_LAYER_NAME, "fill-outline-color", paintProperties.oulineColor);
+    this.map.setPaintProperty(RESULTS_LAYER_NAME, "fill-opacity", RESULTS_LAYER_FILL_OPACITY_ACTIVE);
+  }
+
+  //gets the various paint properties for the planning unit layer - if setRenderer is true then it will also update the renderer in the Legend panel
+  getPaintProperties(data, sum, setRenderer){
+    //build an expression to get the matching puids with different numbers of 'numbers' in the marxan results
+    var fill_color_expression = ["match", ["get", "puid"]];
+    var fill_outline_color_expression = ["match", ["get", "puid"]];
     if (this.state.dataAvailable) {
       var color, visibleValue, value;
       //create the renderer using Joshua Tanners excellent library classybrew - available here https://github.com/tannerjt/classybrew
-      this.classifyData(data, Number(this.state.renderer.NUMCLASSES), this.state.renderer.COLORCODE, this.state.renderer.CLASSIFICATION);
-      //build an expression to get the matching puids with different numbers of 'numbers' in the marxan results
-      var fill_color_expression = ["match", ["get", "puid"]];
-      var fill_outline_color_expression = ["match", ["get", "puid"]];
+      if (setRenderer) this.classifyData(data, Number(this.state.renderer.NUMCLASSES), this.state.renderer.COLORCODE, this.state.renderer.CLASSIFICATION);
       //if only the top n classes will be rendered then get the visible value at the boundary
       if (this.state.renderer.TOPCLASSES < this.state.renderer.NUMCLASSES) {
         let breaks = this.state.brew.getBreaks();
@@ -1054,7 +1111,7 @@ class App extends React.Component {
       }
       // the rest service sends the data grouped by the 'number', e.g. [1,[23,34,36,43,98]],[2,[16,19]]
       data.forEach(function(row, index) {
-        if (sum) {
+        if (sum) { //multi value rendering
           value = row[0];
           //for each row add the puids and the color to the expression, e.g. [35,36,37],"rgba(255, 0, 136,0.1)"
           color = this.state.brew.getColorInRange(value);
@@ -1068,7 +1125,7 @@ class App extends React.Component {
             fill_outline_color_expression.push(row[1], "rgba(0, 0, 0, 0)");
           }
         }
-        else {
+        else { //single value rendering
           fill_color_expression.push(row[1], "rgba(255, 0, 136,1)");
           fill_outline_color_expression.push(row[1], "rgba(150, 150, 150, 0.6)"); //gray outline
         }
@@ -1076,14 +1133,14 @@ class App extends React.Component {
       // Last value is the default, used where there is no data
       fill_color_expression.push("rgba(0,0,0,0)");
       fill_outline_color_expression.push("rgba(0,0,0,0)");
-      //set the render paint property
-      this.map.setPaintProperty(RESULTS_LAYER_NAME, "fill-color", fill_color_expression);
-      this.map.setPaintProperty(RESULTS_LAYER_NAME, "fill-outline-color", fill_outline_color_expression);
-      this.map.setPaintProperty(RESULTS_LAYER_NAME, "fill-opacity", RESULTS_LAYER_FILL_OPACITY_ACTIVE);
-
+    }else{
+      fill_color_expression = "rgba(0, 0, 0, 0)";
+      fill_outline_color_expression = "rgba(0, 0, 0, 0)";
     }
+    return {fillColor: fill_color_expression, oulineColor: fill_outline_color_expression};
   }
-
+  
+  
   //renders the planning units edit layer according to the type of layer and pu status 
   renderPuEditLayer() {
     let expression;
@@ -1280,13 +1337,15 @@ class App extends React.Component {
 
   //fired when the features tab is selected
   features_tab_active() {
-    this.setState({ activeTab: "features" });
-    if (this.state.dataAvailable) {
-      //render the sum solution map
-      this.renderSolution(this.runMarxanResponse.ssoln, true);
+    if (this.state.activeTab !== "features"){
+      this.setState({ activeTab: "features" });
+      if (this.state.dataAvailable) {
+        //render the sum solution map
+        this.renderSolution(this.runMarxanResponse.ssoln, true);
+      }
+      //hide the planning unit layers
+      this.pu_tab_inactive();
     }
-    //hide the planning unit layers
-    this.pu_tab_inactive();
   }
 
   //fired when the planning unit tab is selected
@@ -1314,6 +1373,21 @@ class App extends React.Component {
     this.hideLayer(PLANNING_UNIT_LAYER_NAME);
     //hide the planning units edit layer 
     this.hideLayer(PLANNING_UNIT_EDIT_LAYER_NAME);
+  }
+
+  //fired when the legend tab is selected
+  legend_tab_active() {
+    this.setState({activeResultsTab: "legend" });
+  }
+
+  //fired when the solutions tab is selected
+  solutions_tab_active() {
+    this.setState({activeResultsTab: "solutions" });
+  }
+
+  //fired when the log tab is selected
+  log_tab_active() {
+    this.setState({activeResultsTab: "log" });
   }
 
   showLayer(id) {
@@ -1392,10 +1466,9 @@ class App extends React.Component {
       }
     };
     //post to the server
-    post(MARXAN_ENDPOINT + "updatePlanningUnitStatuses", formData, config).then((response) => {
+    post(MARXAN_ENDPOINT_HTTPS + "updatePUFile", formData, config).then((response) => {
       if (!this.checkForErrors(response.data)) {
         // this.setState({ snackbarOpen: true, snackbarMessage: response.data.info });
-        console.log(response.data.info);
       }
     });
   }
@@ -1551,7 +1624,7 @@ class App extends React.Component {
   }
   createNewPlanningUnitGrid() {
     this.setState({ creatingNewPlanningUnit: true });
-    jsonp(MARXAN_ENDPOINT + "createPlanningUnitGrid?iso3=" + this.state.iso3 + "&domain=" + this.state.domain + "&areakm2=" + this.state.areakm2, { timeout: 0 }).promise.then(function(response) {
+    jsonp(MARXAN_ENDPOINT_HTTPS + "createPlanningUnitGrid?iso3=" + this.state.iso3 + "&domain=" + this.state.domain + "&areakm2=" + this.state.areakm2, { timeout: 0 }).promise.then(function(response) {
       if (!this.checkForErrors(response)) {
         //feedback
         this.setState({ snackbarOpen: true, snackbarMessage: "Planning grid: '" + response.planning_unit_grid.split(",")[1].replace(/"/gm, '').replace(")", "") + "' created" }); //response is (pu_cok_terrestrial_hexagons_10,"Cook Islands Terrestrial 10Km2 hexagon grid")
@@ -1580,7 +1653,7 @@ class App extends React.Component {
     this.setState({ areakm2: value });
   }
   getCountries() {
-    jsonp(MARXAN_ENDPOINT + "getCountries", { timeout: 10000 }).promise.then(function(response) {
+    jsonp(MARXAN_ENDPOINT_HTTPS + "getCountries", { timeout: 10000 }).promise.then(function(response) {
       if (!this.checkForErrors(response)) {
         //valid response
         this.setState({ countries: response.records });
@@ -1593,7 +1666,7 @@ class App extends React.Component {
 
   //uploads the names feature class to mapbox on the server
   uploadToMapBox(feature_class_name, mapbox_layer_name) {
-    jsonp(MARXAN_ENDPOINT + "uploadTilesetToMapBox?feature_class_name=" + feature_class_name + "&mapbox_layer_name=" + mapbox_layer_name, { timeout: 300000 }).promise.then(function(response) {
+    jsonp(MARXAN_ENDPOINT_HTTPS + "uploadTilesetToMapBox?feature_class_name=" + feature_class_name + "&mapbox_layer_name=" + mapbox_layer_name, { timeout: 300000 }).promise.then(function(response) {
       if (!this.checkForErrors(response)) {
         this.setState({ snackbarOpen: true, snackbarMessage: "Uploading to MapBox with the id: " + response.uploadid });
         this.timer = setInterval(() => this.pollMapboxForUploadComplete(response.uploadid), 5000);
@@ -1617,20 +1690,19 @@ class App extends React.Component {
     }
   }
 
-  getInterestFeatures() {
-    if (this.state.metadata.OLDVERSION === 'True') {
-      //load the interest features as all of the features from the current project
-      this.setState({ allFeatures: this.state.projectFeatures });
-    }
-    else {
-      //load the interest features as all of the interest features from the marxan web database
-      jsonp(MARXAN_ENDPOINT + "getInterestFeatures?format=json", { timeout: 10000 }).promise.then(function(response) {
-        if (!this.checkForErrors(response)) {
-          this.setState({ allFeatures: response.records });
-        }
-        else {}
-      }.bind(this));
-    }
+  getInterestFeature(id) {
+    //load the interest feature from the marxan web database
+    jsonp(MARXAN_ENDPOINT_HTTPS + "getFeature?oid=" + id + "&format=json", { timeout: 10000 }).promise.then(function(response) {
+      if (!this.checkForErrors(response)) {
+        //add the required attributes to use it in Marxan Web
+        this.addFeatureAttributes(response.data[0]);
+        //update the allFeatures array
+        var featuresCopy = this.state.allFeatures;
+        featuresCopy.push(response.data[0]);
+        this.setState({allFeatures: featuresCopy});
+      }
+      else {}
+    }.bind(this));
   }
 
   openNewInterestFeatureDialog() {
@@ -1667,10 +1739,12 @@ class App extends React.Component {
   }
   createNewInterestFeature() {
     //the zipped shapefile has been uploaded to the MARXAN folder and the metadata are in the featureDatasetName, featureDatasetDescription and featureDatasetFilename state variables - 
-    jsonp(MARXAN_ENDPOINT + "importShapefile?filename=" + this.state.featureDatasetFilename + "&name=" + this.state.featureDatasetName + "&description=" + this.state.featureDatasetDescription + "&dissolve=true&type=interest_feature", { timeout: TIMEOUT }).promise.then(function(response) {
+    jsonp(MARXAN_ENDPOINT_HTTPS + "importFeature?filename=" + this.state.featureDatasetFilename + "&name=" + this.state.featureDatasetName + "&description=" + this.state.featureDatasetDescription, { timeout: TIMEOUT }).promise.then(function(response) {
       if (!this.checkForErrors(response)) {
-        this.setState({ snackbarOpen: true, snackbarMessage: response.info });
-        this.getInterestFeatures();
+        if (response.id){
+          this.getInterestFeature(response.id);
+          this.setState({ snackbarOpen: true, snackbarMessage: response.info });
+        }
       }
       else {
         //server error
@@ -1678,10 +1752,22 @@ class App extends React.Component {
     }.bind(this));
   }
 
+  deleteInterestFeature(feature) {
+    jsonp(MARXAN_ENDPOINT_HTTPS + "deleteInterestFeature?interest_feature_name=" + feature.feature_class_name, { timeout: TIMEOUT }).promise.then(function(response) {
+      if (!this.checkForErrors(response)) {
+        this.setState({ snackbarOpen: true, snackbarMessage: "Conservation feature deleted" });
+        this.getInterestFeatures();
+      }
+      else {
+        this.setState({ snackbarOpen: true, snackbarMessage: "Conservation feature not deleted" });
+      }
+    }.bind(this));
+  }
+
   //used by the import wizard to import a users zipped shapefile as the planning units
   importZippedShapefileAsPu(zipname, alias, description) {
     //the zipped shapefile has been uploaded to the MARXAN folder - it will be imported to PostGIS and a record will be entered in the metadata_planning_units table
-    jsonp(MARXAN_ENDPOINT + "importShapefile?filename=" + zipname + "&name=" + alias + "&description=" + description + "&dissolve=false&type=planning_unit", { timeout: TIMEOUT }).promise.then(function(response) {
+    jsonp(MARXAN_ENDPOINT_HTTPS + "importShapefile?filename=" + zipname + "&name=" + alias + "&description=" + description + "&dissolve=false&type=planning_unit", { timeout: TIMEOUT }).promise.then(function(response) {
       if (!this.checkForErrors(response)) {
         this.setState({ snackbarOpen: true, snackbarMessage: response.info });
         var zipName = response.file.slice(0, -4);
@@ -1693,24 +1779,12 @@ class App extends React.Component {
     }.bind(this));
   }
 
-  deleteInterestFeature(feature) {
-    jsonp(MARXAN_ENDPOINT + "deleteInterestFeature?interest_feature_name=" + feature.feature_class_name, { timeout: TIMEOUT }).promise.then(function(response) {
-      if (!this.checkForErrors(response)) {
-        this.setState({ snackbarOpen: true, snackbarMessage: "Conservation feature deleted" });
-        this.getInterestFeatures();
-      }
-      else {
-        this.setState({ snackbarOpen: true, snackbarMessage: "Conservation feature not deleted" });
-      }
-    }.bind(this));
-  }
-
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////// MANAGING INTEREST FEATURES SECTION
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   //update feature value by finding the object and setting the value for the key - set override to true to overwrite an existing key value
-  //this syncronises the states: allFeatures and projectFeatures as you cant detect state changes in object properties, i.e. componentDidUpdate is not called when you updated selected, preprocessed etc.
+  //this synchronises the states: allFeatures and projectFeatures as you cant detect state changes in object properties, i.e. componentDidUpdate is not called when you updated selected, preprocessed etc.
   updateFeature(feature, key, value, override) {
     // console.log("Update feature '" + feature.feature_class_name + "' with " + key + "=" + value);
     let featuresCopy = this.state.allFeatures;
@@ -1733,6 +1807,7 @@ class App extends React.Component {
   unselectItem(feature) {
     this.updateFeature(feature, "selected", false, true); //unselect the Conservation feature
     this.updateFeature(feature, "preprocessed", false, true); //change the preprocessing to false
+    this.setAsUnprocessed(feature);
   }
 
   //selects all the Conservation features
@@ -1757,6 +1832,14 @@ class App extends React.Component {
     });
   }
 
+  //unprocessed features need to have their feature data reset
+  setAsUnprocessed(feature){
+    this.updateFeature(feature, "protected_area", -1, true); 
+    this.updateFeature(feature, "pu_area", -1, true); 
+    this.updateFeature(feature, "pu_count", -1, true); 
+    this.updateFeature(feature, "target_area", -1, true); 
+  }
+  
   //sets the target value of an feature
   updateTargetValue(feature, newTargetValue) {
     this.updateFeature(feature, "target_value", newTargetValue, true);
@@ -1766,10 +1849,10 @@ class App extends React.Component {
   ////////////////////////// END OF MANAGING INTEREST FEATURES SECTION
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  showSettingsDialog() {
+  showRunSettingsDialog() {
     this.setState({ settingsDialogOpen: true });
   }
-  closeSettingsDialog() {
+  closeRunSettingsDialog() {
     this.setState({ settingsDialogOpen: false });
   }
 
@@ -1807,7 +1890,7 @@ class App extends React.Component {
     _metadata.IUCN_CATEGORY = iucnCategory;
     this.setState({ metadata: _metadata });
     //update the input.dat file
-    this.updateParameter("IUCN_CATEGORY", iucnCategory);
+    this.updateProjectParameter("IUCN_CATEGORY", iucnCategory);
     //filter the wdpa vector tiles
     this.filterWdpaByIucnCategory(iucnCategory);
     //render the wdpa intersections on the grid
@@ -1834,6 +1917,9 @@ class App extends React.Component {
       case 'IUCN I-V':
         retValue = ['Ia', 'Ib', 'II', 'III', 'IV', 'V'];
         break;
+      case 'IUCN I-VI':
+        retValue = ['Ia', 'Ib', 'II', 'III', 'IV', 'V', 'VI'];
+        break;
       default:
     }
     return retValue;
@@ -1849,7 +1935,7 @@ class App extends React.Component {
 
   //called when the iucn category changes - gets the puids that need to be added/removed, adds/removes them and updates the PuEdit layer
   async renderPAGridIntersections(iucnCategory) {
-    await this.getPAGridIntersections(iucnCategory).then(function(intersections) {
+    await this.preprocessProtectedAreas(iucnCategory).then(function(intersections) {
       //get all the puids of the intersecting protected areas in this iucn category 
       let puids = this.getPuidsFromIucnCategory(iucnCategory);
       //get all the puids of the intersecting protected areas in the previously selected iucn category 
@@ -1882,24 +1968,42 @@ class App extends React.Component {
     return puids.diff(previousPuids);
   }
 
-  getPAGridIntersections(iucnCategory) {
+  preprocessProtectedAreas(iucnCategory) {
     //have the intersections already been calculated
-    if (this.protected_area_intersections) {
+    if (this.protected_area_intersections.length>0) {
       return Promise.resolve(this.protected_area_intersections);
     }
     else {
       //do the intersection on the server
-      this.setState({ preprocessingProtectedAreas: true });
       return new Promise(function(resolve, reject) {
-        jsonp(MARXAN_ENDPOINT + "getPAIntersections?user=" + this.state.user + "&project=" + this.state.project + "&planning_grid_name=" + this.state.metadata.PLANNING_UNIT_NAME, { timeout: TIMEOUT }).promise.then(function(response) {
-          //set the local variable
-          this.protected_area_intersections = response.info;
-          //return the state to normal
-          this.setState({ preprocessingProtectedAreas: false });
-          //return a value to the then() call
-          resolve(response.info);
-        }.bind(this));
-      }.bind(this));
+        //start the logging
+        this.startLogging();
+        //set state to prevent users changing the IUCN category drop down while processing is happening        
+        this.setState({preprocessingProtectedAreas: true });
+        ws = new WebSocket(MARXAN_ENDPOINT_WSS + "preprocessProtectedAreas?user=" + this.state.user + "&project=" + this.state.project + "&planning_grid_name=" + this.state.metadata.PLANNING_UNIT_NAME);
+        ws.onmessage = function (evt) {
+          let response = JSON.parse(evt.data);
+          switch (response.status) {
+            case 'Started': 
+              this.setState({streamingLog: this.state.streamingLog + response.info + "\n"});
+              break;
+            case 'Running':
+              this.setState({streamingLog: this.state.streamingLog + response.info + " (elapsed time: " + response.elapsedtime + ")\n"});
+              break;
+            case 'Finishing': 
+              this.setState({streamingLog: this.state.streamingLog + response.info + " (Total time: " + response.elapsedtime + ")\n"});
+              break;
+            case 'Finished': 
+              //set the local variable
+              this.protected_area_intersections = response.info;
+              //return the state to normal
+              this.setState({preprocessingProtectedAreas: false });
+              //return a value to the then() call
+              resolve(response.info);
+              break;
+          }
+        }.bind(this); //onmessage
+      }.bind(this)); //return
     }
   }
 
@@ -1908,6 +2012,193 @@ class App extends React.Component {
     let iucn_categories = this.getIndividualIucnCategories(iucnCategory);
     //get the planning units that intersect the protected areas with the passed iucn category
     return this.protected_area_intersections.filter((item) => { return (iucn_categories.indexOf(item[0]) > -1); });
+  }
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  ////////////////////////// BOUNDARY LENGTH MODIFIER AND CLUMPING
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  async preprocessBoundaryLengths(iucnCategory) {
+    if (this.state.files.BOUNDNAME){ //if the bounds.dat file already exists
+      return Promise.resolve();
+    }else{
+      //calculate the boundary lengths on the server
+      return new Promise(function(resolve, reject) {
+        //start the logging
+        this.startLogging();
+        ws = new WebSocket(MARXAN_ENDPOINT_WSS + "preprocessPlanningUnits?user=" + this.state.user + "&project=" + this.state.project);
+        ws.onmessage = function (evt) {
+          let response = JSON.parse(evt.data);
+          switch (response.status) {
+            case 'Started': 
+              this.setState({streamingLog: this.state.streamingLog + response.info + "\n"});
+              break;
+            case 'Running':
+              this.setState({streamingLog: this.state.streamingLog + response.info + " (elapsed time: " + response.elapsedtime + ")\n"});
+              break;
+            case 'Finishing': 
+              this.setState({streamingLog: this.state.streamingLog + response.info + " (Total time: " + response.elapsedtime + ")\n"});
+              break;
+            case 'Finished': 
+              //update the state
+              var currentFiles = this.state.files;
+              currentFiles.BOUNDNAME = "bounds.dat";
+              this.setState({files: currentFiles});
+              //return a value to the then() call
+              resolve(response.info);
+              break;
+          }
+        }.bind(this); //onmessage
+      }.bind(this)); //return
+    }
+  }
+
+  showClumpingDialog(){
+    //when the boundary lengths have been calculated
+    this.preprocessBoundaryLengths().then(function(intersections) {
+      //update the spec.dat file with any that have been added or removed or changed target or spf
+      this.updateSpecFile().then(function(value) {
+        //when the species file has been updated, update the planning unit file 
+        this.updatePuFile();
+        //when the planning unit file has been updated, update the PuVSpr file - this does all the preprocessing
+        this.updatePuvsprFile().then(function(value) {
+          //show the clumping dialog
+          this.setState({ clumpingDialogOpen: true, clumpingRunning: true });
+          //create the project group and run
+          this.createProjectGroupAndRun();
+        }.bind(this));
+      }.bind(this));
+    }.bind(this));
+  }
+
+  hideClumpingDialog(){
+    //delete the project group
+    this.deleteProjects();
+    //reset the paint properties in the clumping dialog
+    this.resetPaintProperties();
+    //return state to normal
+    this.setState({ clumpingDialogOpen: false });
+  }
+
+  //creates a group of 5 projects with UUIDs in the _clumping folder
+  createProjectGroupAndRun(){
+    //clear any exists projects
+    if (this.projects) this.deleteProjects();
+    return new Promise(function(resolve, reject) {
+      jsonp(MARXAN_ENDPOINT_HTTPS + "createProjectGroup?user=" + this.state.user + "&project=" + this.state.project + "&copies=5&blmValues=" + this.state.blmValues.join(","), { timeout: TIMEOUT }).promise.then(function(response) {
+        if (!this.checkForErrors(response)) {
+          //set the local variable for the projects
+          this.projects = response.data;
+          //run the projects
+          this.runProjects(response.data);
+        }
+        else {
+          //ui feedback
+        }
+      }.bind(this));
+    }.bind(this));
+  }
+  
+  //deletes the projects from the _clumping folder
+  deleteProjects(){
+    var projectNames = this.projects.map(function(item){
+      return item.projectName;
+    });
+    //clear the local variable
+    this.projects = undefined;
+    return new Promise(function(resolve, reject) {
+       jsonp(MARXAN_ENDPOINT_HTTPS + "deleteProjects?projectNames=" + projectNames.join(","), { timeout: TIMEOUT }).promise.then(function(response) {
+        if (!this.checkForErrors(response)) {
+          resolve();
+        }
+        else {
+          //ui feedback
+        }
+      }.bind(this));
+    }.bind(this));
+  }
+  
+  runProjects(projects){
+    //reset the counter
+    this.projectsRun = 0;
+    //set the intitial state
+    this.setState({clumpingRunning: true});
+    //run the projects
+    projects.map(function(project){
+      this.startMarxanJob("_clumping", project.projectName, false).then(function(response){
+        //run completed - get a single solution
+        this.loadOtherSolution(response.user, response.project, 1);
+        //increment the project counter
+        this.projectsRun = this.projectsRun + 1;
+        //set the state
+        if (this.projectsRun ===5) this.setState({clumpingRunning: false});
+      }.bind(this));
+    }.bind(this));
+  }
+  
+  rerunProjects(){
+    //reset the paint properties in the clumping dialog
+    this.resetPaintProperties();
+    //if the blmValues have changed then recreate the project group and run
+    if (this.blmChanged){
+      this.createProjectGroupAndRun();
+    }else{
+      //rerun the projects
+      this.runProjects(this.projects);
+    }
+    //reset the flag
+    this.blmChanged = false;
+  }
+  
+  resetPaintProperties(){
+    //reset the paint properties
+    this.setState({map0_paintProperty:[],map1_paintProperty:[],map2_paintProperty:[],map3_paintProperty:[],map4_paintProperty:[]});
+  }
+
+  changBlmMin(event, newValue){
+    //get the new blmValues
+    this.getBlmValues(newValue, this.state.blmMax);
+    //set the new blmMin
+    this.setState({blmMin:newValue});
+  }
+  
+  changBlmMax(event, newValue){
+    //get the new blmValues
+    this.getBlmValues(this.state.blmMin, newValue);
+    //set the new blmMax
+    this.setState({blmMax:newValue});
+  }
+
+  getBlmValues(min, max){
+    var blmValues = [];
+    //get the increment
+    var increment = (max - min) / (CLUMP_COUNT - 1);
+    //make the array of blmValues
+    for (var i = 0; i < CLUMP_COUNT; i++){
+        blmValues[i] = (i * increment) + Number(min);
+    }    
+    this.setState({blmValues: blmValues});
+    //flag that the blmValues have changed
+    this.blmChanged = true;
+  }
+  
+  setBlmValue(blmValue){
+    var newRunParams = [], value;
+    //iterate through the run parameters and update the value for the blm
+    this.state.runParams.map(function(item){
+      value = (item.key === 'BLM') ? String(blmValue) : item.value;
+      newRunParams.push({key: item.key, value: value});
+    });
+    //update this run parameters
+    this.updateRunParams(newRunParams);
+  }
+  
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  ////////////////////////// MANAGING SERVERS
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  setActiveServer(value){
+    this.setState({activeServer: value});
   }
 
   render() {
@@ -1926,6 +2217,8 @@ class App extends React.Component {
             metadata={this.state.metadata}
             logout={this.logout.bind(this)}
             runMarxan={this.runMarxan.bind(this)} 
+            stopMarxan={this.stopMarxan.bind(this)}
+            pid={this.state.pid}
             running={this.state.running} 
             runnable={this.state.runnable}
             deleteProject={this.deleteProject.bind(this)}
@@ -1954,17 +2247,14 @@ class App extends React.Component {
             pu_tab_active={this.pu_tab_active.bind(this)}
             startPuEditSession={this.startPuEditSession.bind(this)}
             stopPuEditSession={this.stopPuEditSession.bind(this)}
-            showSettingsDialog={this.showSettingsDialog.bind(this)}
+            showRunSettingsDialog={this.showRunSettingsDialog.bind(this)}
             openImportWizard={this.openImportWizard.bind(this)}
-            preprocessFeature={this.preprocessFeature.bind(this)}
+            preprocessFeature={this.preprocessSingleFeature.bind(this)}
             preprocessingFeature={this.state.preprocessingFeature}
             preprocessingProtectedAreas={this.state.preprocessingProtectedAreas}
             openAllInterestFeaturesDialog={this.openAllInterestFeaturesDialog.bind(this)}
             changeIucnCategory={this.changeIucnCategory.bind(this)}
           />
-          <div className="runningSpinner">
-            <ArrowBack style={{'display': (this.state.running ? 'block' : 'none')}}/>
-          </div>
           <Popup
             active_pu={this.state.active_pu} 
             xy={this.state.popup_point}
@@ -1980,21 +2270,14 @@ class App extends React.Component {
             creatingNewUser={this.state.creatingNewUser}
             resendPassword={this.resendPassword.bind(this)}
             resending={this.state.resending}
+            availableServers={MARXAN_REMOTE_SERVERS}
+            activeServer={this.state.activeServer}
+            setActiveServer={this.setActiveServer.bind(this)}
           />
           <Snackbar
             open={this.state.snackbarOpen}
             message={this.state.snackbarMessage}
             onRequestClose={this.closeSnackbar.bind(this)}
-          />
-          <RunProgressDialog 
-            preprocessingFeatureAlias={this.state.preprocessingFeatureAlias}
-            preprocessingFeature={this.state.preprocessingFeature}
-            running={this.state.running}
-            runsCompleted={this.state.runsCompleted}
-            numReps={this.state.numReps}
-          />
-          <ProcessingPADialog
-            preprocessingProtectedAreas={this.state.preprocessingProtectedAreas}
           />
           <NewProjectDialog
             open={this.state.newProjectDialogOpen}
@@ -2053,14 +2336,38 @@ class App extends React.Component {
             filename={this.state.featureDatasetFilename}
             createNewInterestFeature={this.createNewInterestFeature.bind(this)}
             resetNewConservationFeature={this.resetNewConservationFeature.bind(this)}
+            MARXAN_ENDPOINT_HTTPS={MARXAN_ENDPOINT_HTTPS}
           />
-          <SettingsDialog
+          <RunSettingsDialog
             open={this.state.settingsDialogOpen}
-            closeSettingsDialog={this.closeSettingsDialog.bind(this)}
+            closeRunSettingsDialog={this.closeRunSettingsDialog.bind(this)}
             openFilesDialog={this.openFilesDialog.bind(this)}
             updateRunParams={this.updateRunParams.bind(this)}
             updatingRunParameters={this.state.updatingRunParameters}
             runParams={this.state.runParams}
+            showClumpingDialog={this.showClumpingDialog.bind(this)}
+            clumpingRunning={this.state.clumpingRunning}
+          />
+          <ClumpingDialog
+            open={this.state.clumpingDialogOpen}
+            closeClumpingDialog={this.hideClumpingDialog.bind(this)}
+            tileset={this.state.tileset}
+            RESULTS_LAYER_NAME={RESULTS_LAYER_NAME}
+            map0_paintProperty={this.state.map0_paintProperty}
+            map1_paintProperty={this.state.map1_paintProperty}
+            map2_paintProperty={this.state.map2_paintProperty}
+            map3_paintProperty={this.state.map3_paintProperty}
+            map4_paintProperty={this.state.map4_paintProperty}
+            blmValues={this.state.blmValues}
+            mapCentre={this.state.mapCentre}
+            mapZoom={this.state.mapZoom}
+            rerunProjects={this.rerunProjects.bind(this)}
+            changBlmMin={this.changBlmMin.bind(this)}
+            changBlmMax={this.changBlmMax.bind(this)}
+            blmMin={this.state.blmMin}
+            blmMax={this.state.blmMax}
+            setBlmValue={this.setBlmValue.bind(this)}
+            clumpingRunning={this.state.clumpingRunning}
           />
           <FilesDialog
             open={this.state.filesDialogOpen}
@@ -2080,7 +2387,12 @@ class App extends React.Component {
             hideResults={this.hideResults.bind(this)}
             open={this.state.resultsPaneOpen && this.state.loggedIn}
             brew={this.state.brew}
-            log={this.state.log} 
+            log={this.state.streamingLog} 
+            activeResultsTab={this.state.activeResultsTab}
+            legend_tab_active={this.legend_tab_active.bind(this)}
+            solutions_tab_active={this.solutions_tab_active.bind(this)}
+            log_tab_active={this.log_tab_active.bind(this)}
+            streamingLog={this.state.streamingLog}
           />
           <ClassificationDialog 
             open={this.state.classificationDialogOpen}
@@ -2099,7 +2411,7 @@ class App extends React.Component {
             user={this.state.user}
             setFilename={this.uploadPlanningUnitFromShapefile.bind(this)}
             closeImportWizard={this.closeImportWizard.bind(this)}
-            MARXAN_ENDPOINT={MARXAN_ENDPOINT}
+            MARXAN_ENDPOINT_HTTPS={MARXAN_ENDPOINT_HTTPS}
             uploadShapefile={this.importZippedShapefileAsPu.bind(this)}
           />
           <div style={{position: 'absolute', display: this.state.resultsPaneOpen ? 'none' : 'block', backgroundColor: 'rgb(0, 188, 212)', right: '0px', top: '20px', width: '20px', borderRadius: '2px', height: '88px',boxShadow:'rgba(0, 0, 0, 0.16) 0px 3px 10px, rgba(0, 0, 0, 0.23) 0px 3px 10px'}} title={"Show results"}>

@@ -42,7 +42,7 @@ class UserMenu extends React.Component {
         >
           <Menu desktop={true} menuItemStyle={{backgroundColor:'rgb(0, 188, 212)', color:'white'}} listStyle={{width:'120px',backgroundColor:'rgb(0, 188, 212)'}} selectedMenuItemStyle={{color:'rgb(24,24,24)'}} width={'102px'}>
             <MenuItem primaryText={"Logged in as " + this.props.user}/>
-            <MenuItem primaryText="Options" onClick={this.openOptionsDialog.bind(this)} leftIcon={<Settings color={white}/>}/>
+            <MenuItem primaryText="Marxan settings" onClick={this.openOptionsDialog.bind(this)} leftIcon={<Settings color={white}/>}/>
             <MenuItem primaryText="Profile" onClick={this.openUserDialog.bind(this)} leftIcon={<Person color={white}/>}/>
             <MenuItem primaryText="Log out" onClick={this.props.logout.bind(this)} leftIcon={<LogOut color={white}/>}/>
           </Menu>

@@ -25,10 +25,10 @@ class ShapefileUpload extends React.Component {
 
     fileUpload(value) {
         this.setState({ loading: true });
-        const url = "https://db-server-blishten.c9users.io/marxan/webAPI2.py/postShapefile";
+        const url = this.props.MARXAN_ENDPOINT_HTTPS + "uploadShapefile";
         const formData = new FormData();
-        formData.append('value', value);
         this.filename = value['name']; //from the open file dialog
+        formData.append('value', value);
         formData.append('filename', this.filename);
         formData.append('name', this.props.name);
         formData.append('description', this.props.description);

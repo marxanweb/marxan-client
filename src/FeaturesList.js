@@ -46,8 +46,9 @@ class FeaturesList extends React.Component {
                     //get the protected percent
                     let protected_percent = (item.protected_area === -1) ? -1 : (pu_area >= 0) ? (item.protected_area > 0) ? (item.protected_area / pu_area) * 100 : 0 : 0;
                     //this is a hack to round the protected percent as there are some bugs in Marxan that calculate the target area required wrongly
-                    protected_percent = Math.round(protected_percent);
-                    let targetStatus = (pu_area === 0) ? "Does not occur in planning area" : (protected_percent === -1) ? "Unknown" : (protected_percent >= item.target_value) ? "Target achieved" : "Target missed";
+                    //TODO - sort out 
+                    // protected_percent = Math.round(protected_percent);
+                    let targetStatus = (pu_area === 0) ? "Does not occur in planning area" : (protected_percent === -1) ? "Unknown" : (item.protected_area >= item.target_area) ? "Target achieved" : "Target missed";
                     return (
                         <ListItem 
                             leftAvatar={this.props.simple ? 

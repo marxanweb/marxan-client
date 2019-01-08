@@ -14,6 +14,7 @@
     "react-dom": "^16.3.2",
     "react-fontawesome": "^1.6.1",
     "react-scripts": "1.1.4",
+    "react-stay-scrolled": "^3.0.0",
     "react-table": "^6.8.2",
     "recharts": "^1.0.0-beta.10",
     "typeface-roboto": "0.0.54"

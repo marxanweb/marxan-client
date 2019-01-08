@@ -9,12 +9,31 @@ import FlatButton from 'material-ui/FlatButton';
 import Settings from 'material-ui/svg-icons/action/settings';
 
 class ResultsPane extends React.Component {
-  loadSolution(solution) {
+  componentDidUpdate(prevProps, prevState) {
+    //if the streaming log has changed then scroll to the bottom of the div
+    if (this.props.streamingLog !== prevProps.streamingLog) {
+      var objDiv = document.getElementById("log");
+      if (objDiv) {
+        objDiv.scrollTop = objDiv.scrollHeight;
+      }
+    }
+  }
+  loadSolution(solution) { 
     this.props.loadSolution(solution);
   }
-  hideResults(){
+  hideResults() {
     this.props.hideResults();
   }
+  legend_tab_active() {
+    this.props.legend_tab_active();
+  }
+  solutions_tab_active() {
+    this.props.solutions_tab_active();
+  }
+  log_tab_active() {
+    this.props.log_tab_active();
+  }
+
   render() {
     return (
       <React.Fragment>
@@ -28,8 +47,8 @@ class ResultsPane extends React.Component {
                 title={"Hide results"}
                 icon={<FontAwesome name='arrow-right' style={{top:'8px','color':'white'}}/>}
               />
-            <Tabs contentContainerStyle={{'margin':'20px'}} className={'resultsTabs'}>
-              <Tab label="Legend">
+            <Tabs contentContainerStyle={{'margin':'20px'}} className={'resultsTabs'} value={this.props.activeResultsTab}>
+              <Tab label="Legend" value="legend" onActive={this.legend_tab_active.bind(this)} >
                 <div>
                 <Legend
                   brew={this.props.brew}
@@ -44,7 +63,7 @@ class ResultsPane extends React.Component {
                   buttonStyle={{marginTop:'-7px',lineHeight:'24px',height:'24px'}} 
                 />
               </Tab>
-              <Tab label="Solutions">
+              <Tab label="Solutions" value="solutions" onActive={this.solutions_tab_active.bind(this)} >
                 <div id="solutionsPanel" style={{'display': (this.props.dataAvailable && !this.props.running ? 'block' : 'none')}}>
                   <ReactTable
                     infoPanel={this}
@@ -74,7 +93,7 @@ class ResultsPane extends React.Component {
                        Header: 'Score',
                        accessor: 'Score',
                        width:80,
-                      headerStyle:{'textAlign':'left'}
+                       headerStyle:{'textAlign':'left'}
                     },{
                        Header: 'Cost',
                        accessor: 'Cost' ,
@@ -94,8 +113,8 @@ class ResultsPane extends React.Component {
                   />
                 </div>
               </Tab>
-              <Tab label="Log">
-                <div id="log" dangerouslySetInnerHTML={{__html:this.props.log}}></div>
+              <Tab label="Log" value="log" onActive={this.log_tab_active.bind(this)} >
+                <div id="log">{this.props.log}</div>
               </Tab>
             </Tabs>     
           </Paper>

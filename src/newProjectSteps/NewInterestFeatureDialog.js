@@ -41,13 +41,13 @@ class NewInterestFeatureDialog extends React.Component {
                 <div>
                     <TextField value={this.props.name} onChange={this.changeName.bind(this)} style={{width:'500px',display:'block'}} floatingLabelText="Enter a name" floatingLabelFixed={true}/>
                     <TextField value={this.props.description} onChange={this.changeDescription.bind(this)} style={{width:'500px',display:'block'}} multiLine={true} rows={2} floatingLabelText="Enter a description" floatingLabelFixed={true}/>
-                    <ShapefileUpload mandatory={true} name={this.props.name} description={this.props.description} filename={this.props.filename} setFilename={this.props.setFilename} label="Zipped shapefile" style={{'paddingTop':'10px'}}/>
+                    <ShapefileUpload MARXAN_ENDPOINT_HTTPS={this.props.MARXAN_ENDPOINT_HTTPS} mandatory={true} name={this.props.name} description={this.props.description} filename={this.props.filename} setFilename={this.props.setFilename} label="Zipped shapefile" style={{'paddingTop':'10px'}}/>
                 </div>
             </React.Fragment>;
         return (
             <Dialog 
                 overlayStyle={{display:'none'}} 
-                title="New Conservation feature dataset" children={c} actions={actions} open={this.props.open} onRequestClose={this.props.closeNewInterestFeatureDialog} contentStyle={{width:'582px'}} titleClassName={'dialogTitleStyle'}/>
+                title="New feature" children={c} actions={actions} open={this.props.open} onRequestClose={this.props.closeNewInterestFeatureDialog} contentStyle={{width:'582px'}} titleClassName={'dialogTitleStyle'}/>
         );
     }
 }

@@ -28,7 +28,7 @@ class ImportWizard extends React.Component {
         });
         if (stepIndex === 0) {
             //create the new project to be able to upload the files to the folder on the server
-            jsonp(this.props.MARXAN_ENDPOINT + "createProject?user=" + this.props.user + "&project=" + this.state.name + "&description=" + this.state.description, { timeout: 0 }, this.step2Wizard.bind(this));
+            jsonp(this.props.MARXAN_ENDPOINT_HTTPS + "createProject?user=" + this.props.user + "&project=" + this.state.name + "&description=" + this.state.description, { timeout: 0 }, this.step2Wizard.bind(this));
         }
     };
     handlePrev = () => {

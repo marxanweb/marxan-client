@@ -19,7 +19,7 @@ class InfoPanel extends React.Component {
     super(props);
     this.state = { projectsDialogOpen: false, puEditing: false };
     //local variable 
-    this.iucnCategories = ['None','IUCN I-II','IUCN I-IV','IUCN I-V'];
+    this.iucnCategories = ['None','IUCN I-II','IUCN I-IV','IUCN I-V','IUCN I-VI'];
   }
   componentDidUpdate(prevProps, prevState, snapshot) {
     //if the input box for renaming the project has been made visible and it has no value, then initialise it with the project name and focus it
@@ -105,8 +105,8 @@ class InfoPanel extends React.Component {
     this.setState({ puEditing: false});
     this.props.stopPuEditSession();
   }
-  showSettingsDialog() {
-    this.props.showSettingsDialog();
+  showRunSettingsDialog() {
+    this.props.showRunSettingsDialog();
   }
   
   changeIucnCategory(event,key,payload){
@@ -211,20 +211,31 @@ class InfoPanel extends React.Component {
                 <RaisedButton 
                   icon={<Settings style={{height:'20px',width:'20px'}}/>} 
                   title="Run Settings"
-                  onClick={this.showSettingsDialog.bind(this)} 
+                  onClick={this.showRunSettingsDialog.bind(this)} 
                   style={{ marginLeft:'12px', marginRight:'4px',padding: '0px',minWidth: '30px',width: '24px',height: '24px',position:'absolute'}}
                   overlayStyle={{lineHeight:'24px',height:'24px'}}
                   buttonStyle={{marginTop:'-7px',lineHeight:'24px',height:'24px'}} 
                 />
+                <div style={{position:'absolute',right:'111px'}}>
+                  <RaisedButton 
+                    label="Stop" 
+                    title="Click to stop this project"  
+                    secondary={true} 
+                    className="projectsBtn" 
+                    style={{height:'24px'}}
+                    onClick={this.props.stopMarxan} 
+                    disabled={this.props.pid===0}  
+                  />  
+                </div>
                 <div style={{position:'absolute',right:'40px'}}>
                   <RaisedButton 
                     label="Run" 
-                    title="Click to run this project" 
+                    title="Click to run this project"  
                     secondary={true} 
                     className="projectsBtn" 
                     style={{height:'24px'}}
                     onClick={this.props.runMarxan} 
-                    // disabled={!this.props.runnable || this.props.preprocessingFeature || this.props.running || (this.props.features.length === 0) || this.state.puEditing}  
+                    disabled={!this.props.runnable || this.props.preprocessingFeature || this.props.running || (this.props.features.length === 0) || this.state.puEditing}  
                   />  
                 </div>
             </Paper>
