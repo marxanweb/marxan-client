@@ -192,6 +192,7 @@ table input {
   font-size: 20px;
   font-weight: 400;
   position: static;
+  margin-left: 10px;
 }
 
 .descriptionEditBox {
