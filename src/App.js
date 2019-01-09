@@ -725,7 +725,7 @@ class App extends React.Component {
   stopMarxan() {
     jsonp(MARXAN_ENDPOINT_HTTPS + "stopMarxan?pid=" + this.state.pid, { timeout: 10000 }).promise.then(function(response) {
       if (!this.checkForErrors(response)) {
-        this.setState({ running: false, pid: 0});
+        this.setState({ running: false});
       }
     }.bind(this));
   }
@@ -849,12 +849,16 @@ class App extends React.Component {
             logMessage = this.state.streamingLog + response.info.replace(/(\n\n  Init)/gm,"\n  Init").replace(/(\n\n  ThermalAnnealing)/gm,"\n  ThermalAnnealing").replace(/(\n\n  Iterative)/gm,"\n  Iterative").replace(/(\n\n  Best)/gm,"\n  Best");
             break;
           case 'Finished': 
+            this.setState({pid: 0});
             logMessage = this.state.streamingLog + "\n" + response.info + " (Total time: " + response.elapsedtime + ")\n";
             resolve(response);
             break;
         }
         if (showLog) this.setState({streamingLog: logMessage});
       }.bind(this);
+      ws.onerror = function (evt) {
+        resolve({error: "The project '" + evt.target.url.substr(evt.target.url.lastIndexOf('=')+1) + "' timed out"});
+      };
     }.bind(this));
   }
 
@@ -949,25 +953,27 @@ class App extends React.Component {
     this.getSolution(user, project, solution).then(function(response){
       var paintProperties = this.getPaintProperties(response.solution, false, false);
       //get the project that matches the project name from the this.projects property - this was set when the projectGroup was created
-      var _projects = this.projects.filter(function(item){return item.projectName == project});
-      //get which clump it is
-      var clump = _projects[0].clump;
-      switch (clump) {
-        case 0:
-          this.setState({map0_paintProperty: paintProperties});
-          break;
-        case 1:
-          this.setState({map1_paintProperty: paintProperties});
-          break;
-        case 2:
-          this.setState({map2_paintProperty: paintProperties});
-          break;
-        case 3:
-          this.setState({map3_paintProperty: paintProperties});
-          break;
-        case 4:
-          this.setState({map4_paintProperty: paintProperties});
-          break;
+      if (this.projects){
+        var _projects = this.projects.filter(function(item){return item.projectName == project});
+        //get which clump it is
+        var clump = _projects[0].clump;
+        switch (clump) {
+          case 0:
+            this.setState({map0_paintProperty: paintProperties});
+            break;
+          case 1:
+            this.setState({map1_paintProperty: paintProperties});
+            break;
+          case 2:
+            this.setState({map2_paintProperty: paintProperties});
+            break;
+          case 3:
+            this.setState({map3_paintProperty: paintProperties});
+            break;
+          case 4:
+            this.setState({map4_paintProperty: paintProperties});
+            break;
+        }
       }
     }.bind(this));
   }
@@ -2101,21 +2107,23 @@ class App extends React.Component {
   
   //deletes the projects from the _clumping folder
   deleteProjects(){
-    var projectNames = this.projects.map(function(item){
-      return item.projectName;
-    });
-    //clear the local variable
-    this.projects = undefined;
-    return new Promise(function(resolve, reject) {
-       jsonp(MARXAN_ENDPOINT_HTTPS + "deleteProjects?projectNames=" + projectNames.join(","), { timeout: TIMEOUT }).promise.then(function(response) {
-        if (!this.checkForErrors(response)) {
-          resolve();
-        }
-        else {
-          //ui feedback
-        }
+    if (this.projects){
+      var projectNames = this.projects.map(function(item){
+        return item.projectName;
+      });
+      //clear the local variable
+      this.projects = undefined;
+      return new Promise(function(resolve, reject) {
+         jsonp(MARXAN_ENDPOINT_HTTPS + "deleteProjects?projectNames=" + projectNames.join(","), { timeout: TIMEOUT }).promise.then(function(response) {
+          if (!this.checkForErrors(response)) {
+            resolve();
+          }
+          else {
+            //ui feedback
+          }
+        }.bind(this));
       }.bind(this));
-    }.bind(this));
+    }
   }
   
   runProjects(projects){
@@ -2126,12 +2134,14 @@ class App extends React.Component {
     //run the projects
     projects.map(function(project){
       this.startMarxanJob("_clumping", project.projectName, false).then(function(response){
-        //run completed - get a single solution
-        this.loadOtherSolution(response.user, response.project, 1);
+        if (!this.checkForErrors(response)) {
+          //run completed - get a single solution
+          this.loadOtherSolution(response.user, response.project, 1);
+        }
         //increment the project counter
         this.projectsRun = this.projectsRun + 1;
         //set the state
-        if (this.projectsRun ===5) this.setState({clumpingRunning: false});
+        if (this.projectsRun===5) this.setState({clumpingRunning: false});
       }.bind(this));
     }.bind(this));
   }

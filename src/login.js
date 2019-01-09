@@ -5,8 +5,6 @@ import TextField from 'material-ui/TextField';
 import NewUserDialog from './NewUserDialog.js';
 import ResendPassword from './ResendPassword.js';
 import Sync from 'material-ui/svg-icons/notification/sync';
-import SelectField from 'material-ui/SelectField';
-import MenuItem from 'material-ui/MenuItem';
 
 class Login extends React.Component { 
     constructor(props) {
@@ -35,11 +33,7 @@ class Login extends React.Component {
     changeEmail(value) {
         this.setState({ resendEmail: value });
     }
-    changeServer(event, index, value){
-        this.props.setActiveServer(value);
-    }
     render() {
-        var fontSize = '13px';
         return (
             <React.Fragment>
                 <Dialog 
@@ -65,27 +59,16 @@ class Login extends React.Component {
                     title="Login" 
                     modal={true} 
                     children={
-                        <div>
+                        <div style={{height:'124px'}}>
                             <Sync className='spin loginSpinner' style={{display: this.props.loggingIn ? 'block' : 'none'}}/>
-                            <SelectField 
-                                onChange={this.changeServer.bind(this)} 
-                                value={this.props.activeServer} 
-                                floatingLabelText="Marxan Server" 
-                                floatingLabelFixed={true} 
-                                style={{width:'380px'}} 
-                                labelStyle={{fontSize:fontSize}}>
-                                {this.props.availableServers.map((item)=>{
-                                    return <MenuItem value={item} primaryText={item} key={item} style={{fontSize:fontSize}} />;
-                                })}
-                            </SelectField>
-                            <TextField floatingLabelText="Username" floatingLabelFixed={true} onChange={(event, value)=>this.props.changeUserName(value)}  value={this.props.user} inputStyle={{fontSize:fontSize}} disabled={this.props.loggingIn ? true : false} onKeyPress={this.handleKeyPress.bind(this)}/>
-                            <span><TextField floatingLabelText="Password" floatingLabelFixed={true} type="password" onChange = {(event, value)=>this.props.changePassword(value)}  value={this.props.password} inputStyle={{fontSize:fontSize}} disabled = {this.props.loggingIn ? true : false} onKeyPress={this.handleKeyPress.bind(this)}/></span>
+                            
+                            <TextField floatingLabelText="Username" floatingLabelFixed={true} onChange = {(event, value)=>this.props.changeUserName(value)}  value={this.props.user} className='loginUserField' disabled = {this.props.loggingIn ? true : false} onKeyPress={this.handleKeyPress.bind(this)}/>
+                            <span><TextField floatingLabelText="Password" floatingLabelFixed={true} type="password" onChange = {(event, value)=>this.props.changePassword(value)}  value={this.props.password} className='loginUserField' disabled = {this.props.loggingIn ? true : false} onKeyPress={this.handleKeyPress.bind(this)}/></span>
                             <span onClick={this.openResendPasswordDialog.bind(this)} className="forgotLink" title="Click to resend password">Forgot</span>
                         </div>
                     } 
                     open={this.props.open} 
-                    contentStyle={{width:'420px',height:'600px'}} 
-                    bodyStyle={{height:'600px'}}
+                    contentStyle={{width:'358px'}} 
                     titleClassName={'dialogTitleStyle'}
                     />
                 <NewUserDialog 
