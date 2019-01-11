@@ -8,6 +8,7 @@ import axios, { post } from 'axios';
 
 // component requires:
 // postUrl - the end point where the folder and its files will be uploaded to
+// folderSet - an event that has a single parameter which is the selected folder
 // filesListed - an event that has a single parameter which is the files in the selected folder
 // fileUploadStarted - an event that has a single parameter which is the name of the file that has started to upload
 // fileUploadStopped - an event that has a single parameter which is the name of the file that has finished uploading
@@ -16,24 +17,23 @@ class UploadFolder extends React.Component {
     constructor(props) {
         super(props);
         this.state = { loading: false };
-    }
-    onChange(e) {
+    } 
+    onChange(e, a, b) {
+        this.props.folderSet(e.target);
         this.props.filesListed(e.target.files);
-        if (e.target.files.length) {
-            this.uploadFiles(e.target.files);
-        }
+        this.setState({files: e.target.files});
     }
-    uploadFiles(files) {
+    uploadFiles() {
         var file, filepath;
         this.setState({ loading: true });
-        this.fileCount = files.length;
-        for (var i = 0; i < files.length; i++) {
-            file = files.item(i);
+        this.fileCount = this.state.files.length;
+        for (var i = 0; i < this.state.files.length; i++) {
+            file = this.state.files.item(i);
             const formData = new FormData();
             formData.append('user', this.props.user);
             formData.append('project', this.props.project);
             //the webkitRelativePath will include the folder itself so we have to remove this, e.g. Marxan default project - Copy/input/puvspr.dat -> /input/puvspr.da
-            filepath = file.webkitRelativePath.split("/").slice(1).join("/")
+            filepath = file.webkitRelativePath.split("/").slice(1).join("/");
             formData.append('filename', filepath);
             formData.append('value', file);
             const config = {
@@ -67,7 +67,7 @@ class UploadFolder extends React.Component {
                     <div className='uploadFileFieldIcon' style={{display: 'inline-flex'}}>
                         <div style={{display: 'inline-flex'}}>
                             <label htmlFor={'folderSelector'}>
-                                <FontAwesome name='folder' title='Click to upload a file' style={{'cursor':'pointer', display: 'inline-flex'}}/>
+                                <FontAwesome name='folder' title='Click to select a folder' style={{'cursor':'pointer', display: 'inline-flex'}}/>
                             </label>
                         </div>
                         <input id='folderSelector' ref={node => this._addDirectory(node)} type='file' onChange={this.onChange.bind(this)} style={{'display':'none', 'width':'10px'}}/>

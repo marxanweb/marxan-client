@@ -12,12 +12,18 @@ class SelectFeatures extends React.Component {
                         updateTargetValue={this.props.updateTargetValue} 
                         preprocessFeature={this.props.preprocessFeature}
                         simple={this.props.simple}
+                        toggleFeature={this.props.toggleFeature}
+                        maxheight={'387px'}
+                        removeFromProject={this.props.removeFromProject}
+                        updateFeature={this.props.updateFeature}
                     />
                     <RaisedButton 
+                        label="+/-"
                         className="projectsBtn" 
-                        label="Select" 
                         onClick={this.props.openAllInterestFeaturesDialog}  
-                        style={{height:'24px',marginTop:'15px'}}
+                        labelStyle={{paddingLeft:'6px',fontSize:'15px'}}
+                        style={{height:'24px',marginLeft:this.props.leftmargin,width:'30px', marginTop:'5px'}}
+                        title={'Add/remove features from the project'}
                     />
                 </div>
             </React.Fragment>

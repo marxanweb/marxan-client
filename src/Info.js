@@ -2,19 +2,32 @@ import React from 'react';
 import RaisedButton from 'material-ui/RaisedButton';
 import Dialog from 'material-ui/Dialog';
 import ReactTable from "react-table";
+import {isNumber, isValidTargetValue} from './genericFunctions.js';
 
 class Info extends React.Component {
+  updateFeatureValue(key, evt){
+    var value = (key === "target_value") ? evt.currentTarget.innerHTML.substr(0, evt.currentTarget.innerHTML.length-1) : evt.currentTarget.innerHTML;
+    if (((key === "target_value") && (isValidTargetValue(value))) || ((key === "spf") && (isNumber(value)))) {
+      this.props.updateFeature(this.props.feature, key, value, true);      
+    }else{
+      alert("Invalid value");
+    }
+  }
+  
   renderCell(props){
     let html;
     switch (props.row.key) {
       case 'Preprocessed':
         html = (props.row.value) ? <div>Yes</div> : <div>No</div>;
         break;
-      case 'Creation date':
+      case 'Creation date': 
         html = <div>{props.row.value.slice(0, props.row.value.length-7)}</div>;
         break;
       case 'Target percent':
-        html = <div title={props.row.value}>{props.row.value}%</div>;
+        html = <div contentEditable suppressContentEditableWarning title={props.row.value} onBlur={this.updateFeatureValue.bind(this, "target_value")}>{props.row.value}%</div>;
+        break;
+      case 'Species Penalty Factor':
+        html = <div contentEditable suppressContentEditableWarning title={props.row.value} onBlur={this.updateFeatureValue.bind(this, "spf")}>{props.row.value}</div>;
         break;
       case 'Total area':
       case 'Area protected':
@@ -32,8 +45,8 @@ class Info extends React.Component {
     return html;
   }
     render(){
-      //change the order here to change the rendering order in the info panel
-        let data = ['id','alias','feature_class_name','description','creation_date','area','target_value','spf','preprocessed','pu_count','pu_area','target_area','protected_area'].map((item)=>{
+      //change the order here to change the rendering order in the info panel - you also need to update the pageSize below
+        let data = ['id','alias','feature_class_name','description','creation_date','tilesetid','area','target_value','spf','preprocessed','pu_count','pu_area','target_area','protected_area'].map((item)=>{
           let key = "";
               switch (item) {
                 case 'id':
@@ -47,6 +60,9 @@ class Info extends React.Component {
                   break;
                 case 'creation_date':
                   key = "Creation date";
+                  break;
+                case 'tilesetid':
+                  key = "Mapbox ID";
                   break;
                 case 'description':
                   key = "Description";
@@ -82,7 +98,7 @@ class Info extends React.Component {
                       showPagination={false} 
                       className={'infoTable'}
                       minRows={0}
-                      pageSize={13}
+                      pageSize={14}
                       data={data}
                       noDataText=''
                       columns={[{

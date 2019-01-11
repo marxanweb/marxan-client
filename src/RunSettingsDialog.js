@@ -40,10 +40,10 @@ class RunSettingsDialog extends React.Component {
                     onBlur={e => {
                       const data = [...this.state.data];
                       data[cellInfo.index][cellInfo.column.id] = e.target.innerHTML;
-                      this.setState({ data });
+                      this.setState({ data }); 
                     }}
                   >{this.state.data[cellInfo.index]["value"]}</div>
-                  <FontAwesome name='external-link-alt' onClick={this.props.showClumpingDialog} title='Click to open the BLM comparison dialog' style={{display: ([...this.state.data][cellInfo.index]['key'] === 'BLM') ? 'block' : 'none', 'cursor':'pointer', 'paddingTop':'6px', 'paddingLeft':'30px'}}/>
+                  <FontAwesome name='external-link-alt' onClick={this.props.showClumpingDialog} title='Click to open the BLM comparison dialog' style={{display: ([...this.state.data][cellInfo.index]['key'] === 'BLM') ? 'block' : 'none', 'cursor':'pointer', 'paddingTop':'6px', 'paddingLeft':'35px'}}/>
             </React.Fragment>
         );
     }

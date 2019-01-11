@@ -4,31 +4,22 @@ import RaisedButton from 'material-ui/RaisedButton';
 import FlatButton from 'material-ui/FlatButton';
 import Metadata from './newProjectSteps/Metadata';
 import UploadMarxanFiles from './newProjectSteps/UploadMarxanFiles';
-import UploadPuShapefile from './newProjectSteps/UploadPuShapefile';
-import * as jsonp from 'jsonp-promise';
 
 //some of the code in this component should be moved up to app.js like the POSTs but I have limited time
 
 class ImportWizard extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {
-            steps: ['Info', 'Import database', 'Upload Planning Unit'],
-            finished: false,
-            stepIndex: 0,
-            name: '', 
-            description: '',
-            pu: '',
-        };
+        this.state = {steps: ['Info', 'Files and planning grid'], finished: false, stepIndex: 0, name: '', description: '', pu: ''};
+        this.props.setLog('', true);
     }
     handleNext = () => {
         const { stepIndex } = this.state;
-        this.setState({
-            stepIndex: stepIndex + 1
-        });
         if (stepIndex === 0) {
-            //create the new project to be able to upload the files to the folder on the server
-            jsonp(this.props.MARXAN_ENDPOINT_HTTPS + "createProject?user=" + this.props.user + "&project=" + this.state.name + "&description=" + this.state.description, { timeout: 0 }, this.step2Wizard.bind(this));
+            //create the new project 
+            this.props.createImportProject({ name: this.state.name, description: this.state.description}).then(function(response){
+                this.setState({stepIndex: stepIndex + 1});
+            }.bind(this));
         }
     };
     handlePrev = () => {
@@ -37,8 +28,8 @@ class ImportWizard extends React.Component {
             this.setState({ stepIndex: stepIndex - 1 });
         }
     };
-    step2Wizard(err, response) {
-        
+    setLog(log){
+        this.props.setLog(log, true);
     }
     allFilesUploaded(){
         
@@ -69,8 +60,7 @@ class ImportWizard extends React.Component {
         ];
         let c = <div>
                     {stepIndex === 0 ? <Metadata name={this.state.name} description={this.state.description} setName={this.setName.bind(this)} setDescription={this.setDescription.bind(this)}/> : null}
-                    {stepIndex === 1 ? <UploadMarxanFiles user={this.props.user} project={this.state.name} allFilesUploaded={this.allFilesUploaded.bind(this)}/> : null}
-                    {stepIndex === 2 ? <UploadPuShapefile uploadShapefile={this.props.uploadShapefile}/> : null}
+                    {stepIndex === 1 ? <UploadMarxanFiles setLog={this.setLog.bind(this)} user={this.props.user} project={this.state.name} allFilesUploaded={this.allFilesUploaded.bind(this)}/> : null}
                 </div>;
         return (
             <Dialog title={'Import - ' + this.state.steps[stepIndex]}

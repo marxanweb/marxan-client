@@ -7,8 +7,13 @@ import Legend from './Legend';
 import FontAwesome from 'react-fontawesome';
 import FlatButton from 'material-ui/FlatButton';
 import Settings from 'material-ui/svg-icons/action/settings';
+import Clipboard from 'material-ui/svg-icons/action/assignment';
 
 class ResultsPane extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { showClipboard: false };
+  }
   componentDidUpdate(prevProps, prevState) {
     //if the streaming log has changed then scroll to the bottom of the div
     if (this.props.streamingLog !== prevProps.streamingLog) {
@@ -18,7 +23,7 @@ class ResultsPane extends React.Component {
       }
     }
   }
-  loadSolution(solution) { 
+  loadSolution(solution) {
     this.props.loadSolution(solution);
   }
   hideResults() {
@@ -34,6 +39,39 @@ class ResultsPane extends React.Component {
     this.props.log_tab_active();
   }
 
+  mouseEnter(event) {
+    this.setState({ showClipboard: true });
+  }
+
+  mouseLeave(event) {
+    this.setState({ showClipboard: false });
+  }
+
+  selectText(node) {
+    node = document.getElementById(node);
+    if (document.body.createTextRange) {
+      const range = document.body.createTextRange();
+      range.moveToElementText(node);
+      range.select();
+    }
+    else if (window.getSelection) {
+      const selection = window.getSelection();
+      const range = document.createRange();
+      range.selectNodeContents(node);
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }
+    else {
+      console.warn("Could not select text in node: Unsupported browser.");
+    }
+  }
+
+  copyLog(evt) {
+    this.selectText("log");
+    evt.target.focus();
+    document.execCommand('copy');
+  }
+
   render() {
     return (
       <React.Fragment>
@@ -47,7 +85,7 @@ class ResultsPane extends React.Component {
                 title={"Hide results"}
                 icon={<FontAwesome name='arrow-right' style={{top:'8px','color':'white'}}/>}
               />
-            <Tabs contentContainerStyle={{'margin':'20px'}} className={'resultsTabs'} value={this.props.activeResultsTab}>
+            <Tabs contentContainerStyle={{'margin':'20px'}} className={'resultsTabs'} value={this.props.activeResultsTab} id='resultsTabs'>
               <Tab label="Legend" value="legend" onActive={this.legend_tab_active.bind(this)} >
                 <div>
                 <Legend
@@ -78,7 +116,7 @@ class ResultsPane extends React.Component {
                           title: 'Click to show on the map'
                         };
                       }}
-                    className={'summary_infoTable -highlight'}
+                    className={'solutions_infoTable -highlight'}
                     showPagination={false}
                     minRows={0}
                     pageSize={200}
@@ -114,7 +152,17 @@ class ResultsPane extends React.Component {
                 </div>
               </Tab>
               <Tab label="Log" value="log" onActive={this.log_tab_active.bind(this)} >
-                <div id="log">{this.props.log}</div>
+                <div id="log" onMouseEnter={this.mouseEnter.bind(this)} onMouseLeave={this.mouseLeave.bind(this)}>{this.props.log}
+                  <RaisedButton  
+                    id="copyToClipboardButton"
+                    icon={<Clipboard style={{height:'20px',width:'20px'}}/>} 
+                    title="Copy to clipboard"
+                    onClick={this.copyLog.bind(this)} 
+                    style={{padding: '0px',minWidth: '30px',width: '24px',height: '24px',position:'absolute',top:'421px',right:'30px', display: (this.state.showClipboard) ? 'block' : 'none'}}
+                    overlayStyle={{lineHeight:'24px',height:'24px'}}
+                    buttonStyle={{marginTop:'-7px',lineHeight:'24px',height:'24px'}} 
+                  />
+                </div>
               </Tab>
             </Tabs>     
           </Paper>

@@ -24,10 +24,10 @@ class LinearGauge extends React.Component {
         //get the width of the rest of the bar
         let unprotectedWidth = (100 * scaleFactor) - protectedWidth - targetShortfallWidth;
         return (
-            <div className={'linearGauge'} style={{opacity: (this.props.protected_percent === -1) ? '0.3' : 1}}>
+            <div className={(this.props.visible) ? 'linearGauge' : 'linearGaugeNoBorder'} style={{opacity: (this.props.protected_percent === -1) ? '0.3' : 1}}>
                 <div title={Math.round(this.props.protected_percent) + '% protected'} className={'percentBar protectedPercentBar'} style={{width: protectedWidth + 'px'}}>{protectedHidden ? <span>&nbsp;</span> : Math.round(this.props.protected_percent) + '%'}</div>
-                <div title={'Target of ' + this.props.target_value + '%'} className={'percentBar targetShortfall'} style={{width: targetShortfallWidth + 'px'}}></div>
-                <div className={'percentBar totalShortFall'} style={{width: unprotectedWidth + 'px'}}></div>
+                <div title={'Target of ' + this.props.target_value + '%'} className={'percentBar targetShortfall'} style={{width: (this.props.visible) ? targetShortfallWidth + 'px' : '0px'}}></div>
+                <div className={'percentBar totalShortFall'} style={{width: unprotectedWidth + 'px', color:'rgba(0,0,0,0.7)', 'textAlign': (this.props.visible) ? null : 'left', 'fontStyle': (this.props.visible) ? null : 'italic'}}>{(this.props.visible) ? null : 'Does not occur'}</div>
             </div>
         );
     }

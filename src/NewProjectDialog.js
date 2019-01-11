@@ -107,6 +107,7 @@ class NewProjectDialog extends React.Component {
                         openAllInterestFeaturesDialog={this.openAllInterestFeaturesDialog.bind(this)}  
                         updateTargetValue={this.updateTargetValue}
                         simple={true}
+                        leftmargin={'0px'}
                     /> : null}
                     {stepIndex === 3 ? <SelectCostFeatures
                         openAllCostsDialog={this.props.openAllCostsDialog}

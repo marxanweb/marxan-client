@@ -18,6 +18,7 @@ class FeaturesList extends React.Component {
         this.props.updateTargetValue(targetIcon.props.interestFeature, targetIcon.newTargetValue);
     }
     preprocess(feature) {
+        this.closeInfoDialog();
         this.props.preprocessFeature(feature);
     }
     openInfoDialog(feature) {
@@ -25,6 +26,14 @@ class FeaturesList extends React.Component {
     }
     closeInfoDialog() {
         this.setState({ currentFeature: {}, openInfoDialogOpen: false });
+    }
+    toggleFeature(feature){
+        this.closeInfoDialog();
+        this.props.toggleFeature(feature);
+    }
+    removeFromProject(feature){
+        this.closeInfoDialog();
+        this.props.removeFromProject(feature);
     }
     render() {
         const iconButtonElement = (
@@ -37,7 +46,7 @@ class FeaturesList extends React.Component {
         );
         return (
             <React.Fragment>
-            <List style={{padding:'0px !important'}}>
+            <List style={{padding:'0px !important', maxHeight: this.props.maxheight, overflow: 'auto'}}>
                 {this.props.features.map((item)=>{
                     //get the total area of the feature in the planning unit
                     let pu_area = item.pu_area;
@@ -60,6 +69,7 @@ class FeaturesList extends React.Component {
                                   updateTargetValue={this.updateTargetValue.bind(this)} 
                                   interestFeature={item}
                                   targetStatus={targetStatus}
+                                  visible={(item.pu_area!==0)}
                               /> 
                             }
                             primaryText={item.alias} 
@@ -70,6 +80,7 @@ class FeaturesList extends React.Component {
                                     scaledWidth={220}
                                     target_value={item.target_value} 
                                     protected_percent={protected_percent}
+                                    visible={(item.pu_area!==0)}
                                 />
                             } 
                             key={item.id} 
@@ -79,8 +90,8 @@ class FeaturesList extends React.Component {
                                 :
                                 <IconMenu iconButtonElement={iconButtonElement} style={{right:'10px'}}>
                                     <MenuItem className={'smallMenuItem'} onClick={this.openInfoDialog.bind(this, item)}>Info</MenuItem>
-                                    <MenuItem className={'smallMenuItem'}>View</MenuItem>
-                                    <MenuItem className={'smallMenuItem'}>Prioritise</MenuItem>
+                                    <MenuItem className={'smallMenuItem'} onClick={this.removeFromProject.bind(this, item)}>Remove</MenuItem>
+                                    <MenuItem className={'smallMenuItem'} style={{display: (item.tilesetid) ? 'block' : 'none'}} onClick={this.toggleFeature.bind(this, item)}>{item.toggle_state}</MenuItem>
                                     <MenuItem disabled={item.preprocessed} onClick={() => this.preprocess(item)} className={'smallMenuItem'}>Pre-process</MenuItem>
                                 </IconMenu>
                             }
@@ -95,6 +106,7 @@ class FeaturesList extends React.Component {
                 open={this.state.openInfoDialogOpen}
                 feature={this.state.currentFeature}
                 closeInfoDialog={this.closeInfoDialog.bind(this)}
+                updateFeature={this.props.updateFeature}
             />
             </React.Fragment>
         );

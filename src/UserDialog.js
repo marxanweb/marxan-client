@@ -12,7 +12,7 @@ class UserDialog extends React.Component {
     handleKeyPress(e) {
         if (e.nativeEvent.key === "Enter") this.updateUser();
     }
-    updateState(name, value) {
+    updateState(name, value) { 
         this.setState({
             [name]: value, updated: true });
     }

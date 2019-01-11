@@ -124,11 +124,11 @@ body {
 }
 
 .resultsTabs {
-  height: 385px;
+  height: 541px;
 }
 
 #log {
-  height: 300px;
+  height: 455px;
   width: 360px;
   font-size: 12px;
   overflow-x: hidden;
@@ -137,6 +137,12 @@ body {
   margin-left: -2px;
   white-space: pre;
   color: rgba(0, 0, 0, 0.6);
+}
+#log::selection {
+  background: #ffffff; /* WebKit/Blink Browsers */
+}
+#log::-moz-selection {
+  background: #ffffff; /* Gecko Browsers */
 }
 
 .ReactTable {
@@ -161,6 +167,12 @@ body {
   font-family: Roboto, sans-serif;
 }
 
+.solutions_infoTable {
+  width: 360px;
+  max-height: 452px;
+  color: rgba(0, 0, 0, 0.6);
+}
+
 .summary_infoTable {
   width: 360px;
   height: 300px;
@@ -168,7 +180,7 @@ body {
 
 .infoTable {
   width: 337px;
-  height: 366px;
+  height: 391px;
 }
 
 .rt-tr-group {
@@ -385,6 +397,13 @@ input:-webkit-autofill {
   margin-top: 5px;
   display: inline-flex;
   border: 1px solid lightgray;
+}
+
+.linearGaugeNoBorder{
+  margin-top: 5px;
+  display: inline-flex;
+  margin-top: 5px;
+  margin-bottom: 2px;
 }
 
 .percentBar {

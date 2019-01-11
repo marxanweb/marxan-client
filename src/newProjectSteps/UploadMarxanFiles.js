@@ -1,15 +1,14 @@
 import * as React from 'react';
 import UploadFolder from '../UploadFolder';
+import ShapefileUpload from '../ShapefileUpload';
 
 class UploadMarxanFiles extends React.Component {
     constructor(props) {
         super(props);
-        this.state = { log: '' };
+        this.state = { name: '', description: '', zipFilename: ''};
     }
-    onChange(e) {
-        if (e.target.files.length) {
-            this.fileUpload(e.target.files);
-        }
+    folderSet(folder){
+        
     }
     filesListed(files) { 
         var file, filenames = [];
@@ -17,21 +16,26 @@ class UploadMarxanFiles extends React.Component {
             file = files.item(i);
             filenames.push(file.webkitRelativePath);
         }
-        var log = files.length + ' files<br/>' + filenames.join("<br/>") + "<br/>Uploading...";
+        var log = files.length + ' files\n' + filenames.join("\n");
         this.fileCount = files.length;
-        this.setState({ log: log });
+        this.props.setLog(log);
     }
     fileUploadStarted(file) {
 
     }
     fileUploadStopped(file) {
-        var log = this.state.log + "<br/>" + file + " uploaded";
-        this.updateLog(log);
+        var log = this.state.log + "\n" + file + " uploaded";
+        this.updateLog(log); 
     }
     allFilesUploaded() {
-        var log = this.state.log + "<br/>Completed<br/>";
+        var log = this.state.log + "\nCompleted\n";
         this.updateLog(log);
         this.props.allFilesUploaded();
+    }
+    setzipFilename(filename) {
+        this.setState({ zipFilename: filename });
+        this.setState({ log: "Uploaded\nUploading to MapBox..." });
+        this.props.uploadShapefile(this.state.zipFilename, this.state.zipFilename.slice(0, -4), "Imported as " + this.state.zipFilename + " using the import wizard");
     }
     updateLog(message) {
         this.setState({ log: message });
@@ -43,6 +47,7 @@ class UploadMarxanFiles extends React.Component {
                     <UploadFolder 
                         label="Project folder" 
                         postUrl={'https://db-server-blishten.c9users.io/marxan/webAPI2.py/postFileWithFolder'} 
+                        folderSet={this.folderSet.bind(this)}
                         filesListed={this.filesListed.bind(this)}
                         fileUploadStarted={this.fileUploadStarted.bind(this)}
                         fileUploadStopped={this.fileUploadStopped.bind(this)}
@@ -50,7 +55,7 @@ class UploadMarxanFiles extends React.Component {
                         user={this.props.user}
                         project={this.props.project}
                     />
-                    <div id="log" dangerouslySetInnerHTML={{__html:this.state.log}} style={{width:'450px','overflowX':'hidden'}}></div>
+                    <ShapefileUpload mandatory={true} filename={this.state.zipFilename} setFilename={this.setzipFilename.bind(this)} label="Zipped shapefile" style={{'paddingTop':'10px'}}/> 
                 </div>
             </React.Fragment>
         );

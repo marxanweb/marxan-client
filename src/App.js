@@ -42,6 +42,7 @@ let MARXAN_ENDPOINT_WSS = "wss://" + MARXAN_REMOTE_SERVERS[0];
 let TIMEOUT = 0; //disable timeout setting
 let DISABLE_LOGIN = false; //to not show the login form, set loggedIn to true
 let MAPBOX_USER = "blishten";
+let MAPBOX_STYLE_PREFIX = 'mapbox://styles/';
 let PLANNING_UNIT_LAYER_NAME = "planning_units_layer";
 let PLANNING_UNIT_LAYER_OPACITY = 0.2;
 let PLANNING_UNIT_EDIT_LAYER_NAME = "planning_units_layer_edit";
@@ -52,6 +53,25 @@ let RESULTS_LAYER_FILL_OPACITY_INACTIVE = 0.1;
 let WDPA_LAYER_NAME = "wdpa";
 let WDPA_LAYER_OPACITY = 0.9;
 let CLUMP_COUNT = 5;
+let UPLOAD_FEATURES_TO_MAPBOX = true;
+let BACKUP_MAPBOX_BASEMAPS = [{name: 'Streets', description: 'A complete basemap, perfect for incorporating your own data.', id:'mapbox/streets-v9', provider:'mapbox'},
+    {name: 'Outdoors', description: 'General basemap tailored to hiking, biking, and sport.', id:'mapbox/outdoors-v9', provider:'mapbox'},
+    {name: 'Dark', description: 'Subtle dark backdrop for data visualizations.', id:'mapbox/dark-v9', provider:'mapbox'},
+    {name: 'Light', description: 'Subtle light backdrop for data visualizations.', id:'mapbox/light-v9', provider:'mapbox'},
+    {name: 'North Star', description: 'Slightly modified North Star with no Bathymetry.', id:'blishten/cjg6jk8vg3tir2spd2eatu5fd', provider:'Joint Research Centre'},
+    {name: 'Satellite', description: 'A beautiful global satellite and aerial imagery layer.', id:'mapbox/satellite-v9', provider:'mapbox'},
+    {name: 'Satellite Streets', description: 'Global imagery enhanced with road and label hierarchy.', id:'mapbox/satellite-streets-v9', provider:'mapbox'}];
+    // {name: 'Navigation Preview Day', description: 'Traffic on a light streets basemap that highlights congestion.', id:''},
+    // {name: 'Navigation Preview Night', description: 'Traffic on a dark streets basemap that highlights congestion.', id:''},
+    // {name: 'Navigation Guidance Day', description: 'Light basemap tailored to in-app navigation.', id:''},
+    // {name: 'Navigation Guidance Night', description: 'Dark basemap tailored to in-app navigation.', id:''},
+    // {name: 'Minimo', description: 'A style with clean, uniform transit networks, stippling patterns and building icons; it’s good for data overlay or exploring the world while holding the hand of Italian, minimalistic beauty.', id:''},
+    // {name: 'Lè Shine', description: 'A restrained color palette reminiscent of winters cold, glaring austerity.', id:''},
+    // {name: 'Cali Terrain', description: 'Cali Terrain is inspired by pictures from the plane traveling from Washington DC to Southern California.', id:''},
+    // {name: 'Ice Cream', description: 'A monochromatic color palette for apps or data visualization.', id:''},
+    // {name: 'Decimal', description: 'A minimalist style that works great as a backdrop for a game. Colors resemble vintage control panels.', id:''},
+    // {name: 'North Star', description: 'A modern take on classic nautical maps. Great for displaying all things maritime.', id:''},
+    // {name: 'Moonlight', description: 'A minimal high-contrast style. Customize it to suit your brand colors and typography.', id:''}];
 var ws;
 
 Array.prototype.diff = function(a) {
@@ -131,29 +151,20 @@ class App extends React.Component {
       blmMin: 0,
       blmMax: 1, 
       clumpingRunning: false,
-      pid: 0
+      pid: 0,
+      basemaps: [],
+      basemap: 'North Star'
     };
     this.planning_unit_statuses = [1, 2, 3];
   }
 
   componentDidMount() {
-    this.map = new mapboxgl.Map({
-      container: this.mapContainer,
-      // style: 'mapbox://styles/' + MAPBOX_USER + '/cj6q75jcd39gq2rqm1d7yv5rc', //north star
-      style: 'mapbox://styles/' + MAPBOX_USER + '/cjg6jk8vg3tir2spd2eatu5fd', //north star + marine PAs in pacific
-      // center: [0.043476868184143314, 0.0460817578557311],
-      center: [0, 0],
-      zoom: 2
-    });
-    this.map.on("load", this.mapLoaded.bind(this));
-    //set a reference to this App in the map object 
-    this.map.App = this;
-    //instantiate the classybrew to get the color ramps for the renderers
-    this.setState({ brew: new classyBrew() });
     //if disabling the login, then programatically log in
     if (DISABLE_LOGIN) this.validateUser();
+    //check application level variables have been loaded from my github CDN (the https://andrewcottam.github.io/cdn/marxan.js)
+    this.getGlobalVariables();
   }
-
+  
   componentDidUpdate(prevProps, prevState) {
     //if any files have been uploaded then check to see if we have all of the mandatory file inputs - if so, set the state to being runnable
     if (this.state.files !== prevState.files) {
@@ -161,6 +172,18 @@ class App extends React.Component {
     }
   }
 
+  //gets various global variables from my github cdn
+  getGlobalVariables(){
+    var basemaps = [];
+    if (window.MAPBOX_BASEMAPS){
+      console.log("Loading Marxan global variables from https://andrewcottam.github.io/cdn/marxan.js");
+      basemaps = window.MAPBOX_BASEMAPS;
+    }else{
+      console.warn("Unable to load Marxan global variables from https://andrewcottam.github.io/cdn/marxan.js. Using local copy.");
+      basemaps = BACKUP_MAPBOX_BASEMAPS;
+    }
+    this.setState({basemaps: basemaps});
+  }
   mapLoaded(e) {
     // this.map.addControl(new mapboxgl.FullscreenControl(), 'bottom-right'); // currently full screen hides the info panel and setting position:absolute and z-index: 10000000000 doesnt work properly
     this.map.addControl(new mapboxgl.ScaleControl());
@@ -214,6 +237,19 @@ class App extends React.Component {
     this.log_tab_active();
     //reset the state
     this.setState({streamingLog: ""});
+  }
+  
+  //called from components who have their own log
+  setLog(log, clearLog = false){
+    var fullLog;
+    if (clearLog){
+      fullLog = log;
+      //switches the results pane to the log tab
+      this.log_tab_active();
+    } else{
+      fullLog = this.state.streamingLog + log + "\n";
+    }
+    this.setState({streamingLog: fullLog});
   }
   
   //utiliy method for getting all puids from normalised data, e.g. from [["VI", [7, 8, 9]], ["IV", [0, 1, 2, 3, 4]], ["V", [5, 6]]]
@@ -273,8 +309,11 @@ class App extends React.Component {
     jsonp(MARXAN_ENDPOINT_HTTPS + "getUser?user=" + this.state.user, { timeout: TIMEOUT }).promise.then(function(response) {
       if (!this.checkForErrors(response)) {
         this.setState({ project: response.userData.LASTPROJECT, userData: response.userData });
-        //get the users tilesets from mapbox
-        this.getTilesets();
+        //set the basemap
+        var basemap = this.state.basemaps.filter(function(item){return (item.name === response.userData.BASEMAP);})[0];
+        this.changeBasemap(basemap);
+        //get the users last project and load it 
+        this.loadProject(response.userData.LASTPROJECT);
       }
     }.bind(this));
   }
@@ -408,7 +447,7 @@ class App extends React.Component {
     }.bind(this));
   }
 
-  //gets all of the tilesets from mapbox using the access token for the currently logged on user - this access token must have the TILESETS:LIST scope
+  //gets all of the tilesets from mapbox using the access token for the currently logged on user - this access token must have the TILESETS:LIST scope - NO LONGER USED
   getTilesets() {
     //get the tilesets for the user
     let client = new MapboxClient(this.state.userData.MAPBOXACCESSTOKEN);
@@ -425,8 +464,6 @@ class App extends React.Component {
         });
         //set the state
         this.setState({ tilesets: tilesets });
-        //now the tilesets are loaded from mapbox we can get the users last project and load it - this is only relevant if the user is not currently logged in - if they are logged in they are simply refreshing the list of tilesets
-        if (!this.state.loggedIn) this.loadProject(this.state.userData.LASTPROJECT);
       }
       else {
         this.setState({ tilesets: [] });
@@ -534,6 +571,7 @@ class App extends React.Component {
       item['target_value'] = 17;
       item['target_area'] = -1;
       item['protected_area'] = -1;
+      item['toggle_state'] = "Show on map";
   }
 
   //resets various variables and state in between users
@@ -609,6 +647,32 @@ class App extends React.Component {
         this.setState({ snackbarOpen: true, snackbarMessage: response.data.error });
       }
     });
+  }
+
+  //REST call to create a new import project from the wizard
+  createImportProject(project) {
+    return new Promise(function(resolve, reject) {
+      this.setState({ loadingProjects: true });
+      let formData = new FormData();
+      formData.append('user', this.state.user);
+      formData.append('project', project.name);
+      formData.append('description', project.description);
+      const config = {
+        headers: {
+          'content-type': 'multipart/form-data'
+        }
+      };
+      post(MARXAN_ENDPOINT_HTTPS + "createImportProject", formData, config).then((response) => {
+        this.setState({ loadingProjects: false });
+        if (!this.checkForErrors(response.data)) {
+          this.setState({ snackbarOpen: true, snackbarMessage: response.data.info });
+        }
+        else {
+          this.setState({ snackbarOpen: true, snackbarMessage: response.data.error });
+        }
+        resolve(response.data);
+      });
+    }.bind(this));
   }
 
   //REST call to delete a specific project
@@ -749,7 +813,7 @@ class App extends React.Component {
     this.state.projectFeatures.map((item) => {
       interest_features.push(item.id);
       target_values.push(item.target_value);
-      spf_values.push(40);
+      spf_values.push(item.spf);
     });
     //prepare the data that will populate the spec.dat file
     formData.append('interest_features', interest_features.join(","));
@@ -1218,9 +1282,55 @@ class App extends React.Component {
   }
 
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  ///MAP LAYERS ADDING/REMOVING AND INTERACTION
+  ///MAP INSTANTIATION, LAYERS ADDING/REMOVING AND INTERACTION
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+  //instantiates the mapbox gl map
+  createMap(url){
+    this.map = new mapboxgl.Map({
+      container: this.mapContainer,
+      style: url,
+      // center: [0.043476868184143314, 0.0460817578557311],
+      center: [0, 0],
+      zoom: 2
+    });
+    this.map.on("load", this.mapLoaded.bind(this));
+    //set a reference to this App in the map object 
+    this.map.App = this;
+    //instantiate the classybrew to get the color ramps for the renderers
+    this.setState({ brew: new classyBrew() });
+  }
+
+  //changes the default basemap for the user
+  changeBasemap(basemap){
+    //change the state
+    this.setState({basemap: basemap.name});
+    //change the map style
+    this.changeMapStyle(MAPBOX_STYLE_PREFIX + basemap.id).then(function(evt){
+      //add the marxan spatial layers - if this is the initial load the tileset will be undefined
+      if (this.state.tileset) {
+        this.addSpatialLayers(this.state.tileset);
+        //poll the server to see if results are available for this project - if there are these will be loaded
+        this.getResults(this.state.user, this.state.project);
+      }
+    }.bind(this));
+  }
+
+  //changes the maps style
+  changeMapStyle(url){
+    return new Promise(function(resolve, reject) {
+      if (!this.map) {
+        this.createMap(url);
+      }else{
+        //request the style
+        this.map.setStyle(url);
+      }
+      this.map.on('style.load', function(evt){
+        resolve();
+      });
+    }.bind(this));
+  }
+  
   spatialLayerChanged(tileset, zoomToBounds) {
     //remove the existing results layer and planning unit layer
     this.removeSpatialLayers();
@@ -1248,6 +1358,7 @@ class App extends React.Component {
   }
   //adds the results, planning unit, planning unit edit and wdpa layers to the map
   addSpatialLayers(tileset) {
+    var beforeLayer = (this.state.basemap === "North Star" ? 'bathymetry-10000' : '');
     //add the results layer
     this.map.addLayer({
       'id': RESULTS_LAYER_NAME,
@@ -1261,7 +1372,7 @@ class App extends React.Component {
         'fill-color': "rgba(0, 0, 0, 0)",
         'fill-outline-color': "rgba(0, 0, 0, 0)"
       }
-    }, 'bathymetry-10000');
+    }, beforeLayer);
     //add the planning unit layer
     this.map.addLayer({
       'id': PLANNING_UNIT_LAYER_NAME,
@@ -1278,7 +1389,7 @@ class App extends React.Component {
         'fill-color': "rgba(0, 0, 0, 0)",
         'fill-outline-color': "rgba(150, 150, 150, " + PLANNING_UNIT_LAYER_OPACITY + ")"
       }
-    }, 'bathymetry-10000');
+    }, beforeLayer);
 
     //add the planning units manual edit layer
     this.map.addLayer({
@@ -1296,7 +1407,7 @@ class App extends React.Component {
         'line-color': "rgba(150, 150, 150, 0)",
         'line-width': PLANNING_UNIT_EDIT_LAYER_LINE_WIDTH
       }
-    }, 'bathymetry-10000');
+    }, beforeLayer);
     this.map.addLayer({
       "id": WDPA_LAYER_NAME,
       "type": "fill",
@@ -1334,6 +1445,51 @@ class App extends React.Component {
       }
     });
   }
+
+  showLayer(id) {
+    this.map.setLayoutProperty(id, 'visibility', 'visible');
+  }
+  hideLayer(id) {
+    this.map.setLayoutProperty(id, 'visibility', 'none');
+  }
+
+  //iterates through all the map layers and sets the opacity for all those layers with the source matching the passed source
+  setOpacityBySource(source, opacity) {
+    this.map.getStyle().layers.map((layer) => {
+      if (layer.source === source) {
+        switch (layer.type) {
+          case 'fill':
+            let opacity2 = (layer.id.substr(0,9) === 'hillshade') ? 0 : opacity;
+            this.map.setPaintProperty(layer.id, "fill-opacity", opacity2);
+            break;
+          case 'line':
+            this.map.setPaintProperty(layer.id, "line-opacity", opacity);
+            break;
+          case 'symbol':
+            this.map.setPaintProperty(layer.id, "text-opacity", opacity);
+            //also icon-opacity
+            this.map.setPaintProperty(layer.id, "icon-opacity", opacity);
+            break;
+          default:
+            // code
+        }
+      }else{
+        if (layer.id === 'background') this.map.setLayoutProperty(layer.id, 'visibility', 'none');
+      }
+    }, this);
+  }
+
+  zoomToBounds(bounds) {
+    let minLng = (bounds[0] < -180) ? -180 : bounds[0];
+    let minLat = (bounds[1] < -90) ? -90 : bounds[1];
+    let maxLng = (bounds[2] > 180) ? 180 : bounds[2];
+    let maxLat = (bounds[3] > 90) ? 90 : bounds[3];
+    this.map.fitBounds([minLng, minLat, maxLng, maxLat], { padding: { top: 10, bottom: 10, left: 10, right: 10 }, easing: function(num) { return 1; } });
+  }
+
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  ///ACTIVATION/DEACTIVATION OF TABS
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   //fired when the projects tab is selected
   project_tab_active() {
@@ -1396,38 +1552,9 @@ class App extends React.Component {
     this.setState({activeResultsTab: "log" });
   }
 
-  showLayer(id) {
-    this.map.setLayoutProperty(id, 'visibility', 'visible');
-  }
-  hideLayer(id) {
-    this.map.setLayoutProperty(id, 'visibility', 'none');
-  }
-
-  //iterates through all the map layers and sets the opacity for all those layers with the source matching the passed source
-  setOpacityBySource(source, opacity) {
-    this.map.getStyle().layers.map((layer) => {
-      if (layer.source === source) {
-        switch (layer.type) {
-          case 'fill':
-            let opacity2 = (layer.id.substr(0,9) === 'hillshade') ? 0 : opacity;
-            this.map.setPaintProperty(layer.id, "fill-opacity", opacity2);
-            break;
-          case 'line':
-            this.map.setPaintProperty(layer.id, "line-opacity", opacity);
-            break;
-          case 'symbol':
-            this.map.setPaintProperty(layer.id, "text-opacity", opacity);
-            //also icon-opacity
-            this.map.setPaintProperty(layer.id, "icon-opacity", opacity);
-            break;
-          default:
-            // code
-        }
-      }else{
-        if (layer.id === 'background') this.map.setLayoutProperty(layer.id, 'visibility', 'none');
-      }
-    }, this);
-  }
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  ///PLANNING UNIT WORKFLOW AND FUNCTIONS
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   startPuEditSession() {
     //set the cursor to a crosshair
@@ -1602,18 +1729,8 @@ class App extends React.Component {
   }
 
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  ///END OF MAP LAYERS ADDING/REMOVING AND INTERACTION
+  //ROUTINES FOR CREATING A NEW PROJECT AND PLANNING UNIT GRIDS
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-  zoomToBounds(bounds) {
-    let minLng = (bounds[0] < -180) ? -180 : bounds[0];
-    let minLat = (bounds[1] < -90) ? -90 : bounds[1];
-    let maxLng = (bounds[2] > 180) ? 180 : bounds[2];
-    let maxLat = (bounds[3] > 90) ? 90 : bounds[3];
-    this.map.fitBounds([minLng, minLat, maxLng, maxLat], { padding: { top: 10, bottom: 10, left: 10, right: 10 }, easing: function(num) { return 1; } });
-  }
-
-  //ROUTINES FOR CREATING A NEW PROJECT
 
   openNewProjectDialog() {
     this.setState({ newProjectDialogOpen: true });
@@ -1628,6 +1745,7 @@ class App extends React.Component {
   closeNewPlanningUnitDialog() {
     this.setState({ NewPlanningUnitDialogOpen: false });
   }
+  
   createNewPlanningUnitGrid() {
     this.setState({ creatingNewPlanningUnit: true });
     jsonp(MARXAN_ENDPOINT_HTTPS + "createPlanningUnitGrid?iso3=" + this.state.iso3 + "&domain=" + this.state.domain + "&areakm2=" + this.state.areakm2, { timeout: 0 }).promise.then(function(response) {
@@ -1652,12 +1770,15 @@ class App extends React.Component {
   changeIso3(value) {
     this.setState({ iso3: value });
   }
+  
   changeDomain(value) {
     this.setState({ domain: value });
   }
+  
   changeAreaKm2(value) {
     this.setState({ areakm2: value });
   }
+  
   getCountries() {
     jsonp(MARXAN_ENDPOINT_HTTPS + "getCountries", { timeout: 10000 }).promise.then(function(response) {
       if (!this.checkForErrors(response)) {
@@ -1670,7 +1791,7 @@ class App extends React.Component {
     }.bind(this));
   }
 
-  //uploads the names feature class to mapbox on the server
+  //uploads the named feature class to mapbox on the server
   uploadToMapBox(feature_class_name, mapbox_layer_name) {
     jsonp(MARXAN_ENDPOINT_HTTPS + "uploadTilesetToMapBox?feature_class_name=" + feature_class_name + "&mapbox_layer_name=" + mapbox_layer_name, { timeout: 300000 }).promise.then(function(response) {
       if (!this.checkForErrors(response)) {
@@ -1786,7 +1907,7 @@ class App extends React.Component {
   }
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  ////////////////////////// MANAGING INTEREST FEATURES SECTION
+  // MANAGING INTEREST FEATURES SECTION
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   //update feature value by finding the object and setting the value for the key - set override to true to overwrite an existing key value
@@ -1851,6 +1972,36 @@ class App extends React.Component {
     this.updateFeature(feature, "target_value", newTargetValue, true);
   }
 
+  //toggles the feature layer on the map
+  toggleFeature(feature){
+    let layerName = feature.tilesetid.split(".")[1];
+    if (this.map.getLayer(layerName)){
+      this.map.removeLayer(layerName);
+      this.map.removeSource(layerName);
+      this.updateFeature(feature, "toggle_state", "Show on map", true);
+    }else{
+      this.map.addLayer({
+        'id': layerName,
+        'type': "fill",
+        'source': {
+          'type': "vector",
+          'url': "mapbox://" + feature.tilesetid
+        },
+        'source-layer': layerName,
+        'paint': {
+          'fill-color': "rgba(255, 0, 0, 1)",
+          'fill-outline-color': "rgba(255, 0, 0, 1)"
+        }
+      });
+      this.updateFeature(feature, "toggle_state", "Remove from map", true);
+    }
+  }
+
+  //removes the feature from the project
+  removeFromProject(feature){
+    this.unselectItem(feature);
+  }
+  
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////// END OF MANAGING INTEREST FEATURES SECTION
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2264,6 +2415,12 @@ class App extends React.Component {
             preprocessingProtectedAreas={this.state.preprocessingProtectedAreas}
             openAllInterestFeaturesDialog={this.openAllInterestFeaturesDialog.bind(this)}
             changeIucnCategory={this.changeIucnCategory.bind(this)}
+            toggleFeature={this.toggleFeature.bind(this)}
+            removeFromProject={this.removeFromProject.bind(this)}
+            updateFeature={this.updateFeature.bind(this)}
+            changeBasemap={this.changeBasemap.bind(this)}
+            basemaps={this.state.basemaps}
+            basemap={this.state.basemap}
           />
           <Popup
             active_pu={this.state.active_pu} 
@@ -2419,6 +2576,8 @@ class App extends React.Component {
           <ImportWizard 
             open={this.state.importDialogOpen}
             user={this.state.user}
+            createImportProject={this.createImportProject.bind(this)}
+            setLog={this.setLog.bind(this)}
             setFilename={this.uploadPlanningUnitFromShapefile.bind(this)}
             closeImportWizard={this.closeImportWizard.bind(this)}
             MARXAN_ENDPOINT_HTTPS={MARXAN_ENDPOINT_HTTPS}

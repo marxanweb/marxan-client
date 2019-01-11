@@ -151,6 +151,9 @@ class InfoPanel extends React.Component {
                     hidePopup={this.props.hidePopup}
                     updateUser={this.props.updateUser}
                     openImportWizard={this.props.openImportWizard} 
+                    changeBasemap={this.props.changeBasemap}
+                    basemaps={this.props.basemaps}
+                    basemap={this.props.basemap}
               />
             </Paper>
             <Tabs contentContainerStyle={{'margin':'20px'}} className={'tabs'} value={this.props.activeTab}>
@@ -170,6 +173,10 @@ class InfoPanel extends React.Component {
                   preprocessFeature={this.props.preprocessFeature}
                   openAllInterestFeaturesDialog={this.props.openAllInterestFeaturesDialog}
                   simple={false}
+                  toggleFeature={this.props.toggleFeature}
+                  leftmargin={'10px'}
+                  removeFromProject={this.props.removeFromProject}
+                  updateFeature={this.props.updateFeature}
                 />
               </Tab>
               <Tab label="Planning units" onActive={this.pu_tab_active.bind(this)} value="planning_units">
@@ -208,7 +215,7 @@ class InfoPanel extends React.Component {
               </Tab>
             </Tabs>     
             <Paper className={'lowerToolbar'}>
-                <RaisedButton 
+                <RaisedButton   
                   icon={<Settings style={{height:'20px',width:'20px'}}/>} 
                   title="Run Settings"
                   onClick={this.showRunSettingsDialog.bind(this)} 
@@ -239,10 +246,6 @@ class InfoPanel extends React.Component {
                   />  
                 </div>
             </Paper>
-            <div className='footer'>
-              <div>v1.0 Feedback: <a href='mailto:andrew.cottam@ec.europa.eu' className='email'>Andrew Cottam</a></div>
-              <div>Marxan 2.4.3 - Ian Ball, Matthew Watts &amp; Hugh Possingham</div>
-            </div>
           </Paper>
         </div>
           <ProjectsDialog 
