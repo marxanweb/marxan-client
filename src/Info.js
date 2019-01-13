@@ -113,7 +113,7 @@ class Info extends React.Component {
                       },{
                          Header: 'Value',
                          accessor: 'value',
-                         width:160,
+                         width:185,
                          headerStyle:{'textAlign':'left'},
                          Cell: props => this.renderCell(props)
                       }
