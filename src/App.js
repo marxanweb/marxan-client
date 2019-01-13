@@ -10,11 +10,16 @@ import Popup from './Popup.js';
 import Login from './login.js';
 import Snackbar from 'material-ui/Snackbar';
 import classyBrew from 'classybrew';
-/*eslint-disable no-unused-vars*/
+/*eslint-disable no-unused-vars*/ 
 import axios, { post } from 'axios';
 /*eslint-enable no-unused-vars*/
 import * as utilities from './utilities.js';
+import UserMenu from './UserMenu.js';
+import OptionsDialog from './OptionsDialog.js';
+import UserDialog from './UserDialog.js';
+import AboutDialog from './AboutDialog.js';
 import NewProjectDialog from './NewProjectDialog.js';
+import ProjectsDialog from './ProjectsDialog.js';
 import NewPlanningUnitDialog from './newProjectSteps/NewPlanningUnitDialog';
 import NewInterestFeatureDialog from './newProjectSteps/NewInterestFeatureDialog';
 import AllInterestFeaturesDialog from './AllInterestFeaturesDialog';
@@ -43,6 +48,7 @@ let TIMEOUT = 0; //disable timeout setting
 let DISABLE_LOGIN = false; //to not show the login form, set loggedIn to true
 let MAPBOX_USER = "blishten";
 let MAPBOX_STYLE_PREFIX = 'mapbox://styles/';
+let PLANNING_UNIT_STATUSES = [1, 2, 3];
 let PLANNING_UNIT_LAYER_NAME = "planning_units_layer";
 let PLANNING_UNIT_LAYER_OPACITY = 0.2;
 let PLANNING_UNIT_EDIT_LAYER_NAME = "planning_units_layer_edit";
@@ -53,7 +59,6 @@ let RESULTS_LAYER_FILL_OPACITY_INACTIVE = 0.1;
 let WDPA_LAYER_NAME = "wdpa";
 let WDPA_LAYER_OPACITY = 0.9;
 let CLUMP_COUNT = 5;
-let UPLOAD_FEATURES_TO_MAPBOX = true;
 let BACKUP_MAPBOX_BASEMAPS = [{name: 'Streets', description: 'A complete basemap, perfect for incorporating your own data.', id:'mapbox/streets-v9', provider:'mapbox'},
     {name: 'Outdoors', description: 'General basemap tailored to hiking, biking, and sport.', id:'mapbox/outdoors-v9', provider:'mapbox'},
     {name: 'Dark', description: 'Subtle dark backdrop for data visualizations.', id:'mapbox/dark-v9', provider:'mapbox'},
@@ -85,12 +90,26 @@ class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      userDialogOpen: false,
+      filesDialogOpen: false,
+      aboutDialogOpen: false,
+      importDialogOpen: false,
+      optionsDialogOpen: false,
+      AllCostsDialogOpen: false,
+      clumpingDialogOpen: false,
+      settingsDialogOpen: false,
+      projectsDialogOpen: false,
+      newProjectDialogOpen: false, 
+      classificationDialogOpen: false,
+      NewPlanningUnitDialogOpen: false, 
+      NewInterestFeatureDialogOpen: false,
+      AllInterestFeaturesDialogOpen: false,
       user: DISABLE_LOGIN ? 'andrew' : '',
       password: DISABLE_LOGIN ? 'asd' : '',
       project: DISABLE_LOGIN ? 'Tonga marine' : '',
       loggedIn: false,
-      userData: {},
       loggingIn: false,
+      userData: {},
       metadata: {},
       renderer: {},
       editingProjectName: false,
@@ -101,23 +120,13 @@ class App extends React.Component {
       runnable: false,
       active_pu: undefined,
       dataAvailable: false,
-      outputsTabString: 'No data',
       popup_point: { x: 0, y: 0 },
       snackbarOpen: false,
       snackbarMessage: '',
       tilesets: [],
-      filesDialogOpen: false,
       updatingRunParameters: false,
-      optionsDialogOpen: false,
-      newProjectDialogOpen: false, //set to true to debug immediately
-      NewPlanningUnitDialogOpen: false, //set to true to debug immediately
-      NewInterestFeatureDialogOpen: false,
-      AllInterestFeaturesDialogOpen: false,
-      AllCostsDialogOpen: false,
-      settingsDialogOpen: false,
-      classificationDialogOpen: false,
-      importDialogOpen: false,
-      clumpingDialogOpen: false,
+      userMenuOpen: false,
+      menuAnchor: undefined,
       resultsPaneOpen: true,
       preprocessingFeature: false,
       preprocessingProtectedAreas: false,
@@ -125,7 +134,6 @@ class App extends React.Component {
       featureDatasetDescription: '',
       featureDatasetFilename: '',
       creatingNewPlanningUnit: false,
-      creatingPuvsprFile: false, //true when the puvspr.dat file is being created on the server
       savingOptions: false,
       dataBreaks: [],
       allFeatures: [], //all of the interest features in the metadata_interest_features table
@@ -140,7 +148,7 @@ class App extends React.Component {
       planning_unit_grids: [],
       activeTab: "project",
       activeResultsTab: "legend",
-      streamingLog:"Log not available until run completed.\n",
+      streamingLog: "Log not available until run completed.\n",
       activeServer: MARXAN_REMOTE_SERVERS[0],
       map0_paintProperty: [],
       map1_paintProperty: [],
@@ -155,7 +163,6 @@ class App extends React.Component {
       basemaps: [],
       basemap: 'North Star'
     };
-    this.planning_unit_statuses = [1, 2, 3];
   }
 
   componentDidMount() {
@@ -291,6 +298,7 @@ class App extends React.Component {
 
   //log out and reset some state 
   logout() {
+    this.hideUserMenu();
     this.setState({ loggedIn: false, user: '', password: '', project: '' });
   }
 
@@ -366,36 +374,23 @@ class App extends React.Component {
     this.newUserData = Object.assign(this.state.userData, parameters);
   }
 
-  //opens the options parameters dialog whos open state is controlled
-  openOptionsDialog() {
-    this.setState({ optionsDialogOpen: true });
-  }
-  //closes the options parameters dialog whos open state is controlled
-  closeOptionsDialog() {
-    this.setState({ optionsDialogOpen: false });
-  }
-
   //saveOptions - the options are in the users data so we use the updateUser REST call to update them
   saveOptions(options) {
     this.updateUser(options);
   }
-  //opens the filess dialog whos open state is controlled
-  openFilesDialog() {
-    this.setState({ filesDialogOpen: true });
+  //updates the project from the old version to the new version
+  upgradeProject(project){
+    return jsonp(MARXAN_ENDPOINT_HTTPS + "upgradeProject?user=" + this.state.user + "&project=" + project).promise;
   }
-  //closes the run parameters dialog whos open state is controlled
-  closeFilesDialog() {
-    this.setState({ filesDialogOpen: false });
-  }
-
+  
   //updates the project parameters for the current project back to the server (i.e. the input.dat file)
-  updateProjectParams(parameters) {
+  updateProjectParams(project, parameters) {
     //initialise the form data
     let formData = new FormData();
     //add the current user
     formData.append("user", this.state.user);
     //add the current project
-    formData.append("project", this.state.project);
+    formData.append("project", project);
     //append all the key/value pairs
     this.appendToFormData(formData, parameters);
     const config = {
@@ -411,7 +406,7 @@ class App extends React.Component {
   updateProjectParameter(parameter, value) {
     let obj = {};
     obj[parameter] = value;
-    return this.updateProjectParams(obj);
+    return this.updateProjectParams(this.state.project, obj);
   }
 
   //updates the run parameters for the current project
@@ -422,7 +417,7 @@ class App extends React.Component {
     let parameters = {};
     array.map((obj) => { parameters[obj.key] = obj.value; return null; });
     //update
-    this.updateProjectParams(parameters).then(function(response){
+    this.updateProjectParams(this.state.project, parameters).then(function(response){
       //ui feedback
       this.setState({ updatingRunParameters: false });
       if (!this.checkForErrors(response.data)) {
@@ -577,7 +572,7 @@ class App extends React.Component {
   //resets various variables and state in between users
   resetResults() {
     this.runMarxanResponse = {};
-    this.setState({ solutions: [], dataAvailable: false, outputsTabString: 'No data' });
+    this.setState({ solutions: [], dataAvailable: false});
   }
 
   //called after a file has been uploaded
@@ -640,7 +635,7 @@ class App extends React.Component {
     post(MARXAN_ENDPOINT_HTTPS + "createProject", formData, config).then((response) => {
       this.setState({ loadingProjects: false });
       if (!this.checkForErrors(response.data)) {
-        this.setState({ snackbarOpen: true, snackbarMessage: response.data.info });
+        this.setState({ snackbarOpen: true, snackbarMessage: response.data.info, projectsDialogOpen: false });
         this.loadProject(response.data.name);
       }
       else {
@@ -882,10 +877,10 @@ class App extends React.Component {
             //reset the preprocessing state
             this.setState({preprocessingFeature: false, streamingLog: this.state.streamingLog + response.info + " (Total time: " + response.elapsedtime + ")\n\n" });
             //update the feature that has been preprocessed
-            this.updateFeature(feature, "preprocessed", true, true);
-            this.updateFeature(feature, "pu_count", Number(response.pu_count), true);
-            this.updateFeature(feature, "pu_area", Number(response.pu_area), true);
+            this.updateFeature(feature, {preprocessed: true, pu_count: Number(response.pu_count), pu_area: Number(response.pu_area)});
             resolve(evt.data);
+            break;
+          default:
             break;
         }
       }.bind(this);
@@ -897,7 +892,7 @@ class App extends React.Component {
     var logMessage = "";
     return new Promise(function(resolve, reject) {
       //update the ui to reflect the fact that a job is running
-      this.setState({active_pu: undefined, outputsTabString: 'Running...' });
+      this.setState({active_pu: undefined});
       //make the request to get the marxan data
       ws = new WebSocket(MARXAN_ENDPOINT_WSS + "runMarxan?user=" + user + "&project=" + project);
       ws.onmessage = function(evt){
@@ -916,6 +911,8 @@ class App extends React.Component {
             this.setState({pid: 0});
             logMessage = this.state.streamingLog + "\n" + response.info + " (Total time: " + response.elapsedtime + ")\n";
             resolve(response);
+            break;
+          default:
             break;
         }
         if (showLog) this.setState({streamingLog: logMessage});
@@ -966,7 +963,7 @@ class App extends React.Component {
       // this.setState({ brew: {} });
     }
     //TODO There are bugs in Marxan which dont write the output_log.dat file correctly that need to be fixed - for now the log comes from this file or is streamed back from the server on a Marxan run (streaming is not supported on Windows)
-    this.setState({ running: false, outputsTabString: '', solutions: solutions });
+    this.setState({ running: false, solutions: solutions });
     //set the features tab as active
     this.features_tab_active();
   }
@@ -980,8 +977,7 @@ class App extends React.Component {
       if (mvbestItemIndex>-1){ //the mvbest file may not contain the data for the feature if the project has not been run since the feature was added
         //get the missing values item for the specific feature
         let mvItem = mvData[mvbestItemIndex];
-        this.updateFeature(feature, "target_area", mvItem[2], true);
-        this.updateFeature(feature, "protected_area", mvItem[3], true);
+        this.updateFeature(feature, {target_area: mvItem[2], protected_area: mvItem[3]});
       }
     }, this);
   }
@@ -1018,7 +1014,7 @@ class App extends React.Component {
       var paintProperties = this.getPaintProperties(response.solution, false, false);
       //get the project that matches the project name from the this.projects property - this was set when the projectGroup was created
       if (this.projects){
-        var _projects = this.projects.filter(function(item){return item.projectName == project});
+        var _projects = this.projects.filter(function(item){return item.projectName === project});
         //get which clump it is
         var clump = _projects[0].clump;
         switch (clump) {
@@ -1036,6 +1032,8 @@ class App extends React.Component {
             break;
           case 4:
             this.setState({map4_paintProperty: paintProperties});
+            break;
+          default:
             break;
         }
       }
@@ -1230,6 +1228,8 @@ class App extends React.Component {
             break;
           case 3: //The PU is fixed outside the reserve system (“locked out”). It is not included in the initial reserve system and cannot be added.
             color = "rgba(191, 63, 63, 1)";
+            break;
+          default:
             break;
         }
         //add the color to the expression 
@@ -1643,7 +1643,7 @@ class App extends React.Component {
   getStatusLevel(puid) {
     //iterate through the planning unit statuses to see which status the clicked planning unit belongs to, i.e. 1,2 or 3
     let status_level = 0; //default level as the getPlanningUnits REST call only returns the planning units with non-default values
-    this.planning_unit_statuses.map((item) => {
+    PLANNING_UNIT_STATUSES.map((item) => {
       let planning_units = this.getPlanningUnitsByStatus(item);
       if (planning_units.indexOf(puid) > -1) {
         status_level = item;
@@ -1684,6 +1684,8 @@ class App extends React.Component {
         break;
       case 3:
         nextStatus = (direction === "up") ? 2 : 0;
+        break;
+      default:
         break;
     }
     return nextStatus;
@@ -1732,20 +1734,6 @@ class App extends React.Component {
   //ROUTINES FOR CREATING A NEW PROJECT AND PLANNING UNIT GRIDS
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  openNewProjectDialog() {
-    this.setState({ newProjectDialogOpen: true });
-  }
-  closeNewProjectDialog() {
-    this.setState({ newProjectDialogOpen: false });
-  }
-
-  openNewPlanningUnitDialog() {
-    this.setState({ NewPlanningUnitDialogOpen: true });
-  }
-  closeNewPlanningUnitDialog() {
-    this.setState({ NewPlanningUnitDialogOpen: false });
-  }
-  
   createNewPlanningUnitGrid() {
     this.setState({ creatingNewPlanningUnit: true });
     jsonp(MARXAN_ENDPOINT_HTTPS + "createPlanningUnitGrid?iso3=" + this.state.iso3 + "&domain=" + this.state.domain + "&areakm2=" + this.state.areakm2, { timeout: 0 }).promise.then(function(response) {
@@ -1894,11 +1882,9 @@ class App extends React.Component {
   //used by the import wizard to import a users zipped shapefile as the planning units
   importZippedShapefileAsPu(zipname, alias, description) {
     //the zipped shapefile has been uploaded to the MARXAN folder - it will be imported to PostGIS and a record will be entered in the metadata_planning_units table
-    jsonp(MARXAN_ENDPOINT_HTTPS + "importShapefile?filename=" + zipname + "&name=" + alias + "&description=" + description + "&dissolve=false&type=planning_unit", { timeout: TIMEOUT }).promise.then(function(response) {
+    jsonp(MARXAN_ENDPOINT_HTTPS + "importPlanningUnitGrid?filename=" + zipname + "&name=" + alias + "&description=" + description, { timeout: TIMEOUT }).promise.then(function(response) {
       if (!this.checkForErrors(response)) {
         this.setState({ snackbarOpen: true, snackbarMessage: response.info });
-        var zipName = response.file.slice(0, -4);
-        this.uploadToMapBox(zipName, zipName);
       }
       else {
         //server error
@@ -1910,66 +1896,57 @@ class App extends React.Component {
   // MANAGING INTEREST FEATURES SECTION
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  //update feature value by finding the object and setting the value for the key - set override to true to overwrite an existing key value
-  //this synchronises the states: allFeatures and projectFeatures as you cant detect state changes in object properties, i.e. componentDidUpdate is not called when you updated selected, preprocessed etc.
-  updateFeature(feature, key, value, override) {
-    // console.log("Update feature '" + feature.feature_class_name + "' with " + key + "=" + value);
-    let featuresCopy = this.state.allFeatures;
+  updateFeature(feature, newProps){
+    let features = this.state.allFeatures;
     //get the position of the feature 
-    var index = featuresCopy.findIndex(function(element) { return element.id === feature.id; });
-    var updatedFeature = featuresCopy[index];
-    //update the value if either the property doesn't exist (i.e. new value) or it does and override is set to true
-    if (updatedFeature && !(updatedFeature.hasOwnProperty(key) && !override)) updatedFeature[key] = value;
-    //update allFeatures and projectFeatures with the new value
-    this.setState({ allFeatures: featuresCopy, projectFeatures: featuresCopy.filter(function(item) { return item.selected }) });
+    var index = features.findIndex(function(element) { return element.id === feature.id; });
+    if (index!==-1) {
+      Object.assign(features[index], newProps);
+      //update allFeatures and projectFeatures with the new value
+      this.setFeaturesState(features);
+    }
   }
-
+  setFeaturesState(newFeatures){
+      //update allFeatures and projectFeatures with the new value
+      this.setState({ allFeatures: newFeatures, projectFeatures: newFeatures.filter(function(item) { return item.selected }) });
+  }
+  
   //selects a single Conservation feature
   selectItem(feature) {
-    this.updateFeature(feature, "selected", true, true); //select the Conservation feature
-    this.updateFeature(feature, "target_value", 17, false); //set a default target value if one is not already set
+    this.updateFeature(feature,{selected: true, target_value: 17});
   }
 
   //unselects a single Conservation feature
   unselectItem(feature) {
-    this.updateFeature(feature, "selected", false, true); //unselect the Conservation feature
-    this.updateFeature(feature, "preprocessed", false, true); //change the preprocessing to false
-    this.setAsUnprocessed(feature);
+    this.updateFeature(feature,{selected: false, preprocessed: false, protected_area: -1, pu_area: -1, pu_count: -1, target_area: -1});
+  }
+
+  //select or clear all features
+  selectClearAll(select){
+    var features = this.state.allFeatures;
+    features.map((feature) => {
+      if (select){
+        Object.assign(feature, {selected: true, target_value: 17});
+      }else{
+        Object.assign(feature, {selected: false, preprocessed: false, protected_area: -1, pu_area: -1, pu_count: -1, target_area: -1});
+      }
+    });
+    this.setFeaturesState(features);
   }
 
   //selects all the Conservation features
   selectAll() {
-    var features = this.state.allFeatures;
-    features.map((feature) => {
-      if (!feature.hasOwnProperty("target_value")) {
-        //set the target value if it is not already set
-        feature['target_value'] = 17;
-      }
-      //select the feature
-      this.selectItem(feature);
-    });
+    this.selectClearAll(true);
   }
 
   //clears all the Conservation features
   clearAll() {
-    var features = this.state.allFeatures;
-    features.map((feature) => {
-      //unselect the item
-      this.unselectItem(feature);
-    });
+    this.selectClearAll(false);
   }
 
-  //unprocessed features need to have their feature data reset
-  setAsUnprocessed(feature){
-    this.updateFeature(feature, "protected_area", -1, true); 
-    this.updateFeature(feature, "pu_area", -1, true); 
-    this.updateFeature(feature, "pu_count", -1, true); 
-    this.updateFeature(feature, "target_area", -1, true); 
-  }
-  
   //sets the target value of an feature
   updateTargetValue(feature, newTargetValue) {
-    this.updateFeature(feature, "target_value", newTargetValue, true);
+    this.updateFeature(feature, {target_value: newTargetValue});
   }
 
   //toggles the feature layer on the map
@@ -1978,7 +1955,7 @@ class App extends React.Component {
     if (this.map.getLayer(layerName)){
       this.map.removeLayer(layerName);
       this.map.removeSource(layerName);
-      this.updateFeature(feature, "toggle_state", "Show on map", true);
+      this.updateFeature(feature, {toggle_state: "Show on map"});
     }else{
       this.map.addLayer({
         'id': layerName,
@@ -1993,7 +1970,7 @@ class App extends React.Component {
           'fill-outline-color': "rgba(255, 0, 0, 1)"
         }
       });
-      this.updateFeature(feature, "toggle_state", "Remove from map", true);
+      this.updateFeature(feature, {toggle_state: "Remove from map"});
     }
   }
 
@@ -2003,12 +1980,76 @@ class App extends React.Component {
   }
   
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  ////////////////////////// END OF MANAGING INTEREST FEATURES SECTION
+  ////////////////////////// DIALOG OPENING/CLOSING FUNCTIONS
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+  showUserMenu(e) {
+    e.preventDefault();
+    this.setState({ userMenuOpen: true, menuAnchor: e.currentTarget });
+  }
+  hideUserMenu(e) {
+    this.setState({ userMenuOpen: false });
+  }
+
+  openProjectsDialog() {
+    this.setState({ projectsDialogOpen: true });
+    this.getProjects();
+  }
+  closeProjectsDialog() {
+    this.setState({ projectsDialogOpen: false });
+  }
+  openNewProjectDialog() {
+    this.setState({ newProjectDialogOpen: true });
+  }
+  closeNewProjectDialog() {
+    this.setState({ newProjectDialogOpen: false });
+  }
+
+  openNewPlanningUnitDialog() {
+    this.setState({ NewPlanningUnitDialogOpen: true });
+  }
+  closeNewPlanningUnitDialog() {
+    this.setState({ NewPlanningUnitDialogOpen: false });
+  }
+  
+  openFilesDialog() {
+    this.setState({ filesDialogOpen: true });
+  }
+
+  closeFilesDialog() {
+    this.setState({ filesDialogOpen: false });
+  }
+
+  openOptionsDialog() {
+    this.setState({ optionsDialogOpen: true });
+    this.hideUserMenu();
+  }
+
+  closeOptionsDialog() {
+    this.setState({ optionsDialogOpen: false });
+  }
+
+  openUserDialog() {
+    this.setState({ userDialogOpen: true });
+    this.hideUserMenu();
+  }
+  closeUserDialog() {
+    this.setState({ userDialogOpen: false });
+  }
+  
+  openAboutDialog(){
+    this.setState({ aboutDialogOpen: true });
+    this.hideUserMenu();
+  }
+
+  closeAboutDialog() {
+    this.setState({ aboutDialogOpen: false });
+  }
+  
   showRunSettingsDialog() {
     this.setState({ settingsDialogOpen: true });
   }
+  
   closeRunSettingsDialog() {
     this.setState({ settingsDialogOpen: false });
   }
@@ -2027,9 +2068,6 @@ class App extends React.Component {
     this.setState({ importDialogOpen: false });
   }
 
-  uploadPlanningUnitFromShapefile() {
-
-  }
   hideResults() {
     this.setState({ resultsPaneOpen: false });
   }
@@ -2158,6 +2196,8 @@ class App extends React.Component {
               //return a value to the then() call
               resolve(response.info);
               break;
+            default:
+              break;
           }
         }.bind(this); //onmessage
       }.bind(this)); //return
@@ -2203,6 +2243,8 @@ class App extends React.Component {
               this.setState({files: currentFiles});
               //return a value to the then() call
               resolve(response.info);
+              break;
+            default:
               break;
           }
         }.bind(this); //onmessage
@@ -2369,38 +2411,23 @@ class App extends React.Component {
           <div ref={el => this.mapContainer = el} className="absolute top right left bottom" />
           <InfoPanel
             user={this.state.user}
-            userData={this.state.userData}
             loggedIn={this.state.loggedIn}
             activeTab={this.state.activeTab}
-            getProjects={this.getProjects.bind(this)}
-            projects={this.state.projects}
             project={this.state.project}
             metadata={this.state.metadata}
-            logout={this.logout.bind(this)}
             runMarxan={this.runMarxan.bind(this)} 
             stopMarxan={this.stopMarxan.bind(this)}
             pid={this.state.pid}
             running={this.state.running} 
             runnable={this.state.runnable}
-            deleteProject={this.deleteProject.bind(this)}
-            loadProject={this.loadProject.bind(this)}
-            cloneProject={this.cloneProject.bind(this)}
             renameProject={this.renameProject.bind(this)}
             renameDescription={this.renameDescription.bind(this)}
             startEditingProjectName={this.startEditingProjectName.bind(this)}
             startEditingDescription={this.startEditingDescription.bind(this)}
             editingProjectName={this.state.editingProjectName}
             editingDescription={this.state.editingDescription}
-            loadingProjects={this.state.loadingProjects}
-            loadingProject={this.state.loadingProject}
-            saveOptions={this.saveOptions.bind(this)}
-            savingOptions={this.state.savingOptions}
-            optionsDialogOpen={this.state.optionsDialogOpen}
-            openOptionsDialog={this.openOptionsDialog.bind(this)}
-            closeOptionsDialog={this.closeOptionsDialog.bind(this)}
-            hidePopup={this.hidePopup.bind(this)}
-            updateUser={this.updateUser.bind(this)}
-            openNewProjectDialog={this.openNewProjectDialog.bind(this)}
+            showUserMenu={this.showUserMenu.bind(this)}
+            openProjectsDialog={this.openProjectsDialog.bind(this)}
             features={this.state.projectFeatures}
             updateTargetValue={this.updateTargetValue.bind(this)}
             project_tab_active={this.project_tab_active.bind(this)}
@@ -2409,7 +2436,6 @@ class App extends React.Component {
             startPuEditSession={this.startPuEditSession.bind(this)}
             stopPuEditSession={this.stopPuEditSession.bind(this)}
             showRunSettingsDialog={this.showRunSettingsDialog.bind(this)}
-            openImportWizard={this.openImportWizard.bind(this)}
             preprocessFeature={this.preprocessSingleFeature.bind(this)}
             preprocessingFeature={this.state.preprocessingFeature}
             preprocessingProtectedAreas={this.state.preprocessingProtectedAreas}
@@ -2418,18 +2444,45 @@ class App extends React.Component {
             toggleFeature={this.toggleFeature.bind(this)}
             removeFromProject={this.removeFromProject.bind(this)}
             updateFeature={this.updateFeature.bind(this)}
+          />
+          <UserMenu 
+            userMenuOpen={this.state.userMenuOpen} 
+            menuAnchor={this.state.menuAnchor}
+            hideUserMenu={this.hideUserMenu.bind(this)} 
+            openOptionsDialog={this.openOptionsDialog.bind(this)}
+            openUserDialog={this.openUserDialog.bind(this)}
+            openAboutDialog={this.openAboutDialog.bind(this)}
+            logout={this.logout.bind(this)}
+          />
+          <OptionsDialog 
+            open={this.state.optionsDialogOpen}
+            closeOptionsDialog={this.closeOptionsDialog.bind(this)}
+            userData={this.state.userData}
+            saveOptions={this.saveOptions.bind(this)}
+            savingOptions={this.state.savingOptions}
             changeBasemap={this.changeBasemap.bind(this)}
             basemaps={this.state.basemaps}
             basemap={this.state.basemap}
+          />
+          <UserDialog 
+            open={this.state.userDialogOpen}
+            closeUserDialog={this.closeUserDialog.bind(this)}
+            userData={this.state.userData}
+            updateUser={this.updateUser.bind(this)}
+          />
+          <AboutDialog 
+            open={this.state.aboutDialogOpen}
+            closeAboutDialog={this.closeAboutDialog.bind(this)}
           />
           <Popup
             active_pu={this.state.active_pu} 
             xy={this.state.popup_point}
           />
-          <Login open={!this.state.loggedIn} 
+          <Login 
+            open={!this.state.loggedIn} 
+            user={this.state.user} 
             changeUserName={this.changeUserName.bind(this)} 
             changePassword={this.changePassword.bind(this)} 
-            user={this.state.user} 
             password={this.state.password} 
             validateUser={this.validateUser.bind(this)} 
             loggingIn={this.state.loggingIn} 
@@ -2446,12 +2499,24 @@ class App extends React.Component {
             message={this.state.snackbarMessage}
             onRequestClose={this.closeSnackbar.bind(this)}
           />
+          <ProjectsDialog 
+            open={this.state.projectsDialogOpen} 
+            closeProjectsDialog={this.closeProjectsDialog.bind(this)}
+            loadingProjects={this.state.loadingProjects}
+            loadingProject={this.state.loadingProject}
+            projects={this.state.projects}
+            project={this.state.project}
+            deleteProject={this.deleteProject.bind(this)}
+            loadProject={this.loadProject.bind(this)}
+            cloneProject={this.cloneProject.bind(this)}
+            openNewProjectDialog={this.openNewProjectDialog.bind(this)}
+            openImportWizard={this.openImportWizard.bind(this)}
+          />
           <NewProjectDialog
             open={this.state.newProjectDialogOpen}
             closeNewProjectDialog={this.closeNewProjectDialog.bind(this)}
             getPlanningUnitGrids={this.getPlanningUnitGrids.bind(this)}
             planning_unit_grids={this.state.planning_unit_grids}
-            planning_units={this.state.planning_units}
             openNewPlanningUnitDialog={this.openNewPlanningUnitDialog.bind(this)}
             openAllInterestFeaturesDialog={this.openAllInterestFeaturesDialog.bind(this)}
             features={this.state.allFeatures} 
@@ -2476,10 +2541,10 @@ class App extends React.Component {
           />
           <AllInterestFeaturesDialog
             open={this.state.AllInterestFeaturesDialogOpen}
+            closeAllInterestFeaturesDialog={this.closeAllInterestFeaturesDialog.bind(this)}
             allFeatures={this.state.allFeatures}
             projectFeatures={this.state.projectFeatures}
             deleteInterestFeature={this.deleteInterestFeature.bind(this)}
-            closeAllInterestFeaturesDialog={this.closeAllInterestFeaturesDialog.bind(this)}
             openNewInterestFeatureDialog={this.openNewInterestFeatureDialog.bind(this)}
             selectItem={this.selectItem.bind(this)}
             unselectItem={this.unselectItem.bind(this)}
@@ -2513,7 +2578,6 @@ class App extends React.Component {
             updatingRunParameters={this.state.updatingRunParameters}
             runParams={this.state.runParams}
             showClumpingDialog={this.showClumpingDialog.bind(this)}
-            clumpingRunning={this.state.clumpingRunning}
           />
           <ClumpingDialog
             open={this.state.clumpingDialogOpen}
@@ -2545,14 +2609,13 @@ class App extends React.Component {
             files={this.state.files}
           />
           <ResultsPane
+            open={this.state.resultsPaneOpen && this.state.loggedIn}
             running={this.state.running} 
             dataAvailable={this.state.dataAvailable} 
             solutions={this.state.solutions}
             loadSolution={this.loadSolution.bind(this)} 
             openClassificationDialog={this.openClassificationDialog.bind(this)}
-            outputsTabString={this.state.outputsTabString} 
             hideResults={this.hideResults.bind(this)}
-            open={this.state.resultsPaneOpen && this.state.loggedIn}
             brew={this.state.brew}
             log={this.state.streamingLog} 
             activeResultsTab={this.state.activeResultsTab}
@@ -2563,8 +2626,8 @@ class App extends React.Component {
           />
           <ClassificationDialog 
             open={this.state.classificationDialogOpen}
-            renderer={this.state.renderer}
             closeClassificationDialog={this.closeClassificationDialog.bind(this)}
+            renderer={this.state.renderer}
             changeColorCode={this.changeColorCode.bind(this)}
             changeRenderer={this.changeRenderer.bind(this)}
             changeNumClasses={this.changeNumClasses.bind(this)}
@@ -2575,12 +2638,13 @@ class App extends React.Component {
           />
           <ImportWizard 
             open={this.state.importDialogOpen}
+            closeImportWizard={this.closeImportWizard.bind(this)}
             user={this.state.user}
+            MARXAN_ENDPOINT_HTTPS={MARXAN_ENDPOINT_HTTPS}
             createImportProject={this.createImportProject.bind(this)}
             setLog={this.setLog.bind(this)}
-            setFilename={this.uploadPlanningUnitFromShapefile.bind(this)}
-            closeImportWizard={this.closeImportWizard.bind(this)}
-            MARXAN_ENDPOINT_HTTPS={MARXAN_ENDPOINT_HTTPS}
+            upgradeProject={this.upgradeProject.bind(this)}
+            updateProjectParams={this.updateProjectParams.bind(this)}
             uploadShapefile={this.importZippedShapefileAsPu.bind(this)}
           />
           <div style={{position: 'absolute', display: this.state.resultsPaneOpen ? 'none' : 'block', backgroundColor: 'rgb(0, 188, 212)', right: '0px', top: '20px', width: '20px', borderRadius: '2px', height: '88px',boxShadow:'rgba(0, 0, 0, 0.16) 0px 3px 10px, rgba(0, 0, 0, 0.23) 0px 3px 10px'}} title={"Show results"}>

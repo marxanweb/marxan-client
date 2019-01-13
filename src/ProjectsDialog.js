@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import Dialog from 'material-ui/Dialog';
 import RaisedButton from 'material-ui/RaisedButton';
-import IconButton from 'material-ui/IconButton';
 import { List, ListItem, makeSelectable } from 'material-ui/List';
 import FontAwesome from 'react-fontawesome';
 import FileNew from 'material-ui/svg-icons/editor/insert-drive-file';
@@ -14,7 +13,7 @@ import ToolbarButton from './ToolbarButton';
 let SelectableList = makeSelectable(List);
 
 function wrapState(ComposedComponent) {
-    return class SelectableList extends Component {
+    return class SelectableList extends Component { 
         static propTypes = {
             children: PropTypes.node.isRequired,
             defaultValue: PropTypes.string.isRequired,

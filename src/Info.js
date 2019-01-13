@@ -8,7 +8,9 @@ class Info extends React.Component {
   updateFeatureValue(key, evt){
     var value = (key === "target_value") ? evt.currentTarget.innerHTML.substr(0, evt.currentTarget.innerHTML.length-1) : evt.currentTarget.innerHTML;
     if (((key === "target_value") && (isValidTargetValue(value))) || ((key === "spf") && (isNumber(value)))) {
-      this.props.updateFeature(this.props.feature, key, value, true);      
+      var obj = {};
+      obj[key] = value;
+      this.props.updateFeature(this.props.feature, obj);      
     }else{
       alert("Invalid value");
     }
@@ -91,6 +93,8 @@ class Info extends React.Component {
                 case 'target_value':
                   key = "Target percent";
                   break;
+                default:
+                break;
               }
               return {key: key, value: this.props.feature[item]};
             });

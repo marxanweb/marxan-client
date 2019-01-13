@@ -8,19 +8,17 @@ import ClearAll from 'material-ui/svg-icons/toggle/check-box-outline-blank';
 import SelectAll from 'material-ui/svg-icons/toggle/check-box';
 import FileNew from 'material-ui/svg-icons/editor/insert-drive-file';
 import Delete from 'material-ui/svg-icons/action/delete';
- 
+
 class AllInterestFeaturesDialog extends React.Component {
         clearAll() {
             if (this.props.manageOwnState) {
-
             }
-            else {
+            else {  
                 this.props.clearAll();
             }
         }
         selectAll() {
             if (this.props.manageOwnState) {
-
             }
             else {
                 this.props.selectAll();
@@ -28,7 +26,6 @@ class AllInterestFeaturesDialog extends React.Component {
         }
         unselectItem(interestFeature) {
             if (this.props.manageOwnState) {
-
             }
             else {
                 this.props.unselectItem(interestFeature);

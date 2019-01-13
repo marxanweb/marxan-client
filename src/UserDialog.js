@@ -5,7 +5,7 @@ import TextField from 'material-ui/TextField';
 import FontAwesome from 'react-fontawesome';
 
 class UserDialog extends React.Component {
-    constructor(props) {
+    constructor(props) { 
         super(props);
         this.state = { updated: false, validEmail: true };
     }

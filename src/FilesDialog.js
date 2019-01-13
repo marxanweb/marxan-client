@@ -9,12 +9,6 @@ class FilesDialog extends React.Component {
       this.state = { 'allFilesUploaded': true };
       this.nUploading = 0;
     }
-    openParametersDialog() {
-      this.props.openParametersDialog();
-    } 
-    closeParametersDialog() {
-      this.props.closeParametersDialog();
-    }
     validateUploads(validated, parameter, filename) {
       //each time we upload a file we increment the uploading files counter - when it has finished then we decrement the counter
       validated ? this.nUploading -= 1 : this.nUploading += 1;

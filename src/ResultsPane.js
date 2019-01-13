@@ -3,7 +3,7 @@ import RaisedButton from 'material-ui/RaisedButton';
 import ReactTable from "react-table";
 import Paper from 'material-ui/Paper';
 import { Tabs, Tab } from 'material-ui/Tabs';
-import Legend from './Legend';
+import Legend from './Legend'; 
 import FontAwesome from 'react-fontawesome';
 import FlatButton from 'material-ui/FlatButton';
 import Settings from 'material-ui/svg-icons/action/settings';
@@ -25,18 +25,6 @@ class ResultsPane extends React.Component {
   }
   loadSolution(solution) {
     this.props.loadSolution(solution);
-  }
-  hideResults() {
-    this.props.hideResults();
-  }
-  legend_tab_active() {
-    this.props.legend_tab_active();
-  }
-  solutions_tab_active() {
-    this.props.solutions_tab_active();
-  }
-  log_tab_active() {
-    this.props.log_tab_active();
   }
 
   mouseEnter(event) {
@@ -79,14 +67,14 @@ class ResultsPane extends React.Component {
           <Paper zDepth={2} className='ResultsPanePaper'>
             <div className="resultsTitle">Results</div>
               <FlatButton
-                onClick={this.hideResults.bind(this)}
+                onClick={this.props.hideResults}
                 primary={true}
                 style={{position: 'absolute',display:'block',top:'27px',left:'385px', minWidth:'0px'}}
                 title={"Hide results"}
                 icon={<FontAwesome name='arrow-right' style={{top:'8px','color':'white'}}/>}
               />
             <Tabs contentContainerStyle={{'margin':'20px'}} className={'resultsTabs'} value={this.props.activeResultsTab} id='resultsTabs'>
-              <Tab label="Legend" value="legend" onActive={this.legend_tab_active.bind(this)} >
+              <Tab label="Legend" value="legend" onActive={this.props.legend_tab_active} >
                 <div>
                 <Legend
                   brew={this.props.brew}
@@ -101,7 +89,7 @@ class ResultsPane extends React.Component {
                   buttonStyle={{marginTop:'-7px',lineHeight:'24px',height:'24px'}} 
                 />
               </Tab>
-              <Tab label="Solutions" value="solutions" onActive={this.solutions_tab_active.bind(this)} >
+              <Tab label="Solutions" value="solutions" onActive={this.props.solutions_tab_active} >
                 <div id="solutionsPanel" style={{'display': (this.props.dataAvailable && !this.props.running ? 'block' : 'none')}}>
                   <ReactTable
                     infoPanel={this}
@@ -151,7 +139,7 @@ class ResultsPane extends React.Component {
                   />
                 </div>
               </Tab>
-              <Tab label="Log" value="log" onActive={this.log_tab_active.bind(this)} >
+              <Tab label="Log" value="log" onActive={this.props.log_tab_active} >
                 <div id="log" onMouseEnter={this.mouseEnter.bind(this)} onMouseLeave={this.mouseLeave.bind(this)}>{this.props.log}
                   <RaisedButton  
                     id="copyToClipboardButton"

@@ -10,7 +10,7 @@ class OptionsDialog extends React.Component {
     constructor(props){
         super(props);
         this.state = {saveEnabled: false};
-        this.options = {};
+        this.options = {}; 
     }
     setOption(key, value){
         this.setState({saveEnabled: true});

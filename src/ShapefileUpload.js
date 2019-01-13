@@ -31,7 +31,7 @@ class ShapefileUpload extends React.Component {
         formData.append('value', value);
         formData.append('filename', this.filename);
         formData.append('name', this.props.name);
-        formData.append('description', this.props.description);
+        formData.append('description', this.props.description); 
         const config = {
             headers: {
                 'content-type': 'multipart/form-data'

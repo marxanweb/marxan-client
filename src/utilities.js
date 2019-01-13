@@ -1,4 +1,5 @@
 //gets the maximum number of classes in the brew color scheme
+//TODO: MOVE THIS TO THE GENERICFUNCTIONS.JS MODULE
 export function getMaxNumberOfClasses(brew, colorCode) {
     //get the color scheme
     let colorScheme = brew.colorSchemes[colorCode];

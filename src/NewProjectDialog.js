@@ -5,7 +5,7 @@ import Metadata from './newProjectSteps/Metadata';
 import PlanningUnits from './newProjectSteps/PlanningUnits';
 import SelectFeatures from './newProjectSteps/SelectFeatures';
 import SelectCostFeatures from './newProjectSteps/SelectCostFeatures';
-import Options from './newProjectSteps/Options';
+import Options from './newProjectSteps/Options'; 
 import CheckboxList from './CheckboxList';
 
 class NewProjectDialog extends React.Component {

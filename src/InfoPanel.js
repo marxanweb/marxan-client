@@ -4,20 +4,19 @@ import Paper from 'material-ui/Paper';
 import { Tabs, Tab } from 'material-ui/Tabs';
 import IconButton from 'material-ui/IconButton';
 import RaisedButton from 'material-ui/RaisedButton';
-import UserMenu from './UserMenu.js';
 import SelectField from 'material-ui/SelectField';
 import SelectFeatures from './newProjectSteps/SelectFeatures';
 import MenuItem from 'material-ui/MenuItem';
-import ProjectsDialog from './ProjectsDialog.js';
 import Menu from 'material-ui/svg-icons/navigation/menu';
 import Texture from 'material-ui/svg-icons/image/texture';
 import Settings from 'material-ui/svg-icons/action/settings';
+import Person from 'material-ui/svg-icons/social/person';
 import { white } from 'material-ui/styles/colors';
 
 class InfoPanel extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { projectsDialogOpen: false, puEditing: false };
+    this.state = {puEditing: false };
     //local variable 
     this.iucnCategories = ['None','IUCN I-II','IUCN I-IV','IUCN I-V','IUCN I-VI'];
   }
@@ -32,31 +31,6 @@ class InfoPanel extends React.Component {
       document.getElementById("descriptionEdit").value = this.props.metadata.DESCRIPTION;
       document.getElementById("descriptionEdit").focus();
     }
-    if (prevProps.loadingProject && this.props.loadingProject === false) {
-      this.closeProjectsDialog();
-    }
-  }
-  openProjectsDialog() {
-    this.setState({ projectsDialogOpen: true });
-    this.props.getProjects();
-  }
-  closeProjectsDialog() {
-    this.setState({ projectsDialogOpen: false });
-  }
-  loadProject(project) {
-    this.props.loadProject(project);
-  }
-  showUserMenu(e) {
-    e.preventDefault();
-    this.setState({ userMenuOpen: true, anchorEl: e.currentTarget });
-  }
-  hideUserMenu(e) {
-    e && e.preventDefault && e.preventDefault();
-    this.setState({ userMenuOpen: false });
-  }
-  logout() {
-    this.hideUserMenu();
-    this.props.logout();
   }
 
   onKeyPress(e) {
@@ -84,15 +58,6 @@ class InfoPanel extends React.Component {
       this.props.startEditingDescription();
     }
   }
-  project_tab_active() {
-    this.props.project_tab_active();
-  }
-  features_tab_active() {
-    this.props.features_tab_active();
-  }
-  pu_tab_active() {
-    this.props.pu_tab_active();
-  }
   startStopPuEditSession(evt) {
     (this.state.puEditing) ? this.stopPuEditSession(): this.startPuEditSession();
   }
@@ -105,9 +70,6 @@ class InfoPanel extends React.Component {
     this.setState({ puEditing: false});
     this.props.stopPuEditSession();
   }
-  showRunSettingsDialog() {
-    this.props.showRunSettingsDialog();
-  }
   
   changeIucnCategory(event,key,payload){
     this.props.changeIucnCategory(this.iucnCategories[key]);
@@ -119,45 +81,17 @@ class InfoPanel extends React.Component {
         <div className={'infoPanel'} style={{display: this.props.loggedIn ? 'block' : 'none'}}>
           <Paper zDepth={2} className="InfoPanelPaper">
             <Paper zDepth={2} className="titleBar">
-              <IconButton title="Click to open projects" onClick={this.openProjectsDialog.bind(this)} className="iconButton projectButton">
+              <IconButton title="Click to open projects" onClick={this.props.openProjectsDialog.bind(this)} className="iconButton projectButton">
                 <Menu color={white}/>
               </IconButton>
               <span onClick={this.startEditingProjectName.bind(this)} className={'projectNameEditBox'} title="Click to rename the project">{this.props.project}</span>
               <input id="projectName" style={{position:'absolute', 'display': (this.props.editingProjectName) ? 'block' : 'none',left:'63px',top:'33px',border:'1px lightgray solid'}} className={'projectNameEditBox'} onKeyPress={this.onKeyPress.bind(this)} onBlur={this.onBlur.bind(this)}/>
-              <UserMenu 
-                    user={ this.props.user} 
-                    userData={this.props.userData}
-                    loggedIn={this.props.loggedIn}
-                    onMouseEnter={this.showUserMenu.bind(this)} 
-                    showUserMenu={this.showUserMenu.bind(this)} 
-                    userMenuOpen={this.state.userMenuOpen} 
-                    anchorEl={this.state.anchorEl} 
-                    hideUserMenu={this.hideUserMenu.bind(this)} 
-                    logout={this.logout.bind(this)}
-                    loadingProject={this.props.loadingProject}
-                    loadingProjects={this.props.loadingProjects}
-                    getProjects={this.props.getProjects}
-                    projects={this.props.projects}
-                    project={this.props.project}
-                    deleteProject={this.props.deleteProject}
-                    loadProject={this.props.loadProject}
-                    cloneProject={this.props.cloneProject}
-                    saveOptions={this.props.saveOptions}
-                    savingOptions={this.props.savingOptions}
-                    openOptionsDialog={this.props.openOptionsDialog}
-                    closeOptionsDialog={this.props.closeOptionsDialog}
-                    optionsDialogOpen={this.props.optionsDialogOpen}
-                    openNewProjectDialog={this.props.openNewProjectDialog}
-                    hidePopup={this.props.hidePopup}
-                    updateUser={this.props.updateUser}
-                    openImportWizard={this.props.openImportWizard} 
-                    changeBasemap={this.props.changeBasemap}
-                    basemaps={this.props.basemaps}
-                    basemap={this.props.basemap}
-              />
+              <IconButton title={"Logged in as " + this.props.user} onClick={this.props.showUserMenu} className="iconButton" style={{position: 'absolute',right: '40px'}}>
+                <Person color={white}/>
+              </IconButton>
             </Paper>
             <Tabs contentContainerStyle={{'margin':'20px'}} className={'tabs'} value={this.props.activeTab}>
-              <Tab label="Project" onActive={this.project_tab_active.bind(this)} value="project">
+              <Tab label="Project" onActive={this.props.project_tab_active} value="project">
                 <div>
                   <div className={'tabTitle'}>Description</div>
                   <input id="descriptionEdit" style={{'display': (this.props.editingDescription) ? 'block' : 'none'}} className={'descriptionEditBox'} onKeyPress={this.onKeyPress.bind(this)} onBlur={this.onBlur.bind(this)}/>
@@ -166,7 +100,7 @@ class InfoPanel extends React.Component {
                   <div className={'createDate'}>{this.props.metadata.CREATEDATE}</div>
                 </div>
               </Tab>
-              <Tab label="Features" onActive={this.features_tab_active.bind(this)} value="features">
+              <Tab label="Features" onActive={this.props.features_tab_active} value="features">
                 <SelectFeatures
                   features={this.props.features}
                   updateTargetValue={this.props.updateTargetValue}
@@ -179,7 +113,7 @@ class InfoPanel extends React.Component {
                   updateFeature={this.props.updateFeature}
                 />
               </Tab>
-              <Tab label="Planning units" onActive={this.pu_tab_active.bind(this)} value="planning_units">
+              <Tab label="Planning units" onActive={this.props.pu_tab_active} value="planning_units">
                 <div>
                   <div className={'tabTitle'}>Planning area</div>
                   <div className={'description'}>{this.props.metadata.pu_alias}</div>
@@ -218,7 +152,7 @@ class InfoPanel extends React.Component {
                 <RaisedButton   
                   icon={<Settings style={{height:'20px',width:'20px'}}/>} 
                   title="Run Settings"
-                  onClick={this.showRunSettingsDialog.bind(this)} 
+                  onClick={this.props.showRunSettingsDialog} 
                   style={{ marginLeft:'12px', marginRight:'4px',padding: '0px',minWidth: '30px',width: '24px',height: '24px',position:'absolute'}}
                   overlayStyle={{lineHeight:'24px',height:'24px'}}
                   buttonStyle={{marginTop:'-7px',lineHeight:'24px',height:'24px'}} 
@@ -248,19 +182,6 @@ class InfoPanel extends React.Component {
             </Paper>
           </Paper>
         </div>
-          <ProjectsDialog 
-            open={this.state.projectsDialogOpen} 
-            loadingProjects={this.props.loadingProjects}
-            loadingProject={this.props.loadingProject}
-            closeProjectsDialog={this.closeProjectsDialog.bind(this)}
-            projects={this.props.projects}
-            project={this.props.project}
-            deleteProject={this.props.deleteProject}
-            loadProject={this.loadProject.bind(this)}
-            cloneProject={this.props.cloneProject}
-            openNewProjectDialog={this.props.openNewProjectDialog}
-            openImportWizard={this.props.openImportWizard}
-          />
       </React.Fragment>
     );
   }

@@ -50,7 +50,7 @@ class SelectFieldMapboxLayer extends React.Component {
             //remove the previous planning unit layer
             let previousLayerId = this.props.map.getStyle().layers[this.props.map.getStyle().layers.length - 1].id;
             //check it is a planning unit layer
-            if (previousLayerId.substr(0, 3) == "pu_") {
+            if (previousLayerId.substr(0, 3) === "pu_") {
                 this.props.map.removeLayer(this.props.map.getStyle().layers[this.props.map.getStyle().layers.length - 1].id);
             }
             //remove the source if it already exists

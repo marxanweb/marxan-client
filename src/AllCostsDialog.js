@@ -6,23 +6,8 @@ import Dialog from 'material-ui/Dialog';
 
 
 class AllCostsDialog extends React.Component {
-        componentDidMount() {
-            // this.props.getInterestFeatures();
-        }
-        clearAll() {
-            this.props.clearAll();
-        }
-        selectAll() {
-            this.props.selectAll();
-        }
-        unselectItem(interestFeature) {
-            this.props.unselectItem(interestFeature);
-        }
-        selectItem(interestFeature) {
-            this.props.selectItem(interestFeature);
-        }
         onChange(event, isInputChecked, interestFeature) {
-            isInputChecked ? this.selectItem(interestFeature) : this.unselectItem(interestFeature);
+            isInputChecked ? this.props.selectItem(interestFeature) : this.props.unselectItem(interestFeature);
         }
         render() {
                 const actions = [
@@ -46,8 +31,8 @@ class AllCostsDialog extends React.Component {
                                         ,this)
                                         }
                                     </List>
-                                    <RaisedButton label="Clear all" className="projectsBtn" onClick={this.clearAll.bind(this)}/>
-                                    <RaisedButton label="Select all" className="projectsBtn" onClick={this.selectAll.bind(this)}/>
+                                    <RaisedButton label="Clear all" className="projectsBtn" onClick={this.props.clearAll}/>
+                                    <RaisedButton label="Select all" className="projectsBtn" onClick={this.props.selectAll}/>
                                     <RaisedButton label="Delete" className="projectsBtn"/>
                                     <RaisedButton label="New" className="projectsBtn" onClick={this.props.openNewInterestFeatureDialog}/>
                                 </div>

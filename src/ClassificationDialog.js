@@ -13,7 +13,7 @@ let TOPCLASSES = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
 
 class ClassificationDialog extends React.Component {
 
-  render() {
+  render() { 
     let breaks = this.props.dataBreaks.map((item, index) => {
       //dont include the bottom line as we will use the y axis
       if (index > 0) return <ReferenceLine x={item} key={index} stroke="#00BCD4" />;

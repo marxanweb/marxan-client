@@ -6,7 +6,7 @@ import NewUserDialog from './NewUserDialog.js';
 import ResendPassword from './ResendPassword.js';
 import Sync from 'material-ui/svg-icons/notification/sync';
 
-class Login extends React.Component { 
+class Login extends React.Component {
     constructor(props) {
         super(props);
         this.state = { newUserDialogOpen: false, resendPasswordDialogOpen: false };
@@ -15,14 +15,11 @@ class Login extends React.Component {
     handleKeyPress(e) {
         if (e.nativeEvent.key === "Enter") this.props.validateUser();
     }
-    registerNewUser() { 
+    registerNewUser() {
         this.setState({ newUserDialogOpen: true });
     }
     closeNewUserDialog() {
         this.setState({ newUserDialogOpen: false });
-    }
-    forgotClick() {
-        this.props.resendPassword();
     }
     closeResendPasswordDialog() {
         this.setState({ resendPasswordDialogOpen: false });

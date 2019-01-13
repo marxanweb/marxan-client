@@ -12,7 +12,7 @@ class ClumpingDialog extends React.Component {
       return value; 
     }else{
       return "";
-    }
+    } 
   } 
   
   selectBlm(blmValue){

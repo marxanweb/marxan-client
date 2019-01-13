@@ -10,15 +10,15 @@ import UploadMarxanFiles from './newProjectSteps/UploadMarxanFiles';
 class ImportWizard extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {steps: ['Info', 'Files and planning grid'], finished: false, stepIndex: 0, name: '', description: '', pu: ''};
+        this.state = { steps: ['Info', 'Files and planning grid'], finished: false, stepIndex: 0, name: '', description: '', pu: '' };
         this.props.setLog('', true);
     }
     handleNext = () => {
         const { stepIndex } = this.state;
         if (stepIndex === 0) {
             //create the new project 
-            this.props.createImportProject({ name: this.state.name, description: this.state.description}).then(function(response){
-                this.setState({stepIndex: stepIndex + 1});
+            this.props.createImportProject({ name: this.state.name, description: this.state.description }).then(function(response) {
+                this.setState({ stepIndex: stepIndex + 1 });
             }.bind(this));
         }
     };
@@ -28,13 +28,15 @@ class ImportWizard extends React.Component {
             this.setState({ stepIndex: stepIndex - 1 });
         }
     };
-    setLog(log){
-        this.props.setLog(log, true);
-    }
-    allFilesUploaded(){
-        
+    allFilesUploaded() {
+        //update the project with the required additional properties to go in the input.dat file
+        this.props.upgradeProject(this.state.name).then(function(response){
+            this.props.setLog("Project updated to new version");
+        }.bind(this));
     }
     closeImportWizard() {
+        //update the project file
+        this.props.updateProjectParams({'DESCRIPTION': this.state.description, 'OLDVERSION': 'True'});
         //reset to the beginning
         this.setState({ stepIndex: 0 });
         this.props.closeImportWizard();
@@ -46,7 +48,7 @@ class ImportWizard extends React.Component {
         this.setState({ description: value });
     }
     render() {
-        const { stepIndex } = this.state;
+        const { stepIndex } = this.state; 
         const contentStyle = { margin: '0 16px' };
         const actions = [
             <div style={{width: '100%', maxWidth: 700, margin: 'auto',textAlign:'center'}}>
@@ -60,7 +62,14 @@ class ImportWizard extends React.Component {
         ];
         let c = <div>
                     {stepIndex === 0 ? <Metadata name={this.state.name} description={this.state.description} setName={this.setName.bind(this)} setDescription={this.setDescription.bind(this)}/> : null}
-                    {stepIndex === 1 ? <UploadMarxanFiles setLog={this.setLog.bind(this)} user={this.props.user} project={this.state.name} allFilesUploaded={this.allFilesUploaded.bind(this)}/> : null}
+                    {stepIndex === 1 ? <UploadMarxanFiles 
+                    MARXAN_ENDPOINT_HTTPS={this.props.MARXAN_ENDPOINT_HTTPS} 
+                    setLog={this.props.setLog} 
+                    user={this.props.user} 
+                    project={this.state.name} 
+                    allFilesUploaded={this.allFilesUploaded.bind(this)}
+                    uploadShapefile={this.props.uploadShapefile}
+                    /> : null}
                 </div>;
         return (
             <Dialog title={'Import - ' + this.state.steps[stepIndex]}

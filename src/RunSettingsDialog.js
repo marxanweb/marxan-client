@@ -9,7 +9,7 @@ class RunSettingsDialog extends React.Component {
     constructor(props) {
         super(props);
         this.state = { data: [], updateEnabled: false };
-        this.renderEditable = this.renderEditable.bind(this);
+        this.renderEditable = this.renderEditable.bind(this); 
     }
     componentDidUpdate(prevProps) {
         if (prevProps.runParams !== this.props.runParams) {

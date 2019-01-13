@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { blue300, indigo900, pink400 } from 'material-ui/styles/colors';
+import { blue300} from 'material-ui/styles/colors';
 
 class TargetIcon extends React.PureComponent {
     constructor(props) {
