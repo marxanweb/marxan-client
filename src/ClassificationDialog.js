@@ -16,7 +16,7 @@ class ClassificationDialog extends React.Component {
   render() { 
     let breaks = this.props.dataBreaks.map((item, index) => {
       //dont include the bottom line as we will use the y axis
-      if (index > 0) return <ReferenceLine x={item} key={index} stroke="#00BCD4" />;
+      return <ReferenceLine x={item} key={index} stroke="#00BCD4" />;
     });
     return (
       <Dialog 

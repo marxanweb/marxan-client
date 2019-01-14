@@ -1,49 +1,11 @@
-import React, { Component } from 'react';
-import { List, ListItem, makeSelectable } from 'material-ui/List';
+import React from 'react';
+import { List, ListItem} from 'material-ui/List';
 import IconMenu from 'material-ui/IconMenu';
 import MenuItem from 'material-ui/MenuItem';
 import { grey400 } from 'material-ui/styles/colors';
 import IconButton from 'material-ui/IconButton';
 import MoreVertIcon from 'material-ui/svg-icons/navigation/more-vert';
-import PropTypes from 'prop-types';
 import RaisedButton from 'material-ui/RaisedButton';
-let SelectableList = makeSelectable(List);
-
-function wrapState(ComposedComponent) {
-    return class SelectableList extends Component {
-        static propTypes = {
-            children: PropTypes.node.isRequired,
-            defaultValue: PropTypes.number.isRequired,
-        };
-
-        componentWillMount() {
-            this.setState({
-                selectedIndex: this.props.defaultValue,
-            });
-        }
-
-        handleRequestChange = (event, index) => {
-            this.setState({
-                selectedIndex: index,
-            });
-            this.props.changeFeature(event, index);
-        };
-
-        render() {
-            return (
-                <ComposedComponent
-                  value={this.state.selectedIndex}
-                  onChange={this.handleRequestChange}
-                  style={{'height':'235px','overflow':'auto'}}
-                >
-          {this.props.children}
-        </ComposedComponent>
-            );
-        }
-    };
-}
-
-SelectableList = wrapState(SelectableList);
 
 class SelectCostFeatures extends React.Component {
     constructor(props) {
@@ -56,7 +18,7 @@ class SelectCostFeatures extends React.Component {
     }
     changeFeature(event, feature) {
         this.setState({ selectedFeature: feature });
-    }
+    } 
     clickListItem(event) {
     }
     render() {

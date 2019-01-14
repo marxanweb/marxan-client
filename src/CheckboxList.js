@@ -26,7 +26,7 @@ class CheckboxList extends React.Component {
 
     multiSelect(selected){
         let localFeatures = this.state.localFeatures;
-        localFeatures.map((item)=> {
+        localFeatures.forEach((item)=> {
             item.selected = selected;
         });
         this.setState({localFeatures: localFeatures});

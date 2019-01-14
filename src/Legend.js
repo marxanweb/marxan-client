@@ -46,7 +46,7 @@ class Legend extends React.Component {
         return colorDivs;
     }
     render() {
-        var children = this.props.brew && this.props.brew.series && this.getSwatch(this.props.brew.colorCode);
+        var children = this.props.brew && this.props.brew.series && this.props.brew.colorCode && this.getSwatch(this.props.brew.colorCode);
         var returnValue = (children) ? children : <div/>;
         return returnValue;
     }

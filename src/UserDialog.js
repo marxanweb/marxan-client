@@ -17,12 +17,12 @@ class UserDialog extends React.Component {
             [name]: value, updated: true });
     }
     validateEmail() {
-        var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+        var re = /^(([^<>()\]\\.,;:\s@"]+(\.[^<>()\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
         let email = this.state.EMAIL ? this.state.EMAIL : this.props.userData.EMAIL;
         let valid = re.test(String(email).toLowerCase());
         this.setState({ validEmail: valid });
         if (!valid) {
-            throw "Invalid email address";
+            throw new Error("Invalid email address");
         }
     }
     updateUser() {

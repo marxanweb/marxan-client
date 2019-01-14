@@ -41,7 +41,7 @@ mapboxgl.accessToken = 'pk.eyJ1IjoiYmxpc2h0ZW4iLCJhIjoiMEZrNzFqRSJ9.0QBRA2HxTb8Y
 //THE MARXAN_ENDPOINT_HTTPS MUST ALSO BE CHANGED IN THE FILEUPLOAD.JS FILE 
 // let MARXAN_ENDPOINT_HTTPS = "https://db-server-blishten.c9users.io/marxan/webAPI2.py/";
 let MARXAN_REMOTE_SERVERS = ["db-server-blishten.c9users.io:8081/marxan-server/"];
-let MARXAN_LOCAL_SERVER = "localhost:8081/marxan-server/";
+// let MARXAN_LOCAL_SERVER = "localhost:8081/marxan-server/";
 let MARXAN_ENDPOINT_HTTPS = "https://" + MARXAN_REMOTE_SERVERS[0];
 let MARXAN_ENDPOINT_WSS = "wss://" + MARXAN_REMOTE_SERVERS[0];
 let TIMEOUT = 0; //disable timeout setting
@@ -78,12 +78,6 @@ let BACKUP_MAPBOX_BASEMAPS = [{name: 'Streets', description: 'A complete basemap
     // {name: 'North Star', description: 'A modern take on classic nautical maps. Great for displaying all things maritime.', id:''},
     // {name: 'Moonlight', description: 'A minimal high-contrast style. Customize it to suit your brand colors and typography.', id:''}];
 var ws;
-
-Array.prototype.diff = function(a) {
-  return this.filter(function(i) {
-    return a.indexOf(i) === -1;
-  });
-};
 
 class App extends React.Component {
 
@@ -262,7 +256,7 @@ class App extends React.Component {
   //utiliy method for getting all puids from normalised data, e.g. from [["VI", [7, 8, 9]], ["IV", [0, 1, 2, 3, 4]], ["V", [5, 6]]]
   getPuidsFromNormalisedData(normalisedData) {
     let puids = [];
-    normalisedData.map(function(item) {
+    normalisedData.forEach(function(item) {
       puids = puids.concat(item[1]);
     });
     return puids;
@@ -618,7 +612,7 @@ class App extends React.Component {
     var interest_features = [];
     var target_values = [];
     var spf_values = [];
-    project.features.map((item) => {
+    project.features.forEach((item) => {
       interest_features.push(item.id);
       target_values.push(17);
       spf_values.push(40);
@@ -791,7 +785,7 @@ class App extends React.Component {
 
   resetProtectedAreas() {
     //reset all of the results for allFeatures to set their protected_area and target_area to -1
-    this.state.allFeatures.map(function(feature) {
+    this.state.allFeatures.forEach(function(feature) {
       feature.protected_area = -1;
       feature.target_area = -1;
     });
@@ -805,7 +799,7 @@ class App extends React.Component {
     var interest_features = [];
     var target_values = [];
     var spf_values = [];
-    this.state.projectFeatures.map((item) => {
+    this.state.projectFeatures.forEach((item) => {
       interest_features.push(item.id);
       target_values.push(item.target_value);
       spf_values.push(item.spf);
@@ -905,7 +899,7 @@ class App extends React.Component {
             logMessage = this.state.streamingLog + response.info + "\n\n";
             break;
           case 'Running': 
-            logMessage = this.state.streamingLog + response.info.replace(/(\n\n  Init)/gm,"\n  Init").replace(/(\n\n  ThermalAnnealing)/gm,"\n  ThermalAnnealing").replace(/(\n\n  Iterative)/gm,"\n  Iterative").replace(/(\n\n  Best)/gm,"\n  Best");
+            logMessage = this.state.streamingLog + response.info.replace(/(\n\n {2}Init)/gm,"\n  {2}Init").replace(/(\n\n {2}ThermalAnnealing)/gm,"\n  ThermalAnnealing").replace(/(\n\n {2}Iterative)/gm,"\n  Iterative").replace(/(\n\n {2}Best)/gm,"\n  Best");
             break;
           case 'Finished': 
             this.setState({pid: 0});
@@ -960,7 +954,6 @@ class App extends React.Component {
     }else{
       this.setState({ dataAvailable: false });
       solutions = [];
-      // this.setState({ brew: {} });
     }
     //TODO There are bugs in Marxan which dont write the output_log.dat file correctly that need to be fixed - for now the log comes from this file or is streamed back from the server on a Marxan run (streaming is not supported on Windows)
     this.setState({ running: false, solutions: solutions });
@@ -971,7 +964,7 @@ class App extends React.Component {
   //gets the protected area information in m2 from the marxan run and populates the interest features with the values
   updateProtectedAmount(mvData) {
     //iterate through the features and set the protected amount
-    this.state.projectFeatures.map((feature) => {
+    this.state.projectFeatures.forEach((feature) => {
       //get the matching item in the mvbest data
       let mvbestItemIndex = mvData.findIndex(function(item) { return item[0] === feature.id; });
       if (mvbestItemIndex>-1){ //the mvbest file may not contain the data for the feature if the project has not been run since the feature was added
@@ -1092,6 +1085,20 @@ class App extends React.Component {
     // let sample = this.getSsolnData(data); //get all the ssoln data
     //set the data 
     this.state.brew.setSeries(sample);
+    //if the colorCode is opacity then calculate the rgba values dynamically and add them to the color schemes
+    if (colorCode === 'opacity') {
+      //see if we have already created a brew color scheme for opacity with NUMCLASSES
+      if ((this.state.brew.colorSchemes.opacity === undefined)  || (this.state.brew.colorSchemes.opacity && !this.state.brew.colorSchemes.opacity[this.state.renderer.NUMCLASSES])) {
+        //get a copy of the brew state
+        let brewCopy = this.state.brew;
+        let newBrewColorScheme = Array(Number(this.state.renderer.NUMCLASSES)).fill("rgba(255,0,136,").map(function(item, index) { return item + ((1 / this) * (index + 1)) + ")"; }, this.state.renderer.NUMCLASSES);
+        //add the new color scheme
+        if (brewCopy.colorSchemes.opacity === undefined) brewCopy.colorSchemes.opacity = [];
+        brewCopy.colorSchemes.opacity[this.state.renderer.NUMCLASSES] = newBrewColorScheme;
+        //set the state
+        this.setState({brew: brewCopy});
+      }
+    }
     //set the color code - see the color theory section on Joshua Tanners page here https://github.com/tannerjt/classybrew - for all the available colour codes
     this.state.brew.setColorCode(colorCode);
     //get the maximum number of colors in this scheme
@@ -1105,13 +1112,6 @@ class App extends React.Component {
     }
     //set the number of classes
     this.state.brew.setNumClasses(numClasses);
-    //if the colorCode is opacity then I will add it manually to the classbrew colorSchemes
-    if (colorCode === 'opacity') {
-      let newBrewColorScheme = Array(Number(this.state.renderer.NUMCLASSES)).fill("rgba(255,0,136,").map(function(item, index) { return item + ((1 / this) * (index + 1)) + ")"; }, this.state.renderer.NUMCLASSES);
-      this.state.brew.colorSchemes.opacity = {
-        [this.state.renderer.NUMCLASSES]: newBrewColorScheme
-      };
-    }
     //set the classification method - one of equal_interval, quantile, std_deviation, jenks (default)
     this.state.brew.classify(classification);
     this.setState({ dataBreaks: this.state.brew.getBreaks() });
@@ -1351,7 +1351,7 @@ class App extends React.Component {
       return !(item.source === 'composite' || item.id === 'background');
     });
     //remove them from the map
-    dynamicLayers.map(function(item) {
+    dynamicLayers.forEach(function(item) {
       this.map.removeLayer(item.id);
       this.map.removeSource(item.source);
     }, this);
@@ -1455,7 +1455,7 @@ class App extends React.Component {
 
   //iterates through all the map layers and sets the opacity for all those layers with the source matching the passed source
   setOpacityBySource(source, opacity) {
-    this.map.getStyle().layers.map((layer) => {
+    this.map.getStyle().layers.forEach((layer) => {
       if (layer.source === source) {
         switch (layer.type) {
           case 'fill':
@@ -1586,7 +1586,7 @@ class App extends React.Component {
     formData.append("project", this.state.project);
     //add the planning unit manual exceptions
     if (this.state.planning_units.length > 0) {
-      this.state.planning_units.map((item) => {
+      this.state.planning_units.forEach((item) => {
         //get the name of the status parameter
         let param_name = "status" + item[0];
         //add the planning units
@@ -1643,7 +1643,7 @@ class App extends React.Component {
   getStatusLevel(puid) {
     //iterate through the planning unit statuses to see which status the clicked planning unit belongs to, i.e. 1,2 or 3
     let status_level = 0; //default level as the getPlanningUnits REST call only returns the planning units with non-default values
-    PLANNING_UNIT_STATUSES.map((item) => {
+    PLANNING_UNIT_STATUSES.forEach((item) => {
       let planning_units = this.getPlanningUnitsByStatus(item);
       if (planning_units.indexOf(puid) > -1) {
         status_level = item;
@@ -1655,7 +1655,7 @@ class App extends React.Component {
   //gets the array index position for the passed status in the planning_units state
   getStatusPosition(status) {
     let position = -1;
-    this.state.planning_units.map((item, index) => {
+    this.state.planning_units.forEach((item, index) => {
       if (item[0] === status) position = index;
     });
     return position;
@@ -1924,7 +1924,7 @@ class App extends React.Component {
   //select or clear all features
   selectClearAll(select){
     var features = this.state.allFeatures;
-    features.map((feature) => {
+    features.forEach((feature) => {
       if (select){
         Object.assign(feature, {selected: true, target_value: 17});
       }else{
@@ -2160,7 +2160,9 @@ class App extends React.Component {
   }
 
   getNewPuids(previousPuids, puids) {
-    return puids.diff(previousPuids);
+    return puids.filter(function(i) {
+      return previousPuids.indexOf(i) === -1;
+    });
   }
 
   preprocessProtectedAreas(iucnCategory) {
@@ -2388,7 +2390,7 @@ class App extends React.Component {
   setBlmValue(blmValue){
     var newRunParams = [], value;
     //iterate through the run parameters and update the value for the blm
-    this.state.runParams.map(function(item){
+    this.state.runParams.forEach(function(item){
       value = (item.key === 'BLM') ? String(blmValue) : item.value;
       newRunParams.push({key: item.key, value: value});
     });

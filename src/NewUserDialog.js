@@ -36,12 +36,13 @@ class NewUserDialog extends React.Component {
         this.props.createNewUser(this.state.user, this.state.password, this.state.name, this.state.email, this.state.mapboxaccesstoken);
     }
 
+    //TODO: MOVE THIS TO THE GENERICFUNCTIONS.JS MODULE
     validateEmail() {
-        var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+        var re = /^(([^<>()\]\\.,;:\s@"]+(\.[^<>()\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
         let valid = re.test(String(this.state.email).toLowerCase());
         this.setState({ validEmail: valid });
         if (!valid) {
-            throw "Invalid email address";
+            throw new Error("Invalid email address");
         }
     }
 
