@@ -98,6 +98,7 @@ class InfoPanel extends React.Component {
                   <div className={'description'} onClick={this.startEditingDescription.bind(this)} style={{'display': (!this.props.editingDescription) ? 'block' : 'none'}}>{this.props.metadata.DESCRIPTION}</div>
                   <div className={'tabTitle'}>Created</div>
                   <div className={'createDate'}>{this.props.metadata.CREATEDATE}</div>
+                  <div className={'tabTitle'}>{(this.props.metadata.OLDVERSION === 'True') ? "Imported project" : ""}</div>
                 </div>
               </Tab>
               <Tab label="Features" onActive={this.props.features_tab_active} value="features">

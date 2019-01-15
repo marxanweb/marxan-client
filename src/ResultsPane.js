@@ -16,7 +16,7 @@ class ResultsPane extends React.Component {
   }
   componentDidUpdate(prevProps, prevState) {
     //if the streaming log has changed then scroll to the bottom of the div
-    if (this.props.streamingLog !== prevProps.streamingLog) {
+    if (this.props.log !== prevProps.log) {
       var objDiv = document.getElementById("log");
       if (objDiv) {
         objDiv.scrollTop = objDiv.scrollHeight;

@@ -241,6 +241,12 @@ table input {
   margin-left: 90px;
 }
 
+.importSpinner {
+  position: absolute;
+  top: 18px;
+  margin-left: 127px;
+}
+
 .runParametersSpinner {
   position: absolute;
   top: 18px;

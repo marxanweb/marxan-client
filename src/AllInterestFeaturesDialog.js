@@ -81,14 +81,15 @@ class AllInterestFeaturesDialog extends React.Component {
                             />,
                             <ToolbarButton 
                                 icon={<FileNew style={{height:'20px',width:'20px'}}/>} 
-                                title="New conservation feature"
+                                title={(this.props.metadata.OLDVERSION === "True") ? "New conservation feature - not available with imported projects" : "New conservation feature"}
                                 onClick={this.props.openNewInterestFeatureDialog} 
+                                disabled={(this.props.metadata.OLDVERSION === "True")}
                             />,
                             <ToolbarButton 
                                 icon={<Delete color="red" style={{height:'20px',width:'20px'}}/>} 
-                                title="Delete conservation feature"
+                                title= {(this.props.metadata.OLDVERSION === "True") ? "Delete conservation feature - not available with imported projects" : "Delete conservation feature"}
                                 onClick={this.deleteInterestFeature.bind(this)} 
-                                disabled={this.props.projectFeatures.length!==1}
+                                disabled={this.props.projectFeatures.length!==1 || (this.props.metadata.OLDVERSION === "True")}
                             />,
                             <RaisedButton 
                                 className="projectsBtn" 

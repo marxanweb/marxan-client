@@ -49,6 +49,7 @@ let DISABLE_LOGIN = false; //to not show the login form, set loggedIn to true
 let MAPBOX_USER = "blishten";
 let MAPBOX_STYLE_PREFIX = 'mapbox://styles/';
 let PLANNING_UNIT_STATUSES = [1, 2, 3];
+let PLANNING_UNIT_SOURCE_NAME = "planning_units_source";
 let PLANNING_UNIT_LAYER_NAME = "planning_units_layer";
 let PLANNING_UNIT_LAYER_OPACITY = 0.2;
 let PLANNING_UNIT_EDIT_LAYER_NAME = "planning_units_layer_edit";
@@ -56,6 +57,7 @@ let PLANNING_UNIT_EDIT_LAYER_LINE_WIDTH = 1.5;
 let RESULTS_LAYER_NAME = "results_layer";
 let RESULTS_LAYER_FILL_OPACITY_ACTIVE = 0.5;
 let RESULTS_LAYER_FILL_OPACITY_INACTIVE = 0.1;
+let WDPA_SOURCE_NAME = "wdpa_source";
 let WDPA_LAYER_NAME = "wdpa";
 let WDPA_LAYER_OPACITY = 0.9;
 let CLUMP_COUNT = 5;
@@ -142,7 +144,7 @@ class App extends React.Component {
       planning_unit_grids: [],
       activeTab: "project",
       activeResultsTab: "legend",
-      streamingLog: "Log not available until run completed.\n",
+      streamingLog: "",
       activeServer: MARXAN_REMOTE_SERVERS[0],
       map0_paintProperty: [],
       map1_paintProperty: [],
@@ -164,6 +166,8 @@ class App extends React.Component {
     if (DISABLE_LOGIN) this.validateUser();
     //check application level variables have been loaded from my github CDN (the https://andrewcottam.github.io/cdn/marxan.js)
     this.getGlobalVariables();
+    //instantiate the classybrew to get the color ramps for the renderers
+    this.setState({ brew: new classyBrew() });
   }
   
   componentDidUpdate(prevProps, prevState) {
@@ -193,6 +197,9 @@ class App extends React.Component {
     this.map.on("moveend", function(evt){
       this.setState({mapCentre:this.map.getCenter(), mapZoom:this.map.getZoom()});
     }.bind(this));
+    this.map.on("sourcedata", function(evt){
+    	console.log("sourcedata " + evt.source.url);
+    });
   }
 
   closeSnackbar() {
@@ -203,7 +210,13 @@ class App extends React.Component {
   checkForErrors(response) {
     let networkError = this.responseIsTimeoutOrEmpty(response);
     let serverError = this.isServerError(response);
-    return networkError || serverError;
+    let isError = (networkError || serverError);
+    if (isError) {
+      //write the full trace to the console if available
+      let error = (response.hasOwnProperty('trace')) ? response.trace : (response.hasOwnProperty('error')) ? response.error : "No error message returned";
+      console.error("Error message from server: " + error);
+    }
+    return isError;
   }
 
   //checks the response from a REST call for timeout errors or empty responses
@@ -221,7 +234,7 @@ class App extends React.Component {
   //checks to see if the rest server raised an error and if it did then show in the snackbar
   isServerError(response) {
     //errors may come from the marxan server or from the rest server which have slightly different json responses
-    if ((response.error) || (response.hasOwnProperty('metadata') && response.metadata.hasOwnProperty('error') && response.metadata.error != null)) {
+    if ((response && response.error) || (response && response.hasOwnProperty('metadata') && response.metadata.hasOwnProperty('error') && response.metadata.error != null)) {
       var err = (response.error) ? (response.error) : response.metadata.error;
       this.setState({ snackbarOpen: true, snackbarMessage: err });
       return true;
@@ -237,22 +250,13 @@ class App extends React.Component {
     //switches the results pane to the log tab
     this.log_tab_active();
     //reset the state
-    this.setState({streamingLog: ""});
+    this.setState({streamingLog: ''});
   }
   
-  //called from components who have their own log
-  setLog(log, clearLog = false){
-    var fullLog;
-    if (clearLog){
-      fullLog = log;
-      //switches the results pane to the log tab
-      this.log_tab_active();
-    } else{
-      fullLog = this.state.streamingLog + log + "\n";
-    }
-    this.setState({streamingLog: fullLog});
+  //can be called from components to update the log
+  setLog(message){
+    this.setState({streamingLog: this.state.streamingLog + message});
   }
-  
   //utiliy method for getting all puids from normalised data, e.g. from [["VI", [7, 8, 9]], ["IV", [0, 1, 2, 3, 4]], ["V", [5, 6]]]
   getPuidsFromNormalisedData(normalisedData) {
     let puids = [];
@@ -377,7 +381,7 @@ class App extends React.Component {
     return jsonp(MARXAN_ENDPOINT_HTTPS + "upgradeProject?user=" + this.state.user + "&project=" + project).promise;
   }
   
-  //updates the project parameters for the current project back to the server (i.e. the input.dat file)
+  //updates the project parameters back to the server (i.e. the input.dat file)
   updateProjectParams(project, parameters) {
     //initialise the form data
     let formData = new FormData();
@@ -644,8 +648,7 @@ class App extends React.Component {
       this.setState({ loadingProjects: true });
       let formData = new FormData();
       formData.append('user', this.state.user);
-      formData.append('project', project.name);
-      formData.append('description', project.description);
+      formData.append('project', project);
       const config = {
         headers: {
           'content-type': 'multipart/form-data'
@@ -852,6 +855,7 @@ class App extends React.Component {
 
   //preprocesses a feature using websockets - i.e. intersects it with the planning units grid and writes the intersection results into the puvspr.dat file ready for a marxan run - this will have no server timeout as its running using websockets
   preprocessFeature(feature) {
+    var logMessage = "";
     return new Promise(function(resolve, reject) {
       //switches the results pane to the log tab
       this.log_tab_active();
@@ -862,14 +866,15 @@ class App extends React.Component {
         let response = JSON.parse(evt.data);
         switch (response.status) {
           case 'Started': 
-            this.setState({streamingLog: this.state.streamingLog + response.info + "\n"});
+            logMessage = this.state.streamingLog + response.info + "\n";
             break;
           case 'Running': 
-            this.setState({streamingLog: this.state.streamingLog + response.info + " (elapsed time: " + response.elapsedtime + ")\n"});
+            logMessage = this.state.streamingLog + response.info + " (elapsed time: " + response.elapsedtime + ")\n";
             break;
           case 'Finished': 
+            logMessage = this.state.streamingLog + response.info + " (Total time: " + response.elapsedtime + ")\n\n";
             //reset the preprocessing state
-            this.setState({preprocessingFeature: false, streamingLog: this.state.streamingLog + response.info + " (Total time: " + response.elapsedtime + ")\n\n" });
+            this.setState({preprocessingFeature: false});
             //update the feature that has been preprocessed
             this.updateFeature(feature, {preprocessed: true, pu_count: Number(response.pu_count), pu_area: Number(response.pu_area)});
             resolve(evt.data);
@@ -877,6 +882,7 @@ class App extends React.Component {
           default:
             break;
         }
+        this.setState({streamingLog: logMessage});
       }.bind(this);
     }.bind(this));
   }
@@ -899,7 +905,7 @@ class App extends React.Component {
             logMessage = this.state.streamingLog + response.info + "\n\n";
             break;
           case 'Running': 
-            logMessage = this.state.streamingLog + response.info.replace(/(\n\n {2}Init)/gm,"\n  {2}Init").replace(/(\n\n {2}ThermalAnnealing)/gm,"\n  ThermalAnnealing").replace(/(\n\n {2}Iterative)/gm,"\n  Iterative").replace(/(\n\n {2}Best)/gm,"\n  Best");
+            logMessage = this.state.streamingLog + response.info.replace(/(\n\n {2}Init)/gm,"\n  Init").replace(/(\n\n {2}ThermalAnnealing)/gm,"\n  ThermalAnnealing").replace(/(\n\n {2}Iterative)/gm,"\n  Iterative").replace(/(\n\n {2}Best)/gm,"\n  Best");
             break;
           case 'Finished': 
             this.setState({pid: 0});
@@ -976,8 +982,104 @@ class App extends React.Component {
   }
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  ////////END OF CODE TO PREPROCESS AND RUN MARXAN
+  ////////IMPORT PROJECT ROUTINES
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  
+  importProject(project, description, zipFilename, files){
+    return new Promise(function(resolve, reject) {
+      let feature_class_name = "";
+      //start the logging
+      this.startLogging();
+      this.setState({streamingLog: "Starting import...\n"});
+      //create a new project
+      //TODO: SORT OUT ROLLING BACK IF AN IMPORT FAILS - AND DONT PROVIDE REST CALLS TO DELETE PLANNING UNITS
+      this.createImportProject(project).then(function(response) {
+        if (!this.checkForErrors(response)) {
+          this.setState({streamingLog: this.state.streamingLog + "Project '" + project + "' created\n"});
+          //create the planning unit file
+          this.importZippedShapefileAsPu(zipFilename, zipFilename.slice(0, -4), "Imported as " + zipFilename + " using the import wizard").then(function(response) {
+            if (!this.checkForErrors(response)) {
+              //get the planning unit feature_class_name
+              feature_class_name = response.feature_class_name;
+              this.setState({streamingLog: this.state.streamingLog + feature_class_name + " imported as the planning grid\n"});
+              //upload all of the files from the local system
+              this.uploadFiles(files, project).then(function(response){
+                if (!this.checkForErrors(response)) {
+                  this.setState({streamingLog: this.state.streamingLog + "All files uploaded\n"});
+                  //upgrade the project to the new version of Marxan - this adds the necessary settings in the project file and calculates the statistics for species in the puvspr.dat and puts them in the feature_preprocessing.dat file
+                  this.upgradeProject(project).then(function(response){
+                    if (!this.checkForErrors(response)) {
+                      this.setState({streamingLog: this.state.streamingLog + "Project updated to new version\n"});
+                      //update the project file with the new settings
+                      this.updateProjectParams(project, {DESCRIPTION: description + " (imported from an existing Marxan project)", CREATEDATE: new Date(Date.now()).toString(), OLDVERSION: 'True', PLANNING_UNIT_NAME: feature_class_name}).then(function(response){
+                        if (!this.checkForErrors(response)) {
+                          this.setState({streamingLog: this.state.streamingLog + "Import complete\n"});
+                          resolve();
+                          //now open the project
+                          this.loadProject(project);
+                        }else{ //updateProjectParams failed
+                          this.cleanupFailedImport(project, feature_class_name);
+                          reject(response.error);
+                        }
+                      }.bind(this));
+                    }else{ //upgradeProject failed
+                      this.cleanupFailedImport(project, feature_class_name);
+                      reject(response.error);
+                    }
+                  }.bind(this));
+                }else{ //uploadFiles failed
+                  this.cleanupFailedImport(project, feature_class_name);
+                  reject(response.error);
+                }
+              }.bind(this));
+            }else{ //importZippedShapefileAsPu failed - delete the project
+              this.cleanupFailedImport(project, feature_class_name);
+              reject(response.error);
+            }
+          }.bind(this));
+        }else{ //createImportProject failed - the project already exists
+          // this.cleanupFailedImport(project, feature_class_name);
+          reject(response.error);
+        }
+      }.bind(this));
+    }.bind(this));
+  }
+  
+  async uploadFiles(files, project) {
+    var file, filepath;
+    for (var i = 0; i < files.length; i++) {
+      file = files.item(i);
+      const formData = new FormData();
+      formData.append('user', this.state.user);
+      formData.append('project', project);
+      //the webkitRelativePath will include the folder itself so we have to remove this, e.g. Marxan default project - Copy/input/puvspr.dat -> /input/puvspr.da
+      filepath = file.webkitRelativePath.split("/").slice(1).join("/");
+      formData.append('filename', filepath);
+      formData.append('value', file);
+      this.setState({streamingLog: this.state.streamingLog + "Uploading: " + file.webkitRelativePath + "\n"});
+      await this.uploadFile(formData);
+    }
+    return 'All files uploaded';
+  }
+  uploadFile(formData){
+    return new Promise(function(resolve, reject) {
+      const config = {
+        headers: {
+          'content-type': 'multipart/form-data'
+        }
+      };
+      post(MARXAN_ENDPOINT_HTTPS + "uploadFile", formData, config).then(function(response){
+        //resolve the promise
+        resolve();
+      });
+    });
+  }
+  cleanupFailedImport(project, planning_unit_grid){
+    // //delete the project
+    // this.deleteProject(project);
+    // //delete the planning unit grid
+    // this.deletePlanningUnitGrid(planning_unit_grid);
+  }
 
   //pads a number with zeros to a specific size, e.g. pad(9,5) => 00009
   pad(num, size) {
@@ -1114,7 +1216,7 @@ class App extends React.Component {
     this.state.brew.setNumClasses(numClasses);
     //set the classification method - one of equal_interval, quantile, std_deviation, jenks (default)
     this.state.brew.classify(classification);
-    this.setState({ dataBreaks: this.state.brew.getBreaks() });
+    this.setState({ dataBreaks: this.state.brew.getBreaks()});
   }
 
   //called when the renderer state has been updated - renders the solution and saves the renderer back to the server
@@ -1297,8 +1399,6 @@ class App extends React.Component {
     this.map.on("load", this.mapLoaded.bind(this));
     //set a reference to this App in the map object 
     this.map.App = this;
-    //instantiate the classybrew to get the color ramps for the renderers
-    this.setState({ brew: new classyBrew() });
   }
 
   //changes the default basemap for the user
@@ -1348,25 +1448,39 @@ class App extends React.Component {
     let layers = this.map.getStyle().layers;
     //get the dynamically added layers
     let dynamicLayers = layers.filter((item) => {
-      return !(item.source === 'composite' || item.id === 'background');
+      return ((item.source === PLANNING_UNIT_SOURCE_NAME)||(item.source === WDPA_SOURCE_NAME));
     });
     //remove them from the map
     dynamicLayers.forEach(function(item) {
       this.map.removeLayer(item.id);
-      this.map.removeSource(item.source);
     }, this);
+    //remove the sources if present
+    if (this.map.getSource(PLANNING_UNIT_SOURCE_NAME) !== undefined) this.map.removeSource(PLANNING_UNIT_SOURCE_NAME);
+    if (this.map.getSource(WDPA_SOURCE_NAME) !== undefined) this.map.removeSource(WDPA_SOURCE_NAME);
   }
   //adds the results, planning unit, planning unit edit and wdpa layers to the map
   addSpatialLayers(tileset) {
     var beforeLayer = (this.state.basemap === "North Star" ? 'bathymetry-10000' : '');
+    //add the source for the planning unit layers
+    this.map.addSource(PLANNING_UNIT_SOURCE_NAME,{
+        'type': "vector",
+        'url': "mapbox://" + tileset.id
+      }
+    );
+    //add the source for the wdpa
+    this.map.addSource(WDPA_SOURCE_NAME,{
+        "attribution": "IUCN and UNEP-WCMC (2017), The World Database on Protected Areas (WDPA) August 2017, Cambridge, UK: UNEP-WCMC. Available at: <a href='http://www.protectedplanet.net'>www.protectedplanet.net</a>",
+        "type": "vector",
+        "tilejson": "2.2.0",
+        "maxzoom": 12,
+        "tiles": ["https://storage.googleapis.com/geeimageserver.appspot.com/vectorTiles/wdpa/tilesets/{z}/{x}/{y}.pbf"]
+      }
+    );
     //add the results layer
     this.map.addLayer({
       'id': RESULTS_LAYER_NAME,
       'type': "fill",
-      'source': {
-        'type': "vector",
-        'url': "mapbox://" + tileset.id
-      },
+      'source': PLANNING_UNIT_SOURCE_NAME,
       'source-layer': tileset.name,
       'paint': {
         'fill-color': "rgba(0, 0, 0, 0)",
@@ -1377,10 +1491,7 @@ class App extends React.Component {
     this.map.addLayer({
       'id': PLANNING_UNIT_LAYER_NAME,
       'type': "fill",
-      'source': {
-        'type': "vector",
-        'url': "mapbox://" + tileset.id
-      },
+      'source': PLANNING_UNIT_SOURCE_NAME,
       "layout": {
         "visibility": "none"
       },
@@ -1395,10 +1506,7 @@ class App extends React.Component {
     this.map.addLayer({
       'id': PLANNING_UNIT_EDIT_LAYER_NAME,
       'type': "line",
-      'source': {
-        'type': "vector",
-        'url': "mapbox://" + tileset.id
-      },
+      'source': PLANNING_UNIT_SOURCE_NAME,
       "layout": {
         "visibility": "none"
       },
@@ -1411,13 +1519,7 @@ class App extends React.Component {
     this.map.addLayer({
       "id": WDPA_LAYER_NAME,
       "type": "fill",
-      "source": {
-        "attribution": "IUCN and UNEP-WCMC (2017), The World Database on Protected Areas (WDPA) August 2017, Cambridge, UK: UNEP-WCMC. Available at: <a href='http://www.protectedplanet.net'>www.protectedplanet.net</a>",
-        "type": "vector",
-        "tilejson": "2.2.0",
-        "maxzoom": 12,
-        "tiles": ["https://storage.googleapis.com/geeimageserver.appspot.com/vectorTiles/wdpa/tilesets/{z}/{x}/{y}.pbf"]
-      },
+      "source": WDPA_SOURCE_NAME,
       "source-layer": "wdpa",
       "layout": {
         "visibility": "visible"
@@ -1755,6 +1857,17 @@ class App extends React.Component {
     }.bind(this));
   }
 
+  deletePlanningUnitGrid(feature_class_name){
+    jsonp(MARXAN_ENDPOINT_HTTPS + "deletePlanningUnitGrid?planning_grid_name=" + feature_class_name, { timeout: 0 }).promise.then(function(response) {
+      if (!this.checkForErrors(response)) {
+        //feedback
+      }
+      else {
+        //do something
+      }
+    }.bind(this));
+  }
+  
   changeIso3(value) {
     this.setState({ iso3: value });
   }
@@ -1882,14 +1995,7 @@ class App extends React.Component {
   //used by the import wizard to import a users zipped shapefile as the planning units
   importZippedShapefileAsPu(zipname, alias, description) {
     //the zipped shapefile has been uploaded to the MARXAN folder - it will be imported to PostGIS and a record will be entered in the metadata_planning_units table
-    jsonp(MARXAN_ENDPOINT_HTTPS + "importPlanningUnitGrid?filename=" + zipname + "&name=" + alias + "&description=" + description, { timeout: TIMEOUT }).promise.then(function(response) {
-      if (!this.checkForErrors(response)) {
-        this.setState({ snackbarOpen: true, snackbarMessage: response.info });
-      }
-      else {
-        //server error
-      }
-    }.bind(this));
+    return jsonp(MARXAN_ENDPOINT_HTTPS + "importPlanningUnitGrid?filename=" + zipname + "&name=" + alias + "&description=" + description, { timeout: TIMEOUT }).promise;
   }
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1918,7 +2024,12 @@ class App extends React.Component {
 
   //unselects a single Conservation feature
   unselectItem(feature) {
-    this.updateFeature(feature,{selected: false, preprocessed: false, protected_area: -1, pu_area: -1, pu_count: -1, target_area: -1});
+    if (this.state.metadata.OLDVERSION === "True"){
+      //for imported projects we cannot preprocess them any longer as we dont have access to the features spatial data - therefore dont set preprocessed to false or any of the other stats fields
+      this.updateFeature(feature,{selected: false});
+    }else{
+      this.updateFeature(feature,{selected: false, preprocessed: false, protected_area: -1, pu_area: -1, pu_count: -1, target_area: -1});
+    }
   }
 
   //select or clear all features
@@ -1928,7 +2039,12 @@ class App extends React.Component {
       if (select){
         Object.assign(feature, {selected: true, target_value: 17});
       }else{
-        Object.assign(feature, {selected: false, preprocessed: false, protected_area: -1, pu_area: -1, pu_count: -1, target_area: -1});
+        if (this.state.metadata.OLDVERSION === "True"){
+          //for imported projects we cannot preprocess them any longer as we dont have access to the features spatial data - therefore dont set preprocessed to false or any of the other stats fields
+          Object.assign(feature, {selected: false});
+        }else{
+          Object.assign(feature, {selected: false, preprocessed: false, protected_area: -1, pu_area: -1, pu_count: -1, target_area: -1});
+        }
       }
     });
     this.setFeaturesState(features);
@@ -2544,6 +2660,7 @@ class App extends React.Component {
           <AllInterestFeaturesDialog
             open={this.state.AllInterestFeaturesDialogOpen}
             closeAllInterestFeaturesDialog={this.closeAllInterestFeaturesDialog.bind(this)}
+            metadata={this.state.metadata}
             allFeatures={this.state.allFeatures}
             projectFeatures={this.state.projectFeatures}
             deleteInterestFeature={this.deleteInterestFeature.bind(this)}
@@ -2624,7 +2741,6 @@ class App extends React.Component {
             legend_tab_active={this.legend_tab_active.bind(this)}
             solutions_tab_active={this.solutions_tab_active.bind(this)}
             log_tab_active={this.log_tab_active.bind(this)}
-            streamingLog={this.state.streamingLog}
           />
           <ClassificationDialog 
             open={this.state.classificationDialogOpen}
@@ -2641,13 +2757,12 @@ class App extends React.Component {
           <ImportWizard 
             open={this.state.importDialogOpen}
             closeImportWizard={this.closeImportWizard.bind(this)}
-            user={this.state.user}
+            closeProjectsDialog={this.closeProjectsDialog.bind(this)}
             MARXAN_ENDPOINT_HTTPS={MARXAN_ENDPOINT_HTTPS}
-            createImportProject={this.createImportProject.bind(this)}
+            importProject={this.importProject.bind(this)}
+            loadProject={this.loadProject.bind(this)}
             setLog={this.setLog.bind(this)}
-            upgradeProject={this.upgradeProject.bind(this)}
-            updateProjectParams={this.updateProjectParams.bind(this)}
-            uploadShapefile={this.importZippedShapefileAsPu.bind(this)}
+            user={this.state.user}
           />
           <div style={{position: 'absolute', display: this.state.resultsPaneOpen ? 'none' : 'block', backgroundColor: 'rgb(0, 188, 212)', right: '0px', top: '20px', width: '20px', borderRadius: '2px', height: '88px',boxShadow:'rgba(0, 0, 0, 0.16) 0px 3px 10px, rgba(0, 0, 0, 0.23) 0px 3px 10px'}} title={"Show results"}>
             <FlatButton

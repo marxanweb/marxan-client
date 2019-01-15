@@ -2,7 +2,7 @@ import * as React from 'react';
 import * as utilities from './utilities.js';
 
 class Legend extends React.Component {
-    getSwatch(colorCode) {
+    getSwatch(colorCode) { 
         let colorDivs;
         //get the data value for the highest break in the data to see if we are viewing the sum solutions or an individual solution
         let summed = (this.props.brew.breaks[this.props.brew.breaks.length - 1] === 1) ? false : true;
@@ -46,7 +46,7 @@ class Legend extends React.Component {
         return colorDivs;
     }
     render() {
-        var children = this.props.brew && this.props.brew.series && this.props.brew.colorCode && this.getSwatch(this.props.brew.colorCode);
+        var children = this.props.brew && this.props.brew.breaks && this.props.brew.colorCode && this.getSwatch(this.props.brew.colorCode);
         var returnValue = (children) ? children : <div/>;
         return returnValue;
     }
