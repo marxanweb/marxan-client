@@ -5,6 +5,10 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import mapboxgl from 'mapbox-gl';
 import MapboxClient from 'mapbox';
 import jsonp from 'jsonp-promise';
+import FeatureInfo from './FeatureInfo';
+import Popover from 'material-ui/Popover';
+import Menu from 'material-ui/Menu';
+import MenuItem from 'material-ui/MenuItem';
 import InfoPanel from './InfoPanel.js';
 import Popup from './Popup.js';
 import Login from './login.js';
@@ -51,12 +55,15 @@ let MAPBOX_STYLE_PREFIX = 'mapbox://styles/';
 let PLANNING_UNIT_STATUSES = [1, 2, 3];
 let PLANNING_UNIT_SOURCE_NAME = "planning_units_source";
 let PLANNING_UNIT_LAYER_NAME = "planning_units_layer";
-let PLANNING_UNIT_LAYER_OPACITY = 0.2;
 let PLANNING_UNIT_EDIT_LAYER_NAME = "planning_units_layer_edit";
+let PLANNING_UNIT_PUVSPR_LAYER_NAME = "planning_units_puvspr_layer";
+let PLANNING_UNIT_LAYER_OPACITY = 0.2;
 let PLANNING_UNIT_EDIT_LAYER_LINE_WIDTH = 1.5;
 let RESULTS_LAYER_NAME = "results_layer";
 let RESULTS_LAYER_FILL_OPACITY_ACTIVE = 0.5;
 let RESULTS_LAYER_FILL_OPACITY_INACTIVE = 0.1;
+let HIDE_PUVSPR_LAYER_TEXT = "Hide the planning units where this feature occurs";
+let SHOW_PUVSPR_LAYER_TEXT = "Show the planning units where this feature occurs";
 let WDPA_SOURCE_NAME = "wdpa_source";
 let WDPA_LAYER_NAME = "wdpa";
 let WDPA_LAYER_OPACITY = 0.9;
@@ -86,6 +93,7 @@ class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      featureMenuOpen: false,
       userDialogOpen: false,
       filesDialogOpen: false,
       aboutDialogOpen: false,
@@ -126,6 +134,8 @@ class App extends React.Component {
       resultsPaneOpen: true,
       preprocessingFeature: false,
       preprocessingProtectedAreas: false,
+      openInfoDialogOpen: false,
+      puvsprLayerText: '',
       featureDatasetName: '',
       featureDatasetDescription: '',
       featureDatasetFilename: '',
@@ -197,9 +207,6 @@ class App extends React.Component {
     this.map.on("moveend", function(evt){
       this.setState({mapCentre:this.map.getCenter(), mapZoom:this.map.getZoom()});
     }.bind(this));
-    this.map.on("sourcedata", function(evt){
-    	console.log("sourcedata " + evt.source.url);
-    });
   }
 
   closeSnackbar() {
@@ -374,6 +381,8 @@ class App extends React.Component {
 
   //saveOptions - the options are in the users data so we use the updateUser REST call to update them
   saveOptions(options) {
+    //hide the popup 
+    this.hidePopup();
     this.updateUser(options);
   }
   //updates the project from the old version to the new version
@@ -474,6 +483,8 @@ class App extends React.Component {
       if (!this.checkForErrors(response)) {
         //set the state for the app based on the data that is returned from the server
         this.setState({ loggedIn: true, project: response.project, runParams: response.runParameters, files: Object.assign(response.files), metadata: response.metadata, renderer: response.renderer, planning_units: response.planning_units });
+        //if there is a PLANNING_UNIT_NAME passed then programmatically change the select box to this map 
+        if (response.metadata.PLANNING_UNIT_NAME) this.changeTileset(MAPBOX_USER + "." + response.metadata.PLANNING_UNIT_NAME);
         //set a local variable for the feature preprocessing - this is because we dont need to track state with these variables as they are not bound to anything
         this.feature_preprocessing = response.feature_preprocessing;
         //set a local variable for the protected area intersections - this is because we dont need to track state with these variables as they are not bound to anything
@@ -482,31 +493,10 @@ class App extends React.Component {
         this.previousIucnCategory = response.metadata.IUCN_CATEGORY;
         //initialise all the interest features with the interest features for this project
         this.initialiseInterestFeatures(response.metadata.OLDVERSION, response.features, response.allFeatures);
-        //if there is a PLANNING_UNIT_NAME passed then programmatically change the select box to this map 
-        if (response.metadata.PLANNING_UNIT_NAME) this.changeTileset(MAPBOX_USER + "." + response.metadata.PLANNING_UNIT_NAME);
         //poll the server to see if results are available for this project - if there are these will be loaded
         this.getResults(this.state.user, project);
       }
     }.bind(this));
-  }
-
-  //called when the mapbox planning unit layer has changed
-  changeTileset(tilesetid) {
-    this.getMetadata(tilesetid).then(function(response) {
-      this.spatialLayerChanged(response, true);
-    }.bind(this));
-  }
-
-  //gets all of the metadata for the tileset
-  getMetadata(tilesetId) {
-    return fetch("https://api.mapbox.com/v4/" + tilesetId + ".json?secure&access_token=" + this.state.userData.MAPBOXACCESSTOKEN)
-      .then(response => response.json())
-      .then(function(response) {
-        return response;
-      })
-      .catch(function(error) {
-        return error;
-      });
   }
 
   //matches and returns an item in an object array with the passed id - this assumes the first item in the object is the id identifier
@@ -538,7 +528,7 @@ class App extends React.Component {
       //get the preprocessing for that feature from the feature_preprocessing.dat file
       let preprocessing = this.getArrayItem(this.feature_preprocessing, item.id);
       //add the required attributes to the features - these will be populated in the function calls preprocessFeature (pu_area, pu_count) and pollResults (protected_area, target_area)
-      this.addFeatureAttributes(item);
+      this.addFeatureAttributes(item, oldVersion);
       //if the interest feature is in the current project then populate the data from that feature
       if (projectFeature) {
         item['selected'] = true;
@@ -554,7 +544,7 @@ class App extends React.Component {
   }
 
   //adds the required attributes for the features to work in the marxan web app - these are the default values
-  addFeatureAttributes(item){
+  addFeatureAttributes(item, oldVersion){
       // the -1 flag indicates that the values are unknown
       item['selected'] = false;
       item['preprocessed'] = false;
@@ -564,7 +554,8 @@ class App extends React.Component {
       item['target_value'] = 17;
       item['target_area'] = -1;
       item['protected_area'] = -1;
-      item['toggle_state'] = "Show on map";
+      item['feature_layer_loaded'] = false;
+      item['old_version'] = (oldVersion === 'True') ? true : false;
   }
 
   //resets various variables and state in between users
@@ -835,6 +826,7 @@ class App extends React.Component {
 
   //preprocess a single feature
   async preprocessSingleFeature(feature){
+    this.closeFeatureMenu();
     this.startLogging();
     this.preprocessFeature(feature);
   }
@@ -1265,8 +1257,8 @@ class App extends React.Component {
   //gets the various paint properties for the planning unit layer - if setRenderer is true then it will also update the renderer in the Legend panel
   getPaintProperties(data, sum, setRenderer){
     //build an expression to get the matching puids with different numbers of 'numbers' in the marxan results
-    var fill_color_expression = ["match", ["get", "puid"]];
-    var fill_outline_color_expression = ["match", ["get", "puid"]];
+    var fill_color_expression = this.initialiseFillColorExpression("puid");
+    var fill_outline_color_expression = this.initialiseFillColorExpression("puid");
     if (this.state.dataAvailable) {
       var color, visibleValue, value;
       //create the renderer using Joshua Tanners excellent library classybrew - available here https://github.com/tannerjt/classybrew
@@ -1310,6 +1302,10 @@ class App extends React.Component {
     return {fillColor: fill_color_expression, oulineColor: fill_outline_color_expression};
   }
   
+  //initialises the fill color expression for matching on attributes values
+  initialiseFillColorExpression(attribute){
+    return ["match", ["get", attribute]];
+  }
   
   //renders the planning units edit layer according to the type of layer and pu status 
   renderPuEditLayer() {
@@ -1431,10 +1427,29 @@ class App extends React.Component {
     }.bind(this));
   }
   
+  //called when the planning unit layer has changed, i.e. the project has changed
+  changeTileset(tilesetid) {
+    this.getMetadata(tilesetid).then(function(response) {
+      this.spatialLayerChanged(response, true);
+    }.bind(this));
+  }
+
+  //gets all of the metadata for the tileset
+  getMetadata(tilesetId) {
+    return fetch("https://api.mapbox.com/v4/" + tilesetId + ".json?secure&access_token=" + this.state.userData.MAPBOXACCESSTOKEN)
+      .then(response => response.json())
+      .then(function(response) {
+        return response;
+      })
+      .catch(function(error) {
+        return error;
+      });
+  }
+
   spatialLayerChanged(tileset, zoomToBounds) {
-    //remove the existing results layer and planning unit layer
+    //remove the results layer, planning unit layer and wdpa layers
     this.removeSpatialLayers();
-    //add a new results layer and planning unit layer
+    //add the results layer, planning unit layer and wdpa layers
     this.addSpatialLayers(tileset);
     //zoom to the layers extent
     this.zoomToBounds(tileset.bounds);
@@ -1487,7 +1502,7 @@ class App extends React.Component {
         'fill-outline-color': "rgba(0, 0, 0, 0)"
       }
     }, beforeLayer);
-    //add the planning unit layer
+    //add the planning unit layer 
     this.map.addLayer({
       'id': PLANNING_UNIT_LAYER_NAME,
       'type': "fill",
@@ -1501,8 +1516,7 @@ class App extends React.Component {
         'fill-outline-color': "rgba(150, 150, 150, " + PLANNING_UNIT_LAYER_OPACITY + ")"
       }
     }, beforeLayer);
-
-    //add the planning units manual edit layer
+    //add the planning units manual edit layer - this layer shows which individual planning units have had their status changed
     this.map.addLayer({
       'id': PLANNING_UNIT_EDIT_LAYER_NAME,
       'type': "line",
@@ -1516,6 +1530,21 @@ class App extends React.Component {
         'line-width': PLANNING_UNIT_EDIT_LAYER_LINE_WIDTH
       }
     }, beforeLayer);
+    //add the puvspr planning unit layer - this layer shows the planning unit distribution of a feature from the puvspr file
+    this.map.addLayer({
+      'id': PLANNING_UNIT_PUVSPR_LAYER_NAME,
+      'type': "fill",
+      'source': PLANNING_UNIT_SOURCE_NAME,
+      "layout": {
+        "visibility": "none"
+      },
+      'source-layer': tileset.name,
+      'paint': {
+        'fill-color': "rgba(0, 0, 0, 0)",
+        'fill-outline-color': "rgba(0, 0, 0, 0)"
+      }
+    });
+    //add the wdpa layer
     this.map.addLayer({
       "id": WDPA_LAYER_NAME,
       "type": "fill",
@@ -2060,18 +2089,32 @@ class App extends React.Component {
     this.selectClearAll(false);
   }
 
-  //sets the target value of an feature
-  updateTargetValue(feature, newTargetValue) {
-    this.updateFeature(feature, {target_value: newTargetValue});
+  openFeatureMenu(evt, feature){
+    //set the menu text
+    let puvsprLayerText = this.getMenuTextForPuvsprLayer(feature);
+    this.setState({featureMenuOpen: true, currentFeature: feature, menuAnchor: evt.currentTarget, puvsprLayerText: puvsprLayerText});
+  }
+  closeFeatureMenu(evt){
+    this.setState({featureMenuOpen: false});
   }
 
+  //get feature menu text for puvspr layer
+  getMenuTextForPuvsprLayer(feature){
+    //see if the layer that shows the planning units for a feature is currently visible on the map
+    let visible = (this.map.getLayoutProperty(PLANNING_UNIT_PUVSPR_LAYER_NAME, 'visibility') === 'visible');
+    //see if the feature layer is different from the one that is already being shown on the map
+    let newFeature = ((feature.id !== this.puvsprLayerId) || (this.puvsprLayerId === undefined));
+    let puvsprLayerText = (visible) ? (newFeature) ? SHOW_PUVSPR_LAYER_TEXT : HIDE_PUVSPR_LAYER_TEXT : SHOW_PUVSPR_LAYER_TEXT;
+    return puvsprLayerText;
+  }
   //toggles the feature layer on the map
-  toggleFeature(feature){
+  toggleFeatureLayer(feature){
+    this.closeFeatureMenu();
     let layerName = feature.tilesetid.split(".")[1];
     if (this.map.getLayer(layerName)){
       this.map.removeLayer(layerName);
       this.map.removeSource(layerName);
-      this.updateFeature(feature, {toggle_state: "Show on map"});
+      this.updateFeature(feature, {feature_layer_loaded: false});
     }else{
       this.map.addLayer({
         'id': layerName,
@@ -2086,12 +2129,44 @@ class App extends React.Component {
           'fill-outline-color': "rgba(255, 0, 0, 1)"
         }
       });
-      this.updateFeature(feature, {toggle_state: "Remove from map"});
+      this.updateFeature(feature, {feature_layer_loaded: true});
+    }
+  }
+  
+  toggleFeaturePuvsprLayer(feature){
+    this.closeFeatureMenu();
+    if (this.state.puvsprLayerText === HIDE_PUVSPR_LAYER_TEXT){
+      this.hideLayer(PLANNING_UNIT_PUVSPR_LAYER_NAME);
+    }else{
+      //get the planning units where the feature occurs from the puvspr.dat file
+      this.getFeaturePlanningUnits(feature.id).then(function(response){
+        if (!this.checkForErrors(response)) {
+          //update the paint property for the layer
+          var fill_color_expression = this.initialiseFillColorExpression("puid");
+          var fill_outline_color_expression = this.initialiseFillColorExpression("puid");
+          response.data.forEach(function(puid) {
+              fill_outline_color_expression.push(puid, "rgba(255, 255, 255, 1)"); 
+          });
+          // Last value is the default, used where there is no data
+          fill_color_expression.push("rgba(0,0,0,0)");
+          fill_outline_color_expression.push("rgba(0,0,0,0)");
+          this.map.setPaintProperty(PLANNING_UNIT_PUVSPR_LAYER_NAME, "fill-outline-color", fill_outline_color_expression);
+          //show the layer
+          this.showLayer(PLANNING_UNIT_PUVSPR_LAYER_NAME);
+          //set the puvsprLayerId value - this is used to see which puvspr layer is currently being shown on the map to be able to set the text for the menu item
+          this.puvsprLayerId = feature.id;
+        }
+      }.bind(this));
     }
   }
 
-  //removes the feature from the project
+  getFeaturePlanningUnits(oid){
+    return jsonp(MARXAN_ENDPOINT_HTTPS + "getFeaturePlanningUnits?user=" + this.state.user + "&project=" + this.state.project + "&oid=" + oid, { timeout: TIMEOUT }).promise;
+  }
+
+  //removes the current feature from the project
   removeFromProject(feature){
+    this.closeFeatureMenu();
     this.unselectItem(feature);
   }
   
@@ -2106,7 +2181,6 @@ class App extends React.Component {
   hideUserMenu(e) {
     this.setState({ userMenuOpen: false });
   }
-
   openProjectsDialog() {
     this.setState({ projectsDialogOpen: true });
     this.getProjects();
@@ -2120,14 +2194,19 @@ class App extends React.Component {
   closeNewProjectDialog() {
     this.setState({ newProjectDialogOpen: false });
   }
-
   openNewPlanningUnitDialog() {
     this.setState({ NewPlanningUnitDialogOpen: true });
   }
   closeNewPlanningUnitDialog() {
     this.setState({ NewPlanningUnitDialogOpen: false });
   }
-  
+  openInfoDialog() {
+      this.setState({ openInfoDialogOpen: true, featureMenuOpen: false });
+  }
+  closeInfoDialog() {
+      this.setState({ openInfoDialogOpen: false });
+  }
+
   openFilesDialog() {
     this.setState({ filesDialogOpen: true });
   }
@@ -2547,20 +2626,17 @@ class App extends React.Component {
             showUserMenu={this.showUserMenu.bind(this)}
             openProjectsDialog={this.openProjectsDialog.bind(this)}
             features={this.state.projectFeatures}
-            updateTargetValue={this.updateTargetValue.bind(this)}
             project_tab_active={this.project_tab_active.bind(this)}
             features_tab_active={this.features_tab_active.bind(this)}
             pu_tab_active={this.pu_tab_active.bind(this)}
             startPuEditSession={this.startPuEditSession.bind(this)}
             stopPuEditSession={this.stopPuEditSession.bind(this)}
             showRunSettingsDialog={this.showRunSettingsDialog.bind(this)}
-            preprocessFeature={this.preprocessSingleFeature.bind(this)}
+            openFeatureMenu={this.openFeatureMenu.bind(this)}
             preprocessingFeature={this.state.preprocessingFeature}
             preprocessingProtectedAreas={this.state.preprocessingProtectedAreas}
             openAllInterestFeaturesDialog={this.openAllInterestFeaturesDialog.bind(this)}
             changeIucnCategory={this.changeIucnCategory.bind(this)}
-            toggleFeature={this.toggleFeature.bind(this)}
-            removeFromProject={this.removeFromProject.bind(this)}
             updateFeature={this.updateFeature.bind(this)}
           />
           <UserMenu 
@@ -2592,10 +2668,6 @@ class App extends React.Component {
             open={this.state.aboutDialogOpen}
             closeAboutDialog={this.closeAboutDialog.bind(this)}
           />
-          <Popup
-            active_pu={this.state.active_pu} 
-            xy={this.state.popup_point}
-          />
           <Login 
             open={!this.state.loggedIn} 
             user={this.state.user} 
@@ -2611,11 +2683,6 @@ class App extends React.Component {
             availableServers={MARXAN_REMOTE_SERVERS}
             activeServer={this.state.activeServer}
             setActiveServer={this.setActiveServer.bind(this)}
-          />
-          <Snackbar
-            open={this.state.snackbarOpen}
-            message={this.state.snackbarMessage}
-            onRequestClose={this.closeSnackbar.bind(this)}
           />
           <ProjectsDialog 
             open={this.state.projectsDialogOpen} 
@@ -2638,7 +2705,6 @@ class App extends React.Component {
             openNewPlanningUnitDialog={this.openNewPlanningUnitDialog.bind(this)}
             openAllInterestFeaturesDialog={this.openAllInterestFeaturesDialog.bind(this)}
             features={this.state.allFeatures} 
-            updateTargetValue={this.updateTargetValue.bind(this)}
             openAllCostsDialog={this.openAllCostsDialog.bind(this)}
             selectedCosts={this.state.selectedCosts}
             createNewProject={this.createNewProject.bind(this)}
@@ -2763,6 +2829,30 @@ class App extends React.Component {
             loadProject={this.loadProject.bind(this)}
             setLog={this.setLog.bind(this)}
             user={this.state.user}
+          />
+          <Popup
+            active_pu={this.state.active_pu} 
+            xy={this.state.popup_point}
+          />
+          <Snackbar
+            open={this.state.snackbarOpen}
+            message={this.state.snackbarMessage}
+            onRequestClose={this.closeSnackbar.bind(this)}
+          />
+          <Popover open={this.state.featureMenuOpen} anchorEl={this.state.menuAnchor} onRequestClose={this.closeFeatureMenu.bind(this)}>
+            <Menu>
+              <MenuItem className={'smallMenuItem'} onClick={this.openInfoDialog.bind(this)}>Info</MenuItem>
+              <MenuItem className={'smallMenuItem'} onClick={this.removeFromProject.bind(this, this.state.currentFeature)}>Remove from project</MenuItem>
+              <MenuItem className={'smallMenuItem'} style={{display: (this.state.currentFeature&&this.state.currentFeature.tilesetid) ? 'block' : 'none'}} onClick={this.toggleFeatureLayer.bind(this, this.state.currentFeature)}>{(this.state.currentFeature&&this.state.currentFeature.feature_layer_loaded) ? "Remove feature layer from map" : "Add feature layer to map"}</MenuItem>
+              <MenuItem className={'smallMenuItem'} onClick={this.toggleFeaturePuvsprLayer.bind(this, this.state.currentFeature)} disabled={!(this.state.currentFeature&&this.state.currentFeature.preprocessed)}>{this.state.puvsprLayerText}</MenuItem>
+              <MenuItem  className={'smallMenuItem'} onClick={this.preprocessSingleFeature.bind(this, this.state.currentFeature)} disabled={this.state.currentFeature&&this.state.currentFeature.preprocessed}>Pre-process</MenuItem>
+            </Menu>
+          </Popover>          
+          <FeatureInfo
+              open={this.state.openInfoDialogOpen}
+              feature={this.state.currentFeature}
+              closeInfoDialog={this.closeInfoDialog.bind(this)}
+              updateFeature={this.updateFeature.bind(this)}
           />
           <div style={{position: 'absolute', display: this.state.resultsPaneOpen ? 'none' : 'block', backgroundColor: 'rgb(0, 188, 212)', right: '0px', top: '20px', width: '20px', borderRadius: '2px', height: '88px',boxShadow:'rgba(0, 0, 0, 0.16) 0px 3px 10px, rgba(0, 0, 0, 0.23) 0px 3px 10px'}} title={"Show results"}>
             <FlatButton

@@ -9,12 +9,9 @@ class SelectFeatures extends React.Component {
                 <div className={'newPUDialogPane'}> 
                     <FeaturesList 
                         features={this.props.features} 
-                        updateTargetValue={this.props.updateTargetValue} 
-                        preprocessFeature={this.props.preprocessFeature}
+                        openFeatureMenu={this.props.openFeatureMenu}
                         simple={this.props.simple}
-                        toggleFeature={this.props.toggleFeature}
                         maxheight={'387px'}
-                        removeFromProject={this.props.removeFromProject}
                         updateFeature={this.props.updateFeature}
                     />
                     <RaisedButton 

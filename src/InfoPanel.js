@@ -66,7 +66,7 @@ class InfoPanel extends React.Component {
     this.props.startPuEditSession();
   }
 
-  stopPuEditSession() {
+  stopPuEditSession() { 
     this.setState({ puEditing: false});
     this.props.stopPuEditSession();
   }
@@ -104,13 +104,10 @@ class InfoPanel extends React.Component {
               <Tab label="Features" onActive={this.props.features_tab_active} value="features">
                 <SelectFeatures
                   features={this.props.features}
-                  updateTargetValue={this.props.updateTargetValue}
-                  preprocessFeature={this.props.preprocessFeature}
+                  openFeatureMenu={this.props.openFeatureMenu}
                   openAllInterestFeaturesDialog={this.props.openAllInterestFeaturesDialog}
                   simple={false}
-                  toggleFeature={this.props.toggleFeature}
                   leftmargin={'10px'}
-                  removeFromProject={this.props.removeFromProject}
                   updateFeature={this.props.updateFeature}
                 />
               </Tab>
@@ -146,7 +143,7 @@ class InfoPanel extends React.Component {
                       style={{color: this.state.puEditing ? 'rgb(255, 64, 129)' : 'rgb(150, 150, 150)', cursor:'pointer', display:'inline-flex',verticalAlign:'middle',marginLeft: '10px'}}
                     />
                   </div>
-                </div>
+                </div> 
               </Tab>
             </Tabs>     
             <Paper className={'lowerToolbar'}>

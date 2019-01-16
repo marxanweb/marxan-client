@@ -1,49 +1,19 @@
 import * as React from 'react';
 import { List, ListItem } from 'material-ui/List';
 import TargetIcon from './TargetIcon';
-import IconMenu from 'material-ui/IconMenu';
-import MenuItem from 'material-ui/MenuItem';
 import { grey400 } from 'material-ui/styles/colors';
 import IconButton from 'material-ui/IconButton';
 import MoreVertIcon from 'material-ui/svg-icons/navigation/more-vert';
 import LinearGauge from './LinearGauge';
-import Info from './Info';
 
 class FeaturesList extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = { openInfoDialogOpen: false, currentFeature: {} };
+    iconClick(feature, evt){
+        this.props.openFeatureMenu(evt, feature);
     }
     updateTargetValue(targetIcon) {
-        this.props.updateTargetValue(targetIcon.props.interestFeature, targetIcon.newTargetValue);
-    }
-    preprocess(feature) {
-        this.closeInfoDialog();
-        this.props.preprocessFeature(feature);
-    }
-    openInfoDialog(feature) {
-        this.setState({ currentFeature: feature, openInfoDialogOpen: true });
-    }
-    closeInfoDialog() {
-        this.setState({ currentFeature: {}, openInfoDialogOpen: false });
-    }
-    toggleFeature(feature){
-        this.closeInfoDialog();
-        this.props.toggleFeature(feature);
-    }
-    removeFromProject(feature){
-        this.closeInfoDialog();
-        this.props.removeFromProject(feature);
+        this.props.updateFeature(targetIcon.props.interestFeature, {target_value: targetIcon.newTargetValue});
     }
     render() {
-        const iconButtonElement = (
-            <IconButton
-                touch={true}
-                tooltipPosition="bottom-left" 
-            >
-            <MoreVertIcon color={grey400} />
-            </IconButton>
-        );
         return (
             <React.Fragment>
             <List style={{padding:'0px !important', maxHeight: this.props.maxheight, overflow: 'auto'}}>
@@ -88,12 +58,9 @@ class FeaturesList extends React.Component {
                             rightIconButton={this.props.simple ?
                                 <div />
                                 :
-                                <IconMenu iconButtonElement={iconButtonElement} style={{right:'10px'}}>
-                                    <MenuItem className={'smallMenuItem'} onClick={this.openInfoDialog.bind(this, item)}>Info</MenuItem>
-                                    <MenuItem className={'smallMenuItem'} onClick={this.removeFromProject.bind(this, item)}>Remove</MenuItem>
-                                    <MenuItem className={'smallMenuItem'} style={{display: (item.tilesetid) ? 'block' : 'none'}} onClick={this.toggleFeature.bind(this, item)}>{item.toggle_state}</MenuItem>
-                                    <MenuItem disabled={item.preprocessed} onClick={() => this.preprocess(item)} className={'smallMenuItem'}>Pre-process</MenuItem>
-                                </IconMenu>
+                                <IconButton touch={true} tooltipPosition="bottom-left" onClick={this.iconClick.bind(this, item)}>
+                                    <MoreVertIcon color={grey400} />
+                                </IconButton>
                             }
                             innerDivStyle={{padding: (this.props.simple) ? '5px 5px 5px 5px' : '9px 5px 11px 53px' }}
                             style={{borderRadius:'3px',fontSize:'14px'}}
@@ -102,12 +69,6 @@ class FeaturesList extends React.Component {
                 )
                 }
             </List>
-            <Info
-                open={this.state.openInfoDialogOpen}
-                feature={this.state.currentFeature}
-                closeInfoDialog={this.closeInfoDialog.bind(this)}
-                updateFeature={this.props.updateFeature}
-            />
             </React.Fragment>
         );
     }

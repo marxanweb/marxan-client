@@ -105,7 +105,6 @@ class NewProjectDialog extends React.Component {
                     {stepIndex === 2 ? <SelectFeatures 
                         features={this.state.copiedFeatures.filter((item)=>{return item.selected;})}
                         openAllInterestFeaturesDialog={this.openAllInterestFeaturesDialog.bind(this)}  
-                        updateTargetValue={this.updateTargetValue}
                         simple={true}
                         leftmargin={'0px'}
                     /> : null}
