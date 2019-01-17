@@ -62,12 +62,13 @@ let PLANNING_UNIT_EDIT_LAYER_LINE_WIDTH = 1.5;
 let RESULTS_LAYER_NAME = "results_layer";
 let RESULTS_LAYER_FILL_OPACITY_ACTIVE = 0.5;
 let RESULTS_LAYER_FILL_OPACITY_INACTIVE = 0.1;
-let HIDE_PUVSPR_LAYER_TEXT = "Hide the planning units where this feature occurs";
-let SHOW_PUVSPR_LAYER_TEXT = "Show the planning units where this feature occurs";
+let HIDE_PUVSPR_LAYER_TEXT = "Remove planning units outline";
+let SHOW_PUVSPR_LAYER_TEXT = "Outline planning units where the feature occurs";
 let WDPA_SOURCE_NAME = "wdpa_source";
 let WDPA_LAYER_NAME = "wdpa";
 let WDPA_LAYER_OPACITY = 0.9;
 let CLUMP_COUNT = 5;
+//array of mapbox styles to use if the CDN that provides this array is unavailable
 let BACKUP_MAPBOX_BASEMAPS = [{name: 'Streets', description: 'A complete basemap, perfect for incorporating your own data.', id:'mapbox/streets-v9', provider:'mapbox'},
     {name: 'Outdoors', description: 'General basemap tailored to hiking, biking, and sport.', id:'mapbox/outdoors-v9', provider:'mapbox'},
     {name: 'Dark', description: 'Subtle dark backdrop for data visualizations.', id:'mapbox/dark-v9', provider:'mapbox'},
@@ -75,17 +76,21 @@ let BACKUP_MAPBOX_BASEMAPS = [{name: 'Streets', description: 'A complete basemap
     {name: 'North Star', description: 'Slightly modified North Star with no Bathymetry.', id:'blishten/cjg6jk8vg3tir2spd2eatu5fd', provider:'Joint Research Centre'},
     {name: 'Satellite', description: 'A beautiful global satellite and aerial imagery layer.', id:'mapbox/satellite-v9', provider:'mapbox'},
     {name: 'Satellite Streets', description: 'Global imagery enhanced with road and label hierarchy.', id:'mapbox/satellite-streets-v9', provider:'mapbox'}];
-    // {name: 'Navigation Preview Day', description: 'Traffic on a light streets basemap that highlights congestion.', id:''},
-    // {name: 'Navigation Preview Night', description: 'Traffic on a dark streets basemap that highlights congestion.', id:''},
-    // {name: 'Navigation Guidance Day', description: 'Light basemap tailored to in-app navigation.', id:''},
-    // {name: 'Navigation Guidance Night', description: 'Dark basemap tailored to in-app navigation.', id:''},
-    // {name: 'Minimo', description: 'A style with clean, uniform transit networks, stippling patterns and building icons; it’s good for data overlay or exploring the world while holding the hand of Italian, minimalistic beauty.', id:''},
-    // {name: 'Lè Shine', description: 'A restrained color palette reminiscent of winters cold, glaring austerity.', id:''},
-    // {name: 'Cali Terrain', description: 'Cali Terrain is inspired by pictures from the plane traveling from Washington DC to Southern California.', id:''},
-    // {name: 'Ice Cream', description: 'A monochromatic color palette for apps or data visualization.', id:''},
-    // {name: 'Decimal', description: 'A minimalist style that works great as a backdrop for a game. Colors resemble vintage control panels.', id:''},
-    // {name: 'North Star', description: 'A modern take on classic nautical maps. Great for displaying all things maritime.', id:''},
-    // {name: 'Moonlight', description: 'A minimal high-contrast style. Customize it to suit your brand colors and typography.', id:''}];
+//an array of feature property information that is used in the Feature Information dialog box
+let FEATURE_PROPERTIES = [{ name: 'id', key: 'ID',hint: 'The unique identifier for the feature', showForOld: false},
+  { name: 'alias', key: 'Alias',hint: 'A human readable name for the feature', showForOld: true},
+  { name: 'feature_class_name', key: 'Feature class name',hint: 'The internal name for the feature in the PostGIS database', showForOld: false},
+  { name: 'description', key: 'Description',hint: 'Full description of the feature', showForOld: false},
+  { name: 'creation_date', key: 'Creation date',hint: 'The date the feature was created or imported', showForOld: false},
+  { name: 'tilesetid', key: 'Mapbox ID',hint: 'The unique identifier of the feature tileset in Mapbox', showForOld: false},
+  { name: 'area', key: 'Total area',hint: 'The total area for the feature in Km2(i.e. globally)', showForOld: false},
+  { name: 'target_value', key: 'Target percent',hint: 'The target percentage for the feature within the planning grid', showForOld: true},
+  { name: 'spf', key: 'Species Penalty Factor',hint: 'The species penalty factor is used to weight the likelihood of getting a species in the results', showForOld: true},
+  { name: 'preprocessed', key: 'Preprocessed',hint: 'Whether or not the feature has been intersected with the planning units', showForOld: false},
+  { name: 'pu_count', key: 'Planning unit count',hint: 'The number of planning units that intersect the feature (calculated during pre-processing)', showForOld: true},
+  { name: 'pu_area', key: 'Planning unit area',hint: 'The area of the feature within the planning grid (calculated during pre-processing)', showForOld: true},
+  { name: 'target_area', key: 'Target area',hint: 'The total area that needs to be protected to achieve the target percentage', showForOld: true},
+  { name: 'protected_area', key: 'Area protected',hint: 'The total area protected in the current solution', showForOld: true}];
 var ws;
 
 class App extends React.Component {
@@ -2843,7 +2848,7 @@ class App extends React.Component {
             <Menu>
               <MenuItem className={'smallMenuItem'} onClick={this.openInfoDialog.bind(this)}>Info</MenuItem>
               <MenuItem className={'smallMenuItem'} onClick={this.removeFromProject.bind(this, this.state.currentFeature)}>Remove from project</MenuItem>
-              <MenuItem className={'smallMenuItem'} style={{display: (this.state.currentFeature&&this.state.currentFeature.tilesetid) ? 'block' : 'none'}} onClick={this.toggleFeatureLayer.bind(this, this.state.currentFeature)}>{(this.state.currentFeature&&this.state.currentFeature.feature_layer_loaded) ? "Remove feature layer from map" : "Add feature layer to map"}</MenuItem>
+              <MenuItem className={'smallMenuItem'} style={{display: (this.state.currentFeature&&this.state.currentFeature.tilesetid) ? 'block' : 'none'}} onClick={this.toggleFeatureLayer.bind(this, this.state.currentFeature)}>{(this.state.currentFeature&&this.state.currentFeature.feature_layer_loaded) ? "Remove from map" : "Add to map"}</MenuItem>
               <MenuItem className={'smallMenuItem'} onClick={this.toggleFeaturePuvsprLayer.bind(this, this.state.currentFeature)} disabled={!(this.state.currentFeature&&this.state.currentFeature.preprocessed)}>{this.state.puvsprLayerText}</MenuItem>
               <MenuItem  className={'smallMenuItem'} onClick={this.preprocessSingleFeature.bind(this, this.state.currentFeature)} disabled={this.state.currentFeature&&this.state.currentFeature.preprocessed}>Pre-process</MenuItem>
             </Menu>
@@ -2853,6 +2858,7 @@ class App extends React.Component {
               feature={this.state.currentFeature}
               closeInfoDialog={this.closeInfoDialog.bind(this)}
               updateFeature={this.updateFeature.bind(this)}
+              FEATURE_PROPERTIES={FEATURE_PROPERTIES}
           />
           <div style={{position: 'absolute', display: this.state.resultsPaneOpen ? 'none' : 'block', backgroundColor: 'rgb(0, 188, 212)', right: '0px', top: '20px', width: '20px', borderRadius: '2px', height: '88px',boxShadow:'rgba(0, 0, 0, 0.16) 0px 3px 10px, rgba(0, 0, 0, 0.23) 0px 3px 10px'}} title={"Show results"}>
             <FlatButton

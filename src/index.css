@@ -186,6 +186,10 @@ body {
   width: 337px;
   height: 391px;
 }
+.infoTableOldVersion {
+  width: 337px;
+  height: 213;
+}
 
 .rt-tr-group {
   cursor: pointer !important;
