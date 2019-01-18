@@ -19,9 +19,9 @@ class PlanningUnits extends React.Component {
             zoom: 2
         });
     }
-    openNewPlanningUnitDialog() {
-        this.props.openNewPlanningUnitDialog();
-    }
+    openNewPlanningGridDialog() {
+        this.props.openNewPlanningGridDialog();
+    } 
     render() {
         return (
             <React.Fragment>
@@ -41,7 +41,7 @@ class PlanningUnits extends React.Component {
                         />
                         <RaisedButton 
                             label="New" 
-                            onClick={this.openNewPlanningUnitDialog.bind(this)}
+                            onClick={this.openNewPlanningGridDialog.bind(this)}
                             style={{minWidth: '66px', width: '30px',height: '23px', marginLeft: '20px',top:'407px',position:'absolute'}}
                             labelStyle={{'fontSize':'12px','paddingLeft':'11px'}}
                             title="Create a new Planning Unit Grid"

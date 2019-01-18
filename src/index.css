@@ -160,7 +160,7 @@ body {
 
 #popup {
   position: absolute;
-  background-color: white;
+  background-color: white; 
   box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 10px, rgba(0, 0, 0, 0.23) 0px 3px 10px;
 }
 
@@ -194,9 +194,23 @@ body {
 .rt-tr-group {
   cursor: pointer !important;
 }
-
+#projectsTable{
+  height:340px;
+}
+.projectsReactTable{
+  max-height: 340px;
+}
+#projectsTable .rt-tr-group:hover{
+  background-color:#e7e8e642; 
+}
+.selectedRow{
+  background-color: red;
+}
 table input {
   font-size: 13px;
+}
+#projectsToolbar{
+    margin: 18px 10px 10px 0px;
 }
 
 .uploadDiv {
@@ -212,7 +226,6 @@ table input {
   font-size: 20px;
   font-weight: 400;
   position: static;
-  margin-left: 10px;
 }
 
 .descriptionEditBox {
@@ -224,7 +237,7 @@ table input {
   width: 350px;
   height: 22px;
   margin-top: 1px;
-  margin-bottom: 11px;
+  margin-bottom: 6px;
 }
 
 .projectSpinner {

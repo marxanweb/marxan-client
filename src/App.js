@@ -1,42 +1,50 @@
 /*global fetch*/
 import React from 'react';
+/*eslint-disable no-unused-vars*/ 
+import axios, { post } from 'axios';
+/*eslint-enable no-unused-vars*/
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import mapboxgl from 'mapbox-gl';
 import MapboxClient from 'mapbox';
 import jsonp from 'jsonp-promise';
-import FeatureInfo from './FeatureInfo';
+import classyBrew from 'classybrew';
+//material-ui components and icons
 import Popover from 'material-ui/Popover';
 import Menu from 'material-ui/Menu';
-import MenuItem from 'material-ui/MenuItem';
-import InfoPanel from './InfoPanel.js';
-import Popup from './Popup.js';
-import Login from './login.js';
 import Snackbar from 'material-ui/Snackbar';
-import classyBrew from 'classybrew';
-/*eslint-disable no-unused-vars*/ 
-import axios, { post } from 'axios';
-/*eslint-enable no-unused-vars*/
+import FlatButton from 'material-ui/FlatButton';
+import white from 'material-ui/styles/colors';
+import ArrowBack from 'material-ui/svg-icons/navigation/arrow-back';
+import Properties from 'material-ui/svg-icons/alert/error-outline';
+import RemoveFromProject from 'material-ui/svg-icons/content/remove';
+import AddToMap from 'material-ui/svg-icons/action/visibility';
+import RemoveFromMap from 'material-ui/svg-icons/action/visibility-off';
+import ZoomIn from 'material-ui/svg-icons/action/zoom-in';
+import Preprocess from 'material-ui/svg-icons/action/autorenew';
+//project components
 import * as utilities from './utilities.js';
-import UserMenu from './UserMenu.js';
-import OptionsDialog from './OptionsDialog.js';
-import UserDialog from './UserDialog.js';
-import AboutDialog from './AboutDialog.js';
-import NewProjectDialog from './NewProjectDialog.js';
-import ProjectsDialog from './ProjectsDialog.js';
-import NewPlanningUnitDialog from './newProjectSteps/NewPlanningUnitDialog';
-import NewInterestFeatureDialog from './newProjectSteps/NewInterestFeatureDialog';
-import AllInterestFeaturesDialog from './AllInterestFeaturesDialog';
-import AllCostsDialog from './AllCostsDialog';
+import LoginDialog from './LoginDialog';
+import UserMenu from './UserMenu';
+import OptionsDialog from './OptionsDialog';
+import UserDialog from './UserDialog';
+import AboutDialog from './AboutDialog';
+import MenuItemWithButton from './MenuItemWithButton';
+import InfoPanel from './InfoPanel';
+import ResultsPane from './ResultsPane';
+import FeatureInfoDialog from './FeatureInfoDialog';
+import ProjectsDialog from './ProjectsDialog';
+import NewProjectDialog from './NewProjectDialog';
+import NewPlanningGridDialog from './newProjectSteps/NewPlanningGridDialog';
+import FeaturesDialog from './FeaturesDialog';
+import NewFeatureDialog from './newProjectSteps/NewFeatureDialog';
+import CostsDialog from './CostsDialog';
 import RunSettingsDialog from './RunSettingsDialog';
 import FilesDialog from './FilesDialog';
-import ResultsPane from './ResultsPane';
 import ClassificationDialog from './ClassificationDialog';
 import ClumpingDialog from './ClumpingDialog';
 import ImportWizard from './ImportWizard';
-import FlatButton from 'material-ui/FlatButton';
-import { white } from 'material-ui/styles/colors';
-import ArrowBack from 'material-ui/svg-icons/navigation/arrow-back';
+import Popup from './Popup';
 
 //GLOBAL VARIABLE IN MAPBOX CLIENT
 mapboxgl.accessToken = 'pk.eyJ1IjoiYmxpc2h0ZW4iLCJhIjoiMEZrNzFqRSJ9.0QBRA2HxTb8YHErUFRMPZg'; //this is my public access token for using in the Mapbox GL client - TODO change this to the logged in users public access token
@@ -62,7 +70,7 @@ let PLANNING_UNIT_EDIT_LAYER_LINE_WIDTH = 1.5;
 let RESULTS_LAYER_NAME = "results_layer";
 let RESULTS_LAYER_FILL_OPACITY_ACTIVE = 0.5;
 let RESULTS_LAYER_FILL_OPACITY_INACTIVE = 0.1;
-let HIDE_PUVSPR_LAYER_TEXT = "Remove planning units outline";
+let HIDE_PUVSPR_LAYER_TEXT = "Remove planning unit outlines";
 let SHOW_PUVSPR_LAYER_TEXT = "Outline planning units where the feature occurs";
 let WDPA_SOURCE_NAME = "wdpa_source";
 let WDPA_LAYER_NAME = "wdpa";
@@ -83,14 +91,14 @@ let FEATURE_PROPERTIES = [{ name: 'id', key: 'ID',hint: 'The unique identifier f
   { name: 'description', key: 'Description',hint: 'Full description of the feature', showForOld: false},
   { name: 'creation_date', key: 'Creation date',hint: 'The date the feature was created or imported', showForOld: false},
   { name: 'tilesetid', key: 'Mapbox ID',hint: 'The unique identifier of the feature tileset in Mapbox', showForOld: false},
-  { name: 'area', key: 'Total area',hint: 'The total area for the feature in Km2(i.e. globally)', showForOld: false},
+  { name: 'area', key: 'Total area',hint: 'The total area for the feature in Km2 (i.e. globally)', showForOld: false},
   { name: 'target_value', key: 'Target percent',hint: 'The target percentage for the feature within the planning grid', showForOld: true},
   { name: 'spf', key: 'Species Penalty Factor',hint: 'The species penalty factor is used to weight the likelihood of getting a species in the results', showForOld: true},
   { name: 'preprocessed', key: 'Preprocessed',hint: 'Whether or not the feature has been intersected with the planning units', showForOld: false},
   { name: 'pu_count', key: 'Planning unit count',hint: 'The number of planning units that intersect the feature (calculated during pre-processing)', showForOld: true},
-  { name: 'pu_area', key: 'Planning unit area',hint: 'The area of the feature within the planning grid (calculated during pre-processing)', showForOld: true},
-  { name: 'target_area', key: 'Target area',hint: 'The total area that needs to be protected to achieve the target percentage', showForOld: true},
-  { name: 'protected_area', key: 'Area protected',hint: 'The total area protected in the current solution', showForOld: true}];
+  { name: 'pu_area', key: 'Planning unit area',hint: 'The area of the feature within the planning grid in Km2 (calculated during pre-processing)', showForOld: true},
+  { name: 'target_area', key: 'Target area',hint: 'The total area that needs to be protected to achieve the target percentage in Km2 (calculated during a Marxan Run)', showForOld: true},
+  { name: 'protected_area', key: 'Area protected',hint: 'The total area protected in the current solution in Km2 (calculated during a Marxan Run)', showForOld: true}];
 var ws;
 
 class App extends React.Component {
@@ -104,15 +112,15 @@ class App extends React.Component {
       aboutDialogOpen: false,
       importDialogOpen: false,
       optionsDialogOpen: false,
-      AllCostsDialogOpen: false,
+      CostsDialogOpen: false,
       clumpingDialogOpen: false,
       settingsDialogOpen: false,
       projectsDialogOpen: false,
       newProjectDialogOpen: false, 
       classificationDialogOpen: false,
-      NewPlanningUnitDialogOpen: false, 
-      NewInterestFeatureDialogOpen: false,
-      AllInterestFeaturesDialogOpen: false,
+      NewPlanningGridDialogOpen: false, 
+      NewFeatureDialogOpen: false,
+      featuresDialogOpen: false,
       user: DISABLE_LOGIN ? 'andrew' : '',
       password: DISABLE_LOGIN ? 'asd' : '',
       project: DISABLE_LOGIN ? 'Tonga marine' : '',
@@ -140,11 +148,12 @@ class App extends React.Component {
       preprocessingFeature: false,
       preprocessingProtectedAreas: false,
       openInfoDialogOpen: false,
+      currentFeature:{},
       puvsprLayerText: '',
       featureDatasetName: '',
       featureDatasetDescription: '',
       featureDatasetFilename: '',
-      creatingNewPlanningUnit: false,
+      creatingNewPlanningGrid: false,
       savingOptions: false,
       dataBreaks: [],
       allFeatures: [], //all of the interest features in the metadata_interest_features table
@@ -499,7 +508,14 @@ class App extends React.Component {
         //initialise all the interest features with the interest features for this project
         this.initialiseInterestFeatures(response.metadata.OLDVERSION, response.features, response.allFeatures);
         //poll the server to see if results are available for this project - if there are these will be loaded
-        this.getResults(this.state.user, project);
+        this.getResults(this.state.user, response.project);
+      }else{
+        if (response.error.indexOf("No such file or directory")>-1){
+          //probably the last loaded project has been deleted - send some feedback and load another project
+          this.setState({ snackbarOpen: true, snackbarMessage: "The project '" + project + "' could no longer be found. Loading first available project"});
+          //passing an empty project to loadProject will load the first project
+          this.loadProject('');
+        }
       }
     }.bind(this));
   }
@@ -513,21 +529,21 @@ class App extends React.Component {
 
   //initialises the interest features based on the current project
   initialiseInterestFeatures(oldVersion, projectFeatures, allFeatures) {
-    var allInterestFeatures = [];
-    if (oldVersion === 'True') {
+    var features = [];
+    if (oldVersion) {
       //if the database is from an old version of marxan then the interest features can only come from the list of features in the current project
-      allInterestFeatures = projectFeatures;
+      features = projectFeatures;
     }
     else {
       //if the database is from marxan web then the interest features will come from the marxan postgis database metadata_interest_features table
-      allInterestFeatures = allFeatures;
+      features = allFeatures;
     }
     //get a list of the ids for the features that are in this project
     var ids = projectFeatures.map(function(item) {
       return item.id;
     });
-    //iterate through allInterestFeatures to add the required attributes to be used in the app and to populate them based on the current project features
-    var outFeatures = allInterestFeatures.map(function(item) {
+    //iterate through features to add the required attributes to be used in the app and to populate them based on the current project features
+    var outFeatures = features.map(function(item) {
       //see if the feature is in the current project
       var projectFeature = (ids.indexOf(item.id) > -1) ? projectFeatures[ids.indexOf(item.id)] : null;
       //get the preprocessing for that feature from the feature_preprocessing.dat file
@@ -542,6 +558,7 @@ class App extends React.Component {
         item['pu_count'] = preprocessing ? preprocessing[2] : -1;
         item['spf'] = projectFeature['spf'];
         item['target_value'] = projectFeature['target_value'];
+        item['occurs_in_planning_grid'] = item['pu_count'] > 0;
       }
       return item;
     }, this);
@@ -560,7 +577,8 @@ class App extends React.Component {
       item['target_area'] = -1;
       item['protected_area'] = -1;
       item['feature_layer_loaded'] = false;
-      item['old_version'] = (oldVersion === 'True') ? true : false;
+      item['old_version'] = oldVersion;
+      item['occurs_in_planning_grid'] = false;
   }
 
   //resets various variables and state in between users
@@ -873,7 +891,7 @@ class App extends React.Component {
             //reset the preprocessing state
             this.setState({preprocessingFeature: false});
             //update the feature that has been preprocessed
-            this.updateFeature(feature, {preprocessed: true, pu_count: Number(response.pu_count), pu_area: Number(response.pu_area)});
+            this.updateFeature(feature, {preprocessed: true, pu_count: Number(response.pu_count), pu_area: Number(response.pu_area), occurs_in_planning_grid: (Number(response.pu_count) >0)});
             resolve(evt.data);
             break;
           default:
@@ -1589,6 +1607,9 @@ class App extends React.Component {
     this.map.setLayoutProperty(id, 'visibility', 'none');
   }
 
+  isLayerVisible(layername){
+    return (this.map.getLayoutProperty(layername, 'visibility') === 'visible');
+  }
   //iterates through all the map layers and sets the opacity for all those layers with the source matching the passed source
   setOpacityBySource(source, opacity) {
     this.map.getStyle().layers.forEach((layer) => {
@@ -1649,6 +1670,10 @@ class App extends React.Component {
   //fired when the planning unit tab is selected
   pu_tab_active() {
     this.setState({ activeTab: "planning_units" });
+    //set a flag to capture if the outlined planning units layer needs to be reshown when switching back to any other tab
+    this.reinstatePuvsprLayer = this.isLayerVisible(PLANNING_UNIT_PUVSPR_LAYER_NAME);
+    //hide the outlined planning units layer
+    this.hideLayer(PLANNING_UNIT_PUVSPR_LAYER_NAME);
     //show the planning units layer 
     this.showLayer(PLANNING_UNIT_LAYER_NAME);
     //change the opacity on the results layer to make it more transparent
@@ -1663,6 +1688,8 @@ class App extends React.Component {
 
   //fired whenever another tab is selected
   pu_tab_inactive() {
+    //reinstate the outlined planning units layer if needs be
+    if (this.reinstatePuvsprLayer) this.showLayer(PLANNING_UNIT_PUVSPR_LAYER_NAME);
     //change the opacity on the results layer to make it more opaque
     this.map.setPaintProperty(RESULTS_LAYER_NAME, "fill-opacity", RESULTS_LAYER_FILL_OPACITY_ACTIVE);
     //change the opacity on all of the composite source layers to restore the opacity
@@ -1871,7 +1898,7 @@ class App extends React.Component {
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   createNewPlanningUnitGrid() {
-    this.setState({ creatingNewPlanningUnit: true });
+    this.setState({ creatingNewPlanningGrid: true });
     jsonp(MARXAN_ENDPOINT_HTTPS + "createPlanningUnitGrid?iso3=" + this.state.iso3 + "&domain=" + this.state.domain + "&areakm2=" + this.state.areakm2, { timeout: 0 }).promise.then(function(response) {
       if (!this.checkForErrors(response)) {
         //feedback
@@ -1885,9 +1912,9 @@ class App extends React.Component {
         //do something
       }
       //reset the state
-      this.setState({ creatingNewPlanningUnit: false });
-      //close the NewPlanningUnitDialog
-      this.closeNewPlanningUnitDialog();
+      this.setState({ creatingNewPlanningGrid: false });
+      //close the NewPlanningGridDialog
+      this.closeNewPlanningGridDialog();
     }.bind(this));
   }
 
@@ -1967,25 +1994,25 @@ class App extends React.Component {
     }.bind(this));
   }
 
-  openNewInterestFeatureDialog() {
-    this.setState({ NewInterestFeatureDialogOpen: true });
+  openNewFeatureDialog() {
+    this.setState({ NewFeatureDialogOpen: true });
   }
-  closeNewInterestFeatureDialog() {
-    this.setState({ NewInterestFeatureDialogOpen: false });
+  closeNewFeatureDialog() {
+    this.setState({ NewFeatureDialogOpen: false });
   }
-  openAllInterestFeaturesDialog() {
-    this.setState({ AllInterestFeaturesDialogOpen: true });
+  openFeaturesDialog() {
+    this.setState({ featuresDialogOpen: true });
   }
-  closeAllInterestFeaturesDialog() {
+  closeFeaturesDialog() {
     // this.updateSpecFile().then(function(response) {
-    this.setState({ AllInterestFeaturesDialogOpen: false });
+    this.setState({ featuresDialogOpen: false });
     // }.bind(this));
   }
-  openAllCostsDialog() {
-    this.setState({ AllCostsDialogOpen: true });
+  openCostsDialog() {
+    this.setState({ CostsDialogOpen: true });
   }
-  closeAllCostsDialog() {
-    this.setState({ AllCostsDialogOpen: false });
+  closeCostsDialog() {
+    this.setState({ CostsDialogOpen: false });
   }
   setNewFeatureDatasetName(name) {
     this.setState({ featureDatasetName: name });
@@ -2058,11 +2085,11 @@ class App extends React.Component {
 
   //unselects a single Conservation feature
   unselectItem(feature) {
-    if (this.state.metadata.OLDVERSION === "True"){
+    if (this.state.metadata.OLDVERSION){
       //for imported projects we cannot preprocess them any longer as we dont have access to the features spatial data - therefore dont set preprocessed to false or any of the other stats fields
       this.updateFeature(feature,{selected: false});
     }else{
-      this.updateFeature(feature,{selected: false, preprocessed: false, protected_area: -1, pu_area: -1, pu_count: -1, target_area: -1});
+      this.updateFeature(feature,{selected: false, preprocessed: false, protected_area: -1, pu_area: -1, pu_count: -1, target_area: -1, occurs_in_planning_grid: false});
     }
   }
 
@@ -2073,11 +2100,11 @@ class App extends React.Component {
       if (select){
         Object.assign(feature, {selected: true, target_value: 17});
       }else{
-        if (this.state.metadata.OLDVERSION === "True"){
+        if (this.state.metadata.OLDVERSION){
           //for imported projects we cannot preprocess them any longer as we dont have access to the features spatial data - therefore dont set preprocessed to false or any of the other stats fields
           Object.assign(feature, {selected: false});
         }else{
-          Object.assign(feature, {selected: false, preprocessed: false, protected_area: -1, pu_area: -1, pu_count: -1, target_area: -1});
+          Object.assign(feature, {selected: false, preprocessed: false, protected_area: -1, pu_area: -1, pu_count: -1, target_area: -1, occurs_in_planning_grid: false});
         }
       }
     });
@@ -2106,7 +2133,7 @@ class App extends React.Component {
   //get feature menu text for puvspr layer
   getMenuTextForPuvsprLayer(feature){
     //see if the layer that shows the planning units for a feature is currently visible on the map
-    let visible = (this.map.getLayoutProperty(PLANNING_UNIT_PUVSPR_LAYER_NAME, 'visibility') === 'visible');
+    let visible = this.isLayerVisible(PLANNING_UNIT_PUVSPR_LAYER_NAME);
     //see if the feature layer is different from the one that is already being shown on the map
     let newFeature = ((feature.id !== this.puvsprLayerId) || (this.puvsprLayerId === undefined));
     let puvsprLayerText = (visible) ? (newFeature) ? SHOW_PUVSPR_LAYER_TEXT : HIDE_PUVSPR_LAYER_TEXT : SHOW_PUVSPR_LAYER_TEXT;
@@ -2114,7 +2141,7 @@ class App extends React.Component {
   }
   //toggles the feature layer on the map
   toggleFeatureLayer(feature){
-    this.closeFeatureMenu();
+    // this.closeFeatureMenu();
     let layerName = feature.tilesetid.split(".")[1];
     if (this.map.getLayer(layerName)){
       this.map.removeLayer(layerName);
@@ -2139,10 +2166,14 @@ class App extends React.Component {
   }
   
   toggleFeaturePuvsprLayer(feature){
-    this.closeFeatureMenu();
+    // this.closeFeatureMenu();
     if (this.state.puvsprLayerText === HIDE_PUVSPR_LAYER_TEXT){
       this.hideLayer(PLANNING_UNIT_PUVSPR_LAYER_NAME);
+      //set the text
+      this.setState({puvsprLayerText: SHOW_PUVSPR_LAYER_TEXT});
     }else{
+      //set the text
+      this.setState({puvsprLayerText: HIDE_PUVSPR_LAYER_TEXT});
       //get the planning units where the feature occurs from the puvspr.dat file
       this.getFeaturePlanningUnits(feature.id).then(function(response){
         if (!this.checkForErrors(response)) {
@@ -2175,6 +2206,17 @@ class App extends React.Component {
     this.unselectItem(feature);
   }
   
+  //zooms to a features extent
+  zoomToFeature(feature){
+    this.closeFeatureMenu();
+    //transform from BOX(-174.173506487 -18.788241791,-173.86528589 -18.5190063499999) to [[-73.9876, 40.7661], [-73.9397, 40.8002]]
+    let points = feature.extent.substr(4, feature.extent.length-5).replace(/ /g,",").split(",");
+    //get the points as numbers
+    let nums = points.map(function(item){return Number(item)});
+    //zoom to the feature
+    this.map.fitBounds([[nums[0], nums[1]],[nums[2], nums[3]]], { padding: 100});
+  }
+  
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////// DIALOG OPENING/CLOSING FUNCTIONS
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2199,11 +2241,11 @@ class App extends React.Component {
   closeNewProjectDialog() {
     this.setState({ newProjectDialogOpen: false });
   }
-  openNewPlanningUnitDialog() {
-    this.setState({ NewPlanningUnitDialogOpen: true });
+  openNewPlanningGridDialog() {
+    this.setState({ NewPlanningGridDialogOpen: true });
   }
-  closeNewPlanningUnitDialog() {
-    this.setState({ NewPlanningUnitDialogOpen: false });
+  closeNewPlanningGridDialog() {
+    this.setState({ NewPlanningGridDialogOpen: false });
   }
   openInfoDialog() {
       this.setState({ openInfoDialogOpen: true, featureMenuOpen: false });
@@ -2385,7 +2427,11 @@ class App extends React.Component {
               this.setState({streamingLog: this.state.streamingLog + response.info + "\n"});
               break;
             case 'Running':
-              this.setState({streamingLog: this.state.streamingLog + response.info + " (elapsed time: " + response.elapsedtime + ")\n"});
+              if (response.hasOwnProperty('error')){
+                this.setState({streamingLog: this.state.streamingLog + response.error + " (elapsed time: " + response.elapsedtime + ")\n"});
+              }else{
+                this.setState({streamingLog: this.state.streamingLog + response.info + " (elapsed time: " + response.elapsedtime + ")\n"});
+              }
               break;
             case 'Finishing': 
               this.setState({streamingLog: this.state.streamingLog + response.info + " (Total time: " + response.elapsedtime + ")\n"});
@@ -2611,6 +2657,54 @@ class App extends React.Component {
       <MuiThemeProvider>
         <React.Fragment>
           <div ref={el => this.mapContainer = el} className="absolute top right left bottom" />
+          <LoginDialog 
+            open={!this.state.loggedIn} 
+            user={this.state.user} 
+            changeUserName={this.changeUserName.bind(this)} 
+            changePassword={this.changePassword.bind(this)} 
+            password={this.state.password} 
+            validateUser={this.validateUser.bind(this)} 
+            loggingIn={this.state.loggingIn} 
+            createNewUser={this.createNewUser.bind(this)}
+            creatingNewUser={this.state.creatingNewUser}
+            resendPassword={this.resendPassword.bind(this)}
+            resending={this.state.resending}
+            availableServers={MARXAN_REMOTE_SERVERS}
+            activeServer={this.state.activeServer}
+            setActiveServer={this.setActiveServer.bind(this)}
+          />
+          <UserMenu 
+            userMenuOpen={this.state.userMenuOpen} 
+            menuAnchor={this.state.menuAnchor}
+            hideUserMenu={this.hideUserMenu.bind(this)} 
+            openOptionsDialog={this.openOptionsDialog.bind(this)}
+            openUserDialog={this.openUserDialog.bind(this)}
+            openAboutDialog={this.openAboutDialog.bind(this)}
+            logout={this.logout.bind(this)}
+          />
+          <OptionsDialog 
+            open={this.state.optionsDialogOpen}
+            onOk={this.closeOptionsDialog.bind(this)}
+            onCancel={this.closeOptionsDialog.bind(this)}
+            userData={this.state.userData}
+            saveOptions={this.saveOptions.bind(this)}
+            savingOptions={this.state.savingOptions}
+            changeBasemap={this.changeBasemap.bind(this)}
+            basemaps={this.state.basemaps}
+            basemap={this.state.basemap}
+          />
+          <UserDialog 
+            open={this.state.userDialogOpen}
+            onOk={this.closeUserDialog.bind(this)}
+            onCancel={this.closeUserDialog.bind(this)}
+            userData={this.state.userData}
+            updateUser={this.updateUser.bind(this)}
+          />
+          <AboutDialog 
+            open={this.state.aboutDialogOpen}
+            onOk={this.closeAboutDialog.bind(this)}
+            onCancel={this.closeAboutDialog.bind(this)}
+          />
           <InfoPanel
             user={this.state.user}
             loggedIn={this.state.loggedIn}
@@ -2640,58 +2734,41 @@ class App extends React.Component {
             openFeatureMenu={this.openFeatureMenu.bind(this)}
             preprocessingFeature={this.state.preprocessingFeature}
             preprocessingProtectedAreas={this.state.preprocessingProtectedAreas}
-            openAllInterestFeaturesDialog={this.openAllInterestFeaturesDialog.bind(this)}
+            openFeaturesDialog={this.openFeaturesDialog.bind(this)}
             changeIucnCategory={this.changeIucnCategory.bind(this)}
             updateFeature={this.updateFeature.bind(this)}
           />
-          <UserMenu 
-            userMenuOpen={this.state.userMenuOpen} 
-            menuAnchor={this.state.menuAnchor}
-            hideUserMenu={this.hideUserMenu.bind(this)} 
-            openOptionsDialog={this.openOptionsDialog.bind(this)}
-            openUserDialog={this.openUserDialog.bind(this)}
-            openAboutDialog={this.openAboutDialog.bind(this)}
-            logout={this.logout.bind(this)}
+          <ResultsPane
+            open={this.state.resultsPaneOpen && this.state.loggedIn}
+            running={this.state.running} 
+            dataAvailable={this.state.dataAvailable} 
+            solutions={this.state.solutions}
+            loadSolution={this.loadSolution.bind(this)} 
+            openClassificationDialog={this.openClassificationDialog.bind(this)}
+            hideResults={this.hideResults.bind(this)}
+            brew={this.state.brew}
+            log={this.state.streamingLog} 
+            activeResultsTab={this.state.activeResultsTab}
+            legend_tab_active={this.legend_tab_active.bind(this)}
+            solutions_tab_active={this.solutions_tab_active.bind(this)}
+            log_tab_active={this.log_tab_active.bind(this)}
           />
-          <OptionsDialog 
-            open={this.state.optionsDialogOpen}
-            closeOptionsDialog={this.closeOptionsDialog.bind(this)}
-            userData={this.state.userData}
-            saveOptions={this.saveOptions.bind(this)}
-            savingOptions={this.state.savingOptions}
-            changeBasemap={this.changeBasemap.bind(this)}
-            basemaps={this.state.basemaps}
-            basemap={this.state.basemap}
+          <FeatureInfoDialog
+            open={this.state.openInfoDialogOpen}
+            onOk={this.closeInfoDialog.bind(this)}
+            onCancel={this.closeInfoDialog.bind(this)}
+            feature={this.state.currentFeature}
+            updateFeature={this.updateFeature.bind(this)}
+            FEATURE_PROPERTIES={FEATURE_PROPERTIES}
           />
-          <UserDialog 
-            open={this.state.userDialogOpen}
-            closeUserDialog={this.closeUserDialog.bind(this)}
-            userData={this.state.userData}
-            updateUser={this.updateUser.bind(this)}
-          />
-          <AboutDialog 
-            open={this.state.aboutDialogOpen}
-            closeAboutDialog={this.closeAboutDialog.bind(this)}
-          />
-          <Login 
-            open={!this.state.loggedIn} 
-            user={this.state.user} 
-            changeUserName={this.changeUserName.bind(this)} 
-            changePassword={this.changePassword.bind(this)} 
-            password={this.state.password} 
-            validateUser={this.validateUser.bind(this)} 
-            loggingIn={this.state.loggingIn} 
-            createNewUser={this.createNewUser.bind(this)}
-            creatingNewUser={this.state.creatingNewUser}
-            resendPassword={this.resendPassword.bind(this)}
-            resending={this.state.resending}
-            availableServers={MARXAN_REMOTE_SERVERS}
-            activeServer={this.state.activeServer}
-            setActiveServer={this.setActiveServer.bind(this)}
+          <Popup
+            active_pu={this.state.active_pu} 
+            xy={this.state.popup_point}
           />
           <ProjectsDialog 
             open={this.state.projectsDialogOpen} 
-            closeProjectsDialog={this.closeProjectsDialog.bind(this)}
+            onOk={this.closeProjectsDialog.bind(this)}
+            onCancel={this.closeProjectsDialog.bind(this)}
             loadingProjects={this.state.loadingProjects}
             loadingProject={this.state.loadingProject}
             projects={this.state.projects}
@@ -2707,18 +2784,18 @@ class App extends React.Component {
             closeNewProjectDialog={this.closeNewProjectDialog.bind(this)}
             getPlanningUnitGrids={this.getPlanningUnitGrids.bind(this)}
             planning_unit_grids={this.state.planning_unit_grids}
-            openNewPlanningUnitDialog={this.openNewPlanningUnitDialog.bind(this)}
-            openAllInterestFeaturesDialog={this.openAllInterestFeaturesDialog.bind(this)}
+            openNewPlanningGridDialog={this.openNewPlanningGridDialog.bind(this)}
+            openFeaturesDialog={this.openFeaturesDialog.bind(this)}
             features={this.state.allFeatures} 
-            openAllCostsDialog={this.openAllCostsDialog.bind(this)}
+            openCostsDialog={this.openCostsDialog.bind(this)}
             selectedCosts={this.state.selectedCosts}
             createNewProject={this.createNewProject.bind(this)}
           />
-          <NewPlanningUnitDialog 
-            open={this.state.NewPlanningUnitDialogOpen} 
-            closeNewPlanningUnitDialog={this.closeNewPlanningUnitDialog.bind(this)} 
+          <NewPlanningGridDialog 
+            open={this.state.NewPlanningGridDialogOpen} 
+            closeNewPlanningGridDialog={this.closeNewPlanningGridDialog.bind(this)} 
             createNewPlanningUnitGrid={this.createNewPlanningUnitGrid.bind(this)}
-            creatingNewPlanningUnit={this.state.creatingNewPlanningUnit}
+            creatingNewPlanningGrid={this.state.creatingNewPlanningGrid}
             getCountries={this.getCountries.bind(this)}
             countries={this.state.countries}
             changeIso3={this.changeIso3.bind(this)}
@@ -2728,28 +2805,24 @@ class App extends React.Component {
             domain={this.state.domain}
             areakm2={this.state.areakm2}
           />
-          <AllInterestFeaturesDialog
-            open={this.state.AllInterestFeaturesDialogOpen}
-            closeAllInterestFeaturesDialog={this.closeAllInterestFeaturesDialog.bind(this)}
+          <FeaturesDialog
+            open={this.state.featuresDialogOpen}
+            onOk={this.closeFeaturesDialog.bind(this)}
+            onCancel={this.closeFeaturesDialog.bind(this)}
             metadata={this.state.metadata}
             allFeatures={this.state.allFeatures}
             projectFeatures={this.state.projectFeatures}
             deleteInterestFeature={this.deleteInterestFeature.bind(this)}
-            openNewInterestFeatureDialog={this.openNewInterestFeatureDialog.bind(this)}
+            openNewFeatureDialog={this.openNewFeatureDialog.bind(this)}
             selectItem={this.selectItem.bind(this)}
             unselectItem={this.unselectItem.bind(this)}
             selectAll={this.selectAll.bind(this)}
             clearAll={this.clearAll.bind(this)}
             manageOwnState={false}
           />
-          <AllCostsDialog
-            open={this.state.AllCostsDialogOpen}
-            costs={this.state.costs}
-            closeAllCostsDialog={this.closeAllCostsDialog.bind(this)}
-          />
-          <NewInterestFeatureDialog
-            open={this.state.NewInterestFeatureDialogOpen} 
-            closeNewInterestFeatureDialog={this.closeNewInterestFeatureDialog.bind(this)}
+          <NewFeatureDialog
+            open={this.state.NewFeatureDialogOpen} 
+            closeNewFeatureDialog={this.closeNewFeatureDialog.bind(this)}
             setName={this.setNewFeatureDatasetName.bind(this)}
             setDescription={this.setNewFeatureDatasetDescription.bind(this)}
             setFilename={this.setNewFeatureDatasetFilename.bind(this)}
@@ -2760,18 +2833,47 @@ class App extends React.Component {
             resetNewConservationFeature={this.resetNewConservationFeature.bind(this)}
             MARXAN_ENDPOINT_HTTPS={MARXAN_ENDPOINT_HTTPS}
           />
+          <CostsDialog
+            open={this.state.CostsDialogOpen}
+            onOk={this.closeCostsDialog.bind(this)}
+            onCancel={this.closeCostsDialog.bind(this)}
+            costs={this.state.costs}
+          />
           <RunSettingsDialog
             open={this.state.settingsDialogOpen}
-            closeRunSettingsDialog={this.closeRunSettingsDialog.bind(this)}
+            onOk={this.closeRunSettingsDialog.bind(this)}
+            onCancel={this.closeRunSettingsDialog.bind(this)}
             openFilesDialog={this.openFilesDialog.bind(this)}
             updateRunParams={this.updateRunParams.bind(this)}
             updatingRunParameters={this.state.updatingRunParameters}
             runParams={this.state.runParams}
             showClumpingDialog={this.showClumpingDialog.bind(this)}
           />
+          <FilesDialog
+            open={this.state.filesDialogOpen}
+            closeFilesDialog={this.closeFilesDialog.bind(this)}
+            fileUploaded={this.fileUploaded.bind(this)}
+            user={this.state.user}
+            project={this.state.project}
+            files={this.state.files}
+          />
+          <ClassificationDialog 
+            open={this.state.classificationDialogOpen}
+            onOk={this.closeClassificationDialog.bind(this)}
+            onCancel={this.closeClassificationDialog.bind(this)}
+            renderer={this.state.renderer}
+            changeColorCode={this.changeColorCode.bind(this)}
+            changeRenderer={this.changeRenderer.bind(this)}
+            changeNumClasses={this.changeNumClasses.bind(this)}
+            changeShowTopClasses={this.changeShowTopClasses.bind(this)}
+            summaryStats={this.state.summaryStats}
+            brew={this.state.brew}
+            dataBreaks={this.state.dataBreaks}
+          />
           <ClumpingDialog
             open={this.state.clumpingDialogOpen}
-            closeClumpingDialog={this.hideClumpingDialog.bind(this)}
+            onOk={this.hideClumpingDialog.bind(this)}
+            onCancel={this.hideClumpingDialog.bind(this)}
             tileset={this.state.tileset}
             RESULTS_LAYER_NAME={RESULTS_LAYER_NAME}
             map0_paintProperty={this.state.map0_paintProperty}
@@ -2790,41 +2892,6 @@ class App extends React.Component {
             setBlmValue={this.setBlmValue.bind(this)}
             clumpingRunning={this.state.clumpingRunning}
           />
-          <FilesDialog
-            open={this.state.filesDialogOpen}
-            closeFilesDialog={this.closeFilesDialog.bind(this)}
-            fileUploaded={this.fileUploaded.bind(this)}
-            user={this.state.user}
-            project={this.state.project}
-            files={this.state.files}
-          />
-          <ResultsPane
-            open={this.state.resultsPaneOpen && this.state.loggedIn}
-            running={this.state.running} 
-            dataAvailable={this.state.dataAvailable} 
-            solutions={this.state.solutions}
-            loadSolution={this.loadSolution.bind(this)} 
-            openClassificationDialog={this.openClassificationDialog.bind(this)}
-            hideResults={this.hideResults.bind(this)}
-            brew={this.state.brew}
-            log={this.state.streamingLog} 
-            activeResultsTab={this.state.activeResultsTab}
-            legend_tab_active={this.legend_tab_active.bind(this)}
-            solutions_tab_active={this.solutions_tab_active.bind(this)}
-            log_tab_active={this.log_tab_active.bind(this)}
-          />
-          <ClassificationDialog 
-            open={this.state.classificationDialogOpen}
-            closeClassificationDialog={this.closeClassificationDialog.bind(this)}
-            renderer={this.state.renderer}
-            changeColorCode={this.changeColorCode.bind(this)}
-            changeRenderer={this.changeRenderer.bind(this)}
-            changeNumClasses={this.changeNumClasses.bind(this)}
-            changeShowTopClasses={this.changeShowTopClasses.bind(this)}
-            summaryStats={this.state.summaryStats}
-            brew={this.state.brew}
-            dataBreaks={this.state.dataBreaks}
-          />
           <ImportWizard 
             open={this.state.importDialogOpen}
             closeImportWizard={this.closeImportWizard.bind(this)}
@@ -2835,31 +2902,21 @@ class App extends React.Component {
             setLog={this.setLog.bind(this)}
             user={this.state.user}
           />
-          <Popup
-            active_pu={this.state.active_pu} 
-            xy={this.state.popup_point}
-          />
           <Snackbar
             open={this.state.snackbarOpen}
             message={this.state.snackbarMessage}
             onRequestClose={this.closeSnackbar.bind(this)}
           />
           <Popover open={this.state.featureMenuOpen} anchorEl={this.state.menuAnchor} onRequestClose={this.closeFeatureMenu.bind(this)}>
-            <Menu>
-              <MenuItem className={'smallMenuItem'} onClick={this.openInfoDialog.bind(this)}>Info</MenuItem>
-              <MenuItem className={'smallMenuItem'} onClick={this.removeFromProject.bind(this, this.state.currentFeature)}>Remove from project</MenuItem>
-              <MenuItem className={'smallMenuItem'} style={{display: (this.state.currentFeature&&this.state.currentFeature.tilesetid) ? 'block' : 'none'}} onClick={this.toggleFeatureLayer.bind(this, this.state.currentFeature)}>{(this.state.currentFeature&&this.state.currentFeature.feature_layer_loaded) ? "Remove from map" : "Add to map"}</MenuItem>
-              <MenuItem className={'smallMenuItem'} onClick={this.toggleFeaturePuvsprLayer.bind(this, this.state.currentFeature)} disabled={!(this.state.currentFeature&&this.state.currentFeature.preprocessed)}>{this.state.puvsprLayerText}</MenuItem>
-              <MenuItem  className={'smallMenuItem'} onClick={this.preprocessSingleFeature.bind(this, this.state.currentFeature)} disabled={this.state.currentFeature&&this.state.currentFeature.preprocessed}>Pre-process</MenuItem>
+            <Menu style={{width:'285px'}}>
+              <MenuItemWithButton leftIcon={<Properties style={{margin: '1px'}}/>} onClick={this.openInfoDialog.bind(this)}>Properties</MenuItemWithButton>
+              <MenuItemWithButton leftIcon={<RemoveFromProject style={{margin: '1px'}}/>} style={{display: (this.state.currentFeature.old_version) ? 'none' : 'block'}} onClick={this.removeFromProject.bind(this, this.state.currentFeature)}>Remove from project</MenuItemWithButton>
+              <MenuItemWithButton leftIcon={(this.state.currentFeature.feature_layer_loaded) ? <RemoveFromMap style={{margin: '1px'}}/> : <AddToMap style={{margin: '1px'}}/>} style={{display: (this.state.currentFeature.tilesetid) ? 'block' : 'none'}} onClick={this.toggleFeatureLayer.bind(this, this.state.currentFeature)}>{(this.state.currentFeature.feature_layer_loaded) ? "Remove from map" : "Add to map"}</MenuItemWithButton>
+              <MenuItemWithButton leftIcon={(this.state.puvsprLayerText === HIDE_PUVSPR_LAYER_TEXT) ? <RemoveFromMap style={{margin: '1px'}}/> : <AddToMap style={{margin: '1px'}}/>} onClick={this.toggleFeaturePuvsprLayer.bind(this, this.state.currentFeature)} disabled={!(this.state.currentFeature.preprocessed && this.state.currentFeature.occurs_in_planning_grid)}>{this.state.puvsprLayerText}</MenuItemWithButton>
+              <MenuItemWithButton leftIcon={<ZoomIn style={{margin: '1px'}}/>} style={{display: (this.state.currentFeature.extent) ? 'block' : 'none'}} onClick={this.zoomToFeature.bind(this, this.state.currentFeature)}>Zoom to feature extent</MenuItemWithButton>
+              <MenuItemWithButton leftIcon={<Preprocess style={{margin: '1px'}}/>} style={{display: (this.state.currentFeature.old_version) ? 'none' : 'block'}} onClick={this.preprocessSingleFeature.bind(this, this.state.currentFeature)} disabled={this.state.currentFeature.preprocessed}>Pre-process</MenuItemWithButton>
             </Menu>
           </Popover>          
-          <FeatureInfo
-              open={this.state.openInfoDialogOpen}
-              feature={this.state.currentFeature}
-              closeInfoDialog={this.closeInfoDialog.bind(this)}
-              updateFeature={this.updateFeature.bind(this)}
-              FEATURE_PROPERTIES={FEATURE_PROPERTIES}
-          />
           <div style={{position: 'absolute', display: this.state.resultsPaneOpen ? 'none' : 'block', backgroundColor: 'rgb(0, 188, 212)', right: '0px', top: '20px', width: '20px', borderRadius: '2px', height: '88px',boxShadow:'rgba(0, 0, 0, 0.16) 0px 3px 10px, rgba(0, 0, 0, 0.23) 0px 3px 10px'}} title={"Show results"}>
             <FlatButton
               onClick={this.showResults.bind(this)}

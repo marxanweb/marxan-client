@@ -7,10 +7,10 @@ import RaisedButton from 'material-ui/RaisedButton';
 import SelectField from 'material-ui/SelectField';
 import SelectFeatures from './newProjectSteps/SelectFeatures';
 import MenuItem from 'material-ui/MenuItem';
-import Menu from 'material-ui/svg-icons/navigation/menu';
 import Texture from 'material-ui/svg-icons/image/texture';
 import Settings from 'material-ui/svg-icons/action/settings';
 import Person from 'material-ui/svg-icons/social/person';
+import Projects from 'material-ui/svg-icons/action/home';
 import { white } from 'material-ui/styles/colors';
 
 class InfoPanel extends React.Component {
@@ -81,11 +81,8 @@ class InfoPanel extends React.Component {
         <div className={'infoPanel'} style={{display: this.props.loggedIn ? 'block' : 'none'}}>
           <Paper zDepth={2} className="InfoPanelPaper">
             <Paper zDepth={2} className="titleBar">
-              <IconButton title="Click to open projects" onClick={this.props.openProjectsDialog.bind(this)} className="iconButton projectButton">
-                <Menu color={white}/>
-              </IconButton>
               <span onClick={this.startEditingProjectName.bind(this)} className={'projectNameEditBox'} title="Click to rename the project">{this.props.project}</span>
-              <input id="projectName" style={{position:'absolute', 'display': (this.props.editingProjectName) ? 'block' : 'none',left:'63px',top:'33px',border:'1px lightgray solid'}} className={'projectNameEditBox'} onKeyPress={this.onKeyPress.bind(this)} onBlur={this.onBlur.bind(this)}/>
+              <input id="projectName" style={{position:'absolute', 'display': (this.props.editingProjectName) ? 'block' : 'none',left:'39px',top:'32px',width:'330px', border:'1px lightgray solid'}} className={'projectNameEditBox'} onKeyPress={this.onKeyPress.bind(this)} onBlur={this.onBlur.bind(this)}/>
               <IconButton title={"Logged in as " + this.props.user} onClick={this.props.showUserMenu} className="iconButton" style={{position: 'absolute',right: '40px'}}>
                 <Person color={white}/>
               </IconButton>
@@ -95,20 +92,21 @@ class InfoPanel extends React.Component {
                 <div>
                   <div className={'tabTitle'}>Description</div>
                   <input id="descriptionEdit" style={{'display': (this.props.editingDescription) ? 'block' : 'none'}} className={'descriptionEditBox'} onKeyPress={this.onKeyPress.bind(this)} onBlur={this.onBlur.bind(this)}/>
-                  <div className={'description'} onClick={this.startEditingDescription.bind(this)} style={{'display': (!this.props.editingDescription) ? 'block' : 'none'}}>{this.props.metadata.DESCRIPTION}</div>
+                  <div className={'description'} onClick={this.startEditingDescription.bind(this)} style={{'display': (!this.props.editingDescription) ? 'block' : 'none'}} title="Click to edit">{this.props.metadata.DESCRIPTION}</div>
                   <div className={'tabTitle'}>Created</div>
                   <div className={'createDate'}>{this.props.metadata.CREATEDATE}</div>
-                  <div className={'tabTitle'}>{(this.props.metadata.OLDVERSION === 'True') ? "Imported project" : ""}</div>
+                  <div className={'tabTitle'}>{(this.props.metadata.OLDVERSION) ? "Imported project" : ""}</div>
                 </div>
               </Tab>
               <Tab label="Features" onActive={this.props.features_tab_active} value="features">
                 <SelectFeatures
                   features={this.props.features}
                   openFeatureMenu={this.props.openFeatureMenu}
-                  openAllInterestFeaturesDialog={this.props.openAllInterestFeaturesDialog}
-                  simple={false}
-                  leftmargin={'10px'}
+                  openFeaturesDialog={this.props.openFeaturesDialog} 
+                  metadata={this.props.metadata}
                   updateFeature={this.props.updateFeature}
+                  leftmargin={'10px'}
+                  simple={false}
                 />
               </Tab>
               <Tab label="Planning units" onActive={this.props.pu_tab_active} value="planning_units">
@@ -147,15 +145,18 @@ class InfoPanel extends React.Component {
               </Tab>
             </Tabs>     
             <Paper className={'lowerToolbar'}>
-                <RaisedButton   
-                  icon={<Settings style={{height:'20px',width:'20px'}}/>} 
-                  title="Run Settings"
-                  onClick={this.props.showRunSettingsDialog} 
-                  style={{ marginLeft:'12px', marginRight:'4px',padding: '0px',minWidth: '30px',width: '24px',height: '24px',position:'absolute'}}
-                  overlayStyle={{lineHeight:'24px',height:'24px'}}
-                  buttonStyle={{marginTop:'-7px',lineHeight:'24px',height:'24px'}} 
-                />
-                <div style={{position:'absolute',right:'111px'}}>
+                <IconButton title="Click to view all projects" onClick={this.props.openProjectsDialog.bind(this)} className="iconButton projectButton" style={{marginLeft:'3px'}}>
+                  <Projects />
+                </IconButton>
+                <div style={{position:'absolute', left:'226px',top:'569px'}}>
+                  <RaisedButton   
+                    icon={<Settings style={{height:'20px',width:'20px'}}/>} 
+                    title="Run Settings"
+                    onClick={this.props.showRunSettingsDialog} 
+                    style={{ marginLeft:'12px', marginRight:'4px',padding: '0px',minWidth: '30px',width: '24px',height: '24px'}}
+                    overlayStyle={{lineHeight:'24px',height:'24px'}}
+                    buttonStyle={{marginTop:'-7px',lineHeight:'24px',height:'24px'}} 
+                  />
                   <RaisedButton 
                     label="Stop" 
                     title="Click to stop this project"  
@@ -165,8 +166,6 @@ class InfoPanel extends React.Component {
                     onClick={this.props.stopMarxan} 
                     disabled={this.props.pid===0}  
                   />  
-                </div>
-                <div style={{position:'absolute',right:'40px'}}>
                   <RaisedButton 
                     label="Run" 
                     title="Click to run this project"  

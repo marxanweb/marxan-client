@@ -1,5 +1,5 @@
 import React from 'react';
-import Dialog from 'material-ui/Dialog';
+import MarxanDialog from './MarxanDialog';
 import RaisedButton from 'material-ui/RaisedButton';
 import MapContainer from './MapContainer.js';
 import FontAwesome from 'react-fontawesome';
@@ -19,19 +19,31 @@ class ClumpingDialog extends React.Component {
       //set the blmValue for the project
       this.props.setBlmValue(blmValue);
       //close the dialog
-      this.props.closeClumpingDialog();
+      this.props.onOk();
   }
     
   onRequestClose(){
-    if(!this.props.clumpingRunning) this.props.closeClumpingDialog();
+    if(!this.props.clumpingRunning) this.props.onOk();
   }
   
   render() {
     return ( 
-      <Dialog 
-        overlayStyle={{display:'none'}} 
-        className={'dialog'} 
-        style={{position:'absolute',display: this.props.open ? 'block' : 'none', paddingTop:'0px !important',left:'7px'}} 
+      <MarxanDialog 
+        {...this.props} 
+        contentWidth={680}
+        offsetX={80}
+        offsetY={80}
+        onOk={this.onRequestClose.bind(this)}
+        okDisabled={this.props.clumpingRunning}
+        actions={[
+          <RaisedButton 
+            label="Refresh" 
+            primary={true} 
+            className="projectsBtn" 
+            style={{height:'25px'}}
+            onClick={this.props.rerunProjects} 
+            disabled={this.props.clumpingRunning}
+          />]}
         title="Clumping" 
         children={
           <div>
@@ -52,28 +64,6 @@ class ClumpingDialog extends React.Component {
             </div>
           </div>
         } 
-        actions={[
-          <RaisedButton 
-            label="Refresh" 
-            primary={true} 
-            className="projectsBtn" 
-            style={{height:'25px'}}
-            onClick={this.props.rerunProjects} 
-            disabled={this.props.clumpingRunning}
-          />,
-          <RaisedButton 
-            label="OK" 
-            primary={true} 
-            className="projectsBtn" 
-            style={{height:'25px'}}
-            onClick={this.props.closeClumpingDialog} 
-            disabled={this.props.clumpingRunning}
-          />
-        ]} 
-        open={this.props.open} 
-        onRequestClose={this.onRequestClose.bind(this)} 
-        contentStyle={{width:'680px'}}
-        titleClassName={'dialogTitleStyle'}
       />
     );
   }

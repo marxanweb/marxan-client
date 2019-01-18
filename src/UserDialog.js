@@ -1,6 +1,5 @@
 import React from 'react';
-import Dialog from 'material-ui/Dialog';
-import RaisedButton from 'material-ui/RaisedButton';
+import MarxanDialog from './MarxanDialog';
 import TextField from 'material-ui/TextField';
 import FontAwesome from 'react-fontawesome';
 
@@ -37,15 +36,18 @@ class UserDialog extends React.Component {
         this.closeUserDialog();
     }
     closeUserDialog() {
-        this.props.closeUserDialog();
+        this.props.onOk();
         this.setState({ updated: false, validEmail: true });
     }
     render() {
         return (
-            <Dialog 
-                style={{display: this.props.open ? 'block' : 'none', marginLeft: '300px', left:'0px', width:'330px !important'}}
-                overlayStyle={{display:'none'}} 
-                className={'dialogGeneric'} 
+            <MarxanDialog 
+                {...this.props}  
+                contentWidth={330}
+                offsetX={300}
+                offsetY={80}
+                onCancel={this.closeUserDialog.bind(this)}
+                onOk={this.updateUser.bind(this)}
                 title="Profile" 
                 children={
                     <div>
@@ -59,19 +61,6 @@ class UserDialog extends React.Component {
                         </span>
                     </div>
                 } 
-                actions={[
-                    <RaisedButton 
-                        label="OK" 
-                        primary={true} 
-                        onClick={this.updateUser.bind(this)} 
-                        className="projectsBtn" 
-                        style={{height:'25px'}}
-                    />,
-                ]} 
-                open={this.props.open} 
-                onRequestClose={this.closeUserDialog.bind(this)} 
-                contentStyle={{width:'330px'}} 
-                titleClassName={'dialogTitleStyle'}
             />
         );
     }

@@ -18,7 +18,7 @@ class NewProjectDialog extends React.Component {
             name: '',
             description: '',
             pu: '',
-            allInterestFeaturesDialogOpen: false,
+            featuresDialogOpen: false,
             copiedFeatures: []
         };
     }
@@ -60,15 +60,15 @@ class NewProjectDialog extends React.Component {
     updateTargetValue() {
         //to stop it calling the passed in updateTargetValue
     }
-    openAllInterestFeaturesDialog(){
-        this.setState({allInterestFeaturesDialogOpen: true});
+    openFeaturesDialog(){
+        this.setState({featuresDialogOpen: true});
     }
-    closeAllInterestFeaturesDialog(){
-        this.setState({allInterestFeaturesDialogOpen: false});
+    closeFeaturesDialog(){
+        this.setState({featuresDialogOpen: false});
     }
     featureSelectionDone(features){
         this.setState({copiedFeatures: features});
-        this.closeAllInterestFeaturesDialog();
+        this.closeFeaturesDialog();
     }
     render() {
         const { stepIndex } = this.state;
@@ -101,26 +101,24 @@ class NewProjectDialog extends React.Component {
         ];
         let c = <div>
                     {stepIndex === 0 ? <Metadata name={this.state.name} description={this.state.description} setName={this.setName.bind(this)} setDescription={this.setDescription.bind(this)}/> : null}
-                    {stepIndex === 1 ? <PlanningUnits getPlanningUnitGrids={this.props.getPlanningUnitGrids} planning_unit_grids={this.props.planning_unit_grids} changeItem={this.changePU.bind(this)} pu={this.state.pu} openNewPlanningUnitDialog={this.props.openNewPlanningUnitDialog} /> : null}
+                    {stepIndex === 1 ? <PlanningUnits getPlanningUnitGrids={this.props.getPlanningUnitGrids} planning_unit_grids={this.props.planning_unit_grids} changeItem={this.changePU.bind(this)} pu={this.state.pu} openNewPlanningGridDialog={this.props.openNewPlanningGridDialog} /> : null}
                     {stepIndex === 2 ? <SelectFeatures 
                         features={this.state.copiedFeatures.filter((item)=>{return item.selected;})}
-                        openAllInterestFeaturesDialog={this.openAllInterestFeaturesDialog.bind(this)}  
+                        openFeaturesDialog={this.openFeaturesDialog.bind(this)}  
                         simple={true}
                         leftmargin={'0px'}
                     /> : null}
                     {stepIndex === 3 ? <SelectCostFeatures
-                        openAllCostsDialog={this.props.openAllCostsDialog}
+                        openCostsDialog={this.props.openCostsDialog}
                         selectedCosts={this.props.selectedCosts}
                     /> : null}
-                    {stepIndex === 4 ? <Options/> : null}
+                    {stepIndex === 4 ? <Options/> : null} 
                 </div>;
         return (
             <React.Fragment>
             <Dialog 
                 title={'New project - ' + this.state.steps[stepIndex]}
                 overlayStyle={{display:'none'}} 
-                className={'dialogGeneric'} 
-                style={{position:'absolute', display: this.props.open ? 'block' : 'none', width:'400px', marginTop:'46px',marginLeft:'106px'}} 
                 children={c} 
                 actions={actions} 
                 open={this.props.open} 
@@ -131,8 +129,6 @@ class NewProjectDialog extends React.Component {
             <Dialog
                 title={'Features' }
                 overlayStyle={{display:'none'}} 
-                className={'dialogGeneric'} 
-                style={{position:'absolute', display: this.props.open ? 'block' : 'none', width:'400px', marginTop:'91px',marginLeft:'162px', height: '330px'}} 
                 children={[
                 <CheckboxList 
                     features={this.state.copiedFeatures} 
@@ -143,8 +139,8 @@ class NewProjectDialog extends React.Component {
                 actions={
                     []
                 } 
-                open={this.state.allInterestFeaturesDialogOpen} 
-                onRequestClose={this.closeAllInterestFeaturesDialog.bind(this)} 
+                open={this.state.featuresDialogOpen} 
+                onRequestClose={this.closeFeaturesDialog.bind(this)} 
                 contentStyle={{width:'400px'}} 
                 titleClassName={'dialogTitleStyle'}
             />

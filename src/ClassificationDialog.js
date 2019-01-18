@@ -1,8 +1,7 @@
 import React from 'react';
 import 'react-table/react-table.css';
-import Dialog from 'material-ui/Dialog';
-import RaisedButton from 'material-ui/RaisedButton';
-import RendererSelector from './RendererSelector.js';
+import MarxanDialog from './MarxanDialog';
+import RendererSelector from './RendererSelector.js'; 
 import ColorSelector from './ColorSelector.js';
 import { BarChart, ReferenceLine, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Label } from 'recharts';
 
@@ -19,10 +18,11 @@ class ClassificationDialog extends React.Component {
       return <ReferenceLine x={item} key={index} stroke="#00BCD4" />;
     });
     return (
-      <Dialog 
-        overlayStyle={{display:'none'}} 
-        className={'dialogGeneric'} 
-        style={{position:'absolute',display: this.props.open ? 'block' : 'none',width:'390px', paddingTop:'0px !important',right:'413px',left:''}} 
+      <MarxanDialog 
+        {...this.props} 
+        contentWidth={390}
+        rightX={413}
+        offsetY={80}
         title="Classification" 
         children={
           <div style={{height:'275px'}}>
@@ -46,19 +46,6 @@ class ClassificationDialog extends React.Component {
             </div>
           </div>
         } 
-        actions={[
-          <RaisedButton 
-            label="OK" 
-            primary={true} 
-            className="projectsBtn" 
-            style={{height:'25px'}}
-            onClick={this.props.closeClassificationDialog} 
-          />  
-        ]} 
-        open={this.props.open} 
-        onRequestClose={this.props.closeClassificationDialog} 
-        contentStyle={{width:'390px', height:'290px !important'}} 
-        titleClassName={'dialogTitleStyle'}
       />
     );
   }

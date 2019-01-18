@@ -1,9 +1,8 @@
 import React from 'react';
 import 'react-table/react-table.css';
-import Dialog from 'material-ui/Dialog';
-import RaisedButton from 'material-ui/RaisedButton';
 import ReactTable from "react-table";
 import FontAwesome from 'react-fontawesome';
+import MarxanDialog from './MarxanDialog';
 
 class RunSettingsDialog extends React.Component {
     constructor(props) {
@@ -24,7 +23,7 @@ class RunSettingsDialog extends React.Component {
         //ui feedback 
         this.setState({ updateEnabled: false });
         this.props.updateRunParams(this.state.data);
-        this.props.closeRunSettingsDialog();
+        this.props.onOk();
     }
     setUpdateEnabled() {
         this.setState({ updateEnabled: true });
@@ -49,10 +48,7 @@ class RunSettingsDialog extends React.Component {
     }
     render() {
         return (
-            <Dialog 
-                overlayStyle={{display:'none'}} 
-                className={'dialogGeneric'}
-                style={{marginLeft: '80px', marginTop:'155px', width: '500px !important'}}
+            <MarxanDialog 
                 title="Run settings" 
                 children={
                     <div style={{height:'275px'}}>
@@ -79,28 +75,11 @@ class RunSettingsDialog extends React.Component {
                         <div id="spinner"><FontAwesome spin name='sync' style={{'display': (this.props.updatingRunParameters ? 'inline-block' : 'none')}} className={'runParametersSpinner'}/></div>
                     </div>
                 } 
-                actions={
-                    [
-                        // <RaisedButton 
-                        //     label="Files" 
-                        //     primary={true} 
-                        //     onClick={this.props.openFilesDialog} 
-                        //     className="projectsBtn" 
-                        //     style={{height:'25px'}}
-                        // />,
-                        <RaisedButton 
-                            label="OK" 
-                            primary={true} 
-                            onClick={this.updateRunParams.bind(this)} 
-                            className="projectsBtn" 
-                            style={{height:'25px'}}
-                        />,
-                    ]       
-                } 
-                open={this.props.open} 
-                onRequestClose={this.props.closeSettingsDialog} 
-                contentStyle={{width:'400px'}}
-                titleClassName={'dialogTitleStyle'}
+                {...this.props} 
+                contentWidth={400}
+                offsetX={80}
+                offsetY={260}
+                onOk={this.updateRunParams.bind(this)}
             />
         );
     }

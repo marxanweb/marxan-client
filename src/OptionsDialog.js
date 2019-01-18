@@ -1,6 +1,5 @@
 import React from 'react';
-import Dialog from 'material-ui/Dialog';
-import RaisedButton from 'material-ui/RaisedButton';
+import MarxanDialog from './MarxanDialog';
 import Checkbox from 'material-ui/Checkbox';
 import FontAwesome from 'react-fontawesome';
 import SelectField from 'material-ui/SelectField';
@@ -18,7 +17,7 @@ class OptionsDialog extends React.Component {
     }
     updateOptions(){
         this.props.saveOptions(this.options);
-        this.props.closeOptionsDialog();
+        this.props.onOk();
     }
     changeBasemap(event, key, payload){
         var basemap = this.props.basemaps[key];
@@ -28,10 +27,12 @@ class OptionsDialog extends React.Component {
     
     render() {
         return (
-            <Dialog 
-                style={{display: this.props.open ? 'block' : 'none', marginLeft: '300px', left:'0px', width:'370px !important'}}
-                overlayStyle={{display:'none'}} 
-                className={'dialogGeneric'} 
+            <MarxanDialog 
+                {...this.props}  
+                contentWidth={370}
+                offsetX={300}
+                offsetY={80}
+                onOk={this.updateOptions.bind(this)}
                 title="Settings" 
                 children={
                     <div>
@@ -58,19 +59,6 @@ class OptionsDialog extends React.Component {
                         <div id="spinner"><FontAwesome spin name='sync' style={{'display': (this.props.savingOptions ? 'inline-block' : 'none')}} className={'optionsSpinner'}/></div>
                     </div>
                 } 
-                actions={[
-                    <RaisedButton 
-                        label="OK" 
-                        primary={true} 
-                        onClick={this.updateOptions.bind(this)} 
-                        className="projectsBtn" 
-                        style={{height:'25px'}}
-                    />,
-                ]} 
-                open={this.props.open} 
-                onRequestClose={this.props.closeOptionsDialog} 
-                contentStyle={{width:'370px'}} 
-                titleClassName={'dialogTitleStyle'}
             />
         );
     }

@@ -7,7 +7,7 @@ import IconButton from 'material-ui/IconButton';
 import MoreVertIcon from 'material-ui/svg-icons/navigation/more-vert';
 import RaisedButton from 'material-ui/RaisedButton';
 
-class SelectCostFeatures extends React.Component {
+class SelectCostFeatures extends React.Component { 
     constructor(props) {
         super(props);
         this.state = { selectedFeature: undefined };
@@ -57,7 +57,7 @@ class SelectCostFeatures extends React.Component {
                     </List>
                     <RaisedButton 
                         label="Select" 
-                        onClick={this.props.openAllCostsDialog}/>
+                        onClick={this.props.openCostsDialog}/>
                 </div>
             </React.Fragment>
         );
