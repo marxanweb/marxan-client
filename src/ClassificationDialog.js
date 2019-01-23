@@ -21,7 +21,7 @@ class ClassificationDialog extends React.Component {
       <MarxanDialog 
         {...this.props} 
         contentWidth={390}
-        rightX={413}
+        rightX={0}
         offsetY={80}
         title="Classification" 
         children={

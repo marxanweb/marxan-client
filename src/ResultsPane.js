@@ -76,18 +76,18 @@ class ResultsPane extends React.Component {
             <Tabs contentContainerStyle={{'margin':'20px'}} className={'resultsTabs'} value={this.props.activeResultsTab} id='resultsTabs'>
               <Tab label="Legend" value="legend" onActive={this.props.legend_tab_active} >
                 <div>
-                <Legend
-                  brew={this.props.brew}
-                />
+                  <Legend
+                    brew={this.props.brew}
+                  />
+                  <RaisedButton 
+                    icon={<Settings style={{height:'20px',width:'20px'}}/>} 
+                    title="Legend Settings"
+                    onClick={this.props.openClassificationDialog} 
+                    style={{ top:'440px', marginRight:'4px',padding: '0px',minWidth: '30px',width: '24px',height: '24px',position:'absolute'}}
+                    overlayStyle={{lineHeight:'24px',height:'24px'}}
+                    buttonStyle={{marginTop:'-7px',lineHeight:'24px',height:'24px'}} 
+                  />
                 </div>
-                <RaisedButton 
-                  icon={<Settings style={{height:'20px',width:'20px'}}/>} 
-                  title="Legend Settings"
-                  onClick={this.props.openClassificationDialog} 
-                  style={{ top:'277px', marginRight:'4px',padding: '0px',minWidth: '30px',width: '24px',height: '24px',position:'absolute'}}
-                  overlayStyle={{lineHeight:'24px',height:'24px'}}
-                  buttonStyle={{marginTop:'-7px',lineHeight:'24px',height:'24px'}} 
-                />
               </Tab>
               <Tab label="Solutions" value="solutions" onActive={this.props.solutions_tab_active} >
                 <div id="solutionsPanel" style={{'display': (this.props.dataAvailable && !this.props.running ? 'block' : 'none')}}>

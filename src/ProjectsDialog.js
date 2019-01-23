@@ -28,6 +28,10 @@ class ProjectsDialog extends React.Component {
     cloneProject(){
         this.props.cloneProject(this.state.selectedProject);
     }
+    openImportWizard(){
+        this.props.openImportWizard();
+        this.closeDialog();
+    }
     changeProject(event, project) {
         this.setState({ selectedProject: project.name });
     }
@@ -98,7 +102,7 @@ class ProjectsDialog extends React.Component {
                                 <ToolbarButton 
                                     icon={<Import style={{height:'20px',width:'20px'}}/>} 
                                     title="Import an existing Marxan project from the local machine"
-                                    onClick={this.props.openImportWizard} 
+                                    onClick={this.openImportWizard.bind(this)} 
                                     label={"Import"}
                                 />
                                 <ToolbarButton 

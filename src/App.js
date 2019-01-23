@@ -223,6 +223,11 @@ class App extends React.Component {
     }.bind(this));
   }
 
+  //catch all event handler for map errors
+  mapError(e){
+    console.error(e.error.message);
+  }
+  
   closeSnackbar() {
     this.setState({ snackbarOpen: false });
   }
@@ -377,13 +382,8 @@ class App extends React.Component {
     formData.append("user", this.state.user);
     //append all the key/value pairs
     this.appendToFormData(formData, parameters);
-    const config = {
-      headers: {
-        'content-type': 'multipart/form-data'
-      }
-    };
     //post to the server
-    post(MARXAN_ENDPOINT_HTTPS + "updateUserParameters", formData, config).then((response) => {
+    post(MARXAN_ENDPOINT_HTTPS + "updateUserParameters", formData, {withCredentials: true}).then((response) => {
       if (!this.checkForErrors(response.data)) {
         //if succesfull write the state back to the userData key
         this.setState({ userData: this.newUserData, savingOptions: false, optionsDialogOpen: false });
@@ -414,13 +414,8 @@ class App extends React.Component {
     formData.append("project", project);
     //append all the key/value pairs
     this.appendToFormData(formData, parameters);
-    const config = {
-      headers: {
-        'content-type': 'multipart/form-data'
-      }
-    };
     //post to the server
-    return post(MARXAN_ENDPOINT_HTTPS + "updateProjectParameters", formData, config);
+    return post(MARXAN_ENDPOINT_HTTPS + "updateProjectParameters", formData, {withCredentials: true});
   }
 
   //updates a single parameter in the input.dat file directly
@@ -603,12 +598,7 @@ class App extends React.Component {
     formData.append('fullname', name);
     formData.append('email', email);
     formData.append('mapboxaccesstoken', mapboxaccesstoken);
-    const config = {
-      headers: {
-        'content-type': 'multipart/form-data'
-      }
-    };
-    post(MARXAN_ENDPOINT_HTTPS + "createUser", formData, config).then((response) => {
+    post(MARXAN_ENDPOINT_HTTPS + "createUser", formData, {withCredentials: true}).then((response) => {
       this.setState({ creatingNewUser: false });
       if (!this.checkForErrors(response.data)) {
         this.setState({ snackbarOpen: true, snackbarMessage: response.data.info + ". Close and login" });
@@ -639,12 +629,7 @@ class App extends React.Component {
     formData.append('interest_features', interest_features.join(","));
     formData.append('target_values', target_values.join(","));
     formData.append('spf_values', spf_values.join(","));
-    const config = {
-      headers: {
-        'content-type': 'multipart/form-data'
-      }
-    };
-    post(MARXAN_ENDPOINT_HTTPS + "createProject", formData, config).then((response) => {
+    post(MARXAN_ENDPOINT_HTTPS + "createProject", formData, {withCredentials: true}).then((response) => {
       this.setState({ loadingProjects: false });
       if (!this.checkForErrors(response.data)) {
         this.setState({ snackbarOpen: true, snackbarMessage: response.data.info, projectsDialogOpen: false });
@@ -663,12 +648,7 @@ class App extends React.Component {
       let formData = new FormData();
       formData.append('user', this.state.user);
       formData.append('project', project);
-      const config = {
-        headers: {
-          'content-type': 'multipart/form-data'
-        }
-      };
-      post(MARXAN_ENDPOINT_HTTPS + "createImportProject", formData, config).then((response) => {
+      post(MARXAN_ENDPOINT_HTTPS + "createImportProject", formData, {withCredentials: true}).then((response) => {
         this.setState({ loadingProjects: false });
         if (!this.checkForErrors(response.data)) {
           this.setState({ snackbarOpen: true, snackbarMessage: response.data.info });
@@ -765,6 +745,23 @@ class App extends React.Component {
     }.bind(this));
   }
 
+  // getProjects() {
+  //   this.setState({ loadingProjects: true });
+  //   fetchJsonp(MARXAN_ENDPOINT_HTTPS + "getProjects?user=" + this.state.user, { timeout: TIMEOUT }).then(function(response) {
+  //       return response.json();
+  //     }).then(function(json) {
+  //       this.setState({ loadingProjects: false });
+  //       if (!this.checkForErrors(json)) {
+  //         this.setState({ projects: json.projects });
+  //       }
+  //       else {
+  //         this.setState({ projects: undefined });
+  //       }
+  //     }.bind(this)).catch(function(ex) {
+  //       console.log('parsing failed', ex);
+  //     }.bind(this));
+  // }
+
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   ////////CODE TO PREPROCESS AND RUN MARXAN
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -825,12 +822,7 @@ class App extends React.Component {
     formData.append('interest_features', interest_features.join(","));
     formData.append('target_values', target_values.join(","));
     formData.append('spf_values', spf_values.join(","));
-    const config = {
-      headers: {
-        'content-type': 'multipart/form-data'
-      }
-    };
-    return post(MARXAN_ENDPOINT_HTTPS + "updateSpecFile", formData, config).then((response) => {
+    return post(MARXAN_ENDPOINT_HTTPS + "updateSpecFile", formData, {withCredentials: true}).then((response) => {
       //check if there are no timeout errors or empty responses
       this.checkForErrors(response.data);
     });
@@ -1078,12 +1070,7 @@ class App extends React.Component {
   }
   uploadFile(formData){
     return new Promise(function(resolve, reject) {
-      const config = {
-        headers: {
-          'content-type': 'multipart/form-data'
-        }
-      };
-      post(MARXAN_ENDPOINT_HTTPS + "uploadFile", formData, config).then(function(response){
+      post(MARXAN_ENDPOINT_HTTPS + "uploadFile", formData, {withCredentials: true}).then(function(response){
         //resolve the promise
         resolve();
       });
@@ -1416,6 +1403,7 @@ class App extends React.Component {
       zoom: 2
     });
     this.map.on("load", this.mapLoaded.bind(this));
+    this.map.on("error", this.mapError.bind(this));
     //set a reference to this App in the map object 
     this.map.App = this;
   }
@@ -1756,13 +1744,8 @@ class App extends React.Component {
         formData.append(param_name, item[1]);
       });
     }
-    const config = {
-      headers: {
-        'content-type': 'multipart/form-data'
-      }
-    };
     //post to the server
-    post(MARXAN_ENDPOINT_HTTPS + "updatePUFile", formData, config).then((response) => {
+    post(MARXAN_ENDPOINT_HTTPS + "updatePUFile", formData, {withCredentials: true}).then((response) => {
       if (!this.checkForErrors(response.data)) {
         // this.setState({ snackbarOpen: true, snackbarMessage: response.data.info });
       }
@@ -1832,6 +1815,7 @@ class App extends React.Component {
     let returnValue = (position > -1) ? this.state.planning_units[position][1] : [];
     return returnValue;
   }
+  
   //returns the next status level for a planning unit depending on the direction
   getNextStatusLevel(status, direction) {
     let nextStatus;
@@ -2242,6 +2226,7 @@ class App extends React.Component {
     this.setState({ newProjectDialogOpen: false });
   }
   openNewPlanningGridDialog() {
+    this.getCountries();
     this.setState({ NewPlanningGridDialogOpen: true });
   }
   closeNewPlanningGridDialog() {
@@ -2375,10 +2360,18 @@ class App extends React.Component {
     await this.preprocessProtectedAreas(iucnCategory).then(function(intersections) {
       //get all the puids of the intersecting protected areas in this iucn category 
       let puids = this.getPuidsFromIucnCategory(iucnCategory);
-      //get all the puids of the intersecting protected areas in the previously selected iucn category 
-      let previousPuids = this.getPuidsFromIucnCategory(this.previousIucnCategory);
-      //set the previously selected iucn category
-      this.previousIucnCategory = iucnCategory;
+      //see if any of them will overwrite existing manually edited planning units - these will be in status 1 and 3
+      let manuallyEditedPuids = this.getPlanningUnitsByStatus(1).concat(this.getPlanningUnitsByStatus(3));
+      let clashingPuids = manuallyEditedPuids.filter(value => -1 !== puids.indexOf(value));
+      if (clashingPuids.length > 0){
+        //remove them from the puids
+        puids = puids.filter((item) => !clashingPuids.includes(item));
+        this.setState({ snackbarOpen: true, snackbarMessage: "Not all protected area cells were added to the map as they would overlap some manual edits." });
+      }
+      //get all the puids for the existing iucn category - these will come from the previousPuids rather than getPuidsFromIucnCategory as there may have been some clashes and not all of the puids from getPuidsFromIucnCategory may actually be renderered
+      let previousPuids = (this.previousPuids !== undefined) ? this.previousPuids : [];
+      //set the previously selected puids
+      this.previousPuids = puids;
       //copy the current planning units state
       let statuses = this.state.planning_units;
       //get the new puids that need to be added
@@ -2796,7 +2789,6 @@ class App extends React.Component {
             closeNewPlanningGridDialog={this.closeNewPlanningGridDialog.bind(this)} 
             createNewPlanningUnitGrid={this.createNewPlanningUnitGrid.bind(this)}
             creatingNewPlanningGrid={this.state.creatingNewPlanningGrid}
-            getCountries={this.getCountries.bind(this)}
             countries={this.state.countries}
             changeIso3={this.changeIso3.bind(this)}
             changeDomain={this.changeDomain.bind(this)}
@@ -2906,6 +2898,9 @@ class App extends React.Component {
             open={this.state.snackbarOpen}
             message={this.state.snackbarMessage}
             onRequestClose={this.closeSnackbar.bind(this)}
+            style={{maxWidth:'800px !important'}}
+            contentStyle={{maxWidth:'800px !important'}}
+            bodyStyle={{maxWidth:'800px !important'}}
           />
           <Popover open={this.state.featureMenuOpen} anchorEl={this.state.menuAnchor} onRequestClose={this.closeFeatureMenu.bind(this)}>
             <Menu style={{width:'285px'}}>
@@ -2916,7 +2911,7 @@ class App extends React.Component {
               <MenuItemWithButton leftIcon={<ZoomIn style={{margin: '1px'}}/>} style={{display: (this.state.currentFeature.extent) ? 'block' : 'none'}} onClick={this.zoomToFeature.bind(this, this.state.currentFeature)}>Zoom to feature extent</MenuItemWithButton>
               <MenuItemWithButton leftIcon={<Preprocess style={{margin: '1px'}}/>} style={{display: (this.state.currentFeature.old_version) ? 'none' : 'block'}} onClick={this.preprocessSingleFeature.bind(this, this.state.currentFeature)} disabled={this.state.currentFeature.preprocessed}>Pre-process</MenuItemWithButton>
             </Menu>
-          </Popover>          
+          </Popover>   
           <div style={{position: 'absolute', display: this.state.resultsPaneOpen ? 'none' : 'block', backgroundColor: 'rgb(0, 188, 212)', right: '0px', top: '20px', width: '20px', borderRadius: '2px', height: '88px',boxShadow:'rgba(0, 0, 0, 0.16) 0px 3px 10px, rgba(0, 0, 0, 0.23) 0px 3px 10px'}} title={"Show results"}>
             <FlatButton
               onClick={this.showResults.bind(this)}

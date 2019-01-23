@@ -33,12 +33,7 @@ class FileUpload extends React.Component {
         formData.append('parameter', this.props.parameter);
         formData.append('user', this.props.user);
         formData.append('project', this.props.project);
-        const config = {
-            headers: {
-                'content-type': 'multipart/form-data'
-            }
-        };
-        post(url, formData, config).then((response) => this.finishedLoading(response));
+        post(url, formData, {withCredentials: true}).then((response) => this.finishedLoading(response));
     }
 
     finishedLoading(response) {
