@@ -15,6 +15,23 @@ body {
   position: absolute;
 }
 
+.appBar {
+  position: fixed;
+  left: 50%;
+  display: flex;
+  top: 0px;
+  transform: translate(-50%, 0px);
+}
+.appBarPaper{
+  /*width: 400px;*/
+}
+.appBarTitle{
+  background-color: rgba(0, 188, 212, 0.9);
+}
+.appBarIcon{
+  margin: 6px;
+  cursor: pointer;
+}
 .InfoPanelPaper {
   width: 400px;
   margin: 20px;
@@ -160,7 +177,7 @@ body {
 
 #popup {
   position: absolute;
-  background-color: white; 
+  background-color: white;
   box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 10px, rgba(0, 0, 0, 0.23) 0px 3px 10px;
 }
 
@@ -186,6 +203,7 @@ body {
   width: 337px;
   height: 391px;
 }
+
 .infoTableOldVersion {
   width: 337px;
   height: 213;
@@ -194,23 +212,29 @@ body {
 .rt-tr-group {
   cursor: pointer !important;
 }
-#projectsTable{
-  height:340px;
+
+#projectsTable {
+  height: 340px;
 }
-.projectsReactTable{
+
+.projectsReactTable {
   max-height: 340px;
 }
-#projectsTable .rt-tr-group:hover{
-  background-color:#e7e8e642; 
+
+#projectsTable .rt-tr-group:hover {
+  background-color: #e7e8e642;
 }
-.selectedRow{
+
+.selectedRow {
   background-color: red;
 }
+
 table input {
   font-size: 13px;
 }
-#projectsToolbar{
-    margin: 18px 10px 10px 0px;
+
+#projectsToolbar {
+  margin: 18px 10px 10px 0px;
 }
 
 .uploadDiv {

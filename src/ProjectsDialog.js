@@ -14,11 +14,22 @@ class ProjectsDialog extends React.Component {
         this.state = { selectedProject: undefined };
     }
     _delete() {
-        this.props.deleteProject(this.state.selectedProject); 
+        this.props.deleteProject(this.state.selectedProject.user, this.state.selectedProject.name); 
         this.setState({ selectedProject: false });
     }
     load() {
-        this.props.loadProject(this.state.selectedProject);
+        if ((this.props.oldVersion === true)&&(this.state.selectedProject.oldVersion === false)){
+            //get all the features again otherwise the allFeatures state will be bound to the old versions features
+            this.props.getAllFeatures().then(function(){
+                this.loadAndClose();
+            }.bind(this));
+        }else{
+            this.loadAndClose();
+        }
+    }
+    loadAndClose(){
+        //load the project
+        this.props.loadProject(this.state.selectedProject.name, this.state.selectedProject.user);
         this.closeDialog();
     }
     _new() {
@@ -26,27 +37,32 @@ class ProjectsDialog extends React.Component {
         this.closeDialog();
     }
     cloneProject(){
-        this.props.cloneProject(this.state.selectedProject);
+        this.props.cloneProject(this.state.selectedProject.user, this.state.selectedProject.name); 
     }
-    openImportWizard(){
+    openImportWizard(){ 
         this.props.openImportWizard();
         this.closeDialog();
     }
     changeProject(event, project) {
-        this.setState({ selectedProject: project.name });
+        this.setState({ selectedProject: project });
     }
     closeDialog(){
         this.setState({selectedProject: undefined});
         this.props.onOk();
     }
     render() {
+        let tableColumns = [];
+        if (['Admin','ReadOnly'].includes(this.props.userRole)){
+            tableColumns = [{Header:'User',accessor:'user',width:90,headerStyle:{'textAlign':'left'}}, {Header:'Name',accessor:'name',width:200,headerStyle:{'textAlign':'left'}},{Header:'Description',accessor:'description',width:250,headerStyle:{'textAlign':'left'}},{Header:'Date',accessor:'createdate',width:110,headerStyle:{'textAlign':'left'}}];
+        }else{
+            tableColumns = [{Header:'Name',accessor:'name',width:170,headerStyle:{'textAlign':'left'}},{Header:'Description',accessor:'description',width:330,headerStyle:{'textAlign':'left'}},{Header:'Date',accessor:'createdate',width:150,headerStyle:{'textAlign':'left'}}];
+        }
         if (this.props.projects){
             return (
                 <MarxanDialog 
                     {...this.props} 
-                    okLabel="Open"
+                    okLabel={(this.props.userRole === "ReadOnly") ? "Open (Read-only)" : "Open"}
                     autoDetectWindowHeight={false}
-                    // contentStyle={{width:'700px'}}
                     bodyStyle={{ padding:'0px 24px 0px 24px'}}
                     title="Projects"  
                     onOk={this.load.bind(this)}
@@ -63,27 +79,11 @@ class ProjectsDialog extends React.Component {
                                         minRows={0}
                                         data={this.props.projects}
                                         thisRef={this}
-                                        columns={[{
-                                           Header: 'Name', 
-                                           accessor: 'name',
-                                           width:170,
-                                           headerStyle:{'textAlign':'left'},
-                                        },{
-                                           Header: 'Description',
-                                           accessor: 'description',
-                                           width:330,
-                                           headerStyle:{'textAlign':'left'},
-                                        },{
-                                           Header: 'Date',
-                                           accessor: 'createdate',
-                                           width:150,
-                                           headerStyle:{'textAlign':'left'},
-                                        }
-                                        ]}
+                                        columns={tableColumns}
                                         getTrProps={(state, rowInfo, column) => {
                                             return {
                                                 style: {
-                                                    background: (rowInfo.original.name === state.thisRef.state.selectedProject) ? "aliceblue" : ""
+                                                    background: (rowInfo.original.name === (state.thisRef.state.selectedProject&&state.thisRef.state.selectedProject.name)) ? "aliceblue" : ""
                                                 },
                                                 onClick: (e) => {
                                                     state.thisRef.changeProject(e, rowInfo.original);
@@ -92,27 +92,31 @@ class ProjectsDialog extends React.Component {
                                         }}
                                     />
                               </div>
-                              <div id="projectsToolbar">
+                              <div id="projectsToolbar" style={{display: (this.props.userRole === "ReadOnly") ? 'none' : 'block'}}>
                                 <ToolbarButton 
+                                    show={!this.props.unauthorisedMethods.includes("createProject")}
                                     icon={<FileNew style={{height:'20px',width:'20px'}}/>} 
                                     title="New project"
                                     onClick={this._new.bind(this)} 
                                     label={"New"}
                                 />
                                 <ToolbarButton 
+                                    show={!this.props.unauthorisedMethods.includes("createImportProject")}
                                     icon={<Import style={{height:'20px',width:'20px'}}/>} 
                                     title="Import an existing Marxan project from the local machine"
                                     onClick={this.openImportWizard.bind(this)} 
                                     label={"Import"}
                                 />
                                 <ToolbarButton 
+                                    show={!this.props.unauthorisedMethods.includes("cloneProject")}
                                     icon={<Clone style={{height:'20px',width:'20px'}}/>} 
                                     title="Duplicate project" 
                                     onClick={this.cloneProject.bind(this)} 
                                     disabled={!this.state.selectedProject || this.props.loadingProjects || this.props.loadingProject}
                                     label={"Duplicate"}
                                 />
-                                <ToolbarButton 
+                                <ToolbarButton  
+                                    show={!this.props.unauthorisedMethods.includes("deleteProject")}
                                     icon={<Delete color="red" style={{height:'20px',width:'20px'}}/>} 
                                     title="Delete project" 
                                     disabled={!this.state.selectedProject || this.props.loadingProjects || this.props.loadingProject}

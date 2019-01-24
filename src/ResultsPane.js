@@ -4,8 +4,6 @@ import ReactTable from "react-table";
 import Paper from 'material-ui/Paper';
 import { Tabs, Tab } from 'material-ui/Tabs';
 import Legend from './Legend'; 
-import FontAwesome from 'react-fontawesome';
-import FlatButton from 'material-ui/FlatButton';
 import Settings from 'material-ui/svg-icons/action/settings';
 import Clipboard from 'material-ui/svg-icons/action/assignment';
 
@@ -23,8 +21,8 @@ class ResultsPane extends React.Component {
       }
     }
   }
-  loadSolution(solution) {
-    this.props.loadSolution(solution);
+  loadSolution(solution) { //loads the solution using the projects owner
+    this.props.loadSolution(solution, this.props.owner);
   }
 
   mouseEnter(event) {
@@ -66,13 +64,6 @@ class ResultsPane extends React.Component {
         <div style={{width:'300px',height:'400px', position:'absolute',right:'140px','display': (this.props.open ? 'block' : 'none')}}>
           <Paper zDepth={2} className='ResultsPanePaper'>
             <div className="resultsTitle">Results</div>
-              <FlatButton
-                onClick={this.props.hideResults}
-                primary={true}
-                style={{position: 'absolute',display:'block',top:'27px',left:'385px', minWidth:'0px'}}
-                title={"Hide results"}
-                icon={<FontAwesome name='arrow-right' style={{top:'8px','color':'white'}}/>}
-              />
             <Tabs contentContainerStyle={{'margin':'20px'}} className={'resultsTabs'} value={this.props.activeResultsTab} id='resultsTabs'>
               <Tab label="Legend" value="legend" onActive={this.props.legend_tab_active} >
                 <div>

@@ -30,8 +30,8 @@ class OptionsDialog extends React.Component {
             <MarxanDialog 
                 {...this.props}  
                 contentWidth={370}
-                offsetX={300}
                 offsetY={80}
+                showCancelButton={true}
                 onOk={this.updateOptions.bind(this)}
                 title="Settings" 
                 children={

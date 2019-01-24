@@ -30,6 +30,11 @@ class RunSettingsDialog extends React.Component {
     }
     renderEditable(cellInfo) {
         return (
+            (this.props.userRole === "ReadOnly") ? 
+            <React.Fragment>
+                <div>{this.state.data[cellInfo.index]["value"]}</div>
+            </React.Fragment> 
+            : 
             <React.Fragment>
                 <div
                     style={{ backgroundColor: "#fafafa", float: ([...this.state.data][cellInfo.index]['key'] === 'BLM') ? 'left' : 'none'}}

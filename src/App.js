@@ -13,9 +13,6 @@ import classyBrew from 'classybrew';
 import Popover from 'material-ui/Popover';
 import Menu from 'material-ui/Menu';
 import Snackbar from 'material-ui/Snackbar';
-import FlatButton from 'material-ui/FlatButton';
-import white from 'material-ui/styles/colors';
-import ArrowBack from 'material-ui/svg-icons/navigation/arrow-back';
 import Properties from 'material-ui/svg-icons/alert/error-outline';
 import RemoveFromProject from 'material-ui/svg-icons/content/remove';
 import AddToMap from 'material-ui/svg-icons/action/visibility';
@@ -24,10 +21,12 @@ import ZoomIn from 'material-ui/svg-icons/action/zoom-in';
 import Preprocess from 'material-ui/svg-icons/action/autorenew';
 //project components
 import * as utilities from './utilities.js';
+import AppBar from './AppBar';
 import LoginDialog from './LoginDialog';
 import UserMenu from './UserMenu';
+import HelpMenu from './HelpMenu';
 import OptionsDialog from './OptionsDialog';
-import UserDialog from './UserDialog';
+import ProfileDialog from './ProfileDialog';
 import AboutDialog from './AboutDialog';
 import MenuItemWithButton from './MenuItemWithButton';
 import InfoPanel from './InfoPanel';
@@ -52,6 +51,7 @@ mapboxgl.accessToken = 'pk.eyJ1IjoiYmxpc2h0ZW4iLCJhIjoiMEZrNzFqRSJ9.0QBRA2HxTb8Y
 //CONSTANTS
 //THE MARXAN_ENDPOINT_HTTPS MUST ALSO BE CHANGED IN THE FILEUPLOAD.JS FILE 
 // let MARXAN_ENDPOINT_HTTPS = "https://db-server-blishten.c9users.io/marxan/webAPI2.py/";
+let SEND_CREDENTIALS = true; //if true all post requests will send credentials
 let MARXAN_REMOTE_SERVERS = ["db-server-blishten.c9users.io:8081/marxan-server/"];
 // let MARXAN_LOCAL_SERVER = "localhost:8081/marxan-server/";
 let MARXAN_ENDPOINT_HTTPS = "https://" + MARXAN_REMOTE_SERVERS[0];
@@ -107,7 +107,7 @@ class App extends React.Component {
     super(props);
     this.state = {
       featureMenuOpen: false,
-      userDialogOpen: false,
+      profileDialogOpen: false,
       filesDialogOpen: false,
       aboutDialogOpen: false,
       importDialogOpen: false,
@@ -121,12 +121,16 @@ class App extends React.Component {
       NewPlanningGridDialogOpen: false, 
       NewFeatureDialogOpen: false,
       featuresDialogOpen: false,
+      infoPanelOpen: false,
+      resultsPanelOpen: false,
       user: DISABLE_LOGIN ? 'andrew' : '',
       password: DISABLE_LOGIN ? 'asd' : '',
       project: DISABLE_LOGIN ? 'Tonga marine' : '',
+      owner: '', // the owner of the project - may be different to the user, e.g. if logged on as guest (user) and accessing someone elses project (owner)
       loggedIn: false,
       loggingIn: false,
       userData: {},
+      unauthorisedMethods: [],
       metadata: {},
       renderer: {},
       editingProjectName: false,
@@ -143,8 +147,8 @@ class App extends React.Component {
       tilesets: [],
       updatingRunParameters: false,
       userMenuOpen: false,
+      helpMenuOpen: false,
       menuAnchor: undefined,
-      resultsPaneOpen: true,
       preprocessingFeature: false,
       preprocessingProtectedAreas: false,
       openInfoDialogOpen: false,
@@ -317,13 +321,25 @@ class App extends React.Component {
   //the user is validated so login
   login() {
     //get the users data
-    this.getUserInfo();
+    this.getUserInfo().then(function(response) {
+      if (!this.checkForErrors(response)) {
+        this.setState({userData: response.userData, unauthorisedMethods: response.unauthorisedMethods, project: response.userData.LASTPROJECT});
+        //set the basemap
+        var basemap = this.state.basemaps.filter(function(item){return (item.name === response.userData.BASEMAP);})[0];
+        this.changeBasemap(basemap, false);
+        //get all features
+        this.getAllFeatures().then(function(){
+          //get the users last project and load it 
+          this.loadProject(response.userData.LASTPROJECT);
+        }.bind(this));
+      } //no errors
+    }.bind(this));
   }
 
   //log out and reset some state 
   logout() {
     this.hideUserMenu();
-    this.setState({ loggedIn: false, user: '', password: '', project: '' });
+    this.setState({ loggedIn: false, user: '', password: '', project: '', infoPanelOpen: false, resultsPanelOpen: false });
   }
 
   resendPassword() {
@@ -338,16 +354,7 @@ class App extends React.Component {
 
   //gets all the information for the user that is logging in
   getUserInfo() {
-    jsonp(MARXAN_ENDPOINT_HTTPS + "getUser?user=" + this.state.user, { timeout: TIMEOUT }).promise.then(function(response) {
-      if (!this.checkForErrors(response)) {
-        this.setState({ project: response.userData.LASTPROJECT, userData: response.userData });
-        //set the basemap
-        var basemap = this.state.basemaps.filter(function(item){return (item.name === response.userData.BASEMAP);})[0];
-        this.changeBasemap(basemap);
-        //get the users last project and load it 
-        this.loadProject(response.userData.LASTPROJECT);
-      }
-    }.bind(this));
+    return jsonp(MARXAN_ENDPOINT_HTTPS + "getUser?user=" + this.state.user, { timeout: TIMEOUT }).promise;
   }
 
   appendToFormData(formData, obj) {
@@ -383,7 +390,7 @@ class App extends React.Component {
     //append all the key/value pairs
     this.appendToFormData(formData, parameters);
     //post to the server
-    post(MARXAN_ENDPOINT_HTTPS + "updateUserParameters", formData, {withCredentials: true}).then((response) => {
+    post(MARXAN_ENDPOINT_HTTPS + "updateUserParameters", formData, {withCredentials: SEND_CREDENTIALS}).then((response) => {
       if (!this.checkForErrors(response.data)) {
         //if succesfull write the state back to the userData key
         this.setState({ userData: this.newUserData, savingOptions: false, optionsDialogOpen: false });
@@ -409,13 +416,13 @@ class App extends React.Component {
     //initialise the form data
     let formData = new FormData();
     //add the current user
-    formData.append("user", this.state.user);
+    formData.append("user", this.state.owner);
     //add the current project
     formData.append("project", project);
     //append all the key/value pairs
     this.appendToFormData(formData, parameters);
     //post to the server
-    return post(MARXAN_ENDPOINT_HTTPS + "updateProjectParameters", formData, {withCredentials: true});
+    return post(MARXAN_ENDPOINT_HTTPS + "updateProjectParameters", formData, {withCredentials: SEND_CREDENTIALS});
   }
 
   //updates a single parameter in the input.dat file directly
@@ -483,15 +490,15 @@ class App extends React.Component {
   }
 
   //loads a project
-  loadProject(project) {
+  loadProject(project, user = this.state.user) {
     this.setState({ loadingProject: true });
     //reset the results from any previous projects
     this.resetResults();
-    jsonp(MARXAN_ENDPOINT_HTTPS + "getProject?user=" + this.state.user + "&project=" + project, { timeout: TIMEOUT }).promise.then(function(response) {
-      this.setState({ loadingProject: false, loggingIn: false });
+    jsonp(MARXAN_ENDPOINT_HTTPS + "getProject?user=" + user + "&project=" + project, { timeout: TIMEOUT }).promise.then(function(response) {
+      this.setState({ loadingProject: false, loggingIn: false});
       if (!this.checkForErrors(response)) {
         //set the state for the app based on the data that is returned from the server
-        this.setState({ loggedIn: true, project: response.project, runParams: response.runParameters, files: Object.assign(response.files), metadata: response.metadata, renderer: response.renderer, planning_units: response.planning_units });
+        this.setState({ loggedIn: true, project: response.project, owner: user, runParams: response.runParameters, files: Object.assign(response.files), metadata: response.metadata, renderer: response.renderer, planning_units: response.planning_units, infoPanelOpen: true, resultsPanelOpen: true  });
         //if there is a PLANNING_UNIT_NAME passed then programmatically change the select box to this map 
         if (response.metadata.PLANNING_UNIT_NAME) this.changeTileset(MAPBOX_USER + "." + response.metadata.PLANNING_UNIT_NAME);
         //set a local variable for the feature preprocessing - this is because we dont need to track state with these variables as they are not bound to anything
@@ -501,10 +508,13 @@ class App extends React.Component {
         //set a local variable for the selected iucn category
         this.previousIucnCategory = response.metadata.IUCN_CATEGORY;
         //initialise all the interest features with the interest features for this project
-        this.initialiseInterestFeatures(response.metadata.OLDVERSION, response.features, response.allFeatures);
+        this.initialiseInterestFeatures(response.metadata.OLDVERSION, response.features);
         //poll the server to see if results are available for this project - if there are these will be loaded
-        this.getResults(this.state.user, response.project);
+        this.getResults(user, response.project);
       }else{
+        if (response.error === 'Logged in as a read-only user'){
+          this.setState({loggedIn: true});
+        }
         if (response.error.indexOf("No such file or directory")>-1){
           //probably the last loaded project has been deleted - send some feedback and load another project
           this.setState({ snackbarOpen: true, snackbarMessage: "The project '" + project + "' could no longer be found. Loading first available project"});
@@ -523,16 +533,9 @@ class App extends React.Component {
   }
 
   //initialises the interest features based on the current project
-  initialiseInterestFeatures(oldVersion, projectFeatures, allFeatures) {
-    var features = [];
-    if (oldVersion) {
-      //if the database is from an old version of marxan then the interest features can only come from the list of features in the current project
-      features = projectFeatures;
-    }
-    else {
-      //if the database is from marxan web then the interest features will come from the marxan postgis database metadata_interest_features table
-      features = allFeatures;
-    }
+  initialiseInterestFeatures(oldVersion, projectFeatures) {
+    //if the database is from an old version of marxan then the interest features can only come from the list of features in the current project
+    let features = (oldVersion) ? projectFeatures : this.state.allFeatures;
     //get a list of the ids for the features that are in this project
     var ids = projectFeatures.map(function(item) {
       return item.id;
@@ -598,7 +601,7 @@ class App extends React.Component {
     formData.append('fullname', name);
     formData.append('email', email);
     formData.append('mapboxaccesstoken', mapboxaccesstoken);
-    post(MARXAN_ENDPOINT_HTTPS + "createUser", formData, {withCredentials: true}).then((response) => {
+    post(MARXAN_ENDPOINT_HTTPS + "createUser", formData, {withCredentials: SEND_CREDENTIALS}).then((response) => {
       this.setState({ creatingNewUser: false });
       if (!this.checkForErrors(response.data)) {
         this.setState({ snackbarOpen: true, snackbarMessage: response.data.info + ". Close and login" });
@@ -629,7 +632,7 @@ class App extends React.Component {
     formData.append('interest_features', interest_features.join(","));
     formData.append('target_values', target_values.join(","));
     formData.append('spf_values', spf_values.join(","));
-    post(MARXAN_ENDPOINT_HTTPS + "createProject", formData, {withCredentials: true}).then((response) => {
+    post(MARXAN_ENDPOINT_HTTPS + "createProject", formData, {withCredentials: SEND_CREDENTIALS}).then((response) => {
       this.setState({ loadingProjects: false });
       if (!this.checkForErrors(response.data)) {
         this.setState({ snackbarOpen: true, snackbarMessage: response.data.info, projectsDialogOpen: false });
@@ -648,7 +651,7 @@ class App extends React.Component {
       let formData = new FormData();
       formData.append('user', this.state.user);
       formData.append('project', project);
-      post(MARXAN_ENDPOINT_HTTPS + "createImportProject", formData, {withCredentials: true}).then((response) => {
+      post(MARXAN_ENDPOINT_HTTPS + "createImportProject", formData, {withCredentials: SEND_CREDENTIALS}).then((response) => {
         this.setState({ loadingProjects: false });
         if (!this.checkForErrors(response.data)) {
           this.setState({ snackbarOpen: true, snackbarMessage: response.data.info });
@@ -662,9 +665,9 @@ class App extends React.Component {
   }
 
   //REST call to delete a specific project
-  deleteProject(name) {
+  deleteProject(user, project) {
     this.setState({ loadingProjects: true });
-    jsonp(MARXAN_ENDPOINT_HTTPS + "deleteProject?user=" + this.state.user + "&project=" + name, { timeout: TIMEOUT }).promise.then(function(response) {
+    jsonp(MARXAN_ENDPOINT_HTTPS + "deleteProject?user=" + user + "&project=" + project, { timeout: TIMEOUT }).promise.then(function(response) {
       if (!this.checkForErrors(response)) {
         //refresh the projects list
         this.getProjects();
@@ -688,9 +691,9 @@ class App extends React.Component {
     }.bind(this));
   }
 
-  cloneProject(name) {
+  cloneProject(user, project) {
     this.setState({ loadingProjects: true });
-    jsonp(MARXAN_ENDPOINT_HTTPS + "cloneProject?user=" + this.state.user + "&project=" + name, { timeout: TIMEOUT }).promise.then(function(response) {
+    jsonp(MARXAN_ENDPOINT_HTTPS + "cloneProject?user=" + user + "&project=" + project, { timeout: TIMEOUT }).promise.then(function(response) {
       if (!this.checkForErrors(response)) {
         //refresh the projects list
         this.getProjects();
@@ -715,7 +718,7 @@ class App extends React.Component {
   renameProject(newName) {
     this.setState({ editingProjectName: false });
     if (newName !== '' && newName !== this.state.project) {
-      jsonp(MARXAN_ENDPOINT_HTTPS + "renameProject?user=" + this.state.user + "&project=" + this.state.project + "&newName=" + newName, { timeout: TIMEOUT }).promise.then(function(response) {
+      jsonp(MARXAN_ENDPOINT_HTTPS + "renameProject?user=" + this.state.owner + "&project=" + this.state.project + "&newName=" + newName, { timeout: TIMEOUT }).promise.then(function(response) {
         if (!this.checkForErrors(response)) {
           this.setState({ project: newName, snackbarOpen: true, snackbarMessage: response.info });
         }
@@ -781,7 +784,7 @@ class App extends React.Component {
       //when the planning unit file has been updated, update the PuVSpr file - this does all the preprocessing
       this.updatePuvsprFile().then(function(value) {
         //start the marxan job
-        this.startMarxanJob(this.state.user, this.state.project).then(function(response){
+        this.startMarxanJob(this.state.owner, this.state.project).then(function(response){
           //run completed - get the results
           this.getResults(response.user, response.project);
         }.bind(this));
@@ -808,7 +811,7 @@ class App extends React.Component {
   //updates the species file with any target values that have changed
   updateSpecFile() {
     let formData = new FormData();
-    formData.append('user', this.state.user);
+    formData.append('user', this.state.owner);
     formData.append('project', this.state.project);
     var interest_features = [];
     var target_values = [];
@@ -822,7 +825,7 @@ class App extends React.Component {
     formData.append('interest_features', interest_features.join(","));
     formData.append('target_values', target_values.join(","));
     formData.append('spf_values', spf_values.join(","));
-    return post(MARXAN_ENDPOINT_HTTPS + "updateSpecFile", formData, {withCredentials: true}).then((response) => {
+    return post(MARXAN_ENDPOINT_HTTPS + "updateSpecFile", formData, {withCredentials: SEND_CREDENTIALS}).then((response) => {
       //check if there are no timeout errors or empty responses
       this.checkForErrors(response.data);
     });
@@ -867,7 +870,7 @@ class App extends React.Component {
       //switches the results pane to the log tab
       this.log_tab_active();
       this.setState({preprocessingFeature: true});
-      ws = new WebSocket(MARXAN_ENDPOINT_WSS + "preprocessFeature?user=" + this.state.user + "&project=" + this.state.project + "&planning_grid_name=" + this.state.metadata.PLANNING_UNIT_NAME + "&feature_class_name=" + feature.feature_class_name + "&alias=" + feature.alias + "&id=" + feature.id);
+      ws = new WebSocket(MARXAN_ENDPOINT_WSS + "preprocessFeature?user=" + this.state.owner + "&project=" + this.state.project + "&planning_grid_name=" + this.state.metadata.PLANNING_UNIT_NAME + "&feature_class_name=" + feature.feature_class_name + "&alias=" + feature.alias + "&id=" + feature.id);
       ws.onmessage = function (evt) {
         //TODO This code is duplicated in other websocket onmessage functions - sort out
         let response = JSON.parse(evt.data);
@@ -1057,7 +1060,7 @@ class App extends React.Component {
     for (var i = 0; i < files.length; i++) {
       file = files.item(i);
       const formData = new FormData();
-      formData.append('user', this.state.user);
+      formData.append('user', this.state.owner);
       formData.append('project', project);
       //the webkitRelativePath will include the folder itself so we have to remove this, e.g. Marxan default project - Copy/input/puvspr.dat -> /input/puvspr.da
       filepath = file.webkitRelativePath.split("/").slice(1).join("/");
@@ -1070,7 +1073,7 @@ class App extends React.Component {
   }
   uploadFile(formData){
     return new Promise(function(resolve, reject) {
-      post(MARXAN_ENDPOINT_HTTPS + "uploadFile", formData, {withCredentials: true}).then(function(response){
+      post(MARXAN_ENDPOINT_HTTPS + "uploadFile", formData, {withCredentials: SEND_CREDENTIALS}).then(function(response){
         //resolve the promise
         resolve();
       });
@@ -1098,7 +1101,7 @@ class App extends React.Component {
       this.renderSolution(this.runMarxanResponse.ssoln, true);
     }
     else {
-      this.getSolution(this.state.user, this.state.project, solution).then(function(response){
+      this.getSolution(this.state.owner, this.state.project, solution).then(function(response){
           this.updateProtectedAmount(response.mv);
           this.renderSolution(response.solution, false);
       }.bind(this));
@@ -1409,7 +1412,7 @@ class App extends React.Component {
   }
 
   //changes the default basemap for the user
-  changeBasemap(basemap){
+  changeBasemap(basemap, getResults = true){
     //change the state
     this.setState({basemap: basemap.name});
     //change the map style
@@ -1418,7 +1421,7 @@ class App extends React.Component {
       if (this.state.tileset) {
         this.addSpatialLayers(this.state.tileset);
         //poll the server to see if results are available for this project - if there are these will be loaded
-        this.getResults(this.state.user, this.state.project);
+        if (getResults) this.getResults(this.state.owner, this.state.project);
       }
     }.bind(this));
   }
@@ -1732,7 +1735,7 @@ class App extends React.Component {
     //initialise the form data
     let formData = new FormData();
     //add the current user
-    formData.append("user", this.state.user);
+    formData.append("user", this.state.owner);
     //add the current project
     formData.append("project", this.state.project);
     //add the planning unit manual exceptions
@@ -1745,7 +1748,7 @@ class App extends React.Component {
       });
     }
     //post to the server
-    post(MARXAN_ENDPOINT_HTTPS + "updatePUFile", formData, {withCredentials: true}).then((response) => {
+    post(MARXAN_ENDPOINT_HTTPS + "updatePUFile", formData, {withCredentials: SEND_CREDENTIALS}).then((response) => {
       if (!this.checkForErrors(response.data)) {
         // this.setState({ snackbarOpen: true, snackbarMessage: response.data.info });
       }
@@ -1961,6 +1964,19 @@ class App extends React.Component {
       this.timer = null;
       this.setState({ snackbarOpen: true, snackbarMessage: "Uploaded to MapBox" });
     }
+  }
+  
+  //gets all the features 
+  getAllFeatures(){
+    return new Promise(function(resolve, reject) {
+      jsonp(MARXAN_ENDPOINT_HTTPS + "getAllSpeciesData", { timeout: TIMEOUT }).promise.then(function(response){
+        if (!this.checkForErrors(response)) {
+          //set the allfeatures state
+          this.setState({allFeatures: response.data});
+          resolve();
+        } 
+      }.bind(this));
+    }.bind(this));
   }
 
   getInterestFeature(id) {
@@ -2181,7 +2197,7 @@ class App extends React.Component {
   }
 
   getFeaturePlanningUnits(oid){
-    return jsonp(MARXAN_ENDPOINT_HTTPS + "getFeaturePlanningUnits?user=" + this.state.user + "&project=" + this.state.project + "&oid=" + oid, { timeout: TIMEOUT }).promise;
+    return jsonp(MARXAN_ENDPOINT_HTTPS + "getFeaturePlanningUnits?user=" + this.state.owner + "&project=" + this.state.project + "&oid=" + oid, { timeout: TIMEOUT }).promise;
   }
 
   //removes the current feature from the project
@@ -2211,6 +2227,13 @@ class App extends React.Component {
   }
   hideUserMenu(e) {
     this.setState({ userMenuOpen: false });
+  }
+  showHelpMenu(e) {
+    e.preventDefault();
+    this.setState({ helpMenuOpen: true, menuAnchor: e.currentTarget });
+  }
+  hideHelpMenu(e) {
+    this.setState({ helpMenuOpen: false });
   }
   openProjectsDialog() {
     this.setState({ projectsDialogOpen: true });
@@ -2256,17 +2279,17 @@ class App extends React.Component {
     this.setState({ optionsDialogOpen: false });
   }
 
-  openUserDialog() {
-    this.setState({ userDialogOpen: true });
+  openProfileDialog() {
+    this.setState({ profileDialogOpen: true });
     this.hideUserMenu();
   }
-  closeUserDialog() {
-    this.setState({ userDialogOpen: false });
+  closeProfileDialog() {
+    this.setState({ profileDialogOpen: false });
   }
   
   openAboutDialog(){
     this.setState({ aboutDialogOpen: true });
-    this.hideUserMenu();
+    this.hideHelpMenu();
   }
 
   closeAboutDialog() {
@@ -2296,10 +2319,17 @@ class App extends React.Component {
   }
 
   hideResults() {
-    this.setState({ resultsPaneOpen: false });
+    this.setState({ resultsPanelOpen: false });
   }
   showResults() {
-    this.setState({ resultsPaneOpen: true });
+    this.setState({ resultsPanelOpen: true });
+  }
+  
+  toggleInfoPanel() {
+    this.setState({ infoPanelOpen: !this.state.infoPanelOpen });
+  }
+  toggleResultsPanel() {
+    this.setState({ resultsPanelOpen: !this.state.resultsPanelOpen });
   }
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2412,7 +2442,7 @@ class App extends React.Component {
         this.startLogging();
         //set state to prevent users changing the IUCN category drop down while processing is happening        
         this.setState({preprocessingProtectedAreas: true });
-        ws = new WebSocket(MARXAN_ENDPOINT_WSS + "preprocessProtectedAreas?user=" + this.state.user + "&project=" + this.state.project + "&planning_grid_name=" + this.state.metadata.PLANNING_UNIT_NAME);
+        ws = new WebSocket(MARXAN_ENDPOINT_WSS + "preprocessProtectedAreas?user=" + this.state.owner + "&project=" + this.state.project + "&planning_grid_name=" + this.state.metadata.PLANNING_UNIT_NAME);
         ws.onmessage = function (evt) {
           let response = JSON.parse(evt.data);
           switch (response.status) {
@@ -2464,7 +2494,7 @@ class App extends React.Component {
       return new Promise(function(resolve, reject) {
         //start the logging
         this.startLogging();
-        ws = new WebSocket(MARXAN_ENDPOINT_WSS + "preprocessPlanningUnits?user=" + this.state.user + "&project=" + this.state.project);
+        ws = new WebSocket(MARXAN_ENDPOINT_WSS + "preprocessPlanningUnits?user=" + this.state.owner + "&project=" + this.state.project);
         ws.onmessage = function (evt) {
           let response = JSON.parse(evt.data);
           switch (response.status) {
@@ -2525,7 +2555,7 @@ class App extends React.Component {
     //clear any exists projects
     if (this.projects) this.deleteProjects();
     return new Promise(function(resolve, reject) {
-      jsonp(MARXAN_ENDPOINT_HTTPS + "createProjectGroup?user=" + this.state.user + "&project=" + this.state.project + "&copies=5&blmValues=" + this.state.blmValues.join(","), { timeout: TIMEOUT }).promise.then(function(response) {
+      jsonp(MARXAN_ENDPOINT_HTTPS + "createProjectGroup?user=" + this.state.owner + "&project=" + this.state.project + "&copies=5&blmValues=" + this.state.blmValues.join(","), { timeout: TIMEOUT }).promise.then(function(response) {
         if (!this.checkForErrors(response)) {
           //set the local variable for the projects
           this.projects = response.data;
@@ -2671,9 +2701,15 @@ class App extends React.Component {
             menuAnchor={this.state.menuAnchor}
             hideUserMenu={this.hideUserMenu.bind(this)} 
             openOptionsDialog={this.openOptionsDialog.bind(this)}
-            openUserDialog={this.openUserDialog.bind(this)}
-            openAboutDialog={this.openAboutDialog.bind(this)}
+            openProfileDialog={this.openProfileDialog.bind(this)}
             logout={this.logout.bind(this)}
+            userRole={this.state.userData.ROLE}
+          />
+          <HelpMenu 
+            open={this.state.helpMenuOpen} 
+            menuAnchor={this.state.menuAnchor}
+            hideHelpMenu={this.hideHelpMenu.bind(this)} 
+            openAboutDialog={this.openAboutDialog.bind(this)}
           />
           <OptionsDialog 
             open={this.state.optionsDialogOpen}
@@ -2686,10 +2722,10 @@ class App extends React.Component {
             basemaps={this.state.basemaps}
             basemap={this.state.basemap}
           />
-          <UserDialog 
-            open={this.state.userDialogOpen}
-            onOk={this.closeUserDialog.bind(this)}
-            onCancel={this.closeUserDialog.bind(this)}
+          <ProfileDialog 
+            open={this.state.profileDialogOpen}
+            onOk={this.closeProfileDialog.bind(this)}
+            onCancel={this.closeProfileDialog.bind(this)}
             userData={this.state.userData}
             updateUser={this.updateUser.bind(this)}
           />
@@ -2699,8 +2735,7 @@ class App extends React.Component {
             onCancel={this.closeAboutDialog.bind(this)}
           />
           <InfoPanel
-            user={this.state.user}
-            loggedIn={this.state.loggedIn}
+            open={this.state.infoPanelOpen}
             activeTab={this.state.activeTab}
             project={this.state.project}
             metadata={this.state.metadata}
@@ -2715,8 +2750,6 @@ class App extends React.Component {
             startEditingDescription={this.startEditingDescription.bind(this)}
             editingProjectName={this.state.editingProjectName}
             editingDescription={this.state.editingDescription}
-            showUserMenu={this.showUserMenu.bind(this)}
-            openProjectsDialog={this.openProjectsDialog.bind(this)}
             features={this.state.projectFeatures}
             project_tab_active={this.project_tab_active.bind(this)}
             features_tab_active={this.features_tab_active.bind(this)}
@@ -2730,9 +2763,10 @@ class App extends React.Component {
             openFeaturesDialog={this.openFeaturesDialog.bind(this)}
             changeIucnCategory={this.changeIucnCategory.bind(this)}
             updateFeature={this.updateFeature.bind(this)}
+            userRole={this.state.userData.ROLE}
           />
           <ResultsPane
-            open={this.state.resultsPaneOpen && this.state.loggedIn}
+            open={this.state.resultsPanelOpen}
             running={this.state.running} 
             dataAvailable={this.state.dataAvailable} 
             solutions={this.state.solutions}
@@ -2745,6 +2779,7 @@ class App extends React.Component {
             legend_tab_active={this.legend_tab_active.bind(this)}
             solutions_tab_active={this.solutions_tab_active.bind(this)}
             log_tab_active={this.log_tab_active.bind(this)}
+            owner={this.state.owner}
           />
           <FeatureInfoDialog
             open={this.state.openInfoDialogOpen}
@@ -2753,6 +2788,7 @@ class App extends React.Component {
             feature={this.state.currentFeature}
             updateFeature={this.updateFeature.bind(this)}
             FEATURE_PROPERTIES={FEATURE_PROPERTIES}
+            userRole={this.state.userData.ROLE}
           />
           <Popup
             active_pu={this.state.active_pu} 
@@ -2766,11 +2802,15 @@ class App extends React.Component {
             loadingProject={this.state.loadingProject}
             projects={this.state.projects}
             project={this.state.project}
+            oldVersion={this.state.metadata.OLDVERSION}
             deleteProject={this.deleteProject.bind(this)}
             loadProject={this.loadProject.bind(this)}
             cloneProject={this.cloneProject.bind(this)}
             openNewProjectDialog={this.openNewProjectDialog.bind(this)}
             openImportWizard={this.openImportWizard.bind(this)}
+            unauthorisedMethods={this.state.unauthorisedMethods}
+            userRole={this.state.userData.ROLE}
+            getAllFeatures={this.getAllFeatures.bind(this)}
           />
           <NewProjectDialog
             open={this.state.newProjectDialogOpen}
@@ -2810,7 +2850,7 @@ class App extends React.Component {
             unselectItem={this.unselectItem.bind(this)}
             selectAll={this.selectAll.bind(this)}
             clearAll={this.clearAll.bind(this)}
-            manageOwnState={false}
+            userRole={this.state.userData.ROLE}
           />
           <NewFeatureDialog
             open={this.state.NewFeatureDialogOpen} 
@@ -2840,6 +2880,7 @@ class App extends React.Component {
             updatingRunParameters={this.state.updatingRunParameters}
             runParams={this.state.runParams}
             showClumpingDialog={this.showClumpingDialog.bind(this)}
+            userRole={this.state.userData.ROLE}
           />
           <FilesDialog
             open={this.state.filesDialogOpen}
@@ -2902,25 +2943,28 @@ class App extends React.Component {
             contentStyle={{maxWidth:'800px !important'}}
             bodyStyle={{maxWidth:'800px !important'}}
           />
-          <Popover open={this.state.featureMenuOpen} anchorEl={this.state.menuAnchor} onRequestClose={this.closeFeatureMenu.bind(this)}>
-            <Menu style={{width:'285px'}}>
+          <Popover open={this.state.featureMenuOpen} anchorEl={this.state.menuAnchor} onRequestClose={this.closeFeatureMenu.bind(this)} >
+            <Menu style={{width:'285px'}} onMouseLeave={this.closeFeatureMenu.bind(this)}>
               <MenuItemWithButton leftIcon={<Properties style={{margin: '1px'}}/>} onClick={this.openInfoDialog.bind(this)}>Properties</MenuItemWithButton>
-              <MenuItemWithButton leftIcon={<RemoveFromProject style={{margin: '1px'}}/>} style={{display: (this.state.currentFeature.old_version) ? 'none' : 'block'}} onClick={this.removeFromProject.bind(this, this.state.currentFeature)}>Remove from project</MenuItemWithButton>
+              <MenuItemWithButton leftIcon={<RemoveFromProject style={{margin: '1px'}}/>} style={{display: ((this.state.currentFeature.old_version)||(this.state.userData.ROLE === "ReadOnly")) ? 'none' : 'block'}} onClick={this.removeFromProject.bind(this, this.state.currentFeature)}>Remove from project</MenuItemWithButton>
               <MenuItemWithButton leftIcon={(this.state.currentFeature.feature_layer_loaded) ? <RemoveFromMap style={{margin: '1px'}}/> : <AddToMap style={{margin: '1px'}}/>} style={{display: (this.state.currentFeature.tilesetid) ? 'block' : 'none'}} onClick={this.toggleFeatureLayer.bind(this, this.state.currentFeature)}>{(this.state.currentFeature.feature_layer_loaded) ? "Remove from map" : "Add to map"}</MenuItemWithButton>
               <MenuItemWithButton leftIcon={(this.state.puvsprLayerText === HIDE_PUVSPR_LAYER_TEXT) ? <RemoveFromMap style={{margin: '1px'}}/> : <AddToMap style={{margin: '1px'}}/>} onClick={this.toggleFeaturePuvsprLayer.bind(this, this.state.currentFeature)} disabled={!(this.state.currentFeature.preprocessed && this.state.currentFeature.occurs_in_planning_grid)}>{this.state.puvsprLayerText}</MenuItemWithButton>
               <MenuItemWithButton leftIcon={<ZoomIn style={{margin: '1px'}}/>} style={{display: (this.state.currentFeature.extent) ? 'block' : 'none'}} onClick={this.zoomToFeature.bind(this, this.state.currentFeature)}>Zoom to feature extent</MenuItemWithButton>
-              <MenuItemWithButton leftIcon={<Preprocess style={{margin: '1px'}}/>} style={{display: (this.state.currentFeature.old_version) ? 'none' : 'block'}} onClick={this.preprocessSingleFeature.bind(this, this.state.currentFeature)} disabled={this.state.currentFeature.preprocessed}>Pre-process</MenuItemWithButton>
+              <MenuItemWithButton leftIcon={<Preprocess style={{margin: '1px'}}/>} style={{display: ((this.state.currentFeature.old_version)||(this.state.userData.ROLE === "ReadOnly")) ? 'none' : 'block'}} onClick={this.preprocessSingleFeature.bind(this, this.state.currentFeature)} disabled={this.state.currentFeature.preprocessed}>Pre-process</MenuItemWithButton>
             </Menu>
           </Popover>   
-          <div style={{position: 'absolute', display: this.state.resultsPaneOpen ? 'none' : 'block', backgroundColor: 'rgb(0, 188, 212)', right: '0px', top: '20px', width: '20px', borderRadius: '2px', height: '88px',boxShadow:'rgba(0, 0, 0, 0.16) 0px 3px 10px, rgba(0, 0, 0, 0.23) 0px 3px 10px'}} title={"Show results"}>
-            <FlatButton
-              onClick={this.showResults.bind(this)}
-              primary={true}
-              style={{minWidth:'24px',marginTop:'6px'}}
-              title={"Show results"}
-              icon={<ArrowBack color={white}/>}
-            />
-          </div>
+          <AppBar
+            open={this.state.loggedIn}
+            user={this.state.user}
+            infoPanelOpen={this.state.infoPanelOpen}
+            resultsPanelOpen={this.state.resultsPanelOpen}
+            openProjectsDialog={this.openProjectsDialog.bind(this)}
+            openFeaturesDialog={this.openFeaturesDialog.bind(this)}
+            toggleInfoPanel={this.toggleInfoPanel.bind(this)}
+            toggleResultsPanel={this.toggleResultsPanel.bind(this)}
+            showUserMenu={this.showUserMenu.bind(this)}
+            showHelpMenu={this.showHelpMenu.bind(this)}
+          />
         </React.Fragment>
       </MuiThemeProvider>
     );

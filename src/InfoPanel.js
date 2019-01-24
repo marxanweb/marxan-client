@@ -2,16 +2,12 @@ import React from 'react';
 import 'react-table/react-table.css';
 import Paper from 'material-ui/Paper';
 import { Tabs, Tab } from 'material-ui/Tabs';
-import IconButton from 'material-ui/IconButton';
 import RaisedButton from 'material-ui/RaisedButton';
 import SelectField from 'material-ui/SelectField';
 import SelectFeatures from './newProjectSteps/SelectFeatures';
 import MenuItem from 'material-ui/MenuItem';
 import Texture from 'material-ui/svg-icons/image/texture';
 import Settings from 'material-ui/svg-icons/action/settings';
-import Person from 'material-ui/svg-icons/social/person';
-import Projects from 'material-ui/svg-icons/action/home';
-import { white } from 'material-ui/styles/colors';
 
 class InfoPanel extends React.Component {
   constructor(props) {
@@ -77,15 +73,12 @@ class InfoPanel extends React.Component {
   
   render() {
     return (
-      <React.Fragment>
-        <div className={'infoPanel'} style={{display: this.props.loggedIn ? 'block' : 'none'}}>
+      <React.Fragment> 
+        <div className={'infoPanel'} style={{display: this.props.open ? 'block' : 'none'}}>
           <Paper zDepth={2} className="InfoPanelPaper">
             <Paper zDepth={2} className="titleBar">
-              <span onClick={this.startEditingProjectName.bind(this)} className={'projectNameEditBox'} title="Click to rename the project">{this.props.project}</span>
-              <input id="projectName" style={{position:'absolute', 'display': (this.props.editingProjectName) ? 'block' : 'none',left:'39px',top:'32px',width:'330px', border:'1px lightgray solid'}} className={'projectNameEditBox'} onKeyPress={this.onKeyPress.bind(this)} onBlur={this.onBlur.bind(this)}/>
-              <IconButton title={"Logged in as " + this.props.user} onClick={this.props.showUserMenu} className="iconButton" style={{position: 'absolute',right: '40px'}}>
-                <Person color={white}/>
-              </IconButton>
+              {(this.props.userRole === "ReadOnly") ? <span className={'projectNameEditBox'} title={this.props.project + " (Read-only)"}>{this.props.project} (Read-only)</span> : <span onClick={this.startEditingProjectName.bind(this)} className={'projectNameEditBox'} title="Click to rename the project">{this.props.project}</span>}
+              {(this.props.userRole === "ReadOnly") ? null : <input id="projectName" style={{position:'absolute', 'display': (this.props.editingProjectName) ? 'block' : 'none',left:'39px',top:'32px',width:'365px', border:'1px lightgray solid'}} className={'projectNameEditBox'} onKeyPress={this.onKeyPress.bind(this)} onBlur={this.onBlur.bind(this)}/>}
             </Paper>
             <Tabs contentContainerStyle={{'margin':'20px'}} className={'tabs'} value={this.props.activeTab}>
               <Tab label="Project" onActive={this.props.project_tab_active} value="project">
@@ -107,6 +100,7 @@ class InfoPanel extends React.Component {
                   updateFeature={this.props.updateFeature}
                   leftmargin={'10px'}
                   simple={false}
+                  userRole={this.props.userRole}
                 />
               </Tab>
               <Tab label="Planning units" onActive={this.props.pu_tab_active} value="planning_units">
@@ -118,7 +112,7 @@ class InfoPanel extends React.Component {
                     floatingLabelText={'Include'} 
                     floatingLabelFixed={true} 
                     underlineShow={false}
-                    disabled={this.props.preprocessingProtectedAreas}
+                    disabled={(this.props.preprocessingProtectedAreas)||(this.props.userRole === "ReadOnly")}
                     menuItemStyle={{fontSize:'12px'}}
                     labelStyle={{fontSize:'12px'}} 
                     style={{marginTop:'-15px',width:'140px'}}
@@ -132,8 +126,8 @@ class InfoPanel extends React.Component {
                         style={{fontSize:'12px'}}
                         />;
                     })}
-                  />
-                  <div>
+                  /> 
+                  <div style={{display: (this.props.userRole === "ReadOnly") ? 'none' : 'block'}}>
                     <span className={'tabTitle'} style={{verticalAlign:'middle'}}>Click to {this.state.puEditing ? "save" : "change"} planning unit status</span>
                     <Texture  
                       title='Add/remove  planning units from analysis'
@@ -145,37 +139,32 @@ class InfoPanel extends React.Component {
               </Tab>
             </Tabs>     
             <Paper className={'lowerToolbar'}>
-                <IconButton title="Click to view all projects" onClick={this.props.openProjectsDialog.bind(this)} className="iconButton projectButton" style={{marginLeft:'3px'}}>
-                  <Projects />
-                </IconButton>
-                <div style={{position:'absolute', left:'226px',top:'569px'}}>
-                  <RaisedButton   
-                    icon={<Settings style={{height:'20px',width:'20px'}}/>} 
-                    title="Run Settings"
-                    onClick={this.props.showRunSettingsDialog} 
-                    style={{ marginLeft:'12px', marginRight:'4px',padding: '0px',minWidth: '30px',width: '24px',height: '24px'}}
-                    overlayStyle={{lineHeight:'24px',height:'24px'}}
-                    buttonStyle={{marginTop:'-7px',lineHeight:'24px',height:'24px'}} 
-                  />
-                  <RaisedButton 
-                    label="Stop" 
-                    title="Click to stop this project"  
-                    secondary={true} 
-                    className="projectsBtn" 
-                    style={{height:'24px'}}
-                    onClick={this.props.stopMarxan} 
-                    disabled={this.props.pid===0}  
-                  />  
-                  <RaisedButton 
-                    label="Run" 
-                    title="Click to run this project"  
-                    secondary={true} 
-                    className="projectsBtn" 
-                    style={{height:'24px'}}
-                    onClick={this.props.runMarxan} 
-                    disabled={!this.props.runnable || this.props.preprocessingFeature || this.props.running || (this.props.features.length === 0) || this.state.puEditing}  
-                  />  
-                </div>
+                <RaisedButton   
+                  icon={<Settings style={{height:'20px',width:'20px'}}/>} 
+                  title="Run Settings"
+                  onClick={this.props.showRunSettingsDialog} 
+                  style={{ marginLeft:'12px', marginRight:'4px',padding: '0px',minWidth: '30px',width: '24px',height: '24px'}}
+                  overlayStyle={{lineHeight:'24px',height:'24px'}}
+                  buttonStyle={{marginTop:'-7px',lineHeight:'24px',height:'24px'}} 
+                />
+                <RaisedButton 
+                  label="Stop" 
+                  title="Click to stop this project"  
+                  secondary={true} 
+                  className="projectsBtn" 
+                  style={{display: (this.props.userRole === "ReadOnly") ? 'none' : 'inline-block', height:'24px', marginLeft: '194px'}}
+                  onClick={this.props.stopMarxan} 
+                  disabled={this.props.pid===0}  
+                />  
+                <RaisedButton 
+                  label="Run" 
+                  title="Click to run this project"  
+                  secondary={true} 
+                  className="projectsBtn" 
+                  style={{display: (this.props.userRole === "ReadOnly") ? 'none' : 'inline-block', height:'24px'}}
+                  onClick={this.props.runMarxan} 
+                  disabled={!this.props.runnable || this.props.preprocessingFeature || this.props.running || (this.props.features.length === 0) || this.state.puEditing}  
+                />  
             </Paper>
           </Paper>
         </div>

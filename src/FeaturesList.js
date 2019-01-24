@@ -5,7 +5,7 @@ import { grey400 } from 'material-ui/styles/colors';
 import IconButton from 'material-ui/IconButton';
 import MoreVertIcon from 'material-ui/svg-icons/navigation/more-vert';
 import LinearGauge from './LinearGauge';
-
+ 
 class FeaturesList extends React.Component {
     iconClick(feature, evt){
         this.props.openFeatureMenu(evt, feature);
@@ -40,6 +40,7 @@ class FeaturesList extends React.Component {
                                   interestFeature={item}
                                   targetStatus={targetStatus}
                                   visible={(item.pu_area!==0)}
+                                  userRole={this.props.userRole}
                               /> 
                             }
                             primaryText={item.alias} 
