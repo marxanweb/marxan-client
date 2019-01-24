@@ -32,7 +32,7 @@ class ShapefileUpload extends React.Component {
         formData.append('filename', this.filename);
         formData.append('name', this.props.name);
         formData.append('description', this.props.description); 
-        post(url, formData, {withCredentials: true}).then((response) => this.finishedLoading(response));
+        post(url, formData, {withCredentials: this.props.SEND_CREDENTIALS}).then((response) => this.finishedLoading(response));
     }
 
     finishedLoading(response) {

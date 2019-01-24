@@ -73,7 +73,7 @@ class InfoPanel extends React.Component {
   
   render() {
     return (
-      <React.Fragment> 
+      <React.Fragment>  
         <div className={'infoPanel'} style={{display: this.props.open ? 'block' : 'none'}}>
           <Paper zDepth={2} className="InfoPanelPaper">
             <Paper zDepth={2} className="titleBar">
@@ -84,8 +84,8 @@ class InfoPanel extends React.Component {
               <Tab label="Project" onActive={this.props.project_tab_active} value="project">
                 <div>
                   <div className={'tabTitle'}>Description</div>
-                  <input id="descriptionEdit" style={{'display': (this.props.editingDescription) ? 'block' : 'none'}} className={'descriptionEditBox'} onKeyPress={this.onKeyPress.bind(this)} onBlur={this.onBlur.bind(this)}/>
-                  <div className={'description'} onClick={this.startEditingDescription.bind(this)} style={{'display': (!this.props.editingDescription) ? 'block' : 'none'}} title="Click to edit">{this.props.metadata.DESCRIPTION}</div>
+                  {(this.props.userRole === "ReadOnly") ? null : <input id="descriptionEdit" style={{'display': (this.props.editingDescription) ? 'block' : 'none'}} className={'descriptionEditBox'} onKeyPress={this.onKeyPress.bind(this)} onBlur={this.onBlur.bind(this)}/>}
+                  {(this.props.userRole === "ReadOnly") ? <div className={'description'} title={this.props.metadata.DESCRIPTION}>{this.props.metadata.DESCRIPTION}</div> : <div className={'description'} onClick={this.startEditingDescription.bind(this)} style={{'display': (!this.props.editingDescription) ? 'block' : 'none'}} title="Click to edit">{this.props.metadata.DESCRIPTION}</div>}
                   <div className={'tabTitle'}>Created</div>
                   <div className={'createDate'}>{this.props.metadata.CREATEDATE}</div>
                   <div className={'tabTitle'}>{(this.props.metadata.OLDVERSION) ? "Imported project" : ""}</div>

@@ -6,7 +6,7 @@ import IconButton from 'material-ui/IconButton';
 import MoreVertIcon from 'material-ui/svg-icons/navigation/more-vert';
 import LinearGauge from './LinearGauge';
  
-class FeaturesList extends React.Component {
+class FeaturesList extends React.Component { 
     iconClick(feature, evt){
         this.props.openFeatureMenu(evt, feature);
     }

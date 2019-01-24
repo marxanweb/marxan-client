@@ -1,6 +1,7 @@
 import React from 'react';
 import FontAwesome from 'react-fontawesome';
-import FileNew from 'material-ui/svg-icons/file/create-new-folder';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPlusCircle } from '@fortawesome/free-solid-svg-icons';
 import Import from 'material-ui/svg-icons/action/get-app';
 import Delete from 'material-ui/svg-icons/action/delete';
 import Clone from 'material-ui/svg-icons/content/content-copy';
@@ -67,6 +68,7 @@ class ProjectsDialog extends React.Component {
                     title="Projects"  
                     onOk={this.load.bind(this)}
                     onCancel={this.closeDialog.bind(this)}
+                    okDisabled={!this.state.selectedProject}
                     showCancelButton={true}
                     children={
                         <React.Fragment>
@@ -95,7 +97,7 @@ class ProjectsDialog extends React.Component {
                               <div id="projectsToolbar" style={{display: (this.props.userRole === "ReadOnly") ? 'none' : 'block'}}>
                                 <ToolbarButton 
                                     show={!this.props.unauthorisedMethods.includes("createProject")}
-                                    icon={<FileNew style={{height:'20px',width:'20px'}}/>} 
+                                    icon={<FontAwesomeIcon icon={faPlusCircle} />} 
                                     title="New project"
                                     onClick={this._new.bind(this)} 
                                     label={"New"}

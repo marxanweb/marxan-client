@@ -162,6 +162,8 @@ class App extends React.Component {
       dataBreaks: [],
       allFeatures: [], //all of the interest features in the metadata_interest_features table
       projectFeatures: [], //the features for the currently loaded project
+      selectedFeatureIds :[],
+      addingRemovingFeatures: false,
       costs: [],
       selectedCosts: [],
       iso3: '',
@@ -1966,42 +1968,19 @@ class App extends React.Component {
     }
   }
   
-  //gets all the features 
-  getAllFeatures(){
-    return new Promise(function(resolve, reject) {
-      jsonp(MARXAN_ENDPOINT_HTTPS + "getAllSpeciesData", { timeout: TIMEOUT }).promise.then(function(response){
-        if (!this.checkForErrors(response)) {
-          //set the allfeatures state
-          this.setState({allFeatures: response.data});
-          resolve();
-        } 
-      }.bind(this));
-    }.bind(this));
-  }
-
-  getInterestFeature(id) {
-    //load the interest feature from the marxan web database
-    jsonp(MARXAN_ENDPOINT_HTTPS + "getFeature?oid=" + id + "&format=json", { timeout: 10000 }).promise.then(function(response) {
-      if (!this.checkForErrors(response)) {
-        //add the required attributes to use it in Marxan Web
-        this.addFeatureAttributes(response.data[0]);
-        //update the allFeatures array
-        var featuresCopy = this.state.allFeatures;
-        featuresCopy.push(response.data[0]);
-        this.setState({allFeatures: featuresCopy});
-      }
-      else {}
-    }.bind(this));
-  }
-
   openNewFeatureDialog() {
     this.setState({ NewFeatureDialogOpen: true });
   }
   closeNewFeatureDialog() {
     this.setState({ NewFeatureDialogOpen: false });
   }
-  openFeaturesDialog() {
-    this.setState({ featuresDialogOpen: true });
+  openFeaturesDialog(showClearSelectAll) {
+    this.setState({ featuresDialogOpen: true, addingRemovingFeatures: showClearSelectAll});
+    if (showClearSelectAll){
+      this.getSelectedFeatureIds();
+    }else{
+      this.clearAllFeatures();
+    }
   }
   closeFeaturesDialog() {
     // this.updateSpecFile().then(function(response) {
@@ -2026,6 +2005,117 @@ class App extends React.Component {
   resetNewConservationFeature() {
     this.setState({ featureDatasetName: '', featureDatasetDescription: '', featureDatasetFilename: '' });
   }
+
+  //used by the import wizard to import a users zipped shapefile as the planning units
+  importZippedShapefileAsPu(zipname, alias, description) {
+    //the zipped shapefile has been uploaded to the MARXAN folder - it will be imported to PostGIS and a record will be entered in the metadata_planning_units table
+    return jsonp(MARXAN_ENDPOINT_HTTPS + "importPlanningUnitGrid?filename=" + zipname + "&name=" + alias + "&description=" + description, { timeout: TIMEOUT }).promise;
+  }
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  // MANAGING INTEREST FEATURES SECTION
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  //updates the properties of a feature and then updates the features state
+  updateFeature(feature, newProps){
+    let features = this.state.allFeatures;
+    //get the position of the feature 
+    var index = features.findIndex(function(element) { return element.id === feature.id; });
+    if (index!==-1) {
+      Object.assign(features[index], newProps);
+      //update allFeatures and projectFeatures with the new value
+      this.setFeaturesState(features);
+    }
+  }
+
+  //gets the ids of the selected features
+  getSelectedFeatureIds(){
+    let ids = [];
+    this.state.allFeatures.forEach((feature) => {
+      if (feature.selected) ids.push(feature.id);
+    });
+    this.setState({selectedFeatureIds: ids});
+  }
+
+  //when a user clicks a feature in the FeaturesDialog
+  clickFeature(feature){
+    let ids = this.state.selectedFeatureIds;
+    if (ids.includes(feature.id)){
+      //remove the feature if it is already selected
+      this.removeFeature(feature);
+    }else{
+      //add the feautre to the selected feature array
+      this.addFeature(feature);
+    }
+  }
+  
+  //removes a feature from the selectedFeatureIds array
+  removeFeature(feature){
+    let ids = this.state.selectedFeatureIds;
+    //remove the feature  - this requires a callback on setState otherwise the state is not updated before updateSelectedFeatures is called
+    ids = ids.filter(function(value, index, arr){return value !== feature.id});
+    return new Promise(function(resolve, reject) {
+      this.setState({ selectedFeatureIds: ids }, function(){
+        resolve();  
+      });
+    }.bind(this));
+  }
+  
+  //adds a feature to the selectedFeatureIds array
+  addFeature(feature){
+    let ids = this.state.selectedFeatureIds;
+    //add the feautre to the selected feature array
+    ids.push(feature.id);
+    this.setState({ selectedFeatureIds: ids });
+  }
+  
+  //selects all the features
+  selectAllFeatures() {
+    let ids = [];
+    this.state.allFeatures.forEach((feature) => {
+      ids.push(feature.id);
+    });
+    this.setState({selectedFeatureIds: ids});
+  }
+
+  //clears all the Conservation features
+  clearAllFeatures() {
+    this.setState({selectedFeatureIds: []});
+  }
+
+  //updates the allFeatures to set the various properties based on which features have been selected in the FeaturesDialog
+  updateSelectedFeatures(){
+    let allFeatures = this.state.allFeatures;
+    allFeatures.forEach((feature) => {
+      if (this.state.selectedFeatureIds.includes(feature.id)) {
+        Object.assign(feature, {selected: true, target_value: 17});
+      }else{
+        if (this.state.metadata.OLDVERSION){
+          //for imported projects we cannot preprocess them any longer as we dont have access to the features spatial data - therefore dont set preprocessed to false or any of the other stats fields
+          Object.assign(feature, {selected: false});
+        }else{
+          Object.assign(feature, {selected: false, preprocessed: false, protected_area: -1, pu_area: -1, pu_count: -1, target_area: -1, occurs_in_planning_grid: false});
+        }
+      }
+    }, this);
+    this.setFeaturesState(allFeatures);
+    this.closeFeaturesDialog();
+  }
+
+  setFeaturesState(newFeatures){
+      //update allFeatures and projectFeatures with the new value
+      this.setState({ allFeatures: newFeatures, projectFeatures: newFeatures.filter(function(item) { return item.selected }) });
+  }
+  
+  //unselects a single Conservation feature
+  unselectItem(feature) {
+    //remove it from the selectedFeatureIds array
+    this.removeFeature(feature).then(function(){
+      //refresh the selected features
+      this.updateSelectedFeatures();
+    }.bind(this));
+  }
+
   createNewInterestFeature() {
     //the zipped shapefile has been uploaded to the MARXAN folder and the metadata are in the featureDatasetName, featureDatasetDescription and featureDatasetFilename state variables - 
     jsonp(MARXAN_ENDPOINT_HTTPS + "importFeature?filename=" + this.state.featureDatasetFilename + "&name=" + this.state.featureDatasetName + "&description=" + this.state.featureDatasetDescription, { timeout: TIMEOUT }).promise.then(function(response) {
@@ -2041,84 +2131,62 @@ class App extends React.Component {
     }.bind(this));
   }
 
-  deleteInterestFeature(feature) {
-    jsonp(MARXAN_ENDPOINT_HTTPS + "deleteInterestFeature?interest_feature_name=" + feature.feature_class_name, { timeout: TIMEOUT }).promise.then(function(response) {
+  getInterestFeature(id) {
+    //load the interest feature from the marxan web database
+    jsonp(MARXAN_ENDPOINT_HTTPS + "getFeature?oid=" + id + "&format=json", { timeout: 10000 }).promise.then(function(response) {
       if (!this.checkForErrors(response)) {
-        this.setState({ snackbarOpen: true, snackbarMessage: "Conservation feature deleted" });
-        this.getInterestFeatures();
+        //add the required attributes to use it in Marxan Web
+        this.addFeatureAttributes(response.data[0]);
+        //update the allFeatures array
+        this.addNewFeature(response.data[0]);
+      }
+      else {}
+    }.bind(this));
+  }
+
+  //adds a new feature to the allFeatures array
+  addNewFeature(feature){
+    //update the allFeatures array
+    var featuresCopy = this.state.allFeatures;
+    featuresCopy.push(feature);
+    this.setState({allFeatures: featuresCopy});
+  }
+  
+  deleteFeature(feature) {
+    jsonp(MARXAN_ENDPOINT_HTTPS + "deleteFeature?feature_name=" + feature.feature_class_name, { timeout: TIMEOUT }).promise.then(function(response) {
+      if (!this.checkForErrors(response)) {
+        this.setState({ snackbarOpen: true, snackbarMessage: "Feature deleted" });
+        //remove it from the current project if necessary
+        this.removeFeature(feature);
+        //remove it from the allFeatures array
+        this.removeFeatureFromAllFeatures(feature);
       }
       else {
-        this.setState({ snackbarOpen: true, snackbarMessage: "Conservation feature not deleted" });
+        this.setState({ snackbarOpen: true, snackbarMessage: "Feature not deleted" });
       }
     }.bind(this));
   }
 
-  //used by the import wizard to import a users zipped shapefile as the planning units
-  importZippedShapefileAsPu(zipname, alias, description) {
-    //the zipped shapefile has been uploaded to the MARXAN folder - it will be imported to PostGIS and a record will be entered in the metadata_planning_units table
-    return jsonp(MARXAN_ENDPOINT_HTTPS + "importPlanningUnitGrid?filename=" + zipname + "&name=" + alias + "&description=" + description, { timeout: TIMEOUT }).promise;
-  }
-
-  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  // MANAGING INTEREST FEATURES SECTION
-  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-  updateFeature(feature, newProps){
-    let features = this.state.allFeatures;
-    //get the position of the feature 
-    var index = features.findIndex(function(element) { return element.id === feature.id; });
-    if (index!==-1) {
-      Object.assign(features[index], newProps);
-      //update allFeatures and projectFeatures with the new value
-      this.setFeaturesState(features);
-    }
-  }
-  setFeaturesState(newFeatures){
-      //update allFeatures and projectFeatures with the new value
-      this.setState({ allFeatures: newFeatures, projectFeatures: newFeatures.filter(function(item) { return item.selected }) });
+  //removes a feature from the allFeatures array
+  removeFeatureFromAllFeatures(feature){
+    let featuresCopy = this.state.allFeatures;
+    //remove the feature 
+    featuresCopy = featuresCopy.filter(function(item){return item.id !== feature.id});
+    //update the allFeatures state   
+    this.setState({allFeatures: featuresCopy});
   }
   
-  //selects a single Conservation feature
-  selectItem(feature) {
-    this.updateFeature(feature,{selected: true, target_value: 17});
-  }
-
-  //unselects a single Conservation feature
-  unselectItem(feature) {
-    if (this.state.metadata.OLDVERSION){
-      //for imported projects we cannot preprocess them any longer as we dont have access to the features spatial data - therefore dont set preprocessed to false or any of the other stats fields
-      this.updateFeature(feature,{selected: false});
-    }else{
-      this.updateFeature(feature,{selected: false, preprocessed: false, protected_area: -1, pu_area: -1, pu_count: -1, target_area: -1, occurs_in_planning_grid: false});
-    }
-  }
-
-  //select or clear all features
-  selectClearAll(select){
-    var features = this.state.allFeatures;
-    features.forEach((feature) => {
-      if (select){
-        Object.assign(feature, {selected: true, target_value: 17});
-      }else{
-        if (this.state.metadata.OLDVERSION){
-          //for imported projects we cannot preprocess them any longer as we dont have access to the features spatial data - therefore dont set preprocessed to false or any of the other stats fields
-          Object.assign(feature, {selected: false});
-        }else{
-          Object.assign(feature, {selected: false, preprocessed: false, protected_area: -1, pu_area: -1, pu_count: -1, target_area: -1, occurs_in_planning_grid: false});
-        }
-      }
-    });
-    this.setFeaturesState(features);
-  }
-
-  //selects all the Conservation features
-  selectAll() {
-    this.selectClearAll(true);
-  }
-
-  //clears all the Conservation features
-  clearAll() {
-    this.selectClearAll(false);
+  //gets all the features 
+  getAllFeatures(){
+    return new Promise(function(resolve, reject) {
+      jsonp(MARXAN_ENDPOINT_HTTPS + "getAllSpeciesData", { timeout: TIMEOUT }).promise.then(function(response){
+        if (!this.checkForErrors(response)) {
+          //set the allfeatures state
+          this.setState({allFeatures: response.data});
+          resolve();
+        } 
+      }.bind(this));
+    }.bind(this));
   }
 
   openFeatureMenu(evt, feature){
@@ -2839,18 +2907,19 @@ class App extends React.Component {
           />
           <FeaturesDialog
             open={this.state.featuresDialogOpen}
-            onOk={this.closeFeaturesDialog.bind(this)}
+            onOk={this.updateSelectedFeatures.bind(this)}
             onCancel={this.closeFeaturesDialog.bind(this)}
             metadata={this.state.metadata}
             allFeatures={this.state.allFeatures}
             projectFeatures={this.state.projectFeatures}
-            deleteInterestFeature={this.deleteInterestFeature.bind(this)}
+            deleteFeature={this.deleteFeature.bind(this)}
             openNewFeatureDialog={this.openNewFeatureDialog.bind(this)}
-            selectItem={this.selectItem.bind(this)}
-            unselectItem={this.unselectItem.bind(this)}
-            selectAll={this.selectAll.bind(this)}
-            clearAll={this.clearAll.bind(this)}
+            selectAllFeatures={this.selectAllFeatures.bind(this)}
+            clearAllFeatures={this.clearAllFeatures.bind(this)}
             userRole={this.state.userData.ROLE}
+            clickFeature={this.clickFeature.bind(this)}
+            addingRemovingFeatures={this.state.addingRemovingFeatures}
+            selectedFeatureIds={this.state.selectedFeatureIds}
           />
           <NewFeatureDialog
             open={this.state.NewFeatureDialogOpen} 
@@ -2864,6 +2933,7 @@ class App extends React.Component {
             createNewInterestFeature={this.createNewInterestFeature.bind(this)}
             resetNewConservationFeature={this.resetNewConservationFeature.bind(this)}
             MARXAN_ENDPOINT_HTTPS={MARXAN_ENDPOINT_HTTPS}
+            SEND_CREDENTIALS={SEND_CREDENTIALS}
           />
           <CostsDialog
             open={this.state.CostsDialogOpen}
