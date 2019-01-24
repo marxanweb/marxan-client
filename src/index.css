@@ -264,34 +264,10 @@ table input {
   margin-bottom: 6px;
 }
 
-.projectSpinner {
-  position: absolute;
-  top: 18px;
-  margin-left: 114px;
-}
-
-.clumpsSpinner {
-  position: absolute;
-  top: 18px;
-  margin-left: 136px;
-}
-
-.optionsSpinner {
-  position: absolute;
-  top: 18px;
-  margin-left: 90px;
-}
-
 .importSpinner {
   position: absolute;
   top: 18px;
   margin-left: 127px;
-}
-
-.runParametersSpinner {
-  position: absolute;
-  top: 18px;
-  margin-left: 166px;
 }
 
 .loginSpinner {

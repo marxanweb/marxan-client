@@ -158,6 +158,7 @@ class App extends React.Component {
       featureDatasetDescription: '',
       featureDatasetFilename: '',
       creatingNewPlanningGrid: false,
+      loadingFeatures: false,
       savingOptions: false,
       dataBreaks: [],
       allFeatures: [], //all of the interest features in the metadata_interest_features table
@@ -537,7 +538,7 @@ class App extends React.Component {
   //initialises the interest features based on the current project
   initialiseInterestFeatures(oldVersion, projectFeatures) {
     //if the database is from an old version of marxan then the interest features can only come from the list of features in the current project
-    let features = (oldVersion) ? projectFeatures : this.state.allFeatures;
+    let features = (oldVersion) ? JSON.parse(JSON.stringify(projectFeatures)) : this.state.allFeatures; //make a copy of the projectFeatures
     //get a list of the ids for the features that are in this project
     var ids = projectFeatures.map(function(item) {
       return item.id;
@@ -562,6 +563,9 @@ class App extends React.Component {
       }
       return item;
     }, this);
+    //get the selected feature ids
+    this.getSelectedFeatureIds()
+    //set the state
     this.setState({ allFeatures: outFeatures, projectFeatures: outFeatures.filter(function(item) { return item.selected }) });
   }
 
@@ -2088,7 +2092,7 @@ class App extends React.Component {
     let allFeatures = this.state.allFeatures;
     allFeatures.forEach((feature) => {
       if (this.state.selectedFeatureIds.includes(feature.id)) {
-        Object.assign(feature, {selected: true, target_value: 17});
+        Object.assign(feature, {selected: true});
       }else{
         if (this.state.metadata.OLDVERSION){
           //for imported projects we cannot preprocess them any longer as we dont have access to the features spatial data - therefore dont set preprocessed to false or any of the other stats fields
@@ -2178,11 +2182,12 @@ class App extends React.Component {
   
   //gets all the features 
   getAllFeatures(){
+    this.setState({loadingFeatures: true});
     return new Promise(function(resolve, reject) {
       jsonp(MARXAN_ENDPOINT_HTTPS + "getAllSpeciesData", { timeout: TIMEOUT }).promise.then(function(response){
         if (!this.checkForErrors(response)) {
           //set the allfeatures state
-          this.setState({allFeatures: response.data});
+          this.setState({allFeatures: response.data, loadingFeatures: false});
           resolve();
         } 
       }.bind(this));
@@ -2909,6 +2914,7 @@ class App extends React.Component {
             open={this.state.featuresDialogOpen}
             onOk={this.updateSelectedFeatures.bind(this)}
             onCancel={this.closeFeaturesDialog.bind(this)}
+            loadingFeatures={this.state.loadingFeatures}
             metadata={this.state.metadata}
             allFeatures={this.state.allFeatures}
             projectFeatures={this.state.projectFeatures}

@@ -28,7 +28,8 @@ class OptionsDialog extends React.Component {
     render() {
         return (
             <MarxanDialog 
-                {...this.props}  
+                {...this.props} 
+                showSpinner={this.props.savingOptions}
                 contentWidth={370}
                 offsetY={80}
                 showCancelButton={true}
@@ -56,7 +57,6 @@ class OptionsDialog extends React.Component {
                             })}
                         />
                         <Checkbox label="Show planning unit popup" defaultChecked={this.props.userData.SHOWPOPUP} onCheck={(e, isInputChecked)=>this.setOption("SHOWPOPUP",isInputChecked)} style={{fontSize:'13px'}}/>
-                        <div id="spinner"><FontAwesome spin name='sync' style={{'display': (this.props.savingOptions ? 'inline-block' : 'none')}} className={'optionsSpinner'}/></div>
                     </div>
                 } 
             />

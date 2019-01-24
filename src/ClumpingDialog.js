@@ -2,12 +2,11 @@ import React from 'react';
 import MarxanDialog from './MarxanDialog';
 import RaisedButton from 'material-ui/RaisedButton';
 import MapContainer from './MapContainer.js';
-import FontAwesome from 'react-fontawesome';
 import TextField from 'material-ui/TextField';
 
 class ClumpingDialog extends React.Component {
 
-  parseBlmValue(value){
+  parseBlmValue(value){ 
     if (!isNaN(parseFloat(value)) && isFinite(value)) {
       return value; 
     }else{
@@ -30,6 +29,7 @@ class ClumpingDialog extends React.Component {
     return ( 
       <MarxanDialog 
         {...this.props} 
+        showSpinner={this.props.clumpingRunning}
         contentWidth={680}
         offsetX={80}
         offsetY={80}
@@ -47,7 +47,6 @@ class ClumpingDialog extends React.Component {
         title="Clumping" 
         children={
           <div>
-            <div id="spinner"><FontAwesome spin name='sync' style={{'display': ((this.props.clumpingRunning) ? 'inline-block' : 'none')}} className={'clumpsSpinner'}/></div>
             <MapContainer disabled={this.props.clumpingRunning} selectBlm={this.selectBlm.bind(this)} tileset={this.props.tileset} RESULTS_LAYER_NAME={this.props.RESULTS_LAYER_NAME} paintProperty={this.props.map0_paintProperty} blmValue={this.parseBlmValue(this.props.blmValues[0])} mapCentre={this.props.mapCentre} mapZoom={this.props.mapZoom}/>
             <MapContainer disabled={this.props.clumpingRunning} selectBlm={this.selectBlm.bind(this)} tileset={this.props.tileset} RESULTS_LAYER_NAME={this.props.RESULTS_LAYER_NAME} paintProperty={this.props.map1_paintProperty} blmValue={this.parseBlmValue(this.props.blmValues[1])} mapCentre={this.props.mapCentre} mapZoom={this.props.mapZoom}/>
             <MapContainer disabled={this.props.clumpingRunning} selectBlm={this.selectBlm.bind(this)} tileset={this.props.tileset} RESULTS_LAYER_NAME={this.props.RESULTS_LAYER_NAME} paintProperty={this.props.map2_paintProperty} blmValue={this.parseBlmValue(this.props.blmValues[2])} mapCentre={this.props.mapCentre} mapZoom={this.props.mapZoom}/>

@@ -54,6 +54,12 @@ class RunSettingsDialog extends React.Component {
     render() {
         return (
             <MarxanDialog 
+                {...this.props} 
+                contentWidth={400}
+                offsetX={80}
+                offsetY={260}
+                onOk={this.updateRunParams.bind(this)}
+                showSpinner={this.props.updatingRunParameters}
                 title="Run settings" 
                 children={
                     <div style={{height:'275px'}}>
@@ -77,15 +83,9 @@ class RunSettingsDialog extends React.Component {
                                Cell: this.renderEditable
                             }]}
                           />
-                        <div id="spinner"><FontAwesome spin name='sync' style={{'display': (this.props.updatingRunParameters ? 'inline-block' : 'none')}} className={'runParametersSpinner'}/></div>
                     </div>
                 } 
-                {...this.props} 
-                contentWidth={400}
-                offsetX={80}
-                offsetY={260}
-                onOk={this.updateRunParams.bind(this)}
-            />
+           />
         );
     }
 }

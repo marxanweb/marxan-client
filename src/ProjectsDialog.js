@@ -1,5 +1,4 @@
 import React from 'react';
-import FontAwesome from 'react-fontawesome';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlusCircle } from '@fortawesome/free-solid-svg-icons';
 import Import from 'material-ui/svg-icons/action/get-app';
@@ -62,14 +61,15 @@ class ProjectsDialog extends React.Component {
             return (
                 <MarxanDialog 
                     {...this.props} 
+                    showSpinner={(this.props.loadingProjects || this.props.loadingProject)}
                     okLabel={(this.props.userRole === "ReadOnly") ? "Open (Read-only)" : "Open"}
-                    autoDetectWindowHeight={false}
-                    bodyStyle={{ padding:'0px 24px 0px 24px'}}
-                    title="Projects"  
                     onOk={this.load.bind(this)}
                     onCancel={this.closeDialog.bind(this)}
                     okDisabled={!this.state.selectedProject}
                     showCancelButton={true}
+                    autoDetectWindowHeight={false}
+                    bodyStyle={{ padding:'0px 24px 0px 24px'}}
+                    title="Projects"  
                     children={
                         <React.Fragment>
                             <div style={{marginBottom:'5px'}}>There are a total of {this.props.projects.length} projects:</div>
@@ -126,7 +126,6 @@ class ProjectsDialog extends React.Component {
                                     label={"Delete"}
                                 />
                               </div>
-                            <div id="spinner"><FontAwesome spin name='sync' style={{'display': (this.props.loadingProjects || this.props.loadingProject ? 'inline-block' : 'none')}} className={'projectSpinner'}/></div>
                         </React.Fragment>
                     } 
                 />
