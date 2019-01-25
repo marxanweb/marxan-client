@@ -1,9 +1,9 @@
 import React from 'react';
 import RaisedButton from 'material-ui/RaisedButton';
-import Metadata from './newProjectSteps/Metadata';
-import PlanningUnits from './newProjectSteps/PlanningUnits';
-import SelectFeatures from './newProjectSteps/SelectFeatures';
-import SelectCostFeatures from './newProjectSteps/SelectCostFeatures';
+import Metadata from './Metadata';
+import PlanningUnits from './PlanningUnits';
+import SelectFeatures from './SelectFeatures';
+import SelectCostFeatures from './SelectCostFeatures';
 import MarxanDialog from './MarxanDialog';
 import FeaturesDialog from './FeaturesDialog';
 

@@ -1,6 +1,5 @@
 import React from 'react';
-import Dialog from 'material-ui/Dialog';
-import RaisedButton from 'material-ui/RaisedButton';
+import MarxanDialog from './MarxanDialog';
 import TextField from 'material-ui/TextField';
 import FontAwesome from 'react-fontawesome';
 import MapboxClient from 'mapbox';
@@ -24,7 +23,7 @@ class NewUserDialog extends React.Component {
                 case "could not determine account from provided accessToken":
                     this.setState({ mapboxAccessTokenError: "Invalid Mapbox Access Token" });
                     break;
-                default: 
+                default:
                     // code
             }
             if (err.message === "could not determine account from provided accessToken") {
@@ -33,7 +32,7 @@ class NewUserDialog extends React.Component {
             return;
         }
         //create a new user
-        this.props.createNewUser(this.state.user, this.state.password, this.state.name, this.state.email, this.state.mapboxaccesstoken);
+        this.props.onOk(this.state.user, this.state.password, this.state.name, this.state.email, this.state.mapboxaccesstoken);
     }
 
     //TODO: MOVE THIS TO THE GENERICFUNCTIONS.JS MODULE
@@ -69,12 +68,7 @@ class NewUserDialog extends React.Component {
     }
 
     render() {
-        const actions = [
-            <RaisedButton label="Close" primary={true} onClick={this.props.closeNewUserDialog}  className="projectsBtn" disabled={this.props.creatingNewUser}/>,
-            <RaisedButton label="Register" primary={true} onClick={this.createNewUser.bind(this)} className="projectsBtn" disabled = {!(this.state.user && this.state.password && this.state.name && this.state.email && this.state.mapboxaccesstoken) || this.props.creatingNewUser}/>
-        ];
-        let c = <div>
-                    <FontAwesome spin name='sync' style={{'display': (this.props.creatingNewUser ? 'inline-block' : 'none')}} className='newUserSpinner'/>
+        let c = [<div key="newUserDialogDiv">
                     <TextField floatingLabelText="Username" floatingLabelFixed={true} onChange = {(event,newValue) => this.setState({user:newValue})}/>
                     <TextField floatingLabelText="Password" floatingLabelFixed={true} type="password" onChange = {(event,newValue) => this.setState({password:newValue})}/>
                     <TextField floatingLabelText="Full name" floatingLabelFixed={true} onChange = {(event,newValue) => this.setState({name:newValue})}/>
@@ -84,11 +78,21 @@ class NewUserDialog extends React.Component {
                     </span><span>
                     <FontAwesome name='question-circle' className="mapboxHelp" title="If you have a Mapbox account you can enter an access token here to be able to access your own tilesets. Otherwise, leave it as it is."/>
                     </span>
-                </div>;
+                </div>]
         return (
-            <Dialog 
-            overlayStyle={{display:'none'}} 
-            title="Register" children={c} actions={actions} open={this.props.open} onRequestClose={this.props.closeNewUserDialog} contentStyle={{width:'380px'}} titleClassName={'dialogTitleStyle'}/>
+            <MarxanDialog 
+                    {...this.props} 
+                    showSpinner={this.props.creatingNewUser}
+                    onOk={this.createNewUser.bind(this)}
+                    okDisabled={!(this.state.user && this.state.password && this.state.name && this.state.email && this.state.mapboxaccesstoken) || this.props.creatingNewUser} 
+                    okLabel={"Register"}
+                    showCancelButton={true}
+                    cancelLabel={"Close"}
+                    cancelDisabled={this.props.creatingNewUser} 
+                title="Register" 
+                children={c} 
+                onRequestClose={this.props.closeNewUserDialog} 
+            />
         );
     }
 }

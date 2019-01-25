@@ -23,6 +23,8 @@ import Preprocess from 'material-ui/svg-icons/action/autorenew';
 import * as utilities from './utilities.js';
 import AppBar from './AppBar';
 import LoginDialog from './LoginDialog';
+import NewUserDialog from './NewUserDialog.js';
+import ResendPasswordDialog from './ResendPasswordDialog.js';
 import UserMenu from './UserMenu';
 import HelpMenu from './HelpMenu';
 import OptionsDialog from './OptionsDialog';
@@ -34,15 +36,14 @@ import ResultsPane from './ResultsPane';
 import FeatureInfoDialog from './FeatureInfoDialog';
 import ProjectsDialog from './ProjectsDialog';
 import NewProjectDialog from './NewProjectDialog';
-import NewPlanningGridDialog from './newProjectSteps/NewPlanningGridDialog';
+import NewPlanningGridDialog from './NewPlanningGridDialog';
 import FeaturesDialog from './FeaturesDialog';
-import NewFeatureDialog from './newProjectSteps/NewFeatureDialog';
+import NewFeatureDialog from './NewFeatureDialog';
 import CostsDialog from './CostsDialog';
 import RunSettingsDialog from './RunSettingsDialog';
-import FilesDialog from './FilesDialog';
 import ClassificationDialog from './ClassificationDialog';
 import ClumpingDialog from './ClumpingDialog';
-import ImportWizard from './ImportWizard';
+import ImportDialog from './ImportDialog';
 import Popup from './Popup';
 
 //GLOBAL VARIABLE IN MAPBOX CLIENT
@@ -108,16 +109,17 @@ class App extends React.Component {
     this.state = {
       featureMenuOpen: false,
       profileDialogOpen: false,
-      filesDialogOpen: false,
       aboutDialogOpen: false,
       importDialogOpen: false,
       optionsDialogOpen: false,
       CostsDialogOpen: false,
+      newUserDialogOpen: false,
       clumpingDialogOpen: false,
       settingsDialogOpen: false,
       projectsDialogOpen: false,
       newProjectDialogOpen: false, 
       classificationDialogOpen: false,
+      resendPasswordDialogOpen: false,
       NewPlanningGridDialogOpen: false, 
       NewFeatureDialogOpen: false,
       featuresDialogOpen: false,
@@ -349,6 +351,9 @@ class App extends React.Component {
     this.hideUserMenu();
     this.setState({ loggedIn: false, user: '', password: '', project: '', infoPanelOpen: false, resultsPanelOpen: false });
   }
+  changeEmail(value) { 
+      this.setState({ resendEmail: value });
+  }
 
   resendPassword() {
     this.setState({ resending: true });
@@ -453,7 +458,7 @@ class App extends React.Component {
       this.setState({ updatingRunParameters: false });
       if (!this.checkForErrors(response.data)) {
         //if succesfull write the state back 
-        this.setState({ runParams: this.runParams, filesDialogOpen: false});
+        this.setState({ runParams: this.runParams});
       }
     }.bind(this));
     //save the local state to be able to update the state on callback
@@ -2320,6 +2325,18 @@ class App extends React.Component {
   hideHelpMenu(e) {
     this.setState({ helpMenuOpen: false });
   }
+  openNewUserDialog() {
+    this.setState({ newUserDialogOpen: true });
+  }
+  closeNewUserDialog() {
+    this.setState({ newUserDialogOpen: false });
+  }
+  openResendPasswordDialog() {
+    this.setState({ resendPasswordDialogOpen: true });
+  }
+  closeResendPasswordDialog() {
+    this.setState({ resendPasswordDialogOpen: false });
+  }
   openProjectsDialog() {
     this.setState({ projectsDialogOpen: true });
     this.getProjects();
@@ -2345,14 +2362,6 @@ class App extends React.Component {
   }
   closeInfoDialog() {
       this.setState({ openInfoDialogOpen: false });
-  }
-
-  openFilesDialog() {
-    this.setState({ filesDialogOpen: true });
-  }
-
-  closeFilesDialog() {
-    this.setState({ filesDialogOpen: false });
   }
 
   openOptionsDialog() {
@@ -2396,10 +2405,10 @@ class App extends React.Component {
     this.setState({ classificationDialogOpen: false });
   }
 
-  openImportWizard() {
+  openImportDialog() {
     this.setState({ importDialogOpen: true });
   }
-  closeImportWizard() {
+  closeImportDialog() {
     this.setState({ importDialogOpen: false });
   }
 
@@ -2768,18 +2777,34 @@ class App extends React.Component {
           <LoginDialog 
             open={!this.state.loggedIn} 
             onOk={this.validateUser.bind(this)} 
+            onCancel={this.openNewUserDialog.bind(this)} 
             user={this.state.user} 
             changeUserName={this.changeUserName.bind(this)} 
             changePassword={this.changePassword.bind(this)} 
             password={this.state.password} 
+            openResendPasswordDialog={this.openResendPasswordDialog.bind(this)}
             loggingIn={this.state.loggingIn} 
             createNewUser={this.createNewUser.bind(this)}
             creatingNewUser={this.state.creatingNewUser}
-            resendPassword={this.resendPassword.bind(this)}
             resending={this.state.resending}
             availableServers={MARXAN_REMOTE_SERVERS}
             activeServer={this.state.activeServer}
             setActiveServer={this.setActiveServer.bind(this)}
+          />
+          <NewUserDialog 
+            open={this.state.newUserDialogOpen} 
+            onOk={this.createNewUser.bind(this)}
+            onCancel={this.closeNewUserDialog.bind(this)}
+            creatingNewUser={this.props.creatingNewUser}
+          />
+          <ResendPasswordDialog
+            open={this.state.resendPasswordDialogOpen} 
+            onOk={this.closeResendPasswordDialog.bind(this)}
+            onCancel={this.closeResendPasswordDialog.bind(this)}
+            changeEmail={this.changeEmail.bind(this)} 
+            email={this.state.resendEmail} 
+            resendPassword={this.resendPassword.bind(this)}
+            resending={this.state.resending}
           />
           <UserMenu 
             userMenuOpen={this.state.userMenuOpen} 
@@ -2893,7 +2918,7 @@ class App extends React.Component {
             loadProject={this.loadProject.bind(this)}
             cloneProject={this.cloneProject.bind(this)}
             openNewProjectDialog={this.openNewProjectDialog.bind(this)}
-            openImportWizard={this.openImportWizard.bind(this)}
+            openImportDialog={this.openImportDialog.bind(this)}
             unauthorisedMethods={this.state.unauthorisedMethods}
             userRole={this.state.userData.ROLE}
             getAllFeatures={this.getAllFeatures.bind(this)}
@@ -2912,7 +2937,8 @@ class App extends React.Component {
           />
           <NewPlanningGridDialog 
             open={this.state.NewPlanningGridDialogOpen} 
-            closeNewPlanningGridDialog={this.closeNewPlanningGridDialog.bind(this)} 
+            onOk={this.createNewPlanningUnitGrid.bind(this)}
+            onCancel={this.closeNewPlanningGridDialog.bind(this)}
             createNewPlanningUnitGrid={this.createNewPlanningUnitGrid.bind(this)}
             creatingNewPlanningGrid={this.state.creatingNewPlanningGrid}
             countries={this.state.countries}
@@ -2964,20 +2990,11 @@ class App extends React.Component {
             open={this.state.settingsDialogOpen}
             onOk={this.closeRunSettingsDialog.bind(this)}
             onCancel={this.closeRunSettingsDialog.bind(this)}
-            openFilesDialog={this.openFilesDialog.bind(this)}
             updateRunParams={this.updateRunParams.bind(this)}
             updatingRunParameters={this.state.updatingRunParameters}
             runParams={this.state.runParams}
             showClumpingDialog={this.showClumpingDialog.bind(this)}
             userRole={this.state.userData.ROLE}
-          />
-          <FilesDialog
-            open={this.state.filesDialogOpen}
-            closeFilesDialog={this.closeFilesDialog.bind(this)}
-            fileUploaded={this.fileUploaded.bind(this)}
-            user={this.state.user}
-            project={this.state.project}
-            files={this.state.files}
           />
           <ClassificationDialog 
             open={this.state.classificationDialogOpen}
@@ -3014,9 +3031,9 @@ class App extends React.Component {
             setBlmValue={this.setBlmValue.bind(this)}
             clumpingRunning={this.state.clumpingRunning}
           />
-          <ImportWizard 
+          <ImportDialog 
             open={this.state.importDialogOpen}
-            onOk={this.closeImportWizard.bind(this)}
+            onOk={this.closeImportDialog.bind(this)}
             MARXAN_ENDPOINT_HTTPS={MARXAN_ENDPOINT_HTTPS}
             importProject={this.importProject.bind(this)}
             setLog={this.setLog.bind(this)}

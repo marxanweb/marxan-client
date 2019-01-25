@@ -1,12 +1,13 @@
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBookOpen } from '@fortawesome/free-solid-svg-icons';
 import { faPlusCircle } from '@fortawesome/free-solid-svg-icons';
 import Import from 'material-ui/svg-icons/action/get-app';
 import Delete from 'material-ui/svg-icons/action/delete';
 import Clone from 'material-ui/svg-icons/content/content-copy';
 import ToolbarButton from './ToolbarButton';
 import MarxanDialog from './MarxanDialog';
-import ReactTable from "react-table";
+import ReactTable from "react-table"; 
 
 class ProjectsDialog extends React.Component {
     constructor(props) {
@@ -39,8 +40,8 @@ class ProjectsDialog extends React.Component {
     cloneProject(){
         this.props.cloneProject(this.state.selectedProject.user, this.state.selectedProject.name); 
     }
-    openImportWizard(){ 
-        this.props.openImportWizard();
+    openImportDialog(){ 
+        this.props.openImportDialog();
         this.closeDialog();
     }
     changeProject(event, project) {
@@ -61,6 +62,7 @@ class ProjectsDialog extends React.Component {
             return ( 
                 <MarxanDialog 
                     {...this.props} 
+                    // titleBarIcon={faBookOpen}
                     showSpinner={(this.props.loadingProjects || this.props.loadingProject)}
                     okLabel={(this.props.userRole === "ReadOnly") ? "Open (Read-only)" : "Open"}
                     onOk={this.load.bind(this)}
@@ -106,7 +108,7 @@ class ProjectsDialog extends React.Component {
                                     show={!this.props.unauthorisedMethods.includes("createImportProject")}
                                     icon={<Import style={{height:'20px',width:'20px'}}/>} 
                                     title="Import an existing Marxan project from the local machine"
-                                    onClick={this.openImportWizard.bind(this)} 
+                                    onClick={this.openImportDialog.bind(this)} 
                                     label={"Import"}
                                 />
                                 <ToolbarButton 
@@ -116,7 +118,7 @@ class ProjectsDialog extends React.Component {
                                     onClick={this.cloneProject.bind(this)} 
                                     disabled={!this.state.selectedProject || this.props.loadingProjects || this.props.loadingProject}
                                     label={"Duplicate"}
-                                />
+                                /> 
                                 <ToolbarButton  
                                     show={!this.props.unauthorisedMethods.includes("deleteProject")}
                                     icon={<Delete color="red" style={{height:'20px',width:'20px'}}/>} 

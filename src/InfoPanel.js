@@ -4,7 +4,7 @@ import Paper from 'material-ui/Paper';
 import { Tabs, Tab } from 'material-ui/Tabs';
 import RaisedButton from 'material-ui/RaisedButton';
 import SelectField from 'material-ui/SelectField';
-import SelectFeatures from './newProjectSteps/SelectFeatures';
+import SelectFeatures from './SelectFeatures';
 import MenuItem from 'material-ui/MenuItem';
 import Texture from 'material-ui/svg-icons/image/texture';
 import Settings from 'material-ui/svg-icons/action/settings';
