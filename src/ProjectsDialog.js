@@ -7,60 +7,62 @@ import Delete from 'material-ui/svg-icons/action/delete';
 import Clone from 'material-ui/svg-icons/content/content-copy';
 import ToolbarButton from './ToolbarButton';
 import MarxanDialog from './MarxanDialog';
-import ReactTable from "react-table"; 
+import ReactTable from "react-table";
 
 class ProjectsDialog extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = { selectedProject: undefined };
-    }
-    _delete() {
-        this.props.deleteProject(this.state.selectedProject.user, this.state.selectedProject.name); 
-        this.setState({ selectedProject: false });
-    }
-    load() {
-        if ((this.props.oldVersion === true)&&(this.state.selectedProject.oldVersion === false)){
-            //get all the features again otherwise the allFeatures state will be bound to the old versions features
-            this.props.getAllFeatures().then(function(){
+        constructor(props) {
+            super(props);
+            this.state = { selectedProject: undefined };
+        }
+        _delete() {
+            this.props.deleteProject(this.state.selectedProject.user, this.state.selectedProject.name);
+            this.setState({ selectedProject: false });
+        }
+        load() {
+            if ((this.props.oldVersion === true) && (this.state.selectedProject.oldVersion === false)) {
+                //get all the features again otherwise the allFeatures state will be bound to the old versions features
+                this.props.getAllFeatures().then(function() {
+                    this.loadAndClose();
+                }.bind(this));
+            }
+            else {
                 this.loadAndClose();
-            }.bind(this));
-        }else{
-            this.loadAndClose();
+            }
         }
-    }
-    loadAndClose(){
-        //load the project
-        this.props.loadProject(this.state.selectedProject.name, this.state.selectedProject.user);
-        this.closeDialog();
-    }
-    _new() {
-        this.props.openNewProjectDialog();
-        this.closeDialog();
-    }
-    cloneProject(){
-        this.props.cloneProject(this.state.selectedProject.user, this.state.selectedProject.name); 
-    }
-    openImportDialog(){ 
-        this.props.openImportDialog();
-        this.closeDialog();
-    }
-    changeProject(event, project) {
-        this.setState({ selectedProject: project });
-    }
-    closeDialog(){
-        this.setState({selectedProject: undefined});
-        this.props.onOk();
-    }
-    render() {
-        let tableColumns = [];
-        if (['Admin','ReadOnly'].includes(this.props.userRole)){
-            tableColumns = [{Header:'User',accessor:'user',width:90,headerStyle:{'textAlign':'left'}}, {Header:'Name',accessor:'name',width:200,headerStyle:{'textAlign':'left'}},{Header:'Description',accessor:'description',width:250,headerStyle:{'textAlign':'left'}},{Header:'Date',accessor:'createdate',width:110,headerStyle:{'textAlign':'left'}}];
-        }else{
-            tableColumns = [{Header:'Name',accessor:'name',width:170,headerStyle:{'textAlign':'left'}},{Header:'Description',accessor:'description',width:330,headerStyle:{'textAlign':'left'}},{Header:'Date',accessor:'createdate',width:150,headerStyle:{'textAlign':'left'}}];
+        loadAndClose() {
+            //load the project
+            this.props.loadProject(this.state.selectedProject.name, this.state.selectedProject.user);
+            this.closeDialog();
         }
-        if (this.props.projects){
-            return ( 
-                <MarxanDialog 
+        _new() {
+            this.props.openNewProjectDialog();
+            this.closeDialog();
+        }
+        cloneProject() {
+            this.props.cloneProject(this.state.selectedProject.user, this.state.selectedProject.name);
+        }
+        openImportDialog() {
+            this.props.openImportDialog();
+            this.closeDialog();
+        }
+        changeProject(event, project) {
+            this.setState({ selectedProject: project });
+        }
+        closeDialog() {
+            this.setState({ selectedProject: undefined });
+            this.props.onOk();
+        }
+        render() {
+                let tableColumns = [];
+                if (['Admin', 'ReadOnly'].includes(this.props.userRole)) {
+                    tableColumns = [{ Header: 'User', accessor: 'user', width: 90, headerStyle: { 'textAlign': 'left' } }, { Header: 'Name', accessor: 'name', width: 200, headerStyle: { 'textAlign': 'left' } }, { Header: 'Description', accessor: 'description', width: 250, headerStyle: { 'textAlign': 'left' } }, { Header: 'Date', accessor: 'createdate', width: 110, headerStyle: { 'textAlign': 'left' } }];
+                }
+                else {
+                    tableColumns = [{ Header: 'Name', accessor: 'name', width: 170, headerStyle: { 'textAlign': 'left' } }, { Header: 'Description', accessor: 'description', width: 330, headerStyle: { 'textAlign': 'left' } }, { Header: 'Date', accessor: 'createdate', width: 150, headerStyle: { 'textAlign': 'left' } }];
+                }
+                if (this.props.projects) {
+                    return (
+                            <MarxanDialog 
                     {...this.props} 
                     // titleBarIcon={faBookOpen}
                     showSpinner={(this.props.loadingProjects || this.props.loadingProject)}

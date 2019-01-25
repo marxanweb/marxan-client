@@ -4,7 +4,7 @@ import TextField from 'material-ui/TextField';
 
 class LoginDialog extends React.Component {
     handleKeyPress(e) {
-        if (e.nativeEvent.key === "Enter") this.props.validateUser();
+        if (e.nativeEvent.key === "Enter") this.props.onOk();
     }
     render() {
         return (

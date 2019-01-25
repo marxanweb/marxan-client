@@ -1990,16 +1990,10 @@ class App extends React.Component {
   }
   openFeaturesDialog(showClearSelectAll) {
     this.setState({ featuresDialogOpen: true, addingRemovingFeatures: showClearSelectAll});
-    if (showClearSelectAll){
-      this.getSelectedFeatureIds();
-    }else{
-      this.clearAllFeatures();
-    }
+    if (showClearSelectAll) this.getSelectedFeatureIds();
   }
   closeFeaturesDialog() {
-    // this.updateSpecFile().then(function(response) {
     this.setState({ featuresDialogOpen: false });
-    // }.bind(this));
   }
   openCostsDialog() {
     this.setState({ CostsDialogOpen: true });
