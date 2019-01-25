@@ -1,5 +1,7 @@
 import React from 'react';
 import RaisedButton from 'material-ui/RaisedButton';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEraser } from '@fortawesome/free-solid-svg-icons';
 import ReactTable from "react-table";
 import Paper from 'material-ui/Paper';
 import { Tabs, Tab } from 'material-ui/Tabs';
@@ -133,10 +135,17 @@ class ResultsPane extends React.Component {
               <Tab label="Log" value="log" onActive={this.props.log_tab_active} >
                 <div id="log" onMouseEnter={this.mouseEnter.bind(this)} onMouseLeave={this.mouseLeave.bind(this)}>{this.props.log}
                   <RaisedButton  
-                    id="copyToClipboardButton"
                     icon={<Clipboard style={{height:'20px',width:'20px'}}/>} 
                     title="Copy to clipboard"
                     onClick={this.copyLog.bind(this)} 
+                    style={{padding: '0px',minWidth: '30px',width: '24px',height: '24px',position:'absolute',top:'421px',right:'70px', display: (this.state.showClipboard) ? 'block' : 'none'}}
+                    overlayStyle={{lineHeight:'24px',height:'24px'}}
+                    buttonStyle={{marginTop:'-7px',lineHeight:'24px',height:'24px'}} 
+                  />
+                  <RaisedButton  
+                    icon={<FontAwesomeIcon icon={faEraser} />} 
+                    title="Clear log"
+                    onClick={this.props.clearLog.bind(this)} 
                     style={{padding: '0px',minWidth: '30px',width: '24px',height: '24px',position:'absolute',top:'421px',right:'30px', display: (this.state.showClipboard) ? 'block' : 'none'}}
                     overlayStyle={{lineHeight:'24px',height:'24px'}}
                     buttonStyle={{marginTop:'-7px',lineHeight:'24px',height:'24px'}} 

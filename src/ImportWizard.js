@@ -1,7 +1,6 @@
 import React from 'react';
-import Dialog from 'material-ui/Dialog';
+import MarxanDialog from './MarxanDialog';
 import RaisedButton from 'material-ui/RaisedButton';
-import FlatButton from 'material-ui/FlatButton';
 import Metadata from './newProjectSteps/Metadata';
 import UploadMarxanFiles from './newProjectSteps/UploadMarxanFiles';
 import FontAwesome from 'react-fontawesome';
@@ -20,9 +19,7 @@ class ImportWizard extends React.Component {
             //create the new project 
             this.props.importProject(this.state.name, this.state.description, this.state.zipFilename, this.state.files).then(function(response){
                 //close the import wizard
-                this.closeImportWizard();
-                //close the projects dialog
-                this.props.closeProjectsDialog();
+                this.props.onOk();
             }.bind(this), function(error) {
                 this.setState({loading: false});
                 this.props.setLog("\nImport stopped");
@@ -61,8 +58,8 @@ class ImportWizard extends React.Component {
             <div style={{width: '100%', maxWidth: 700, margin: 'auto',textAlign:'center'}}>
                 <div style={contentStyle}>
                     <div style={{marginTop: 12}}>
-                        <FlatButton label="Back" disabled={stepIndex === 0} onClick={this.handlePrev} />
-                        <RaisedButton label={stepIndex === (this.state.steps.length-1) ? 'Finish' : 'Next'} onClick={this.handleNext.bind(this)} primary={true} disabled={this.state.loading}/>
+                        <RaisedButton label="Back" disabled={stepIndex === 0} onClick={this.handlePrev} className="projectsBtn" style={{height:'25px'}}/>
+                        <RaisedButton label={stepIndex === (this.state.steps.length-1) ? 'Finish' : 'Next'} onClick={this.handleNext.bind(this)} primary={true} disabled={this.state.loading} className="projectsBtn" style={{height:'25px'}}/>
                     </div>
                 </div>
             </div>
@@ -79,14 +76,14 @@ class ImportWizard extends React.Component {
                     <div id="spinner"><FontAwesome spin name='sync' style={{'display': (this.state.loading ? 'inline-block' : 'none')}} className={'importSpinner'}/></div>
                 </React.Fragment>;
         return (
-            <Dialog title={'Import - ' + this.state.steps[stepIndex]}
-                overlayStyle={{display:'none'}} 
+            <MarxanDialog 
+                {...this.props} 
+                title={'Import - ' + this.state.steps[stepIndex]}
+                okLabel={"Close"}
+                contentWidth={500}
                 children={c} 
                 actions={actions} 
-                open={this.props.open} 
-                onRequestClose={this.closeImportWizard.bind(this)} 
-                contentStyle={{width:'550px'}} 
-                titleClassName={'dialogTitleStyle'}
+                onRequestClose={this.props.onOk} 
             />
         );
     }

@@ -58,7 +58,7 @@ class ProjectsDialog extends React.Component {
             tableColumns = [{Header:'Name',accessor:'name',width:170,headerStyle:{'textAlign':'left'}},{Header:'Description',accessor:'description',width:330,headerStyle:{'textAlign':'left'}},{Header:'Date',accessor:'createdate',width:150,headerStyle:{'textAlign':'left'}}];
         }
         if (this.props.projects){
-            return (
+            return ( 
                 <MarxanDialog 
                     {...this.props} 
                     showSpinner={(this.props.loadingProjects || this.props.loadingProject)}

@@ -1,7 +1,6 @@
 import React from 'react';
 import MarxanDialog from './MarxanDialog';
 import Checkbox from 'material-ui/Checkbox';
-import FontAwesome from 'react-fontawesome';
 import SelectField from 'material-ui/SelectField';
 import MenuItem from 'material-ui/MenuItem';
 

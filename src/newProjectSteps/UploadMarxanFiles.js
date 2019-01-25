@@ -5,7 +5,7 @@ import ShapefileUpload from '../ShapefileUpload';
 class UploadMarxanFiles extends React.Component {
     constructor(props) {
         super(props);
-        this.state = { zipFilename: ''};
+        this.state = { zipFilename: ''}; 
     }
     setzipFilename(filename) {
         this.setState({ zipFilename: filename });
@@ -14,7 +14,7 @@ class UploadMarxanFiles extends React.Component {
     render() {
         return (
             <React.Fragment>
-                <div className={'newPUDialogPane'}>
+                <div>
                     <UploadFolder label="Project folder" filesListed={this.props.filesListed}/>
                     <ShapefileUpload MARXAN_ENDPOINT_HTTPS={this.props.MARXAN_ENDPOINT_HTTPS} mandatory={true} filename={this.state.zipFilename} setFilename={this.setzipFilename.bind(this)} label="Zipped shapefile" style={{'paddingTop':'10px'}}/> 
                 </div>

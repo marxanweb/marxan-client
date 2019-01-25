@@ -1,30 +1,31 @@
 import React from 'react';
-import Dialog from 'material-ui/Dialog';
 import RaisedButton from 'material-ui/RaisedButton';
 import Metadata from './newProjectSteps/Metadata';
 import PlanningUnits from './newProjectSteps/PlanningUnits';
 import SelectFeatures from './newProjectSteps/SelectFeatures';
 import SelectCostFeatures from './newProjectSteps/SelectCostFeatures';
-import Options from './newProjectSteps/Options'; 
-import CheckboxList from './CheckboxList';
+import MarxanDialog from './MarxanDialog';
+import FeaturesDialog from './FeaturesDialog';
 
 class NewProjectDialog extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            steps: ['Info', 'Planning units', 'Features', 'Costs', 'Options'],
+            steps: ['Info', 'Planning units', 'Features', 'Costs'],
+            loadingFeatures: false,
             finished: false,
             stepIndex: 0,
             name: '',
             description: '',
             pu: '',
             featuresDialogOpen: false,
-            copiedFeatures: []
+            allFeatures: [],
+            selectedFeatureIds: []
         };
     }
-    componentDidUpdate(prevProps, prevState ){
-        if (prevProps.features.length !== this.props.features.length){ //coarse comparison at the moment
-            this.setState({copiedFeatures: JSON.parse(JSON.stringify(this.props.features))}); //a copy of all the features
+    componentDidUpdate(prevProps, prevState) {
+        if (prevProps.features.length !== this.props.features.length) { //coarse comparison at the moment
+            this.setState({ allFeatures: JSON.parse(JSON.stringify(this.props.features)) }); //a copy of all the features
         }
     }
     handleNext = () => {
@@ -39,14 +40,8 @@ class NewProjectDialog extends React.Component {
             this.setState({ stepIndex: stepIndex - 1 });
         }
     };
-    createNewProject() {
-        this.props.createNewProject({ name: this.state.name, description: this.state.description, planning_grid_name: this.state.pu, features:this.state.copiedFeatures.filter((item)=>{return item.selected}) });
-        this.closeNewProjectDialog();
-    }
-    closeNewProjectDialog() {
-        //reset to the beginning
-        this.setState({ stepIndex: 0 });
-        this.props.closeNewProjectDialog();
+    openFeaturesDialog() {
+        this.setState({ featuresDialogOpen: true });
     }
     setName(value) {
         this.setState({ name: value });
@@ -57,19 +52,83 @@ class NewProjectDialog extends React.Component {
     changePU(value) {
         this.setState({ pu: value });
     }
-    updateTargetValue() {
-        //to stop it calling the passed in updateTargetValue
+    onOk(evt) {
+        this.gotoStart();
+        this.props.onOk();
     }
-    openFeaturesDialog(){
-        this.setState({featuresDialogOpen: true});
+    gotoStart() {
+        //reset to the beginning
+        this.setState({ stepIndex: 0 });
     }
-    closeFeaturesDialog(){
-        this.setState({featuresDialogOpen: false});
+    closeFeaturesDialog() {
+        this.setState({ featuresDialogOpen: false });
     }
-    featureSelectionDone(features){
-        this.setState({copiedFeatures: features});
+    //updates the allFeatures to set the various properties based on which features have been selected in the FeaturesDialog
+    updateSelectedFeatures() {
+        let allFeatures = this.state.allFeatures;
+        allFeatures.forEach((feature) => { 
+            if (this.state.selectedFeatureIds.includes(feature.id)) {
+                Object.assign(feature, { selected: true });
+            }
+            else {
+                Object.assign(feature, { selected: false });
+            }
+        }, this);
+        //update allFeatures to reflect those that are selected
+        this.setState({ allFeatures: allFeatures});
         this.closeFeaturesDialog();
     }
+
+    clickFeature(feature) {
+        let ids = this.state.selectedFeatureIds;
+        if (ids.includes(feature.id)) {
+            //remove the feature if it is already selected
+            this.removeFeature(feature);
+        }
+        else {
+            //add the feautre to the selected feature array
+            this.addFeature(feature);
+        }
+    }
+    //selects all the features
+    selectAllFeatures() {
+        let ids = [];
+        this.state.allFeatures.forEach((feature) => {
+            ids.push(feature.id);
+        });
+        this.setState({ selectedFeatureIds: ids });
+    }
+
+    //clears all the Conservation features
+    clearAllFeatures() {
+        this.setState({ selectedFeatureIds: [] });
+    }
+
+    //removes a feature from the selectedFeatureIds array
+    removeFeature(feature) {
+        let ids = this.state.selectedFeatureIds;
+        //remove the feature  - this requires a callback on setState otherwise the state is not updated before updateSelectedFeatures is called
+        ids = ids.filter(function(value, index, arr) { return value !== feature.id });
+        return new Promise(function(resolve, reject) {
+            this.setState({ selectedFeatureIds: ids }, function() {
+                resolve();
+            });
+        }.bind(this));
+    }
+
+    //adds a feature to the selectedFeatureIds array
+    addFeature(feature) {
+        let ids = this.state.selectedFeatureIds;
+        //add the feautre to the selected feature array
+        ids.push(feature.id);
+        this.setState({ selectedFeatureIds: ids });
+    }
+
+    createNewProject() {
+        this.props.createNewProject({ name: this.state.name, description: this.state.description, planning_grid_name: this.state.pu, features: this.state.allFeatures.filter((item) => { return item.selected }) });
+        this.onOk();
+    }
+
     render() {
         const { stepIndex } = this.state;
         const contentStyle = { margin: '0 16px' };
@@ -103,7 +162,7 @@ class NewProjectDialog extends React.Component {
                     {stepIndex === 0 ? <Metadata name={this.state.name} description={this.state.description} setName={this.setName.bind(this)} setDescription={this.setDescription.bind(this)}/> : null}
                     {stepIndex === 1 ? <PlanningUnits getPlanningUnitGrids={this.props.getPlanningUnitGrids} planning_unit_grids={this.props.planning_unit_grids} changeItem={this.changePU.bind(this)} pu={this.state.pu} openNewPlanningGridDialog={this.props.openNewPlanningGridDialog} /> : null}
                     {stepIndex === 2 ? <SelectFeatures 
-                        features={this.state.copiedFeatures.filter((item)=>{return item.selected;})}
+                        features={this.state.allFeatures.filter((item)=>{return item.selected;})}
                         openFeaturesDialog={this.openFeaturesDialog.bind(this)}  
                         simple={true}
                         leftmargin={'0px'}
@@ -112,38 +171,34 @@ class NewProjectDialog extends React.Component {
                         openCostsDialog={this.props.openCostsDialog}
                         selectedCosts={this.props.selectedCosts}
                     /> : null}
-                    {stepIndex === 4 ? <Options/> : null} 
                 </div>;
         return (
             <React.Fragment>
-            <Dialog 
+            <MarxanDialog 
+                {...this.props} 
                 title={'New project - ' + this.state.steps[stepIndex]}
-                overlayStyle={{display:'none'}} 
+                contentWidth={420}
                 children={c} 
                 actions={actions} 
-                open={this.props.open} 
-                onRequestClose={this.closeNewProjectDialog.bind(this)} 
-                contentStyle={{width:'400px'}} 
-                titleClassName={'dialogTitleStyle'}
+                okLabel={"Close"}
+                onOk={this.onOk.bind(this)}
+                onCancel={this.onOk.bind(this)}
+                onRequestClose={this.onOk.bind(this)} 
             />
-            <Dialog
-                title={'Features' }
-                overlayStyle={{display:'none'}} 
-                children={[
-                <CheckboxList 
-                    features={this.state.copiedFeatures} 
-                    selectionDone={this.featureSelectionDone.bind(this)}
-                    key={'allFeaturesList'}
-                    />
-                ]} 
-                actions={
-                    []
-                } 
-                open={this.state.featuresDialogOpen} 
-                onRequestClose={this.closeFeaturesDialog.bind(this)} 
-                contentStyle={{width:'400px'}} 
-                titleClassName={'dialogTitleStyle'}
-            />
+              <FeaturesDialog
+                open={this.state.featuresDialogOpen}
+                onOk={this.updateSelectedFeatures.bind(this)}
+                onCancel={this.closeFeaturesDialog.bind(this)}
+                loadingFeatures={this.state.loadingFeatures}
+                allFeatures={this.state.allFeatures}
+                selectAllFeatures={this.selectAllFeatures.bind(this)}
+                clearAllFeatures={this.clearAllFeatures.bind(this)}
+                clickFeature={this.clickFeature.bind(this)}
+                addingRemovingFeatures={true}
+                selectedFeatureIds={this.state.selectedFeatureIds}
+                metadata={{OLDVERSION:false}}
+                userRole={"User"}
+              />
             </React.Fragment>
         );
     }

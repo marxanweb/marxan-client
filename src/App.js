@@ -279,10 +279,15 @@ class App extends React.Component {
     }
   }
 
-  startLogging(){
+  startLogging(clearLog = false){
     //switches the results pane to the log tab
     this.log_tab_active();
-    //reset the state
+    //clear the log if needs be
+    if (clearLog) this.clearLog();
+  }
+
+  //clears the log
+  clearLog(){
     this.setState({streamingLog: ''});
   }
   
@@ -333,7 +338,7 @@ class App extends React.Component {
         //get all features
         this.getAllFeatures().then(function(){
           //get the users last project and load it 
-          this.loadProject(response.userData.LASTPROJECT);
+          this.loadProject(response.userData.LASTPROJECT, this.state.user);
         }.bind(this));
       } //no errors
     }.bind(this));
@@ -493,7 +498,7 @@ class App extends React.Component {
   }
 
   //loads a project
-  loadProject(project, user = this.state.user) {
+  loadProject(project, user) {
     this.setState({ loadingProject: true });
     //reset the results from any previous projects
     this.resetResults();
@@ -515,14 +520,14 @@ class App extends React.Component {
         //poll the server to see if results are available for this project - if there are these will be loaded
         this.getResults(user, response.project);
       }else{
-        if (response.error === 'Logged in as a read-only user'){
+        if (response.error.indexOf('Logged on as read-only guest user')>-1){
           this.setState({loggedIn: true});
         }
-        if (response.error.indexOf("No such file or directory")>-1){
+        if (response.error.indexOf("no longer exists")>-1){
           //probably the last loaded project has been deleted - send some feedback and load another project
-          this.setState({ snackbarOpen: true, snackbarMessage: "The project '" + project + "' could no longer be found. Loading first available project"});
+          this.setState({ snackbarOpen: true, snackbarMessage: "Loading first available project"});
           //passing an empty project to loadProject will load the first project
-          this.loadProject('');
+          this.loadProject('', this.state.user);
         }
       }
     }.bind(this));
@@ -642,7 +647,7 @@ class App extends React.Component {
       this.setState({ loadingProjects: false });
       if (!this.checkForErrors(response.data)) {
         this.setState({ snackbarOpen: true, snackbarMessage: response.data.info, projectsDialogOpen: false });
-        this.loadProject(response.data.name);
+        this.loadProject(response.data.name, response.data.user);
       }
       else {
         this.setState({ snackbarOpen: true, snackbarMessage: response.data.error });
@@ -685,7 +690,7 @@ class App extends React.Component {
           this.setState({ snackbarOpen: true, snackbarMessage: "Current project deleted - loading first available" });
           //load the next available project
           this.state.projects.some((project) => {
-            if (project.name !== this.state.project) this.loadProject(project.name);
+            if (project.name !== this.state.project) this.loadProject(project.name, this.state.user);
             return project.name !== this.state.project;
           }, this);
         }
@@ -778,7 +783,7 @@ class App extends React.Component {
   //run a marxan job on the server
   runMarxan(e) {
     //start the logging
-    this.startLogging();
+    this.startLogging(true);
     //sets the state to running
     this.setState({running: true});
     //reset all of the protected and target areas for all features
@@ -1032,7 +1037,7 @@ class App extends React.Component {
                           this.setState({streamingLog: this.state.streamingLog + "Import complete\n"});
                           resolve();
                           //now open the project
-                          this.loadProject(project);
+                          this.loadProject(project, this.state.user);
                         }else{ //updateProjectParams failed
                           this.cleanupFailedImport(project, feature_class_name);
                           reject(response.error);
@@ -2100,6 +2105,10 @@ class App extends React.Component {
         }else{
           Object.assign(feature, {selected: false, preprocessed: false, protected_area: -1, pu_area: -1, pu_count: -1, target_area: -1, occurs_in_planning_grid: false});
         }
+        //remove the feature layer if it is loaded
+        if (feature.feature_layer_loaded) this.toggleFeatureLayer(feature);
+        //remove the planning unit layer if it is loaded
+        if (feature.id === this.puvsprLayerId) this.toggleFeaturePuvsprLayer(feature);
       }
     }, this);
     this.setFeaturesState(allFeatures);
@@ -2209,7 +2218,8 @@ class App extends React.Component {
     let visible = this.isLayerVisible(PLANNING_UNIT_PUVSPR_LAYER_NAME);
     //see if the feature layer is different from the one that is already being shown on the map
     let newFeature = ((feature.id !== this.puvsprLayerId) || (this.puvsprLayerId === undefined));
-    let puvsprLayerText = (visible) ? (newFeature) ? SHOW_PUVSPR_LAYER_TEXT : HIDE_PUVSPR_LAYER_TEXT : SHOW_PUVSPR_LAYER_TEXT;
+    //really confusing line!
+    let puvsprLayerText = (visible) ? (newFeature) ? (feature.preprocessed) ? SHOW_PUVSPR_LAYER_TEXT : HIDE_PUVSPR_LAYER_TEXT : (feature.preprocessed) ? HIDE_PUVSPR_LAYER_TEXT : SHOW_PUVSPR_LAYER_TEXT : SHOW_PUVSPR_LAYER_TEXT;
     return puvsprLayerText;
   }
   //toggles the feature layer on the map
@@ -2244,6 +2254,8 @@ class App extends React.Component {
       this.hideLayer(PLANNING_UNIT_PUVSPR_LAYER_NAME);
       //set the text
       this.setState({puvsprLayerText: SHOW_PUVSPR_LAYER_TEXT});
+      //reset the id of the currently shown pu layer
+      this.puvsprLayerId = -1;
     }else{
       //set the text
       this.setState({puvsprLayerText: HIDE_PUVSPR_LAYER_TEXT});
@@ -2755,11 +2767,11 @@ class App extends React.Component {
           <div ref={el => this.mapContainer = el} className="absolute top right left bottom" />
           <LoginDialog 
             open={!this.state.loggedIn} 
+            onOk={this.validateUser.bind(this)} 
             user={this.state.user} 
             changeUserName={this.changeUserName.bind(this)} 
             changePassword={this.changePassword.bind(this)} 
             password={this.state.password} 
-            validateUser={this.validateUser.bind(this)} 
             loggingIn={this.state.loggingIn} 
             createNewUser={this.createNewUser.bind(this)}
             creatingNewUser={this.state.creatingNewUser}
@@ -2852,6 +2864,7 @@ class App extends React.Component {
             legend_tab_active={this.legend_tab_active.bind(this)}
             solutions_tab_active={this.solutions_tab_active.bind(this)}
             log_tab_active={this.log_tab_active.bind(this)}
+            clearLog={this.clearLog.bind(this)}
             owner={this.state.owner}
           />
           <FeatureInfoDialog
@@ -2887,7 +2900,7 @@ class App extends React.Component {
           />
           <NewProjectDialog
             open={this.state.newProjectDialogOpen}
-            closeNewProjectDialog={this.closeNewProjectDialog.bind(this)}
+            onOk={this.closeNewProjectDialog.bind(this)}
             getPlanningUnitGrids={this.getPlanningUnitGrids.bind(this)}
             planning_unit_grids={this.state.planning_unit_grids}
             openNewPlanningGridDialog={this.openNewPlanningGridDialog.bind(this)}
@@ -2917,7 +2930,6 @@ class App extends React.Component {
             loadingFeatures={this.state.loadingFeatures}
             metadata={this.state.metadata}
             allFeatures={this.state.allFeatures}
-            projectFeatures={this.state.projectFeatures}
             deleteFeature={this.deleteFeature.bind(this)}
             openNewFeatureDialog={this.openNewFeatureDialog.bind(this)}
             selectAllFeatures={this.selectAllFeatures.bind(this)}
@@ -2929,7 +2941,8 @@ class App extends React.Component {
           />
           <NewFeatureDialog
             open={this.state.NewFeatureDialogOpen} 
-            closeNewFeatureDialog={this.closeNewFeatureDialog.bind(this)}
+            onOk={this.closeNewFeatureDialog.bind(this)}
+            onCancel={this.closeNewFeatureDialog.bind(this)}
             setName={this.setNewFeatureDatasetName.bind(this)}
             setDescription={this.setNewFeatureDatasetDescription.bind(this)}
             setFilename={this.setNewFeatureDatasetFilename.bind(this)}
@@ -3003,11 +3016,9 @@ class App extends React.Component {
           />
           <ImportWizard 
             open={this.state.importDialogOpen}
-            closeImportWizard={this.closeImportWizard.bind(this)}
-            closeProjectsDialog={this.closeProjectsDialog.bind(this)}
+            onOk={this.closeImportWizard.bind(this)}
             MARXAN_ENDPOINT_HTTPS={MARXAN_ENDPOINT_HTTPS}
             importProject={this.importProject.bind(this)}
-            loadProject={this.loadProject.bind(this)}
             setLog={this.setLog.bind(this)}
             user={this.state.user}
           />
