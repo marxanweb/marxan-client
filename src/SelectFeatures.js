@@ -1,5 +1,5 @@
 import React from 'react';
-import RaisedButton from 'material-ui/RaisedButton';
+import ToolbarButton from './ToolbarButton';
 import FeaturesList from './FeaturesList';
 
 class SelectFeatures extends React.Component {
@@ -18,12 +18,11 @@ class SelectFeatures extends React.Component {
                         updateFeature={this.props.updateFeature}
                         userRole={this.props.userRole}
                     />
-                    <RaisedButton 
+                    <ToolbarButton 
                         label="+/-" 
-                        className="projectsBtn" 
-                        onClick={this.openFeaturesDialog.bind(this)}   
-                        labelStyle={{paddingLeft:'6px',fontSize:'15px'}}
-                        style={{display: ((this.props.metadata&&this.props.metadata.OLDVERSION)||(this.props.userRole === "ReadOnly")) ? "none" : "block", height:'24px',marginLeft:this.props.leftmargin,width:'30px', marginTop:'5px'}}
+                        onClick={this.openFeaturesDialog.bind(this)}
+                        show={!((this.props.metadata&&this.props.metadata.OLDVERSION)||(this.props.userRole === "ReadOnly"))}
+                        style={{marginLeft:this.props.leftmargin,width:'30px', marginTop:'5px'}}
                         title={'Add/remove features from the project'}
                     />
                 </div>

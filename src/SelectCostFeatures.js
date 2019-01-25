@@ -5,7 +5,7 @@ import MenuItem from 'material-ui/MenuItem';
 import { grey400 } from 'material-ui/styles/colors';
 import IconButton from 'material-ui/IconButton';
 import MoreVertIcon from 'material-ui/svg-icons/navigation/more-vert';
-import RaisedButton from 'material-ui/RaisedButton';
+import ToolbarButton from './ToolbarButton';
 
 class SelectCostFeatures extends React.Component { 
     constructor(props) {
@@ -55,7 +55,7 @@ class SelectCostFeatures extends React.Component {
                         )
                         }
                     </List>
-                    <RaisedButton 
+                    <ToolbarButton 
                         label="Select" 
                         onClick={this.props.openCostsDialog}/>
                 </div>

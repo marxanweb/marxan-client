@@ -1,6 +1,6 @@
 import React from 'react';
 import Dialog from 'material-ui/Dialog';
-import RaisedButton from 'material-ui/RaisedButton';
+import ToolbarButton from './ToolbarButton';
 import Sync from 'material-ui/svg-icons/notification/sync';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
@@ -20,7 +20,7 @@ class MarxanDialog extends React.Component {
         let offsetX = (this.props.offsetX) ? {marginLeft: this.props.offsetX + 'px', width: '400px'} : (this.props.rightX) ? {right: this.props.rightX + 'px', width: '400px', left:null} : {};
         let offsetY = (this.props.offsetY) ? {marginTop: this.props.offsetY - 60 + 'px'} : {};
         let style = Object.assign(offsetX, offsetY);
-        let cancelButton = (this.props.showCancelButton) ? <RaisedButton label={(this.props.cancelLabel) ? this.props.cancelLabel : "Cancel"} primary={true} onClick={this.props.onCancel} className="projectsBtn" style={{height:'25px'}} disabled={this.props.cancelDisabled}/> : null;
+        let cancelButton = (this.props.showCancelButton) ? <ToolbarButton label={(this.props.cancelLabel) ? this.props.cancelLabel : "Cancel"} primary={true} onClick={this.props.onCancel} disabled={this.props.cancelDisabled}/> : null;
         let contentStyle = (this.props.contentStyle) ? this.props.contentStyle : (this.props.contentWidth) ? {width: this.props.contentWidth + 'px'} : {};
         return (
             <Dialog      
@@ -35,12 +35,10 @@ class MarxanDialog extends React.Component {
                 actions={[
                     cancelButton, 
                     this.props.actions,
-                    <RaisedButton 
+                    <ToolbarButton 
                         label={(this.props.okLabel) ? this.props.okLabel : "OK"} 
                         primary={true} 
                         onClick={this.props.onOk} 
-                        className="projectsBtn" 
-                        style={{height:'25px'}}
                         disabled={this.props.okDisabled}
                     />,
                 ]}

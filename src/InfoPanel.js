@@ -2,12 +2,12 @@ import React from 'react';
 import 'react-table/react-table.css';
 import Paper from 'material-ui/Paper';
 import { Tabs, Tab } from 'material-ui/Tabs';
-import RaisedButton from 'material-ui/RaisedButton';
 import SelectField from 'material-ui/SelectField';
 import SelectFeatures from './SelectFeatures';
 import MenuItem from 'material-ui/MenuItem';
 import Texture from 'material-ui/svg-icons/image/texture';
 import Settings from 'material-ui/svg-icons/action/settings';
+import ToolbarButton from './ToolbarButton';
 
 class InfoPanel extends React.Component {
   constructor(props) {
@@ -139,31 +139,27 @@ class InfoPanel extends React.Component {
               </Tab>
             </Tabs>     
             <Paper className={'lowerToolbar'}>
-                <RaisedButton   
+                <ToolbarButton   
                   icon={<Settings style={{height:'20px',width:'20px'}}/>} 
                   title="Run Settings"
                   onClick={this.props.showRunSettingsDialog} 
-                  style={{ marginLeft:'12px', marginRight:'4px',padding: '0px',minWidth: '30px',width: '24px',height: '24px'}}
-                  overlayStyle={{lineHeight:'24px',height:'24px'}}
-                  buttonStyle={{marginTop:'-7px',lineHeight:'24px',height:'24px'}} 
                 />
-                <RaisedButton 
+                <ToolbarButton 
                   label="Stop" 
                   title="Click to stop this project"  
-                  secondary={true} 
-                  className="projectsBtn" 
-                  style={{display: (this.props.userRole === "ReadOnly") ? 'none' : 'inline-block', height:'24px', marginLeft: '194px'}}
+                  show={this.props.userRole !== "ReadOnly"}
+                  style={{marginLeft: '194px'}}
                   onClick={this.props.stopMarxan} 
                   disabled={this.props.pid===0}  
+                  secondary={true} 
                 />  
-                <RaisedButton 
+                <ToolbarButton 
                   label="Run" 
                   title="Click to run this project"  
-                  secondary={true} 
-                  className="projectsBtn" 
-                  style={{display: (this.props.userRole === "ReadOnly") ? 'none' : 'inline-block', height:'24px'}}
+                  show={this.props.userRole !== "ReadOnly"}
                   onClick={this.props.runMarxan} 
                   disabled={!this.props.runnable || this.props.preprocessingFeature || this.props.running || (this.props.features.length === 0) || this.state.puEditing}  
+                  secondary={true} 
                 />  
             </Paper>
           </Paper>

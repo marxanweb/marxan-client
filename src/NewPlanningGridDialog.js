@@ -1,8 +1,8 @@
 import * as React from 'react';
 import MarxanDialog from './MarxanDialog';
-import RaisedButton from 'material-ui/RaisedButton';
 import SelectField from 'material-ui/SelectField';
 import MenuItem from 'material-ui/MenuItem';
+import ToolbarButton from './ToolbarButton';
 //constants 
 let domains = ['Marine', 'Terrestrial'];
 let areakm2s = [10, 20, 30, 40, 50];
@@ -23,7 +23,7 @@ class NewPlanningGridDialog extends React.Component {
 						<MarxanDialog 
 					{...this.props} 
 					okDisabled={(!this.props.iso3 || !this.props.domain || !this.props.areakm2 || this.props.creatingNewPlanningGrid)}
-					cancelLabel={"Close"}
+					cancelLabel={"Cancel"}
 					showCancelButton={true}
 					title="New Planning Unit Grid" 
 					children={
@@ -45,10 +45,8 @@ class NewPlanningGridDialog extends React.Component {
 								key={item.iso3}/>;
 								})}
 							</SelectField>
-							<RaisedButton 
+							<ToolbarButton 
 								label="Upload" 
-								style={{minWidth: '66px', width: '30px',height: '23px',    marginLeft: '20px',    verticalAlign: 'toMarxanDialogp',    marginTop: '40px'}}
-								labelStyle={{'fontSize':'12px','paddingLeft':'11px'}}
 								title="Load a custom area of interest from a shapefile (not currently implemented)"
 							/>
 						</div>

@@ -1,6 +1,6 @@
 import React from 'react';
 import MarxanDialog from './MarxanDialog';
-import RaisedButton from 'material-ui/RaisedButton';
+import ToolbarButton from './ToolbarButton';
 import MapContainer from './MapContainer.js';
 import TextField from 'material-ui/TextField';
 
@@ -36,11 +36,9 @@ class ClumpingDialog extends React.Component {
         onOk={this.onRequestClose.bind(this)}
         okDisabled={this.props.clumpingRunning}
         actions={[
-          <RaisedButton 
+          <ToolbarButton 
             label="Refresh" 
             primary={true} 
-            className="projectsBtn" 
-            style={{height:'25px'}}
             onClick={this.props.rerunProjects} 
             disabled={this.props.clumpingRunning}
           />]}

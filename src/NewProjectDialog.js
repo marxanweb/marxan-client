@@ -1,11 +1,11 @@
 import React from 'react';
-import RaisedButton from 'material-ui/RaisedButton';
 import Metadata from './Metadata';
 import PlanningUnits from './PlanningUnits';
 import SelectFeatures from './SelectFeatures';
 import SelectCostFeatures from './SelectCostFeatures';
 import MarxanDialog from './MarxanDialog';
 import FeaturesDialog from './FeaturesDialog';
+import ToolbarButton from './ToolbarButton';
 
 class NewProjectDialog extends React.Component {
     constructor(props) {
@@ -140,19 +140,15 @@ class NewProjectDialog extends React.Component {
                 </Stepper> */}
                 <div style={contentStyle}>
                     <div style={{marginTop: 12}}>
-                        <RaisedButton 
-                            className="projectsBtn" 
+                        <ToolbarButton 
                             label="Back" 
                             disabled={stepIndex === 0} 
                             onClick={this.handlePrev} 
-                            style={{height:'25px'}}
                         />
-                        <RaisedButton 
-                            className="projectsBtn" 
+                        <ToolbarButton 
                             label={stepIndex === (this.state.steps.length-1) ? 'Finish' : 'Next'} 
                             onClick={stepIndex === (this.state.steps.length-1) ? this.createNewProject.bind(this) : this.handleNext} 
                             primary={true} 
-                            style={{height:'25px'}}
                         />
                     </div>
                 </div>

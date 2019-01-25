@@ -5,12 +5,6 @@ body {
   font-family: Roboto, sans-serif;
 }
 
-#loading {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-}
-
 .infoPanel {
   position: absolute;
 }
@@ -134,8 +128,6 @@ body {
   text-decoration: underline;
 }
 
-.tabPanel {}
-
 .tabs {
   height: 500px;
 }
@@ -225,9 +217,6 @@ body {
   background-color: #e7e8e642;
 }
 
-.selectedRow {
-  background-color: red;
-}
 
 table input {
   font-size: 13px;
@@ -264,48 +253,8 @@ table input {
   margin-bottom: 6px;
 }
 
-.importSpinner {
-  position: absolute;
-  top: 18px;
-  margin-left: 127px;
-}
-
-.loginSpinner {
-  position: absolute;
-  top: 15px;
-  margin-left: 66px;
-}
-
-.resendSpinner {
-  position: absolute;
-  top: 18px;
-  margin-left: 145px;
-
-}
-
-.newUserSpinner {
-  position: absolute;
-  top: 18px;
-  margin-left: 100px;
-
-}
-
-.progressSpinner {
-  position: fixed;
-  top: 18px;
-  margin-left: 91px;
-}
-
 .hoverMapContainer:hover {
   box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 10px, rgba(0, 0, 0, 0.23) 0px 3px 10px;
-}
-
-.projectsBtn {
-  min-width: 24px !important;
-  min-height: 24px !important;
-  height: 24px !important;
-  margin-left: 4px;
-  margin-right: 4px;
 }
 
 .fontAwesome {
@@ -342,15 +291,6 @@ div.rt-tbody>div>div>div>div {
   background-color: rgba(0, 0, 0, 0) !important;
 }
 
-.runLabel {
-  margin-left: 29px;
-}
-
-.runs {
-  font-size: 10px;
-  padding: 10px;
-}
-
 .description {
   font-size: 13px;
   margin-bottom: 5px;
@@ -364,10 +304,6 @@ div.rt-tbody>div>div>div>div {
   padding-top: 0px !important;
 }
 
-.contentGeneric {
-  padding: 0px !important;
-}
-
 .dialog {
   margin-left: 73px;
   width: 500px !important;
@@ -375,40 +311,9 @@ div.rt-tbody>div>div>div>div {
 
 }
 
-.dialog2 {
-  margin-left: 123px;
-  margin-top: 38px;
-  width: 500px !important;
-  padding-top: 0px !important;
-
-}
-
-.dialog3 {
-  margin-left: 174px;
-  margin-top: 86px;
-  width: 500px !important;
-  padding-top: 0px !important;
-}
-
-.dialog4 {
-  margin-right: 73px;
-  margin-top: 86px;
-  width: 500px !important;
-  padding-top: 0px !important;
-}
-
-.projectsDialog {
-  margin-left: 73px;
-  width: 500px !important;
-  padding-top: 0px !important;
-  height: 566px !important;
-}
-
 .renderer {
   margin: 0px 46px !important;
 }
-
-.renderers {}
 
 input:-webkit-autofill {
   -webkit-box-shadow: 0 0 0 50px white inset;
@@ -440,13 +345,6 @@ input:-webkit-autofill {
   font-size: 11px;
   text-align: center;
   line-height: 20px;
-}
-
-.divider {
-  background-color: rgb(255, 64, 129);
-  position: absolute;
-  width: 2px;
-  /*margin-top:4px;*/
 }
 
 .protectedPercentBar {
@@ -521,39 +419,11 @@ input:-webkit-autofill {
   -o-transition: rotate(3600deg);
 }
 
-.menuIcon {
-  margin-left: 20px;
-  cursor: pointer;
-}
-
-.toolbarIcon {
-  position: absolute !important;
-}
-
-.iconButton {
-  padding: 0px !important;
-  width: 24px !important;
-  height: 24px !important;
-  display: inline-flex !important;
-  line-height: 24px !important;
-}
-
-.raisedButton {
-  padding: 0px !important;
-  min-width: 40px !important;
-  width: 24px !important;
-  height: 24px !important;
-}
-
 .titleBar {
   background-color: rgb(0, 188, 212) !important;
   vertical-align: middle;
   padding-left: 20px;
   padding-top: 14px;
-}
-
-.projectButton {
-  vertical-align: sub;
 }
 
 /*style for editable cells in ReactTables*/

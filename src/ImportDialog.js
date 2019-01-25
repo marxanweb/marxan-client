@@ -1,6 +1,6 @@
 import React from 'react';
 import MarxanDialog from './MarxanDialog';
-import RaisedButton from 'material-ui/RaisedButton';
+import ToolbarButton from './ToolbarButton';
 import Metadata from './Metadata';
 import UploadMarxanFiles from './UploadMarxanFiles';
 import FontAwesome from 'react-fontawesome';
@@ -58,8 +58,8 @@ class ImportDialog extends React.Component {
             <div style={{width: '100%', maxWidth: 700, margin: 'auto',textAlign:'center'}}>
                 <div style={contentStyle}>
                     <div style={{marginTop: 12}}>
-                        <RaisedButton label="Back" disabled={stepIndex === 0} onClick={this.handlePrev} className="projectsBtn" style={{height:'25px'}}/>
-                        <RaisedButton label={stepIndex === (this.state.steps.length-1) ? 'Finish' : 'Next'} onClick={this.handleNext.bind(this)} primary={true} disabled={this.state.loading} className="projectsBtn" style={{height:'25px'}}/>
+                        <ToolbarButton label="Back" disabled={stepIndex === 0} onClick={this.handlePrev} />
+                        <ToolbarButton label={stepIndex === (this.state.steps.length-1) ? 'Finish' : 'Next'} onClick={this.handleNext.bind(this)} primary={true} disabled={this.state.loading} />
                     </div>
                 </div>
             </div>
@@ -73,11 +73,11 @@ class ImportDialog extends React.Component {
                         /> : null}
                         {stepIndex === 1 ? <Metadata name={this.state.name} description={this.state.description} setName={this.setName.bind(this)} setDescription={this.setDescription.bind(this)}/> : null}
                     </div>
-                    <div id="spinner"><FontAwesome spin name='sync' style={{'display': (this.state.loading ? 'inline-block' : 'none')}} className={'importSpinner'}/></div>
                 </React.Fragment>;
         return (
             <MarxanDialog 
                 {...this.props} 
+                showSpinner={this.state.loading}
                 title={'Import - ' + this.state.steps[stepIndex]}
                 okLabel={"Close"}
                 contentWidth={500}

@@ -1,6 +1,6 @@
 import React from 'react';
 import MarxanDialog from './MarxanDialog';
-import RaisedButton from 'material-ui/RaisedButton';
+import ToolbarButton from './ToolbarButton';
 import TextField from 'material-ui/TextField';
 
 class ResendPasswordDialog extends React.Component {
@@ -10,8 +10,8 @@ class ResendPasswordDialog extends React.Component {
     }
     render() {
         const actions = [
-            <RaisedButton label="Close" primary={true} onClick={this.props.closeResendPasswordDialog} disabled={this.props.resending} className="projectsBtn"/>,
-            <RaisedButton onClick={this.props.resendPassword} label= {"Resend"} disabled = {!this.props.email || this.props.resending} primary={true} className="projectsBtn" type="submit"/>
+            <ToolbarButton label="Close" primary={true} onClick={this.props.closeResendPasswordDialog} disabled={this.props.resending} />,
+            <ToolbarButton onClick={this.props.resendPassword} label= {"Resend"} disabled = {!this.props.email || this.props.resending} primary={true} type="submit"/>
         ];
         return (
             <React.Fragment>

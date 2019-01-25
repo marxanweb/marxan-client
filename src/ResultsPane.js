@@ -1,5 +1,5 @@
 import React from 'react';
-import RaisedButton from 'material-ui/RaisedButton';
+import ToolbarButton from './ToolbarButton';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEraser } from '@fortawesome/free-solid-svg-icons';
 import ReactTable from "react-table";
@@ -72,13 +72,11 @@ class ResultsPane extends React.Component {
                   <Legend
                     brew={this.props.brew}
                   />
-                  <RaisedButton 
+                  <ToolbarButton 
                     icon={<Settings style={{height:'20px',width:'20px'}}/>} 
                     title="Legend Settings"
                     onClick={this.props.openClassificationDialog} 
-                    style={{ top:'440px', marginRight:'4px',padding: '0px',minWidth: '30px',width: '24px',height: '24px',position:'absolute'}}
-                    overlayStyle={{lineHeight:'24px',height:'24px'}}
-                    buttonStyle={{marginTop:'-7px',lineHeight:'24px',height:'24px'}} 
+                    style={{ top:'440px', position:'absolute', marginLeft:'-7px'}}
                   />
                 </div>
               </Tab>
@@ -134,21 +132,19 @@ class ResultsPane extends React.Component {
               </Tab>
               <Tab label="Log" value="log" onActive={this.props.log_tab_active} >
                 <div id="log" onMouseEnter={this.mouseEnter.bind(this)} onMouseLeave={this.mouseLeave.bind(this)}>{this.props.log}
-                  <RaisedButton  
+                  <ToolbarButton  
                     icon={<Clipboard style={{height:'20px',width:'20px'}}/>} 
                     title="Copy to clipboard"
                     onClick={this.copyLog.bind(this)} 
-                    style={{padding: '0px',minWidth: '30px',width: '24px',height: '24px',position:'absolute',top:'421px',right:'70px', display: (this.state.showClipboard) ? 'block' : 'none'}}
-                    overlayStyle={{lineHeight:'24px',height:'24px'}}
-                    buttonStyle={{marginTop:'-7px',lineHeight:'24px',height:'24px'}} 
+                    show={this.state.showClipboard}
+                    style={{position:'absolute',top:'421px',right:'70px'}}
                   />
-                  <RaisedButton  
+                  <ToolbarButton  
                     icon={<FontAwesomeIcon icon={faEraser} />} 
                     title="Clear log"
                     onClick={this.props.clearLog.bind(this)} 
-                    style={{padding: '0px',minWidth: '30px',width: '24px',height: '24px',position:'absolute',top:'421px',right:'30px', display: (this.state.showClipboard) ? 'block' : 'none'}}
-                    overlayStyle={{lineHeight:'24px',height:'24px'}}
-                    buttonStyle={{marginTop:'-7px',lineHeight:'24px',height:'24px'}} 
+                    show={this.state.showClipboard}
+                    style={{position:'absolute',top:'421px',right:'30px'}}
                   />
                 </div>
               </Tab>
