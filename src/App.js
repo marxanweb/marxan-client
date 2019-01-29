@@ -25,12 +25,14 @@ import Sync from 'material-ui/svg-icons/notification/sync';
 import * as utilities from './utilities.js';
 import AppBar from './AppBar';
 import LoginDialog from './LoginDialog';
-import NewUserDialog from './NewUserDialog.js';
+import RegisterDialog from './RegisterDialog.js';
 import ResendPasswordDialog from './ResendPasswordDialog.js';
 import UserMenu from './UserMenu';
 import HelpMenu from './HelpMenu';
 import OptionsDialog from './OptionsDialog';
 import ProfileDialog from './ProfileDialog';
+import UsersDialog from './UsersDialog';
+import HelpDialog from './HelpDialog';
 import AboutDialog from './AboutDialog';
 import MenuItemWithButton from './MenuItemWithButton';
 import InfoPanel from './InfoPanel';
@@ -110,13 +112,15 @@ class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      usersDialogOpen: false,
       featureMenuOpen: false,
       profileDialogOpen: false,
       aboutDialogOpen: false,
+      helpDialogOpen: false,
       importDialogOpen: false,
       optionsDialogOpen: false,
       CostsDialogOpen: false,
-      newUserDialogOpen: false,
+      registerDialogOpen: false,
       clumpingDialogOpen: false,
       settingsDialogOpen: false,
       projectsDialogOpen: false,
@@ -128,6 +132,7 @@ class App extends React.Component {
       featuresDialogOpen: false,
       infoPanelOpen: false,
       resultsPanelOpen: false,
+      users: [],
       user: DISABLE_LOGIN ? 'andrew' : '',
       password: DISABLE_LOGIN ? 'asd' : '',
       project: DISABLE_LOGIN ? 'Tonga marine' : '',
@@ -165,6 +170,8 @@ class App extends React.Component {
       featureDatasetFilename: '',
       creatingNewPlanningGrid: false,
       loadingFeatures: false,
+      loadingProjects: false,
+      loadingUsers: false,
       savingOptions: false,
       dataBreaks: [],
       allFeatures: [], //all of the interest features in the metadata_interest_features table
@@ -367,7 +374,10 @@ class App extends React.Component {
     jsonp(MARXAN_ENDPOINT_HTTPS + "resendPassword?user=" + this.state.user, { timeout: TIMEOUT }).promise.then(function(response) {
       this.setState({ resending: false });
       if (!this.checkForErrors(response)) {
-        this.setState({ snackbarOpen: true, snackbarMessage: "Password resent" });
+        //ui feedback
+        this.setState({ snackbarOpen: true, snackbarMessage: response.info });
+        //close the resend password dialog
+        this.closeResendPasswordDialog();
       }
     }.bind(this));
   }
@@ -375,6 +385,55 @@ class App extends React.Component {
   //gets all the information for the user that is logging in
   getUserInfo() {
     return jsonp(MARXAN_ENDPOINT_HTTPS + "getUser?user=" + this.state.user, { timeout: TIMEOUT }).promise;
+  }
+
+  //gets data for all users
+  getUsers() {
+    this.setState({ loadingUsers: true });
+    jsonp(MARXAN_ENDPOINT_HTTPS + "getUsers", { timeout: TIMEOUT }).promise.then(function(response) {
+      this.setState({ loadingUsers: false });
+      if (!this.checkForErrors(response)) {
+        this.setState({ users: response.users });
+      }
+      else {
+        this.setState({ users: [] });
+      }
+    }.bind(this));
+  }
+
+  //deletes a user
+  deleteUser(user) {
+    jsonp(MARXAN_ENDPOINT_HTTPS + "deleteUser?user=" + user, { timeout: TIMEOUT }).promise.then(function(response) {
+      if (!this.checkForErrors(response)) {
+        this.setState({ snackbarOpen: true, snackbarMessage: "User deleted" });
+        //remove it from the users array
+        let usersCopy = this.state.users;
+        //remove the user 
+        usersCopy = usersCopy.filter(function(item){return item.user !== user});
+        //update the users state   
+        this.setState({users: usersCopy});
+      }
+      else {
+        this.setState({ snackbarOpen: true, snackbarMessage: "User not deleted" });
+      }
+    }.bind(this));
+  }
+  
+  //changes a users role
+  changeRole(user, role){
+    this.updateUser({ROLE: role}, user);
+    //copy the users state
+    let usersCopy = this.state.users;
+    //change the users role
+    usersCopy = usersCopy.map(function(item){
+      if (item.user === user){
+        return Object.assign(item, {'ROLE': role});
+      }else{
+        return item;
+      }      
+    });
+    //update the users state   
+    this.setState({users: usersCopy});
   }
 
   appendToFormData(formData, obj) {
@@ -398,7 +457,7 @@ class App extends React.Component {
   }
 
   //updates all parameter in the user.dat file then updates the state (in userData)
-  updateUser(parameters) {
+  updateUser(parameters, user = this.state.user) {
     //ui feedback
     this.setState({ savingOptions: true });
     //remove the keys that are not part of the users information
@@ -406,7 +465,7 @@ class App extends React.Component {
     //initialise the form data
     let formData = new FormData();
     //add the current user
-    formData.append("user", this.state.user);
+    formData.append("user", user);
     //append all the key/value pairs
     this.appendToFormData(formData, parameters);
     //post to the server
@@ -627,7 +686,12 @@ class App extends React.Component {
     post(MARXAN_ENDPOINT_HTTPS + "createUser", formData, {withCredentials: SEND_CREDENTIALS}).then((response) => {
       this.setState({ creatingNewUser: false });
       if (!this.checkForErrors(response.data)) {
-        this.setState({ snackbarOpen: true, snackbarMessage: response.data.info + ". Close and login" });
+        //ui feedback
+        this.setState({ snackbarOpen: true, snackbarMessage: response.data.info});
+        //close the register dialog
+        this.closeRegisterDialog();
+        //enter the new users name in the username box and a blank password
+        this.setState({user: user, password:''});
       }
       else {
         this.setState({ snackbarOpen: true, snackbarMessage: response.data.error });
@@ -2329,11 +2393,11 @@ class App extends React.Component {
   hideHelpMenu(e) {
     this.setState({ helpMenuOpen: false });
   }
-  openNewUserDialog() {
-    this.setState({ newUserDialogOpen: true });
+  openRegisterDialog() {
+    this.setState({ registerDialogOpen: true });
   }
-  closeNewUserDialog() {
-    this.setState({ newUserDialogOpen: false });
+  closeRegisterDialog() {
+    this.setState({ registerDialogOpen: false });
   }
   openResendPasswordDialog() {
     this.setState({ resendPasswordDialogOpen: true });
@@ -2394,6 +2458,15 @@ class App extends React.Component {
     this.setState({ aboutDialogOpen: false });
   }
   
+  openHelpDialog(){
+    this.setState({ helpDialogOpen: true });
+    this.hideHelpMenu();
+  }
+
+  closeHelpDialog() {
+    this.setState({ helpDialogOpen: false });
+  }
+  
   showRunSettingsDialog() {
     this.setState({ settingsDialogOpen: true });
   }
@@ -2414,6 +2487,13 @@ class App extends React.Component {
   }
   closeImportDialog() {
     this.setState({ importDialogOpen: false });
+  }
+  openUsersDialog() {
+    this.getUsers();
+    this.setState({ usersDialogOpen: true });
+  }
+  closeUsersDialog() {
+    this.setState({ usersDialogOpen: false });
   }
 
   hideResults() {
@@ -2786,7 +2866,7 @@ class App extends React.Component {
           <LoginDialog 
             open={!this.state.loggedIn} 
             onOk={this.validateUser.bind(this)} 
-            onCancel={this.openNewUserDialog.bind(this)} 
+            onCancel={this.openRegisterDialog.bind(this)} 
             user={this.state.user} 
             changeUserName={this.changeUserName.bind(this)} 
             changePassword={this.changePassword.bind(this)} 
@@ -2800,19 +2880,18 @@ class App extends React.Component {
             activeServer={this.state.activeServer}
             setActiveServer={this.setActiveServer.bind(this)}
           />
-          <NewUserDialog 
-            open={this.state.newUserDialogOpen} 
+          <RegisterDialog 
+            open={this.state.registerDialogOpen} 
             onOk={this.createNewUser.bind(this)}
-            onCancel={this.closeNewUserDialog.bind(this)}
+            onCancel={this.closeRegisterDialog.bind(this)}
             creatingNewUser={this.props.creatingNewUser}
           />
           <ResendPasswordDialog
             open={this.state.resendPasswordDialogOpen} 
-            onOk={this.closeResendPasswordDialog.bind(this)}
+            onOk={this.resendPassword.bind(this)}
             onCancel={this.closeResendPasswordDialog.bind(this)}
             changeEmail={this.changeEmail.bind(this)} 
             email={this.state.resendEmail} 
-            resendPassword={this.resendPassword.bind(this)}
             resending={this.state.resending}
           />
           <UserMenu 
@@ -2829,6 +2908,7 @@ class App extends React.Component {
             menuAnchor={this.state.menuAnchor}
             hideHelpMenu={this.hideHelpMenu.bind(this)} 
             openAboutDialog={this.openAboutDialog.bind(this)}
+            openHelpDialog={this.openHelpDialog.bind(this)}
           />
           <OptionsDialog 
             open={this.state.optionsDialogOpen}
@@ -2841,6 +2921,15 @@ class App extends React.Component {
             basemaps={this.state.basemaps}
             basemap={this.state.basemap}
           />
+          <UsersDialog
+            open={this.state.usersDialogOpen}
+            onOk={this.closeUsersDialog.bind(this)}
+            user={this.state.user}
+            users={this.state.users}
+            loadingUsers={this.state.loadingUsers}
+            deleteUser={this.deleteUser.bind(this)}
+            changeRole={this.changeRole.bind(this)}
+          />
           <ProfileDialog 
             open={this.state.profileDialogOpen}
             onOk={this.closeProfileDialog.bind(this)}
@@ -2848,10 +2937,13 @@ class App extends React.Component {
             userData={this.state.userData}
             updateUser={this.updateUser.bind(this)}
           />
+          <HelpDialog
+            open={this.state.helpDialogOpen}
+            onOk={this.closeHelpDialog.bind(this)}
+          />
           <AboutDialog 
             open={this.state.aboutDialogOpen}
             onOk={this.closeAboutDialog.bind(this)}
-            onCancel={this.closeAboutDialog.bind(this)}
           />
           <InfoPanel
             open={this.state.infoPanelOpen}
@@ -3071,6 +3163,7 @@ class App extends React.Component {
           <AppBar
             open={this.state.loggedIn}
             user={this.state.user}
+            userRole={this.state.userData.ROLE}
             infoPanelOpen={this.state.infoPanelOpen}
             resultsPanelOpen={this.state.resultsPanelOpen}
             openProjectsDialog={this.openProjectsDialog.bind(this)}
@@ -3079,6 +3172,7 @@ class App extends React.Component {
             toggleResultsPanel={this.toggleResultsPanel.bind(this)}
             showUserMenu={this.showUserMenu.bind(this)}
             showHelpMenu={this.showHelpMenu.bind(this)}
+            openUsersDialog={this.openUsersDialog.bind(this)}
           />
           <div className="processingDiv" style={{display:(this.state.running||this.state.preprocessingFeature||this.state.preprocessingProtectedAreas||this.state.preprocessingBoundaryLengths||this.state.clumpingRunning) ? 'block' : 'none'}} title="Processing..">
             <Paper zDepth={2}>

@@ -75,20 +75,29 @@ class SelectFieldMapboxLayer extends React.Component {
             });
         } 
         else {
-            console.log("The MapBox layer does not exist");
+            console.log("The MapBox layer does not exist"); 
         }
     }
 
     render() {
         return (
             <React.Fragment>
-                <SelectField onChange={this.changeItem.bind(this)} value={this.props.selectedValue} floatingLabelText="Select the planning units" floatingLabelFixed={true} style={{marginTop:'293px', width:this.props.width}}>
+                <SelectField 
+                onChange={this.changeItem.bind(this)} 
+                value={this.props.selectedValue} 
+                menuItemStyle={{fontSize:'12px'}} 
+                labelStyle={{fontSize:'12px'}} 
+                floatingLabelText="Select the planning units" 
+                floatingLabelFixed={true} 
+                style={{marginTop:'293px', width:this.props.width}}>
                     {this.props.items.map((item)=>{
                     return <MenuItem 
                     value={item.feature_class_name} 
                     primaryText={item.alias} 
                     key={item.feature_class_name}
                     style={{fontSize:'12px'}}
+                    menuItemStyle={{fontSize:'12px'}}
+                    labelStyle={{fontSize:'12px'}} 
                     />;
                     })}
                 </SelectField>

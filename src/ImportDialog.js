@@ -82,6 +82,7 @@ class ImportDialog extends React.Component {
                 title={'Import - ' + this.state.steps[stepIndex]}
                 contentWidth={420}
                 children={c} 
+                okLabel={"Cancel"}
                 actions={actions} 
                 onOk={this.onOk.bind(this)}
                 onRequestClose={this.onOk.bind(this)} 

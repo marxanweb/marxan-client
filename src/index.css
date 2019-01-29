@@ -213,6 +213,9 @@ body {
   height: 340px;
 }
 
+#usersTable{
+  height: 340px;
+}
 .projectsReactTable {
   max-height: 340px;
 }

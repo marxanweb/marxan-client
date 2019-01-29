@@ -113,7 +113,7 @@ class InfoPanel extends React.Component {
                     floatingLabelFixed={true} 
                     underlineShow={false}
                     disabled={(this.props.preprocessingProtectedAreas)||(this.props.userRole === "ReadOnly")}
-                    menuItemStyle={{fontSize:'12px'}}
+                    menuItemStyle={{fontSize:'12px'}} 
                     labelStyle={{fontSize:'12px'}} 
                     style={{marginTop:'-15px',width:'140px'}}
                     value={this.props.metadata.IUCN_CATEGORY} 

@@ -6,13 +6,13 @@ class AboutDialog extends React.Component {
     return (
       <MarxanDialog
         {...this.props}
-        contentWidth={530}
+        contentWidth={358}
         offsetY={80}
         title="About"
         children={
           <div key="k5">
             <div style={{ fontSize: "14px" }}>
-              Marxan Web v1.2 Feedback:{" "}
+              Marxan Web v1.5 Feedback:{" "}
               <a href="mailto:andrew.cottam@ec.europa.eu" className="email">
                 Andrew Cottam
               </a>
@@ -28,6 +28,9 @@ class AboutDialog extends React.Component {
               src="https://andrewcottam.github.io/cdn/mapbox_small.png"
               alt="Mapbox logo"
             />
+            <div style={{ fontSize: "14px" }}>
+              Funded by the BIOPAMA project of the European Commission
+            </div>
           </div>
         }
       />

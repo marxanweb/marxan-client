@@ -50,7 +50,7 @@ class ProjectsDialog extends React.Component {
         }
         closeDialog() {
             this.setState({ selectedProject: undefined });
-            this.props.onOk();
+            this.props.onOk(); 
         }
         render() {
                 let tableColumns = [];

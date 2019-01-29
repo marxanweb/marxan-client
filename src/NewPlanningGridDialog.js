@@ -54,7 +54,7 @@ class NewPlanningGridDialog extends React.Component {
                     />
                   );
                 })}
-              </SelectField>
+              </SelectField> 
               <ToolbarButton
                 icon={<FontAwesomeIcon icon={faArrowAltCircleUp} />}
                 title="Load a custom area of interest from a shapefile (not currently implemented)"

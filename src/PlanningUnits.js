@@ -21,7 +21,7 @@ class PlanningUnits extends React.Component {
             zoom: 2
         });
     }
-    openNewPlanningGridDialog() {
+    openNewPlanningGridDialog() { 
         this.props.openNewPlanningGridDialog();
     } 
     render() {

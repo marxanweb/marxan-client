@@ -7,9 +7,6 @@ import Info from 'material-ui/svg-icons/action/info';
 import {white} from 'material-ui/styles/colors';
 
 class HelpMenu extends React.Component {
-  openHelpDialog(){
-     
-  }
   render() {
     return (
         <React.Fragment>
@@ -21,7 +18,7 @@ class HelpMenu extends React.Component {
                 onRequestClose={this.props.hideHelpMenu}
                 >
                 <Menu desktop={true} onMouseLeave={this.props.hideHelpMenu} menuItemStyle={{backgroundColor:'rgb(0, 188, 212)', color:'white'}} listStyle={{width:'120px',backgroundColor:'rgb(0, 188, 212)'}} selectedMenuItemStyle={{color:'rgb(24,24,24)'}} width={'102px'}>
-                    <MenuItem primaryText="Help" onClick={this.openHelpDialog.bind(this)} leftIcon={<Help color={white}/>}/>
+                    <MenuItem primaryText="Help" onClick={this.props.openHelpDialog} leftIcon={<Help color={white}/>}/>
                     <MenuItem primaryText="About" onClick={this.props.openAboutDialog} leftIcon={<Info color={white}/>}/>
                 </Menu>
             </Popover>
