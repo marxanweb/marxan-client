@@ -26,7 +26,7 @@ class ClassificationDialog extends React.Component {
         showCancelButton={true}
         title="Classification" 
         children={
-          <div style={{height:'275px'}}>
+          <div style={{height:'275px'}} key="k6">
             <BarChart width={250} height={150} data={this.props.summaryStats}>
               <CartesianGrid strokeDasharray="1" stroke="#f4f4f4"/>
               <XAxis dataKey="number" tick={{fontSize:11}} type={'number'}>

@@ -11,7 +11,7 @@ class ClumpingDialog extends React.Component {
       return value; 
     }else{
       return "";
-    } 
+    }  
   } 
   
   selectBlm(blmValue){
@@ -35,6 +35,7 @@ class ClumpingDialog extends React.Component {
         offsetY={80}
         onOk={this.onRequestClose.bind(this)}
         okDisabled={this.props.clumpingRunning}
+        showCancelButton={true}
         actions={[
           <ToolbarButton 
             label="Refresh" 
@@ -44,7 +45,7 @@ class ClumpingDialog extends React.Component {
           />]}
         title="Clumping" 
         children={
-          <div>
+          <div key="k7">
             <MapContainer disabled={this.props.clumpingRunning} selectBlm={this.selectBlm.bind(this)} tileset={this.props.tileset} RESULTS_LAYER_NAME={this.props.RESULTS_LAYER_NAME} paintProperty={this.props.map0_paintProperty} blmValue={this.parseBlmValue(this.props.blmValues[0])} mapCentre={this.props.mapCentre} mapZoom={this.props.mapZoom}/>
             <MapContainer disabled={this.props.clumpingRunning} selectBlm={this.selectBlm.bind(this)} tileset={this.props.tileset} RESULTS_LAYER_NAME={this.props.RESULTS_LAYER_NAME} paintProperty={this.props.map1_paintProperty} blmValue={this.parseBlmValue(this.props.blmValues[1])} mapCentre={this.props.mapCentre} mapZoom={this.props.mapZoom}/>
             <MapContainer disabled={this.props.clumpingRunning} selectBlm={this.selectBlm.bind(this)} tileset={this.props.tileset} RESULTS_LAYER_NAME={this.props.RESULTS_LAYER_NAME} paintProperty={this.props.map2_paintProperty} blmValue={this.parseBlmValue(this.props.blmValues[2])} mapCentre={this.props.mapCentre} mapZoom={this.props.mapZoom}/>

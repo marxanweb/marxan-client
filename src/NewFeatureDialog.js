@@ -10,27 +10,23 @@ class NewFeatureDialog extends React.Component {
     changeDescription(event, newValue) {
         this.props.setDescription(newValue);
     }
-    createNewInterestFeature(){ 
-        this.props.createNewInterestFeature();
-        this.props.resetNewConservationFeature();
-    } 
     render() {
         let c = 
-            <React.Fragment>
+            <React.Fragment key="k12">
                 <div>
-                    <TextField value={this.props.name} onChange={this.changeName.bind(this)} style={{width:'500px',display:'block'}} floatingLabelText="Enter a name" floatingLabelFixed={true}/>
-                    <TextField value={this.props.description} onChange={this.changeDescription.bind(this)} style={{width:'500px',display:'block'}} multiLine={true} rows={2} floatingLabelText="Enter a description" floatingLabelFixed={true}/>
-                    <ShapefileUpload SEND_CREDENTIALS={this.props.SEND_CREDENTIALS} MARXAN_ENDPOINT_HTTPS={this.props.MARXAN_ENDPOINT_HTTPS} mandatory={true} name={this.props.name} description={this.props.description} filename={this.props.filename} setFilename={this.props.setFilename} label="Zipped shapefile" style={{'paddingTop':'10px'}}/>
+                    <TextField value={this.props.name} onChange={this.changeName.bind(this)} style={{display:'block'}} floatingLabelText="Enter a name" floatingLabelFixed={true}/>
+                    <TextField value={this.props.description} onChange={this.changeDescription.bind(this)} style={{display:'block'}} multiLine={true} rows={2} floatingLabelText="Enter a description" floatingLabelFixed={true}/>
+                    <ShapefileUpload SEND_CREDENTIALS={this.props.SEND_CREDENTIALS} MARXAN_ENDPOINT_HTTPS={this.props.MARXAN_ENDPOINT_HTTPS} checkForErrors={this.props.checkForErrors} mandatory={true} name={this.props.name} description={this.props.description} filename={this.props.filename} setFilename={this.props.setFilename} label="Shapefile" style={{'paddingTop':'10px'}}/>
                 </div>
             </React.Fragment>;
         return (
-            <MarxanDialog 
+            <MarxanDialog  
                 {...this.props} 
-                onOk={this.createNewInterestFeature.bind(this)}
+                onOk={this.props.createNewInterestFeature}
                 okDisabled={!(this.props.name!=='' && this.props.description!=='' && this.props.filename!=='')}
                 okLabel={this.props.creatingNewPlanningGrid ? "Creating..." : "OK" }
                 showCancelButton={true}
-                contentWidth={500}
+                contentWidth={420}
                 title="New feature" 
                 children={c} 
                 onRequestClose={this.props.onOk} 

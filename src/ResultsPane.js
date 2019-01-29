@@ -12,7 +12,7 @@ import Clipboard from 'material-ui/svg-icons/action/assignment';
 class ResultsPane extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { showClipboard: false };
+    this.state = { showClipboard: false, selectedSolution: undefined };
   }
   componentDidUpdate(prevProps, prevState) {
     //if the streaming log has changed then scroll to the bottom of the div
@@ -21,6 +21,7 @@ class ResultsPane extends React.Component {
       if (objDiv) {
         objDiv.scrollTop = objDiv.scrollHeight;
       }
+      if (this.state.selectedSolution) this.changeSolution(undefined, undefined); //unselect a solution
     }
   }
   loadSolution(solution) { //loads the solution using the projects owner
@@ -60,6 +61,11 @@ class ResultsPane extends React.Component {
     document.execCommand('copy');
   }
 
+  changeSolution(event, solution) {
+    this.setState({ selectedSolution: solution });
+    if (solution) this.loadSolution(solution.Run_Number);
+  }
+  
   render() {
     return (
       <React.Fragment>
@@ -83,14 +89,14 @@ class ResultsPane extends React.Component {
               <Tab label="Solutions" value="solutions" onActive={this.props.solutions_tab_active} >
                 <div id="solutionsPanel" style={{'display': (this.props.dataAvailable && !this.props.running ? 'block' : 'none')}}>
                   <ReactTable
-                    infoPanel={this}
+                    thisRef={this}
                     getTrProps={(state, rowInfo, column, instance) => {
-                        return {
-                          onClick: (e, handleOriginal) => {
-                            if (instance.lastSelectedRow) instance.lastSelectedRow.style['background-color'] = '';
-                            instance.lastSelectedRow = e.currentTarget;
-                            e.currentTarget.style['background-color'] = 'lightgray';
-                            instance.props.infoPanel.loadSolution(rowInfo.original.Run_Number);
+                        return { 
+                          onClick: (e) => {
+                              state.thisRef.changeSolution(e, rowInfo.original);
+                          },
+                          style: { 
+                              background: (rowInfo.original.Run_Number === (state.thisRef.state.selectedSolution&&state.thisRef.state.selectedSolution.Run_Number)) ? "aliceblue" : ""
                           },
                           title: 'Click to show on the map'
                         };

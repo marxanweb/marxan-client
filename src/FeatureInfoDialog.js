@@ -113,6 +113,7 @@ class FeatureInfoDialog extends React.Component {
                    Cell: props => this.renderValueCell(props)
                 }
                 ]}
+               key="k9"
               />
             }
           />);

@@ -16,16 +16,20 @@ body {
   top: 0px;
   transform: translate(-50%, 0px);
 }
-.appBarPaper{
+
+.appBarPaper {
   /*width: 400px;*/
 }
-.appBarTitle{
+
+.appBarTitle {
   background-color: rgba(0, 188, 212, 0.9);
 }
-.appBarIcon{
+
+.appBarIcon {
   margin: 6px;
   cursor: pointer;
 }
+
 .InfoPanelPaper {
   width: 400px;
   margin: 20px;
@@ -99,6 +103,7 @@ body {
 }
 
 .uploadFileField {
+  display: inline-block;
   padding: 2px;
 }
 
@@ -109,7 +114,6 @@ body {
 
 .uploadFileFieldIcon {
   display: inline-block;
-  padding-left: 5px;
 }
 
 .mandatoryIcon {
@@ -433,4 +437,26 @@ div.rt-tbody>div>div>div>div[contenteditable="true"] {
   padding-left: 5px !important;
   margin-left: -5px;
   margin-right: -5px;
+}
+
+.processingDiv {
+  width: 24px;
+  height: 24px;
+  position: absolute;
+  right: 13px;
+  bottom: 128px;
+}
+
+.processingText {
+  font-size: 12px;
+  background-color: rgba(0, 188, 212, 0.9);
+  color:white;
+  padding-left: 4px;
+}
+
+.processingSpin {
+  color: rgb(255, 64, 129);
+  position: absolute;
+  right: 2px;
+  top:0px;
 }

@@ -3,7 +3,6 @@ import MarxanDialog from './MarxanDialog';
 import ToolbarButton from './ToolbarButton';
 import Metadata from './Metadata';
 import UploadMarxanFiles from './UploadMarxanFiles';
-import FontAwesome from 'react-fontawesome';
 
 //some of the code in this component should be moved up to app.js like the POSTs but I have limited time
 
@@ -19,7 +18,7 @@ class ImportDialog extends React.Component {
             //create the new project 
             this.props.importProject(this.state.name, this.state.description, this.state.zipFilename, this.state.files).then(function(response){
                 //close the import wizard
-                this.props.onOk();
+                this.onOk();
             }.bind(this), function(error) {
                 this.setState({loading: false});
                 this.props.setLog("\nImport stopped");
@@ -46,10 +45,10 @@ class ImportDialog extends React.Component {
     setDescription(value) {
         this.setState({ description: value });
     }
-    closeImportDialog(){
+    onOk(){
         //return the wizard back to zero
         this.setState({loading: false, stepIndex: 0 });
-        this.props.closeImportDialog();
+        this.props.onOk();
     }
     render() {
         const { stepIndex } = this.state; 
@@ -64,12 +63,14 @@ class ImportDialog extends React.Component {
                 </div>
             </div>
         ];
-        let c = <React.Fragment>
+        let c = <React.Fragment key="k4">
                     <div>
                         {stepIndex === 0 ? <UploadMarxanFiles 
                             filesListed={this.filesListed.bind(this)}
                             setZipFilename={this.setZipFilename.bind(this)}
                             MARXAN_ENDPOINT_HTTPS={this.props.MARXAN_ENDPOINT_HTTPS} 
+                            SEND_CREDENTIALS={this.props.SEND_CREDENTIALS}
+                            checkForErrors={this.props.checkForErrors} 
                         /> : null}
                         {stepIndex === 1 ? <Metadata name={this.state.name} description={this.state.description} setName={this.setName.bind(this)} setDescription={this.setDescription.bind(this)}/> : null}
                     </div>
@@ -79,11 +80,11 @@ class ImportDialog extends React.Component {
                 {...this.props} 
                 showSpinner={this.state.loading}
                 title={'Import - ' + this.state.steps[stepIndex]}
-                okLabel={"Close"}
-                contentWidth={500}
+                contentWidth={420}
                 children={c} 
                 actions={actions} 
-                onRequestClose={this.props.onOk} 
+                onOk={this.onOk.bind(this)}
+                onRequestClose={this.onOk.bind(this)} 
             />
         );
     }

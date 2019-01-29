@@ -32,11 +32,13 @@ class ShapefileUpload extends React.Component {
         formData.append('filename', this.filename);
         formData.append('name', this.props.name);
         formData.append('description', this.props.description); 
-        post(url, formData, {withCredentials: this.props.SEND_CREDENTIALS}).then((response) => this.finishedLoading(response));
+        post(url, formData, {withCredentials: this.props.SEND_CREDENTIALS}).then(function(response){
+            this.finishedLoading(response);
+        }.bind(this));
     }
 
     finishedLoading(response) {
-        if (response.error === undefined) {
+        if (!this.props.checkForErrors(response.data)){
             this.setState({ loading: false });
             this.props.setFilename(this.filename);
         }
@@ -49,10 +51,10 @@ class ShapefileUpload extends React.Component {
                     <tbody>
                         <tr>
                             <td>
-                                <div style={{'width':'180px'}}>{this.props.label}</div>
+                                <div style={{'width':'113px'}}>{this.props.label}</div>
                             </td>
                             <td className='uploadFileTD'> 
-                                <div className='uploadFileField' style={{width:'280px'}}>
+                                <div className='uploadFileField' style={{width:'222px'}}>
                                     <div className='uploadFileFieldIcon'>
                                         <label htmlFor={this.id}><FontAwesome name='file' title='Click to upload a file' style={{'cursor':'pointer'}}/></label>
                                         <input type="file" onChange={this.onChange} accept=".zip" style={{'display':'none', 'width':'10px'}} id={this.id} />
@@ -60,7 +62,7 @@ class ShapefileUpload extends React.Component {
                                     <div className='mandatoryIcon'>
                                         <FontAwesome name='exclamation-circle' title='Required field' style={{ color: 'red', 'display': (this.props.filename  === '' && this.props.mandatory) ? 'block' : 'none'}}/>
                                     </div>
-                                    <div className='uploadFileFieldLabel' style={{width:'200px'}}>{this.props.filename}</div>
+                                    <div className='uploadFileFieldLabel' style={{width:'184px'}}>{this.props.filename}</div>
                                 </div>
                             </td>
                             <td><FontAwesome name='sync' spin style={{'display': (this.state.loading ? 'block' : 'none'), 'marginLeft':'6px'}}/></td>

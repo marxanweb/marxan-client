@@ -1,6 +1,6 @@
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBookOpen } from '@fortawesome/free-solid-svg-icons';
+// import { faBookOpen } from '@fortawesome/free-solid-svg-icons';
 import { faPlusCircle } from '@fortawesome/free-solid-svg-icons';
 import Import from 'material-ui/svg-icons/action/get-app';
 import Delete from 'material-ui/svg-icons/action/delete';
@@ -9,7 +9,7 @@ import ToolbarButton from './ToolbarButton';
 import MarxanDialog from './MarxanDialog';
 import ReactTable from "react-table";
 
-class ProjectsDialog extends React.Component {
+class ProjectsDialog extends React.Component { 
         constructor(props) {
             super(props);
             this.state = { selectedProject: undefined };
@@ -75,7 +75,7 @@ class ProjectsDialog extends React.Component {
                     bodyStyle={{ padding:'0px 24px 0px 24px'}}
                     title="Projects"  
                     children={
-                        <React.Fragment>
+                        <React.Fragment key="k2">
                             <div style={{marginBottom:'5px'}}>There are a total of {this.props.projects.length} projects:</div>
                                 <div id="projectsTable">
                                     <ReactTable 
@@ -84,7 +84,7 @@ class ProjectsDialog extends React.Component {
                                         showPagination={false} 
                                         minRows={0}
                                         data={this.props.projects}
-                                        thisRef={this}
+                                        thisRef={this} 
                                         columns={tableColumns}
                                         getTrProps={(state, rowInfo, column) => {
                                             return {

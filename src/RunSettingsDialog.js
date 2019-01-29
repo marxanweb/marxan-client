@@ -62,7 +62,7 @@ class RunSettingsDialog extends React.Component {
                 showSpinner={this.props.updatingRunParameters}
                 title="Run settings" 
                 children={
-                    <div style={{height:'275px'}}>
+                    <div style={{height:'275px'}} key="k16">
                         <ReactTable 
                             showPagination={false} 
                             className={'summary_infoTable'}

@@ -33,17 +33,17 @@ class MarxanDialog extends React.Component {
                 className={'dialogGeneric'}
                 style={style} 
                 actions={[
-                    cancelButton, 
                     this.props.actions,
+                    cancelButton, 
                     <ToolbarButton 
                         label={(this.props.okLabel) ? this.props.okLabel : "OK"} 
                         primary={true} 
                         onClick={this.props.onOk} 
                         disabled={this.props.okDisabled}
                     />,
-                ]}
+                ]} 
                 children={[
-                    (this.props.titleBarIcon) ? <FontAwesomeIcon icon={this.props.titleBarIcon} style={{position: 'absolute', top: '18px', left: '24px'}}/> : null,
+                    (this.props.titleBarIcon) ? <FontAwesomeIcon icon={this.props.titleBarIcon} style={{position: 'absolute', top: '18px', left: '24px'}} key="k1"/> : null,
                     <Sync className='spin' style={{display: (this.props.showSpinner) ? "inline-block" : "none", color: 'rgb(255, 64, 129)', position: 'absolute', top: '13px', right: '14px'}} key={"spinner"}/>, this.props.children
                 ]}
             />

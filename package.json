@@ -30,5 +30,7 @@
     "eject": "react-scripts eject"
   },
   "homepage": "http://beta.biopama.org/marxan-client/build/",
-  "devDependencies": {}
+  "devDependencies": {
+    "esformatter-jsx": "^8.0.1"
+  }
 }

@@ -10,7 +10,7 @@ class CostsDialog extends React.Component {
       offsetY={80}
       title="Costs" 
       children={            
-      <React.Fragment>
+      <React.Fragment key="k8">
         <div>
           Not yet implemented 
         </div>

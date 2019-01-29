@@ -35,7 +35,7 @@ class OptionsDialog extends React.Component {
                 onOk={this.updateOptions.bind(this)}
                 title="Settings" 
                 children={
-                    <div>
+                    <div key="k14">
                         <SelectField 
                             floatingLabelText={'Mapbox basemap style'} 
                             floatingLabelFixed={true} 

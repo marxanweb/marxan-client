@@ -53,11 +53,9 @@ class FeaturesDialog extends React.Component {
                   autoDetectWindowHeight={false}
                   bodyStyle={{ padding:'0px 24px 0px 24px'}}
                   title="Features"  
-                  showCancelButton={true}
                   onOk={this.onOk.bind(this)}
-                  onCancel={this.unselectFeature.bind(this)}
                   children={
-                      <React.Fragment>
+                      <React.Fragment key="k10">
                           <div style={{marginBottom:'5px'}}>There are a total of {this.props.allFeatures.length} features:</div>
                               <div id="projectsTable">
                                   <ReactTable 

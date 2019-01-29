@@ -13,12 +13,14 @@ import classyBrew from 'classybrew';
 import Popover from 'material-ui/Popover';
 import Menu from 'material-ui/Menu';
 import Snackbar from 'material-ui/Snackbar';
+import Paper from 'material-ui/Paper';
 import Properties from 'material-ui/svg-icons/alert/error-outline';
 import RemoveFromProject from 'material-ui/svg-icons/content/remove';
 import AddToMap from 'material-ui/svg-icons/action/visibility';
 import RemoveFromMap from 'material-ui/svg-icons/action/visibility-off';
 import ZoomIn from 'material-ui/svg-icons/action/zoom-in';
 import Preprocess from 'material-ui/svg-icons/action/autorenew';
+import Sync from 'material-ui/svg-icons/notification/sync';
 //project components
 import * as utilities from './utilities.js';
 import AppBar from './AppBar';
@@ -68,6 +70,7 @@ let PLANNING_UNIT_EDIT_LAYER_NAME = "planning_units_layer_edit";
 let PLANNING_UNIT_PUVSPR_LAYER_NAME = "planning_units_puvspr_layer";
 let PLANNING_UNIT_LAYER_OPACITY = 0.2;
 let PLANNING_UNIT_EDIT_LAYER_LINE_WIDTH = 1.5;
+let PUVSPR_LAYER_LAYER_LINE_WIDTH = 1.5;
 let RESULTS_LAYER_NAME = "results_layer";
 let RESULTS_LAYER_FILL_OPACITY_ACTIVE = 0.5;
 let RESULTS_LAYER_FILL_OPACITY_INACTIVE = 0.1;
@@ -153,6 +156,7 @@ class App extends React.Component {
       menuAnchor: undefined,
       preprocessingFeature: false,
       preprocessingProtectedAreas: false,
+      preprocessingBoundaryLengths: false,
       openInfoDialogOpen: false,
       currentFeature:{},
       puvsprLayerText: '',
@@ -222,6 +226,7 @@ class App extends React.Component {
     }
     this.setState({basemaps: basemaps});
   }
+  
   mapLoaded(e) {
     // this.map.addControl(new mapboxgl.FullscreenControl(), 'bottom-right'); // currently full screen hides the info panel and setting position:absolute and z-index: 10000000000 doesnt work properly
     this.map.addControl(new mapboxgl.ScaleControl());
@@ -242,9 +247,9 @@ class App extends React.Component {
   }
 
   //checks the reponse for errors
-  checkForErrors(response) {
-    let networkError = this.responseIsTimeoutOrEmpty(response);
-    let serverError = this.isServerError(response);
+  checkForErrors(response, showSnackbar = true) {
+    let networkError = this.responseIsTimeoutOrEmpty(response, showSnackbar);
+    let serverError = this.isServerError(response, showSnackbar);
     let isError = (networkError || serverError);
     if (isError) {
       //write the full trace to the console if available
@@ -255,10 +260,10 @@ class App extends React.Component {
   }
 
   //checks the response from a REST call for timeout errors or empty responses
-  responseIsTimeoutOrEmpty(response) {
+  responseIsTimeoutOrEmpty(response, showSnackbar = true) {
     if (!response) {
       let msg = "No response received from server";
-      this.setState({ snackbarOpen: true, snackbarMessage: msg, loggingIn: false });
+      if (showSnackbar) this.setState({ snackbarOpen: true, snackbarMessage: msg, loggingIn: false });
       return true;
     }
     else {
@@ -267,16 +272,18 @@ class App extends React.Component {
   }
 
   //checks to see if the rest server raised an error and if it did then show in the snackbar
-  isServerError(response) {
+  isServerError(response, showSnackbar = true) {
     //errors may come from the marxan server or from the rest server which have slightly different json responses
     if ((response && response.error) || (response && response.hasOwnProperty('metadata') && response.metadata.hasOwnProperty('error') && response.metadata.error != null)) {
       var err = (response.error) ? (response.error) : response.metadata.error;
-      this.setState({ snackbarOpen: true, snackbarMessage: err });
+      if (showSnackbar) this.setState({ snackbarOpen: true, snackbarMessage: err });
       return true;
     }
     else {
       //some server responses are warnings and will not stop the function from running as normal
-      if (response.warning) this.setState({ snackbarOpen: true, snackbarMessage: response.warning });
+      if (response.warning) {
+        if (showSnackbar) this.setState({ snackbarOpen: true, snackbarMessage: response.warning });
+      }
       return false;
     }
   }
@@ -574,7 +581,7 @@ class App extends React.Component {
       return item;
     }, this);
     //get the selected feature ids
-    this.getSelectedFeatureIds()
+    this.getSelectedFeatureIds();
     //set the state
     this.setState({ allFeatures: outFeatures, projectFeatures: outFeatures.filter(function(item) { return item.selected }) });
   }
@@ -1161,7 +1168,7 @@ class App extends React.Component {
     return new Promise(function(resolve, reject) {
       //request the data for the specific solution
       jsonp(MARXAN_ENDPOINT_HTTPS + "getSolution?user=" + user + "&project=" + project + "&solution=" + solution, { timeout: TIMEOUT }).promise.then(function(response) {
-        if (!this.checkForErrors(response)) {
+        if (!this.checkForErrors(response, false)) { //dont show the snackbar as it is likely that any errors are coming from the clumping dialog when a user clicks cancel and the projects are deleted while they are still running
           resolve(response);
         }
       }.bind(this));
@@ -1505,7 +1512,7 @@ class App extends React.Component {
   }
   //adds the results, planning unit, planning unit edit and wdpa layers to the map
   addSpatialLayers(tileset) {
-    var beforeLayer = (this.state.basemap === "North Star" ? 'bathymetry-10000' : '');
+    var beforeLayer = (this.state.basemap === "North Star" ? "" : "");
     //add the source for the planning unit layers
     this.map.addSource(PLANNING_UNIT_SOURCE_NAME,{
         'type': "vector",
@@ -1563,17 +1570,17 @@ class App extends React.Component {
     //add the puvspr planning unit layer - this layer shows the planning unit distribution of a feature from the puvspr file
     this.map.addLayer({
       'id': PLANNING_UNIT_PUVSPR_LAYER_NAME,
-      'type': "fill",
+      'type': "line",
       'source': PLANNING_UNIT_SOURCE_NAME,
       "layout": {
         "visibility": "none"
       },
       'source-layer': tileset.name,
       'paint': {
-        'fill-color': "rgba(0, 0, 0, 0)",
-        'fill-outline-color': "rgba(0, 0, 0, 0)"
+        'line-color': "rgba(255, 255, 255, 1)",
+        'line-width': PUVSPR_LAYER_LAYER_LINE_WIDTH
       }
-    });
+    }, beforeLayer);
     //add the wdpa layer
     this.map.addLayer({
       "id": WDPA_LAYER_NAME,
@@ -1604,7 +1611,7 @@ class App extends React.Component {
           ]
         }
       }
-    });
+    }, beforeLayer);
   }
 
   showLayer(id) {
@@ -2010,10 +2017,6 @@ class App extends React.Component {
   setNewFeatureDatasetFilename(filename) {
     this.setState({ featureDatasetFilename: filename });
   }
-  resetNewConservationFeature() {
-    this.setState({ featureDatasetName: '', featureDatasetDescription: '', featureDatasetFilename: '' });
-  }
-
   //used by the import wizard to import a users zipped shapefile as the planning units
   importZippedShapefileAsPu(zipname, alias, description) {
     //the zipped shapefile has been uploaded to the MARXAN folder - it will be imported to PostGIS and a record will be entered in the metadata_planning_units table
@@ -2134,13 +2137,22 @@ class App extends React.Component {
       if (!this.checkForErrors(response)) {
         if (response.id){
           this.getInterestFeature(response.id);
+          //ui response
           this.setState({ snackbarOpen: true, snackbarMessage: response.info });
+          //close the dialog
+          this.closeNewFeatureDialog();
+          //reset the state
+          this.resetNewConservationFeature();
         }
       }
       else {
         //server error
       }
     }.bind(this));
+  }
+
+  resetNewConservationFeature() {
+    this.setState({ featureDatasetName: '', featureDatasetDescription: '', featureDatasetFilename: '' });
   }
 
   getInterestFeature(id) {
@@ -2242,7 +2254,7 @@ class App extends React.Component {
           'fill-color': "rgba(255, 0, 0, 1)",
           'fill-outline-color': "rgba(255, 0, 0, 1)"
         }
-      });
+      }, PLANNING_UNIT_PUVSPR_LAYER_NAME); //add it before the layer that shows the planning unit outlines for the feature
       this.updateFeature(feature, {feature_layer_loaded: true});
     }
   }
@@ -2262,15 +2274,13 @@ class App extends React.Component {
       this.getFeaturePlanningUnits(feature.id).then(function(response){
         if (!this.checkForErrors(response)) {
           //update the paint property for the layer
-          var fill_color_expression = this.initialiseFillColorExpression("puid");
-          var fill_outline_color_expression = this.initialiseFillColorExpression("puid");
+          var line_color_expression = this.initialiseFillColorExpression("puid");
           response.data.forEach(function(puid) {
-              fill_outline_color_expression.push(puid, "rgba(255, 255, 255, 1)"); 
+              line_color_expression.push(puid, "rgba(255, 255, 255, 1)"); 
           });
           // Last value is the default, used where there is no data
-          fill_color_expression.push("rgba(0,0,0,0)");
-          fill_outline_color_expression.push("rgba(0,0,0,0)");
-          this.map.setPaintProperty(PLANNING_UNIT_PUVSPR_LAYER_NAME, "fill-outline-color", fill_outline_color_expression);
+          line_color_expression.push("rgba(0,0,0,0)");
+          this.map.setPaintProperty(PLANNING_UNIT_PUVSPR_LAYER_NAME, "line-color", line_color_expression);
           //show the layer
           this.showLayer(PLANNING_UNIT_PUVSPR_LAYER_NAME);
           //set the puvsprLayerId value - this is used to see which puvspr layer is currently being shown on the map to be able to set the text for the menu item
@@ -2487,9 +2497,12 @@ class App extends React.Component {
         this.setState({ snackbarOpen: true, snackbarMessage: "Not all protected area cells were added to the map as they would overlap some manual edits." });
       }
       //get all the puids for the existing iucn category - these will come from the previousPuids rather than getPuidsFromIucnCategory as there may have been some clashes and not all of the puids from getPuidsFromIucnCategory may actually be renderered
-      let previousPuids = (this.previousPuids !== undefined) ? this.previousPuids : [];
+      //if the previousPuids are undefined then get them from the projects previousIucnCategory
+      let previousPuids = (this.previousPuids !== undefined) ? this.previousPuids : this.getPuidsFromIucnCategory(this.previousIucnCategory);
       //set the previously selected puids
       this.previousPuids = puids;
+      //and previousIucnCategory
+      this.previousIucnCategory = iucnCategory;
       //copy the current planning units state
       let statuses = this.state.planning_units;
       //get the new puids that need to be added
@@ -2575,7 +2588,9 @@ class App extends React.Component {
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   async preprocessBoundaryLengths(iucnCategory) {
+    this.setState({preprocessingBoundaryLengths: true});
     if (this.state.files.BOUNDNAME){ //if the bounds.dat file already exists
+      this.setState({preprocessingBoundaryLengths: false});
       return Promise.resolve();
     }else{
       //calculate the boundary lengths on the server
@@ -2599,7 +2614,7 @@ class App extends React.Component {
               //update the state
               var currentFiles = this.state.files;
               currentFiles.BOUNDNAME = "bounds.dat";
-              this.setState({files: currentFiles});
+              this.setState({files: currentFiles, preprocessingBoundaryLengths: false});
               //return a value to the then() call
               resolve(response.info);
               break;
@@ -2686,7 +2701,7 @@ class App extends React.Component {
     //run the projects
     projects.map(function(project){
       this.startMarxanJob("_clumping", project.projectName, false).then(function(response){
-        if (!this.checkForErrors(response)) {
+        if (!this.checkForErrors(response, false)) {
           //run completed - get a single solution
           this.loadOtherSolution(response.user, response.project, 1);
         }
@@ -2970,7 +2985,7 @@ class App extends React.Component {
             description={this.state.featureDatasetDescription}
             filename={this.state.featureDatasetFilename}
             createNewInterestFeature={this.createNewInterestFeature.bind(this)}
-            resetNewConservationFeature={this.resetNewConservationFeature.bind(this)}
+            checkForErrors={this.checkForErrors.bind(this)} 
             MARXAN_ENDPOINT_HTTPS={MARXAN_ENDPOINT_HTTPS}
             SEND_CREDENTIALS={SEND_CREDENTIALS}
           />
@@ -3029,7 +3044,9 @@ class App extends React.Component {
             open={this.state.importDialogOpen}
             onOk={this.closeImportDialog.bind(this)}
             MARXAN_ENDPOINT_HTTPS={MARXAN_ENDPOINT_HTTPS}
+            SEND_CREDENTIALS={SEND_CREDENTIALS}
             importProject={this.importProject.bind(this)}
+            checkForErrors={this.checkForErrors.bind(this)} 
             setLog={this.setLog.bind(this)}
             user={this.state.user}
           />
@@ -3063,6 +3080,12 @@ class App extends React.Component {
             showUserMenu={this.showUserMenu.bind(this)}
             showHelpMenu={this.showHelpMenu.bind(this)}
           />
+          <div className="processingDiv" style={{display:(this.state.running||this.state.preprocessingFeature||this.state.preprocessingProtectedAreas||this.state.preprocessingBoundaryLengths||this.state.clumpingRunning) ? 'block' : 'none'}} title="Processing..">
+            <Paper zDepth={2}>
+              <div className="processingText"></div>
+              <Sync className='spin processingSpin' style={{color: 'rgb(255, 64, 129)'}}/>
+            </Paper>
+          </div>
         </React.Fragment>
       </MuiThemeProvider>
     );
