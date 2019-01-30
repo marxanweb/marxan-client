@@ -463,3 +463,17 @@ div.rt-tbody>div>div>div>div[contenteditable="true"] {
   right: 2px;
   top:0px;
 }
+
+.aboutText{
+  font-size: 12px;
+  display: inline-block;
+}
+.aboutLogo{
+  display: inline-block;
+  margin:10px;
+  vertical-align: middle;
+}
+
+.logos{
+  vertical-align: middle;
+}

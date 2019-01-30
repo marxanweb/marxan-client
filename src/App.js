@@ -150,7 +150,6 @@ class App extends React.Component {
       running: false,
       runnable: false,
       active_pu: undefined,
-      dataAvailable: false,
       popup_point: { x: 0, y: 0 },
       snackbarOpen: false,
       snackbarMessage: '',
@@ -218,6 +217,10 @@ class App extends React.Component {
     //if any files have been uploaded then check to see if we have all of the mandatory file inputs - if so, set the state to being runnable
     if (this.state.files !== prevState.files) {
       (this.state.files.SPECNAME !== '' && this.state.files.PUNAME !== '') ? this.setState({ runnable: true }): this.setState({ runnable: false });
+    }
+    //see if the features have changed - if so, save the changes
+    if (this.state.projectFeatures !== prevState.projectFeatures && this.state.projectFeatures.length> 0 && prevState.projectFeatures.length> 0 && !this.updatingProtectedAreasAmount){
+      this.updateSpecFile(); 
     }
   }
 
@@ -664,7 +667,7 @@ class App extends React.Component {
   //resets various variables and state in between users
   resetResults() {
     this.runMarxanResponse = {};
-    this.setState({ solutions: [], dataAvailable: false});
+    this.setState({ solutions: []});
   }
 
   //called after a file has been uploaded
@@ -1041,7 +1044,7 @@ class App extends React.Component {
     this.runMarxanResponse = response;
     //if we have some data to map then set the state to reflect this
     if (this.runMarxanResponse.ssoln && this.runMarxanResponse.ssoln.length > 0) {
-      this.setState({ dataAvailable: true , snackbarOpen: true, snackbarMessage: response.info});
+      this.setState({ snackbarOpen: true, snackbarMessage: response.info});
       //render the sum solution map
       this.renderSolution(this.runMarxanResponse.ssoln, true);
       //create the array of solutions to pass to the InfoPanels table
@@ -1053,9 +1056,10 @@ class App extends React.Component {
       //add in the row for the summed solutions
       solutions.splice(0, 0, { 'Run_Number': 'Sum', 'Score': '', 'Cost': '', 'Planning_Units': '', 'Missing_Values': '' });
       //update the amount of each target that is protected in the current run from the output_mvbest.txt file
+      this.updatingProtectedAreasAmount = true; //a flag used in the componentDidUpdate used to prevent a change in state for the features being written back to the server
       this.updateProtectedAmount(this.runMarxanResponse.mvbest);
+      this.updatingProtectedAreasAmount = false; 
     }else{
-      this.setState({ dataAvailable: false });
       solutions = [];
     }
     //TODO There are bugs in Marxan which dont write the output_log.dat file correctly that need to be fixed - for now the log comes from this file or is streamed back from the server on a Marxan run (streaming is not supported on Windows)
@@ -1359,7 +1363,7 @@ class App extends React.Component {
     //build an expression to get the matching puids with different numbers of 'numbers' in the marxan results
     var fill_color_expression = this.initialiseFillColorExpression("puid");
     var fill_outline_color_expression = this.initialiseFillColorExpression("puid");
-    if (this.state.dataAvailable) {
+    if (data.length>0) {
       var color, visibleValue, value;
       //create the renderer using Joshua Tanners excellent library classybrew - available here https://github.com/tannerjt/classybrew
       if (setRenderer) this.classifyData(data, Number(this.state.renderer.NUMCLASSES), this.state.renderer.COLORCODE, this.state.renderer.CLASSIFICATION);
@@ -1736,10 +1740,8 @@ class App extends React.Component {
   features_tab_active() {
     if (this.state.activeTab !== "features"){
       this.setState({ activeTab: "features" });
-      if (this.state.dataAvailable) {
-        //render the sum solution map
-        this.renderSolution(this.runMarxanResponse.ssoln, true);
-      }
+      //render the sum solution map
+      this.renderSolution(this.runMarxanResponse.ssoln, true);
       //hide the planning unit layers
       this.pu_tab_inactive();
     }
@@ -2638,7 +2640,7 @@ class App extends React.Component {
               }
               break;
             case 'Finishing': 
-              this.setState({streamingLog: this.state.streamingLog + response.info + " (Total time: " + response.elapsedtime + ")\n"});
+              this.setState({streamingLog: this.state.streamingLog + response.info + " (Total time: " + response.elapsedtime + ")\n\n"});
               break;
             case 'Finished': 
               //set the local variable
@@ -2688,7 +2690,7 @@ class App extends React.Component {
               this.setState({streamingLog: this.state.streamingLog + response.info + " (elapsed time: " + response.elapsedtime + ")\n"});
               break;
             case 'Finishing': 
-              this.setState({streamingLog: this.state.streamingLog + response.info + " (Total time: " + response.elapsedtime + ")\n"});
+              this.setState({streamingLog: this.state.streamingLog + response.info + " (Total time: " + response.elapsedtime + ")\n\n"});
               break;
             case 'Finished': 
               //update the state
@@ -2979,7 +2981,6 @@ class App extends React.Component {
           <ResultsPane
             open={this.state.resultsPanelOpen}
             running={this.state.running} 
-            dataAvailable={this.state.dataAvailable} 
             solutions={this.state.solutions}
             loadSolution={this.loadSolution.bind(this)} 
             openClassificationDialog={this.openClassificationDialog.bind(this)}

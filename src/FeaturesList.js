@@ -10,8 +10,8 @@ class FeaturesList extends React.Component {
     iconClick(feature, evt){
         this.props.openFeatureMenu(evt, feature);
     }
-    updateTargetValue(targetIcon) {
-        this.props.updateFeature(targetIcon.props.interestFeature, {target_value: targetIcon.newTargetValue});
+    updateTargetValue(targetIcon, newValue) {
+        this.props.updateFeature(targetIcon.props.interestFeature, {target_value: newValue});
     }
     render() {
         return (

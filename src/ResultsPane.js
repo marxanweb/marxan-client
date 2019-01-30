@@ -21,7 +21,7 @@ class ResultsPane extends React.Component {
       if (objDiv) {
         objDiv.scrollTop = objDiv.scrollHeight;
       }
-      if (this.state.selectedSolution) this.changeSolution(undefined, undefined); //unselect a solution
+      this.resetSolution();//unselect a solution
     }
   }
   loadSolution(solution) { //loads the solution using the projects owner
@@ -61,6 +61,12 @@ class ResultsPane extends React.Component {
     document.execCommand('copy');
   }
 
+  //resets the currently selected solution
+  resetSolution(){
+    if (this.state.selectedSolution) this.changeSolution(undefined, undefined); 
+  }
+  
+  //fired in the onClick event handler of the react table
   changeSolution(event, solution) {
     this.setState({ selectedSolution: solution });
     if (solution) this.loadSolution(solution.Run_Number);
@@ -87,7 +93,7 @@ class ResultsPane extends React.Component {
                 </div>
               </Tab>
               <Tab label="Solutions" value="solutions" onActive={this.props.solutions_tab_active} >
-                <div id="solutionsPanel" style={{'display': (this.props.dataAvailable && !this.props.running ? 'block' : 'none')}}>
+                <div id="solutionsPanel" style={{'display': (!this.props.running ? 'block' : 'none')}}>
                   <ReactTable
                     thisRef={this}
                     getTrProps={(state, rowInfo, column, instance) => {
