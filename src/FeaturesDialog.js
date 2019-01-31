@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlusCircle } from '@fortawesome/free-solid-svg-icons';
 import { faCircle } from '@fortawesome/free-regular-svg-icons';
 import { faCheckCircle } from '@fortawesome/free-regular-svg-icons';
-import Delete from 'material-ui/svg-icons/action/delete';
+import { faTrashAlt } from '@fortawesome/free-regular-svg-icons';
 import ToolbarButton from './ToolbarButton';
 import MarxanDialog from './MarxanDialog';
 import ReactTable from "react-table";
@@ -44,12 +44,15 @@ class FeaturesDialog extends React.Component {
       this.setState({ selectedFeature: undefined });
       this.props.onCancel();
     }
+    sortDate(a, b, desc){
+        return (Date.parse(a) > Date.parse(b)) ? 1 : -1;
+    }
     render() {
         if (this.props.allFeatures) {
           return (
               <MarxanDialog 
-                  {...this.props} 
-                  showSpinner={this.props.loadingFeatures}
+                  {...this.props}  
+                  showSpinner={this.props.loadingFeatures} 
                   autoDetectWindowHeight={false}
                   bodyStyle={{ padding:'0px 24px 0px 24px'}}
                   title="Features"  
@@ -68,7 +71,7 @@ class FeaturesDialog extends React.Component {
                                       columns={[
                                           {Header:'Name',accessor:'alias',width:170,headerStyle:{'textAlign':'left'}},
                                           {Header:'Description',accessor:'description',width:330,headerStyle:{'textAlign':'left'}},
-                                          {Header:'Date',accessor:'creation_date',width:150,headerStyle:{'textAlign':'left'}}
+                                          {Header:'Date',accessor:'creation_date',width:220,headerStyle:{'textAlign':'left'}, sortMethod: this.sortDate.bind(this)}
                                       ]}
                                       getTrProps={(state, rowInfo, column) => {
                                           return {
@@ -93,7 +96,7 @@ class FeaturesDialog extends React.Component {
                               />
                               <ToolbarButton  
                                   show={(this.props.userRole === "Admin")&&(!this.props.metadata.OLDVERSION)&&(!this.props.addingRemovingFeatures)}
-                                  icon={<Delete color="red" style={{height:'20px',width:'20px'}}/>} 
+                                  icon={<FontAwesomeIcon icon={faTrashAlt}  color='rgb(255, 64, 129)'/>} 
                                   title="Delete feature" 
                                   disabled={this.state.selectedFeature === undefined}
                                   onClick={this._delete.bind(this)} 

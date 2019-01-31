@@ -42,7 +42,7 @@ class FeatureInfoDialog extends React.Component {
         html = this.getHTML(props.row.value);
         break;
       case 'Creation date': 
-        html = this.getHTML(props.row.value.slice(0, props.row.value.length-7), props.original.hint);
+        html = this.getHTML(props.row.value);
         break;
       case 'Mapbox ID':
         html = ((props.row.value === "")||(props.row.value === null)) ? this.getHTML("Not available", "The feature was not uploaded to Mapbox") : this.getHTML(props.row.value, "The feature was uploaded to Mapbox with this identifier");

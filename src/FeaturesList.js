@@ -64,7 +64,7 @@ class FeaturesList extends React.Component {
                                 </IconButton>
                             }
                             innerDivStyle={{padding: (this.props.simple) ? '5px 5px 5px 5px' : '9px 5px 11px 53px' }}
-                            style={{borderRadius:'3px',fontSize:'14px'}}
+                            style={{borderRadius:'3px',fontSize:'14px', color: 'rgba(0,0,0,0.8)'}}
                         />
                     )}
                 )

@@ -5,9 +5,12 @@ import { Tabs, Tab } from 'material-ui/Tabs';
 import SelectField from 'material-ui/SelectField';
 import SelectFeatures from './SelectFeatures';
 import MenuItem from 'material-ui/MenuItem';
-import Texture from 'material-ui/svg-icons/image/texture';
 import Settings from 'material-ui/svg-icons/action/settings';
 import ToolbarButton from './ToolbarButton';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faLock } from '@fortawesome/free-solid-svg-icons';
+import { faUnlock } from '@fortawesome/free-solid-svg-icons';
+import { faEraser } from '@fortawesome/free-solid-svg-icons';
 
 class InfoPanel extends React.Component {
   constructor(props) {
@@ -86,9 +89,9 @@ class InfoPanel extends React.Component {
                   <div className={'tabTitle'}>Description</div>
                   {(this.props.userRole === "ReadOnly") ? null : <input id="descriptionEdit" style={{'display': (this.props.editingDescription) ? 'block' : 'none'}} className={'descriptionEditBox'} onKeyPress={this.onKeyPress.bind(this)} onBlur={this.onBlur.bind(this)}/>}
                   {(this.props.userRole === "ReadOnly") ? <div className={'description'} title={this.props.metadata.DESCRIPTION}>{this.props.metadata.DESCRIPTION}</div> : <div className={'description'} onClick={this.startEditingDescription.bind(this)} style={{'display': (!this.props.editingDescription) ? 'block' : 'none'}} title="Click to edit">{this.props.metadata.DESCRIPTION}</div>}
-                  <div className={'tabTitle'}>Created</div>
+                  <div className={'tabTitle tabTitleTopMargin'}>Created</div>
                   <div className={'createDate'}>{this.props.metadata.CREATEDATE}</div>
-                  <div className={'tabTitle'}>{(this.props.metadata.OLDVERSION) ? "Imported project" : ""}</div>
+                  <div className={'tabTitle tabTitleTopMargin'}>{(this.props.metadata.OLDVERSION) ? "Imported project" : ""}</div>
                 </div>
               </Tab>
               <Tab label="Features" onActive={this.props.features_tab_active} value="features">
@@ -107,7 +110,7 @@ class InfoPanel extends React.Component {
                 <div>
                   <div className={'tabTitle'}>Planning area</div>
                   <div className={'description'}>{this.props.metadata.pu_alias}</div>
-                  <div className={'tabTitle'}>Protected areas</div>
+                  <div className={'tabTitle tabTitleTopMargin'}>Protected areas</div>
                   <SelectField 
                     floatingLabelText={'Include'} 
                     floatingLabelFixed={true} 
@@ -128,12 +131,19 @@ class InfoPanel extends React.Component {
                     })}
                   /> 
                   <div style={{display: (this.props.userRole === "ReadOnly") ? 'none' : 'block'}}>
-                    <span className={'tabTitle'} style={{verticalAlign:'middle'}}>Click to {this.state.puEditing ? "save" : "change"} planning unit status</span>
-                    <Texture  
-                      title='Add/remove  planning units from analysis'
-                      onClick={this.startStopPuEditSession.bind(this)}
-                      style={{color: this.state.puEditing ? 'rgb(255, 64, 129)' : 'rgb(150, 150, 150)', cursor:'pointer', display:'inline-flex',verticalAlign:'middle',marginLeft: '10px'}}
-                    />
+                  <div className={'tabTitle'}>Manual edits</div>
+                    <FontAwesomeIcon icon={(this.state.puEditing) ? faUnlock : faLock} onClick={this.startStopPuEditSession.bind(this)} title={(this.state.puEditing) ? "Save" : "Click to edit"} style={{cursor:'pointer', marginRight: '10px', color: 'rgba(255, 64, 129, 0.7)'}}/>
+                    <div className={'description'} style={{display: 'inline-block'}}>{(this.state.puEditing) ? "Click on the map to change the status" : "Click to edit"}</div>
+                    <div style={{display: (this.state.puEditing) ? "block" : "none"}}>
+                      <div className={"statusRow"}><div className={"statusSwatch"} style={{border: '1px rgba(63, 191, 63, 1) solid'}}></div><div className={"puStatus"}>Included in the initial reserve system but may or may not be in the final solution</div></div>
+                      <div className={"statusRow"}><div className={"statusSwatch"} style={{ border: '1px rgba(63, 63, 191, 1) solid'}}></div><div className={"puStatus"}>Locked in the reserve system. It starts in the initial reserve system and cannot be removed.</div></div>
+                      <div className={"statusRow"}><div className={"statusSwatch"} style={{ border: '1px rgba(191, 63, 63, 1) solid'}}></div><div className={"puStatus"}>Locked out of the reserve system. It is not included in the initial reserve system and cannot be added.</div></div>
+                      <ToolbarButton  
+                        icon={<FontAwesomeIcon icon={faEraser} />} 
+                        title="Clear all manual edits"
+                        onClick={this.props.clearManualEdits.bind(this)} 
+                      />
+                    </div>
                   </div>
                 </div> 
               </Tab>

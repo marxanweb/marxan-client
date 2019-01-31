@@ -83,6 +83,12 @@ class ResultsPane extends React.Component {
                 <div>
                   <Legend
                     brew={this.props.brew}
+                    resultsLayer={ this.props.resultsLayer }
+                    wdpaLayer={ this.props.wdpaLayer }
+                    pa_layer_visible={this.props.pa_layer_visible}
+                    changeOpacity={this.props.changeOpacity}
+                    results_layer_opacity={this.props.results_layer_opacity}
+                    wdpa_layer_opacity={this.props.wdpa_layer_opacity}
                   />
                   <ToolbarButton 
                     icon={<Settings style={{height:'20px',width:'20px'}}/>} 

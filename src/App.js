@@ -80,7 +80,7 @@ let HIDE_PUVSPR_LAYER_TEXT = "Remove planning unit outlines";
 let SHOW_PUVSPR_LAYER_TEXT = "Outline planning units where the feature occurs";
 let WDPA_SOURCE_NAME = "wdpa_source";
 let WDPA_LAYER_NAME = "wdpa";
-let WDPA_LAYER_OPACITY = 0.9;
+let WDPA_FILL_LAYER_OPACITY = 0.9;
 let CLUMP_COUNT = 5;
 //array of mapbox styles to use if the CDN that provides this array is unavailable
 let BACKUP_MAPBOX_BASEMAPS = [{name: 'Streets', description: 'A complete basemap, perfect for incorporating your own data.', id:'mapbox/streets-v9', provider:'mapbox'},
@@ -124,6 +124,7 @@ class App extends React.Component {
       clumpingDialogOpen: false,
       settingsDialogOpen: false,
       projectsDialogOpen: false,
+      openInfoDialogOpen: false,
       newProjectDialogOpen: false, 
       classificationDialogOpen: false,
       resendPasswordDialogOpen: false,
@@ -132,6 +133,7 @@ class App extends React.Component {
       featuresDialogOpen: false,
       infoPanelOpen: false,
       resultsPanelOpen: false,
+      guestUserEnabled: true,
       users: [],
       user: DISABLE_LOGIN ? 'andrew' : '',
       password: DISABLE_LOGIN ? 'asd' : '',
@@ -161,7 +163,7 @@ class App extends React.Component {
       preprocessingFeature: false,
       preprocessingProtectedAreas: false,
       preprocessingBoundaryLengths: false,
-      openInfoDialogOpen: false,
+      pa_layer_visible:false,
       currentFeature:{},
       puvsprLayerText: '',
       featureDatasetName: '',
@@ -177,6 +179,10 @@ class App extends React.Component {
       projectFeatures: [], //the features for the currently loaded project
       selectedFeatureIds :[],
       addingRemovingFeatures: false,
+      resultsLayer: undefined,
+      wdpaLayer: undefined,
+      results_layer_opacity: RESULTS_LAYER_FILL_OPACITY_ACTIVE, //initial value
+      wdpa_layer_opacity: WDPA_FILL_LAYER_OPACITY, //initial value
       costs: [],
       selectedCosts: [],
       iso3: '',
@@ -330,7 +336,20 @@ class App extends React.Component {
   changePassword(password) {
     this.setState({ password: password });
   }
-
+  
+  //gets the server data and then validates the user
+  processLogin(){
+    //get the server data
+    jsonp(MARXAN_ENDPOINT_HTTPS + "getServerData", { timeout: TIMEOUT }).promise.then(function(response){
+      if (!this.checkForErrors(response)) {
+        //set the state for enabling the guest user
+        this.setState({guestUserEnabled: response.serverData.ENABLE_GUEST_USER});
+        //validate the use
+        this.validateUser();
+      }
+    }.bind(this));    
+  }
+  
   validateUser() {
     this.setState({ loggingIn: true });
     //get a list of existing users 
@@ -439,6 +458,16 @@ class App extends React.Component {
     this.setState({users: usersCopy});
   }
 
+  //toggles if the guest user is enabled on the server or not
+  toggleEnableGuestUser(){
+    return jsonp(MARXAN_ENDPOINT_HTTPS + "toggleEnableGuestUser").promise.then(function(response){
+      if (!this.checkForErrors(response)) {
+        //if succesfull set the state
+        this.setState({ guestUserEnabled: response.enabled });
+      }
+    }.bind(this));
+  }
+  
   appendToFormData(formData, obj) {
     //iterate through the object and add each key/value pair to the formData to post to the server
     for (var key in obj) {
@@ -474,12 +503,13 @@ class App extends React.Component {
     //post to the server
     post(MARXAN_ENDPOINT_HTTPS + "updateUserParameters", formData, {withCredentials: SEND_CREDENTIALS}).then((response) => {
       if (!this.checkForErrors(response.data)) {
-        //if succesfull write the state back to the userData key
-        this.setState({ userData: this.newUserData, savingOptions: false, optionsDialogOpen: false });
+        // if succesfull write the state back to the userData key
+        if (this.state.user === user) this.setState({ userData: this.newUserData});
+        this.setState({savingOptions: false, optionsDialogOpen: false });
       }
     });
-    //update the state
-    this.newUserData = Object.assign(this.state.userData, parameters);
+    //if we have updated the current user then save a local property so that if the changes are saved to the server then we can update the local state
+    if (this.state.user === user) this.newUserData = Object.assign(this.state.userData, parameters);
   }
 
   //saveOptions - the options are in the users data so we use the updateUser REST call to update them
@@ -1064,8 +1094,6 @@ class App extends React.Component {
     }
     //TODO There are bugs in Marxan which dont write the output_log.dat file correctly that need to be fixed - for now the log comes from this file or is streamed back from the server on a Marxan run (streaming is not supported on Windows)
     this.setState({ running: false, solutions: solutions });
-    //set the features tab as active
-    this.features_tab_active();
   }
 
   //gets the protected area information in m2 from the marxan run and populates the interest features with the values
@@ -1355,7 +1383,7 @@ class App extends React.Component {
     //set the render paint property
     this.map.setPaintProperty(RESULTS_LAYER_NAME, "fill-color", paintProperties.fillColor);
     this.map.setPaintProperty(RESULTS_LAYER_NAME, "fill-outline-color", paintProperties.oulineColor);
-    this.map.setPaintProperty(RESULTS_LAYER_NAME, "fill-opacity", RESULTS_LAYER_FILL_OPACITY_ACTIVE);
+    this.map.setPaintProperty(RESULTS_LAYER_NAME, "fill-opacity", this.state.results_layer_opacity);
   }
 
   //gets the various paint properties for the planning unit layer - if setRenderer is true then it will also update the renderer in the Legend panel
@@ -1607,6 +1635,8 @@ class App extends React.Component {
         'fill-outline-color': "rgba(0, 0, 0, 0)"
       }
     }, beforeLayer);
+    //set the result layer in app state so that we can control the opacity in it
+    this.setState({resultsLayer: this.map.getLayer(RESULTS_LAYER_NAME)});
     //add the planning unit layer 
     this.map.addLayer({
       'id': PLANNING_UNIT_LAYER_NAME,
@@ -1664,22 +1694,24 @@ class App extends React.Component {
           "type": "categorical",
           "property": "MARINE",
           "stops": [
-            ["0", "rgba(99,148,69, " + WDPA_LAYER_OPACITY + ")"],
-            ["1", "rgba(63,127,191, " + WDPA_LAYER_OPACITY + ")"],
-            ["2", "rgba(63,127,191, " + WDPA_LAYER_OPACITY + ")"]
+            ["0", "rgba(99,148,69, " + this.state.wdpa_layer_opacity + ")"],
+            ["1", "rgba(63,127,191, " + this.state.wdpa_layer_opacity + ")"],
+            ["2", "rgba(63,127,191, " + this.state.wdpa_layer_opacity + ")"]
           ]
         },
         "fill-outline-color": {
           "type": "categorical",
           "property": "MARINE",
           "stops": [
-            ["0", "rgba(99,148,69," + WDPA_LAYER_OPACITY + ")"],
-            ["1", "rgba(63,127,191, " + WDPA_LAYER_OPACITY + ")"],
-            ["2", "rgba(63,127,191, " + WDPA_LAYER_OPACITY + ")"]
+            ["0", "rgba(99,148,69," + this.state.wdpa_layer_opacity + ")"],
+            ["1", "rgba(63,127,191, " + this.state.wdpa_layer_opacity + ")"],
+            ["2", "rgba(63,127,191, " + this.state.wdpa_layer_opacity + ")"]
           ]
         }
       }
     }, beforeLayer);
+    //set the wdpa layer in app state so that we can control the opacity in it
+    this.setState({wdpaLayer: this.map.getLayer(WDPA_LAYER_NAME)});
   }
 
   showLayer(id) {
@@ -1691,6 +1723,16 @@ class App extends React.Component {
 
   isLayerVisible(layername){
     return (this.map.getLayoutProperty(layername, 'visibility') === 'visible');
+  }
+  
+  //changes the layers opacity
+  changeOpacity(layerId, opacity){
+    if (this.map.getLayer(layerId)){
+      this.map.setPaintProperty(layerId, 'fill-opacity', opacity);
+      //set the state
+      if (layerId === RESULTS_LAYER_NAME) this.setState({results_layer_opacity: opacity});
+      if (layerId === WDPA_LAYER_NAME) this.setState({wdpa_layer_opacity: opacity});
+    }
   }
   //iterates through all the map layers and sets the opacity for all those layers with the source matching the passed source
   setOpacityBySource(source, opacity) {
@@ -1741,7 +1783,7 @@ class App extends React.Component {
     if (this.state.activeTab !== "features"){
       this.setState({ activeTab: "features" });
       //render the sum solution map
-      this.renderSolution(this.runMarxanResponse.ssoln, true);
+      // this.renderSolution(this.runMarxanResponse.ssoln, true);
       //hide the planning unit layers
       this.pu_tab_inactive();
     }
@@ -1757,7 +1799,9 @@ class App extends React.Component {
     //show the planning units layer 
     this.showLayer(PLANNING_UNIT_LAYER_NAME);
     //change the opacity on the results layer to make it more transparent
-    this.map.setPaintProperty(RESULTS_LAYER_NAME, "fill-opacity", RESULTS_LAYER_FILL_OPACITY_INACTIVE);
+    this.changeOpacity(RESULTS_LAYER_NAME, RESULTS_LAYER_FILL_OPACITY_INACTIVE);
+    //store the values for the result layers opacities
+    this.previousResultsOpacity = this.state.results_layer_opacity;
     //change the opacity on all of the composite source layers to make them more transparent
     // this.setOpacityBySource("composite", 0.5);
     //show the planning units edit layer 
@@ -1770,8 +1814,8 @@ class App extends React.Component {
   pu_tab_inactive() {
     //reinstate the outlined planning units layer if needs be
     if (this.reinstatePuvsprLayer) this.showLayer(PLANNING_UNIT_PUVSPR_LAYER_NAME);
-    //change the opacity on the results layer to make it more opaque
-    this.map.setPaintProperty(RESULTS_LAYER_NAME, "fill-opacity", RESULTS_LAYER_FILL_OPACITY_ACTIVE);
+    //change the opacity on the results layer to back to what it was
+    this.changeOpacity(RESULTS_LAYER_NAME, (this.previousResultsOpacity) ? this.previousResultsOpacity : RESULTS_LAYER_FILL_OPACITY_ACTIVE);
     //change the opacity on all of the composite source layers to restore the opacity
     // this.setOpacityBySource("composite", 1);
     //hide the planning units layer 
@@ -1819,6 +1863,17 @@ class App extends React.Component {
     this.updatePuDatFile();
   }
 
+  //clears all of the manual edits from the pu edit layer (except the protected area units)
+  clearManualEdits(){
+    //clear all the planning unit statuses
+      this.setState({ planning_units: [] }, function(){
+        //get the puids for the current iucn category
+        let puids = this.getPuidsFromIucnCategory(this.state.metadata.IUCN_CATEGORY);
+        //update the planning units
+        this.updatePlanningUnits([], puids);
+      });
+  }
+  
   //sends a list of puids that should be excluded from the run to upddate the pu.dat file
   updatePuDatFile() {
     //initialise the form data
@@ -2530,8 +2585,12 @@ class App extends React.Component {
   }
 
   filterWdpaByIucnCategory(iucnCategory) {
+    //get the individual iucn categories
     let iucnCategories = this.getIndividualIucnCategories(iucnCategory);
+    //filter the vector tiles for those iucn categories
     this.map.setFilter(WDPA_LAYER_NAME, ['all', ['in', 'IUCN_CAT'].concat(iucnCategories), ['==', 'PARENT_ISO', this.state.metadata.PLANNING_UNIT_NAME.substr(3, 3).toUpperCase()]]);
+    //turn on/off the protected areas legend
+    (iucnCategory === "None") ? this.hidePALegend() : this.showPALegend();
   }
 
   getIndividualIucnCategories(iucnCategory) {
@@ -2585,34 +2644,49 @@ class App extends React.Component {
       this.previousPuids = puids;
       //and previousIucnCategory
       this.previousIucnCategory = iucnCategory;
-      //copy the current planning units state
-      let statuses = this.state.planning_units;
-      //get the new puids that need to be added
-      let newPuids = this.getNewPuids(previousPuids, puids);
-      if (newPuids.length === 0) {
-        //get the puids that need to be removed
-        let oldPuids = this.getNewPuids(puids, previousPuids);
-        this.removePuidsFromArray(statuses, 2, oldPuids);
-      }
-      else {
-        //add all the new protected area intersections into the planning units as status 2
-        this.appPuidsToPlanningUnits(statuses, 2, newPuids);
-      }
-      //update the state
-      this.setState({ planning_units: statuses });
-      //re-render the layer
-      this.renderPuEditLayer();
-      //update the pu.dat file
-      this.updatePuDatFile();
+      //rerender
+      this.updatePlanningUnits(previousPuids, puids);
     }.bind(this));
   }
 
+  //updates the planning units by reconciling the passed arrays of puids
+  updatePlanningUnits(previousPuids, puids){
+    //copy the current planning units state
+    let statuses = this.state.planning_units;
+    //get the new puids that need to be added
+    let newPuids = this.getNewPuids(previousPuids, puids);
+    if (newPuids.length === 0) {
+      //get the puids that need to be removed
+      let oldPuids = this.getNewPuids(puids, previousPuids);
+      this.removePuidsFromArray(statuses, 2, oldPuids);
+    }
+    else {
+      //add all the new protected area intersections into the planning units as status 2
+      this.appPuidsToPlanningUnits(statuses, 2, newPuids);
+    }
+    //update the state
+    this.setState({ planning_units: statuses });
+    //re-render the layer
+    this.renderPuEditLayer();
+    //update the pu.dat file
+    this.updatePuDatFile();
+  }
+  
   getNewPuids(previousPuids, puids) {
     return puids.filter(function(i) {
       return previousPuids.indexOf(i) === -1;
     });
   }
 
+  //turns on the legend for the protected areas
+  showPALegend(){
+    this.setState({pa_layer_visible:true});
+  }
+  
+  //hides the protected area legend
+  hidePALegend(){
+    this.setState({pa_layer_visible:false});  
+  }
   preprocessProtectedAreas(iucnCategory) {
     //have the intersections already been calculated
     if (this.protected_area_intersections.length>0) {
@@ -2867,7 +2941,7 @@ class App extends React.Component {
           <div ref={el => this.mapContainer = el} className="absolute top right left bottom" />
           <LoginDialog 
             open={!this.state.loggedIn} 
-            onOk={this.validateUser.bind(this)} 
+            onOk={this.processLogin.bind(this)} 
             onCancel={this.openRegisterDialog.bind(this)} 
             user={this.state.user} 
             changeUserName={this.changeUserName.bind(this)} 
@@ -2931,6 +3005,8 @@ class App extends React.Component {
             loadingUsers={this.state.loadingUsers}
             deleteUser={this.deleteUser.bind(this)}
             changeRole={this.changeRole.bind(this)}
+            guestUserEnabled={this.state.guestUserEnabled}
+            toggleEnableGuestUser={this.toggleEnableGuestUser.bind(this)}
           />
           <ProfileDialog 
             open={this.state.profileDialogOpen}
@@ -2969,6 +3045,7 @@ class App extends React.Component {
             pu_tab_active={this.pu_tab_active.bind(this)}
             startPuEditSession={this.startPuEditSession.bind(this)}
             stopPuEditSession={this.stopPuEditSession.bind(this)}
+            clearManualEdits={this.clearManualEdits.bind(this)}
             showRunSettingsDialog={this.showRunSettingsDialog.bind(this)}
             openFeatureMenu={this.openFeatureMenu.bind(this)}
             preprocessingFeature={this.state.preprocessingFeature}
@@ -2993,6 +3070,12 @@ class App extends React.Component {
             log_tab_active={this.log_tab_active.bind(this)}
             clearLog={this.clearLog.bind(this)}
             owner={this.state.owner}
+            resultsLayer={this.state.resultsLayer}
+            wdpaLayer={ this.state.wdpaLayer }
+            pa_layer_visible={this.state.pa_layer_visible}
+            changeOpacity={this.changeOpacity.bind(this)}
+            results_layer_opacity={this.state.results_layer_opacity}
+            wdpa_layer_opacity={this.state.wdpa_layer_opacity}
           />
           <FeatureInfoDialog
             open={this.state.openInfoDialogOpen}
