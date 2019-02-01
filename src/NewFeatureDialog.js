@@ -22,7 +22,7 @@ class NewFeatureDialog extends React.Component {
         return (
             <MarxanDialog  
                 {...this.props} 
-                onOk={this.props.createNewInterestFeature}
+                onOk={this.props.createNewFeature}
                 okDisabled={!(this.props.name!=='' && this.props.description!=='' && this.props.filename!=='')}
                 okLabel={this.props.creatingNewPlanningGrid ? "Creating..." : "OK" }
                 showCancelButton={true}

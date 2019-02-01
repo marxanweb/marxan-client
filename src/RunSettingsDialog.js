@@ -22,7 +22,7 @@ class RunSettingsDialog extends React.Component {
     updateRunParams() {
         //ui feedback 
         this.setState({ updateEnabled: false });
-        this.props.updateRunParams(this.state.data);
+        if (this.props.userRole !== "ReadOnly")this.props.updateRunParams(this.state.data);
         this.props.onOk();
     }
     setUpdateEnabled() {

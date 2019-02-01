@@ -134,6 +134,7 @@ class App extends React.Component {
       infoPanelOpen: false,
       resultsPanelOpen: false,
       guestUserEnabled: true,
+      servers: [],
       users: [],
       user: DISABLE_LOGIN ? 'andrew' : '',
       password: DISABLE_LOGIN ? 'asd' : '',
@@ -224,23 +225,25 @@ class App extends React.Component {
     if (this.state.files !== prevState.files) {
       (this.state.files.SPECNAME !== '' && this.state.files.PUNAME !== '') ? this.setState({ runnable: true }): this.setState({ runnable: false });
     }
-    //see if the features have changed - if so, save the changes
-    if (this.state.projectFeatures !== prevState.projectFeatures && this.state.projectFeatures.length> 0 && prevState.projectFeatures.length> 0 && !this.updatingProtectedAreasAmount){
-      this.updateSpecFile(); 
-    }
   }
 
   //gets various global variables from my github cdn
   getGlobalVariables(){
-    var basemaps = [];
+    var basemaps = [], servers = [];
     if (window.MAPBOX_BASEMAPS){
-      console.log("Loading Marxan global variables from https://andrewcottam.github.io/cdn/marxan.js");
+      console.log("Loading Mapbox basemaps from https://andrewcottam.github.io/cdn/marxan.js");
       basemaps = window.MAPBOX_BASEMAPS;
     }else{
-      console.warn("Unable to load Marxan global variables from https://andrewcottam.github.io/cdn/marxan.js. Using local copy.");
+      console.warn("Unable to load Mapbox basemaps from https://andrewcottam.github.io/cdn/marxan.js. Using local copy.");
       basemaps = BACKUP_MAPBOX_BASEMAPS;
     }
-    this.setState({basemaps: basemaps});
+    if (window.MARXAN_SERVERS){
+      console.log("Loading Marxan Servers from https://andrewcottam.github.io/cdn/marxan.js");
+      servers = window.MARXAN_SERVERS;
+    }else{
+      console.warn("Unable to load Marxan Servers from https://andrewcottam.github.io/cdn/marxan.js.");
+    }
+    this.setState({basemaps: basemaps, servers: servers});
   }
   
   mapLoaded(e) {
@@ -255,7 +258,15 @@ class App extends React.Component {
 
   //catch all event handler for map errors
   mapError(e){
-    console.error(e.error.message);
+    var message = "";
+    switch (e.error.message) {
+      case 'Not Found':
+        message = "The tileset '" + e.source.url + "' was not found";
+        break;
+      default:
+        break;
+    }
+    this.setState({ snackbarOpen: true, snackbarMessage: "MapError: " + message});
   }
   
   closeSnackbar() {
@@ -378,7 +389,9 @@ class App extends React.Component {
           //get the users last project and load it 
           this.loadProject(response.userData.LASTPROJECT, this.state.user);
         }.bind(this));
-      } //no errors
+      }else{
+        this.setState({ loggingIn: false });    
+      } 
     }.bind(this));
   }
 
@@ -464,6 +477,15 @@ class App extends React.Component {
       if (!this.checkForErrors(response)) {
         //if succesfull set the state
         this.setState({ guestUserEnabled: response.enabled });
+      }
+    }.bind(this));
+  }
+  
+  //toggles the projects privacy
+  toggleProjectPrivacy(newValue){
+    this.updateProjectParameter("PRIVATE", newValue).then(function(response) {
+      if (!this.checkForErrors(response)) {
+        this.setState({ metadata: Object.assign(this.state.metadata, { PRIVATE: (newValue === "True") })});
       }
     }.bind(this));
   }
@@ -577,29 +599,29 @@ class App extends React.Component {
     }.bind(this));
   }
 
-  //gets all of the tilesets from mapbox using the access token for the currently logged on user - this access token must have the TILESETS:LIST scope - NO LONGER USED
-  getTilesets() {
-    //get the tilesets for the user
-    let client = new MapboxClient(this.state.userData.MAPBOXACCESSTOKEN);
-    client.listTilesets(function(err, tilesets) {
-      //check if there are no timeout errors or empty responses
-      if (!this.responseIsTimeoutOrEmpty(tilesets)) {
-        //sort alphabetically by name
-        tilesets.sort(function(a, b) {
-          if (a.name < b.name)
-            return -1;
-          if (a.name > b.name)
-            return 1;
-          return 0;
-        });
-        //set the state
-        this.setState({ tilesets: tilesets });
-      }
-      else {
-        this.setState({ tilesets: [] });
-      }
-    }.bind(this));
-  }
+  // //gets all of the tilesets from mapbox using the access token for the currently logged on user - this access token must have the TILESETS:LIST scope - NO LONGER USED
+  // getTilesets() {
+  //   //get the tilesets for the user
+  //   let client = new MapboxClient(this.state.userData.MAPBOXACCESSTOKEN);
+  //   client.listTilesets(function(err, tilesets) {
+  //     //check if there are no timeout errors or empty responses
+  //     if (!this.responseIsTimeoutOrEmpty(tilesets)) {
+  //       //sort alphabetically by name
+  //       tilesets.sort(function(a, b) {
+  //         if (a.name < b.name)
+  //           return -1;
+  //         if (a.name > b.name)
+  //           return 1;
+  //         return 0;
+  //       });
+  //       //set the state
+  //       this.setState({ tilesets: tilesets });
+  //     }
+  //     else {
+  //       this.setState({ tilesets: [] });
+  //     }
+  //   }.bind(this));
+  // }
 
   //loads a project
   loadProject(project, user) {
@@ -698,6 +720,10 @@ class App extends React.Component {
   resetResults() {
     this.runMarxanResponse = {};
     this.setState({ solutions: []});
+    //reset any feature layers that are shown
+    this.hideFeatureLayer();
+    //reset the puvspr layer
+    this.hideLayer(PLANNING_UNIT_PUVSPR_LAYER_NAME);
   }
 
   //called after a file has been uploaded
@@ -858,13 +884,15 @@ class App extends React.Component {
   getProjects() {
     this.setState({ loadingProjects: true });
     jsonp(MARXAN_ENDPOINT_HTTPS + "getProjects?user=" + this.state.user, { timeout: TIMEOUT }).promise.then(function(response) {
+      let projects = [];
       this.setState({ loadingProjects: false });
       if (!this.checkForErrors(response)) {
-        this.setState({ projects: response.projects });
+        //filter the projects so that private ones arent shown
+        response.projects.forEach(function(project){
+          if (!(project.private && project.user !== this.state.user && this.state.userData.ROLE !== "Admin")) projects.push(project);
+        }, this);
       }
-      else {
-        this.setState({ projects: undefined });
-      }
+      this.setState({ projects: projects});
     }.bind(this));
   }
 
@@ -1086,9 +1114,7 @@ class App extends React.Component {
       //add in the row for the summed solutions
       solutions.splice(0, 0, { 'Run_Number': 'Sum', 'Score': '', 'Cost': '', 'Planning_Units': '', 'Missing_Values': '' });
       //update the amount of each target that is protected in the current run from the output_mvbest.txt file
-      this.updatingProtectedAreasAmount = true; //a flag used in the componentDidUpdate used to prevent a change in state for the features being written back to the server
       this.updateProtectedAmount(this.runMarxanResponse.mvbest);
-      this.updatingProtectedAreasAmount = false; 
     }else{
       solutions = [];
     }
@@ -1346,7 +1372,7 @@ class App extends React.Component {
   //called when the renderer state has been updated - renders the solution and saves the renderer back to the server
   rendererStateUpdated(parameter, value) {
     this.renderSolution(this.runMarxanResponse.ssoln, true);
-    this.updateProjectParameter(parameter, value);
+    if (this.state.userData.ROLE !== "ReadOnly") this.updateProjectParameter(parameter, value);
   }
   //change the renderer, e.g. jenks, natural_breaks etc.
   changeRenderer(renderer) {
@@ -1715,10 +1741,10 @@ class App extends React.Component {
   }
 
   showLayer(id) {
-    this.map.setLayoutProperty(id, 'visibility', 'visible');
+    if (this.map.getLayer(id)) this.map.setLayoutProperty(id, 'visibility', 'visible');
   }
   hideLayer(id) {
-    this.map.setLayoutProperty(id, 'visibility', 'none');
+    if (this.map.getLayer(id)) this.map.setLayoutProperty(id, 'visibility', 'none');
   }
 
   isLayerVisible(layername){
@@ -2235,6 +2261,9 @@ class App extends React.Component {
       }
     }, this);
     this.setFeaturesState(allFeatures);
+    //persist the changes to the server
+    if (this.state.userData.ROLE !== "ReadOnly") this.updateSpecFile(); 
+    //close the dialog
     this.closeFeaturesDialog();
   }
 
@@ -2252,7 +2281,7 @@ class App extends React.Component {
     }.bind(this));
   }
 
-  createNewInterestFeature() {
+  createNewFeature() {
     //the zipped shapefile has been uploaded to the MARXAN folder and the metadata are in the featureDatasetName, featureDatasetDescription and featureDatasetFilename state variables - 
     jsonp(MARXAN_ENDPOINT_HTTPS + "importFeature?filename=" + this.state.featureDatasetFilename + "&name=" + this.state.featureDatasetName + "&description=" + this.state.featureDatasetDescription, { timeout: TIMEOUT }).promise.then(function(response) {
       if (!this.checkForErrors(response)) {
@@ -2354,6 +2383,14 @@ class App extends React.Component {
     let puvsprLayerText = (visible) ? (newFeature) ? (feature.preprocessed) ? SHOW_PUVSPR_LAYER_TEXT : HIDE_PUVSPR_LAYER_TEXT : (feature.preprocessed) ? HIDE_PUVSPR_LAYER_TEXT : SHOW_PUVSPR_LAYER_TEXT : SHOW_PUVSPR_LAYER_TEXT;
     return puvsprLayerText;
   }
+  
+  //hides the feature layer
+  hideFeatureLayer(){
+    this.state.projectFeatures.forEach(function(feature){
+      if (feature.feature_layer_loaded) this.toggleFeatureLayer(feature);
+    }.bind(this));
+  }
+  
   //toggles the feature layer on the map
   toggleFeatureLayer(feature){
     // this.closeFeatureMenu();
@@ -2955,6 +2992,8 @@ class App extends React.Component {
             availableServers={MARXAN_REMOTE_SERVERS}
             activeServer={this.state.activeServer}
             setActiveServer={this.setActiveServer.bind(this)}
+            servers={this.state.servers}
+            
           />
           <RegisterDialog 
             open={this.state.registerDialogOpen} 
@@ -3054,6 +3093,7 @@ class App extends React.Component {
             changeIucnCategory={this.changeIucnCategory.bind(this)}
             updateFeature={this.updateFeature.bind(this)}
             userRole={this.state.userData.ROLE}
+            toggleProjectPrivacy={this.toggleProjectPrivacy.bind(this)}
           />
           <ResultsPane
             open={this.state.resultsPanelOpen}
@@ -3160,7 +3200,7 @@ class App extends React.Component {
             name={this.state.featureDatasetName}
             description={this.state.featureDatasetDescription}
             filename={this.state.featureDatasetFilename}
-            createNewInterestFeature={this.createNewInterestFeature.bind(this)}
+            createNewFeature={this.createNewFeature.bind(this)}
             checkForErrors={this.checkForErrors.bind(this)} 
             MARXAN_ENDPOINT_HTTPS={MARXAN_ENDPOINT_HTTPS}
             SEND_CREDENTIALS={SEND_CREDENTIALS}
@@ -3234,8 +3274,8 @@ class App extends React.Component {
             contentStyle={{maxWidth:'800px !important'}}
             bodyStyle={{maxWidth:'800px !important'}}
           />
-          <Popover open={this.state.featureMenuOpen} anchorEl={this.state.menuAnchor} onRequestClose={this.closeFeatureMenu.bind(this)} >
-            <Menu style={{width:'285px'}} onMouseLeave={this.closeFeatureMenu.bind(this)}>
+          <Popover open={this.state.featureMenuOpen} anchorEl={this.state.menuAnchor} onRequestClose={this.closeFeatureMenu.bind(this)} style={{width:'307px'}}>
+            <Menu style={{width:'207px'}} onMouseLeave={this.closeFeatureMenu.bind(this)} >
               <MenuItemWithButton leftIcon={<Properties style={{margin: '1px'}}/>} onClick={this.openInfoDialog.bind(this)}>Properties</MenuItemWithButton>
               <MenuItemWithButton leftIcon={<RemoveFromProject style={{margin: '1px'}}/>} style={{display: ((this.state.currentFeature.old_version)||(this.state.userData.ROLE === "ReadOnly")) ? 'none' : 'block'}} onClick={this.removeFromProject.bind(this, this.state.currentFeature)}>Remove from project</MenuItemWithButton>
               <MenuItemWithButton leftIcon={(this.state.currentFeature.feature_layer_loaded) ? <RemoveFromMap style={{margin: '1px'}}/> : <AddToMap style={{margin: '1px'}}/>} style={{display: (this.state.currentFeature.tilesetid) ? 'block' : 'none'}} onClick={this.toggleFeatureLayer.bind(this, this.state.currentFeature)}>{(this.state.currentFeature.feature_layer_loaded) ? "Remove from map" : "Add to map"}</MenuItemWithButton>

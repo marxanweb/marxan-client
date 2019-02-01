@@ -7,6 +7,7 @@ import SelectFeatures from './SelectFeatures';
 import MenuItem from 'material-ui/MenuItem';
 import Settings from 'material-ui/svg-icons/action/settings';
 import ToolbarButton from './ToolbarButton';
+import Checkbox from 'material-ui/Checkbox';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faLock } from '@fortawesome/free-solid-svg-icons';
 import { faUnlock } from '@fortawesome/free-solid-svg-icons';
@@ -73,6 +74,10 @@ class InfoPanel extends React.Component {
   changeIucnCategory(event,key,payload){
     this.props.changeIucnCategory(this.iucnCategories[key]);
   }
+  toggleProjectPrivacy(evt, isInputChecked){
+    let checkedString = (isInputChecked) ? "True" : "False";
+    this.props.toggleProjectPrivacy(checkedString);
+  }
   
   render() {
     return (
@@ -92,6 +97,14 @@ class InfoPanel extends React.Component {
                   <div className={'tabTitle tabTitleTopMargin'}>Created</div>
                   <div className={'createDate'}>{this.props.metadata.CREATEDATE}</div>
                   <div className={'tabTitle tabTitleTopMargin'}>{(this.props.metadata.OLDVERSION) ? "Imported project" : ""}</div>
+                  <div style={{position:'absolute', top:'380px', display: (this.props.userRole === "ReadOnly") ? 'none' : 'block'}}>
+                    <Checkbox
+						          label="Private"
+						          style={{fontSize:'12px'}}
+						          checked={this.props.metadata.PRIVATE}
+						           onCheck={this.toggleProjectPrivacy.bind(this)}
+						        />
+                  </div>
                 </div>
               </Tab>
               <Tab label="Features" onActive={this.props.features_tab_active} value="features">
@@ -145,7 +158,7 @@ class InfoPanel extends React.Component {
                       />
                     </div>
                   </div>
-                </div> 
+                </div>  
               </Tab>
             </Tabs>     
             <Paper className={'lowerToolbar'}>

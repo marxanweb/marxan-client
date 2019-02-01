@@ -18,7 +18,7 @@ class UserMenu extends React.Component {
           targetOrigin={{horizontal: 'left', vertical: 'top'}}
           onRequestClose={this.props.hideUserMenu}
         >
-          <Menu desktop={true} onMouseLeave={this.props.hideUserMenu} menuItemStyle={{backgroundColor:'rgb(0, 188, 212)', color:'white'}} listStyle={{width:'120px',backgroundColor:'rgb(0, 188, 212)'}} selectedMenuItemStyle={{color:'rgb(24,24,24)'}} width={'102px'}>
+          <Menu desktop={true} onMouseLeave={this.props.hideUserMenu} menuItemStyle={{backgroundColor:'rgb(0, 188, 212)', color:'white'}} listStyle={{width:'120px',backgroundColor:'rgb(0, 188, 212)'}} selectedMenuItemStyle={{color:'rgb(24,24,24)'}} width={50}>
             <MenuItem style={{display: (this.props.userRole !== "ReadOnly") ? 'block' : 'none'}} primaryText="Settings" onClick={this.props.openOptionsDialog.bind(this)} leftIcon={<Settings color={white}/>}/>
             <MenuItem style={{display: (this.props.userRole !== "ReadOnly") ? 'block' : 'none'}} primaryText="Profile" onClick={this.props.openProfileDialog} leftIcon={<Person color={white}/>}/>
             <MenuItem primaryText="Log out" onClick={this.props.logout.bind(this)} leftIcon={<LogOut color={white}/>}/> 
