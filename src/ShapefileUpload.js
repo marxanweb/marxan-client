@@ -25,7 +25,7 @@ class ShapefileUpload extends React.Component {
 
     fileUpload(value) {
         this.setState({ loading: true });
-        const url = this.props.MARXAN_ENDPOINT_HTTPS + "uploadShapefile";
+        const url = this.props.httpsEndpoint + "uploadShapefile";
         const formData = new FormData();
         this.filename = value['name']; //from the open file dialog
         formData.append('value', value); 

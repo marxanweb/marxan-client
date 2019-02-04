@@ -1,12 +1,12 @@
 /*global fetch*/
 import React from 'react';
+import fetchJsonp from 'fetch-jsonp';
 /*eslint-disable no-unused-vars*/ 
 import axios, { post } from 'axios';
 /*eslint-enable no-unused-vars*/
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import mapboxgl from 'mapbox-gl';
-import MapboxClient from 'mapbox';
 import jsonp from 'jsonp-promise';
 import classyBrew from 'classybrew';
 //material-ui components and icons
@@ -55,12 +55,8 @@ mapboxgl.accessToken = 'pk.eyJ1IjoiYmxpc2h0ZW4iLCJhIjoiMEZrNzFqRSJ9.0QBRA2HxTb8Y
 
 //CONSTANTS
 //THE MARXAN_ENDPOINT_HTTPS MUST ALSO BE CHANGED IN THE FILEUPLOAD.JS FILE 
-// let MARXAN_ENDPOINT_HTTPS = "https://db-server-blishten.c9users.io/marxan/webAPI2.py/";
 let SEND_CREDENTIALS = true; //if true all post requests will send credentials
-let MARXAN_REMOTE_SERVERS = ["db-server-blishten.c9users.io:8081/marxan-server/"];
-// let MARXAN_LOCAL_SERVER = "localhost:8081/marxan-server/";
-let MARXAN_ENDPOINT_HTTPS = "https://" + MARXAN_REMOTE_SERVERS[0];
-let MARXAN_ENDPOINT_WSS = "wss://" + MARXAN_REMOTE_SERVERS[0];
+let TORNADO_PATH = ":8081/marxan-server/";
 let TIMEOUT = 0; //disable timeout setting
 let DISABLE_LOGIN = false; //to not show the login form, set loggedIn to true
 let MAPBOX_USER = "blishten";
@@ -90,6 +86,8 @@ let BACKUP_MAPBOX_BASEMAPS = [{name: 'Streets', description: 'A complete basemap
     {name: 'North Star', description: 'Slightly modified North Star with no Bathymetry.', id:'blishten/cjg6jk8vg3tir2spd2eatu5fd', provider:'Joint Research Centre'},
     {name: 'Satellite', description: 'A beautiful global satellite and aerial imagery layer.', id:'mapbox/satellite-v9', provider:'mapbox'},
     {name: 'Satellite Streets', description: 'Global imagery enhanced with road and label hierarchy.', id:'mapbox/satellite-streets-v9', provider:'mapbox'}];
+//array of Marxan servers to use if the CDN that provides this array is unavailable
+let BACKUP_MARXAN_SERVERS = [{name: 'Joint Research Centre, Italy', host: 'https://db-server-blishten.c9users.io', description: ''}];
 //an array of feature property information that is used in the Feature Information dialog box
 let FEATURE_PROPERTIES = [{ name: 'id', key: 'ID',hint: 'The unique identifier for the feature', showForOld: false},
   { name: 'alias', key: 'Alias',hint: 'A human readable name for the feature', showForOld: true},
@@ -105,6 +103,7 @@ let FEATURE_PROPERTIES = [{ name: 'id', key: 'ID',hint: 'The unique identifier f
   { name: 'pu_area', key: 'Planning unit area',hint: 'The area of the feature within the planning grid in Km2 (calculated during pre-processing)', showForOld: true},
   { name: 'target_area', key: 'Target area',hint: 'The total area that needs to be protected to achieve the target percentage in Km2 (calculated during a Marxan Run)', showForOld: true},
   { name: 'protected_area', key: 'Area protected',hint: 'The total area protected in the current solution in Km2 (calculated during a Marxan Run)', showForOld: true}];
+var mb_tk = "sk.eyJ1IjoiYmxpc2h0ZW4iLCJhIjoiY2piNm1tOGwxMG9lajMzcXBlZDR4aWVjdiJ9.Z1Jq4UAgGpXukvnUReLO1g";
 var ws;
 
 class App extends React.Component {
@@ -112,6 +111,8 @@ class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      marxanServers: [],
+      marxanServer: undefined,
       usersDialogOpen: false,
       featureMenuOpen: false,
       profileDialogOpen: false,
@@ -134,7 +135,6 @@ class App extends React.Component {
       infoPanelOpen: false,
       resultsPanelOpen: false,
       guestUserEnabled: true,
-      servers: [],
       users: [],
       user: DISABLE_LOGIN ? 'andrew' : '',
       password: DISABLE_LOGIN ? 'asd' : '',
@@ -195,7 +195,6 @@ class App extends React.Component {
       activeTab: "project",
       activeResultsTab: "legend",
       streamingLog: "",
-      activeServer: MARXAN_REMOTE_SERVERS[0],
       map0_paintProperty: [],
       map1_paintProperty: [],
       map2_paintProperty: [],
@@ -227,9 +226,14 @@ class App extends React.Component {
     }
   }
 
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  ////////////////////////// MANAGING MARXAN SERVERS
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
   //gets various global variables from my github cdn
   getGlobalVariables(){
-    var basemaps = [], servers = [];
+    var basemaps = [], marxanServers = [];
+    //get the mapbox basemaps
     if (window.MAPBOX_BASEMAPS){
       console.log("Loading Mapbox basemaps from https://andrewcottam.github.io/cdn/marxan.js");
       basemaps = window.MAPBOX_BASEMAPS;
@@ -237,15 +241,94 @@ class App extends React.Component {
       console.warn("Unable to load Mapbox basemaps from https://andrewcottam.github.io/cdn/marxan.js. Using local copy.");
       basemaps = BACKUP_MAPBOX_BASEMAPS;
     }
+    this.initialiseMaps(basemaps);
+    //get the list of marxan servers from the marxan registry
     if (window.MARXAN_SERVERS){
       console.log("Loading Marxan Servers from https://andrewcottam.github.io/cdn/marxan.js");
-      servers = window.MARXAN_SERVERS;
+      marxanServers = window.MARXAN_SERVERS;
     }else{
-      console.warn("Unable to load Marxan Servers from https://andrewcottam.github.io/cdn/marxan.js.");
+      console.warn("Unable to load Marxan Servers from https://andrewcottam.github.io/cdn/marxan.js. Using a local copy.");
+      marxanServers = BACKUP_MARXAN_SERVERS;
     }
-    this.setState({basemaps: basemaps, servers: servers});
+    this.initialiseServers(marxanServers);
   }
   
+  //initialises the servers by requesting their capabilities and then filtering the list of available servers
+  initialiseServers(marxanServers){
+    //add the current domain (if it isnt in the list from the marxan registry) - this may be a local/local network install
+    marxanServers.push(({name:window.location.hostname, host:window.location.hostname, description:'Local machine', type:'local'}));
+    //get a list of server hosts
+    let hosts = marxanServers.map(function(server){
+      return server.host;  
+    });
+    //get the server capabilities - when all the servers have responded, finalise the marxanServer array
+    this.getAllServerCapabilities(marxanServers).then(function(server){
+      //remove the current domain if either the marxan server is not installed, or it is already in the list of servers from the marxan registry
+      marxanServers = marxanServers.filter(function(server){
+        return ((!(server.type==="local" && server.offline))||(!(server.type==="local" && hosts.indexOf(server.host)>-1)));
+      });
+      //sort the servers by the name 
+      marxanServers.sort(function(a, b) {
+        if (a.name.toLowerCase() < b.name.toLowerCase())
+          return -1;
+        if (a.name.toLowerCase() > b.name.toLowerCase())
+          return 1;
+        return 0;
+      });
+      this.setState({marxanServers: marxanServers});
+    }.bind(this));
+  }  
+
+  //gets the capabilities of all servers
+  getAllServerCapabilities(marxanServers){
+    let promiseArray = [];
+    //iterate through the servers and get their capabilities
+    for (var i = 0; i < marxanServers.length; ++i) {
+      promiseArray.push(this.getServerCapabilities(marxanServers[i]));
+    }
+    //return a promise
+    return Promise.all(promiseArray);
+  }
+
+  //gets the capabilities of the server by making a request to the getServerData method
+  getServerCapabilities(server){
+    return new Promise(function(resolve, reject) {
+      //set the default properties for the server
+      server = Object.assign(server, {httpsEndpoint: "https://" + server.host + TORNADO_PATH, wssEndpoint: "wss://" + server.host + TORNADO_PATH, offline: true, guestUserEnabled: false, corsEnabled: false});
+      //poll the server to make sure tornado is running - this uses featchJsonp which can catch errors
+      fetchJsonp(server.httpsEndpoint + "getServerData", { timeout: 2000 }).then(function(response){
+        return response.json();
+      }).then(function(json) {
+        if (json.hasOwnProperty('info')){
+          //see if CORS is enabled from this domain
+          let corsEnabled = (json.serverData.CORS_DOMAINS.indexOf(window.location.hostname)>-1) ? true : false;
+          //set the flags for the server capabilities
+          server = Object.assign(server, {guestUserEnabled: json.serverData.ENABLE_GUEST_USER, corsEnabled: corsEnabled, offline: false});
+        }
+        //return the server capabilities
+        resolve(server);
+        }).catch(function(ex) {
+          //the server does not exist or did not respond before the timeout
+          resolve(server);
+      });
+    });
+  }
+  selectServer(value){
+    this.setState({marxanServer: value});
+    //set the endpoint hosts 
+    this.httpsEndpoint = value.httpsEndpoint; 
+    this.wssEndpoint = value.wssEndpoint;
+    this.guestUserEnabled = value.guestUserEnabled;
+    //if the server is ready only then change the user/password to the guest user
+    if (!value.offline && !value.corsEnabled && value.guestUserEnabled){
+      this.setState({user: "guest", password:"password"});
+    }
+  }
+  
+  initialiseMaps(basemaps){
+    this.setState({basemaps: basemaps});
+  }
+
   mapLoaded(e) {
     // this.map.addControl(new mapboxgl.FullscreenControl(), 'bottom-right'); // currently full screen hides the info panel and setting position:absolute and z-index: 10000000000 doesnt work properly
     this.map.addControl(new mapboxgl.ScaleControl());
@@ -351,7 +434,7 @@ class App extends React.Component {
   //gets the server data and then validates the user
   processLogin(){
     //get the server data
-    jsonp(MARXAN_ENDPOINT_HTTPS + "getServerData", { timeout: TIMEOUT }).promise.then(function(response){
+    jsonp(this.httpsEndpoint + "getServerData", { timeout: TIMEOUT }).promise.then(function(response){
       if (!this.checkForErrors(response)) {
         //set the state for enabling the guest user
         this.setState({guestUserEnabled: response.serverData.ENABLE_GUEST_USER});
@@ -364,7 +447,7 @@ class App extends React.Component {
   validateUser() {
     this.setState({ loggingIn: true });
     //get a list of existing users 
-    jsonp(MARXAN_ENDPOINT_HTTPS + "validateUser?user=" + this.state.user + "&password=" + this.state.password, { timeout: 10000 }).promise.then(function(response) {
+    jsonp(this.httpsEndpoint + "validateUser?user=" + this.state.user + "&password=" + this.state.password, { timeout: 10000 }).promise.then(function(response) {
       if (!this.checkForErrors(response)) {
         //user validated - log them in
         this.login();
@@ -406,7 +489,7 @@ class App extends React.Component {
 
   resendPassword() {
     this.setState({ resending: true });
-    jsonp(MARXAN_ENDPOINT_HTTPS + "resendPassword?user=" + this.state.user, { timeout: TIMEOUT }).promise.then(function(response) {
+    jsonp(this.httpsEndpoint + "resendPassword?user=" + this.state.user, { timeout: TIMEOUT }).promise.then(function(response) {
       this.setState({ resending: false });
       if (!this.checkForErrors(response)) {
         //ui feedback
@@ -419,13 +502,13 @@ class App extends React.Component {
 
   //gets all the information for the user that is logging in
   getUserInfo() {
-    return jsonp(MARXAN_ENDPOINT_HTTPS + "getUser?user=" + this.state.user, { timeout: TIMEOUT }).promise;
+    return jsonp(this.httpsEndpoint + "getUser?user=" + this.state.user, { timeout: TIMEOUT }).promise;
   }
 
   //gets data for all users
   getUsers() {
     this.setState({ loadingUsers: true });
-    jsonp(MARXAN_ENDPOINT_HTTPS + "getUsers", { timeout: TIMEOUT }).promise.then(function(response) {
+    jsonp(this.httpsEndpoint + "getUsers", { timeout: TIMEOUT }).promise.then(function(response) {
       this.setState({ loadingUsers: false });
       if (!this.checkForErrors(response)) {
         this.setState({ users: response.users });
@@ -438,7 +521,7 @@ class App extends React.Component {
 
   //deletes a user
   deleteUser(user) {
-    jsonp(MARXAN_ENDPOINT_HTTPS + "deleteUser?user=" + user, { timeout: TIMEOUT }).promise.then(function(response) {
+    jsonp(this.httpsEndpoint + "deleteUser?user=" + user, { timeout: TIMEOUT }).promise.then(function(response) {
       if (!this.checkForErrors(response)) {
         this.setState({ snackbarOpen: true, snackbarMessage: "User deleted" });
         //remove it from the users array
@@ -473,7 +556,7 @@ class App extends React.Component {
 
   //toggles if the guest user is enabled on the server or not
   toggleEnableGuestUser(){
-    return jsonp(MARXAN_ENDPOINT_HTTPS + "toggleEnableGuestUser").promise.then(function(response){
+    return jsonp(this.httpsEndpoint + "toggleEnableGuestUser").promise.then(function(response){
       if (!this.checkForErrors(response)) {
         //if succesfull set the state
         this.setState({ guestUserEnabled: response.enabled });
@@ -523,7 +606,7 @@ class App extends React.Component {
     //append all the key/value pairs
     this.appendToFormData(formData, parameters);
     //post to the server
-    post(MARXAN_ENDPOINT_HTTPS + "updateUserParameters", formData, {withCredentials: SEND_CREDENTIALS}).then((response) => {
+    post(this.httpsEndpoint + "updateUserParameters", formData, {withCredentials: SEND_CREDENTIALS}).then((response) => {
       if (!this.checkForErrors(response.data)) {
         // if succesfull write the state back to the userData key
         if (this.state.user === user) this.setState({ userData: this.newUserData});
@@ -542,7 +625,7 @@ class App extends React.Component {
   }
   //updates the project from the old version to the new version
   upgradeProject(project){
-    return jsonp(MARXAN_ENDPOINT_HTTPS + "upgradeProject?user=" + this.state.user + "&project=" + project).promise;
+    return jsonp(this.httpsEndpoint + "upgradeProject?user=" + this.state.user + "&project=" + project).promise;
   }
   
   //updates the project parameters back to the server (i.e. the input.dat file)
@@ -556,7 +639,7 @@ class App extends React.Component {
     //append all the key/value pairs
     this.appendToFormData(formData, parameters);
     //post to the server
-    return post(MARXAN_ENDPOINT_HTTPS + "updateProjectParameters", formData, {withCredentials: SEND_CREDENTIALS});
+    return post(this.httpsEndpoint + "updateProjectParameters", formData, {withCredentials: SEND_CREDENTIALS});
   }
 
   //updates a single parameter in the input.dat file directly
@@ -588,7 +671,7 @@ class App extends React.Component {
 
   //gets the planning unit grids
   getPlanningUnitGrids() {
-    return jsonp(MARXAN_ENDPOINT_HTTPS + "getPlanningUnitGrids", { timeout: TIMEOUT }).promise.then(function(response) {
+    return jsonp(this.httpsEndpoint + "getPlanningUnitGrids", { timeout: TIMEOUT }).promise.then(function(response) {
       if (!this.checkForErrors(response)) {
         this.setState({ planning_unit_grids: response.planning_unit_grids });
       }
@@ -599,36 +682,12 @@ class App extends React.Component {
     }.bind(this));
   }
 
-  // //gets all of the tilesets from mapbox using the access token for the currently logged on user - this access token must have the TILESETS:LIST scope - NO LONGER USED
-  // getTilesets() {
-  //   //get the tilesets for the user
-  //   let client = new MapboxClient(this.state.userData.MAPBOXACCESSTOKEN);
-  //   client.listTilesets(function(err, tilesets) {
-  //     //check if there are no timeout errors or empty responses
-  //     if (!this.responseIsTimeoutOrEmpty(tilesets)) {
-  //       //sort alphabetically by name
-  //       tilesets.sort(function(a, b) {
-  //         if (a.name < b.name)
-  //           return -1;
-  //         if (a.name > b.name)
-  //           return 1;
-  //         return 0;
-  //       });
-  //       //set the state
-  //       this.setState({ tilesets: tilesets });
-  //     }
-  //     else {
-  //       this.setState({ tilesets: [] });
-  //     }
-  //   }.bind(this));
-  // }
-
   //loads a project
   loadProject(project, user) {
     this.setState({ loadingProject: true });
     //reset the results from any previous projects
     this.resetResults();
-    jsonp(MARXAN_ENDPOINT_HTTPS + "getProject?user=" + user + "&project=" + project, { timeout: TIMEOUT }).promise.then(function(response) {
+    jsonp(this.httpsEndpoint + "getProject?user=" + user + "&project=" + project, { timeout: TIMEOUT }).promise.then(function(response) {
       this.setState({ loadingProject: false, loggingIn: false});
       if (!this.checkForErrors(response)) {
         //set the state for the app based on the data that is returned from the server
@@ -742,7 +801,7 @@ class App extends React.Component {
     formData.append('fullname', name);
     formData.append('email', email);
     formData.append('mapboxaccesstoken', mapboxaccesstoken);
-    post(MARXAN_ENDPOINT_HTTPS + "createUser", formData, {withCredentials: SEND_CREDENTIALS}).then((response) => {
+    post(this.httpsEndpoint + "createUser", formData, {withCredentials: SEND_CREDENTIALS}).then((response) => {
       this.setState({ creatingNewUser: false });
       if (!this.checkForErrors(response.data)) {
         //ui feedback
@@ -778,7 +837,7 @@ class App extends React.Component {
     formData.append('interest_features', interest_features.join(","));
     formData.append('target_values', target_values.join(","));
     formData.append('spf_values', spf_values.join(","));
-    post(MARXAN_ENDPOINT_HTTPS + "createProject", formData, {withCredentials: SEND_CREDENTIALS}).then((response) => {
+    post(this.httpsEndpoint + "createProject", formData, {withCredentials: SEND_CREDENTIALS}).then((response) => {
       this.setState({ loadingProjects: false });
       if (!this.checkForErrors(response.data)) {
         this.setState({ snackbarOpen: true, snackbarMessage: response.data.info, projectsDialogOpen: false });
@@ -797,7 +856,7 @@ class App extends React.Component {
       let formData = new FormData();
       formData.append('user', this.state.user);
       formData.append('project', project);
-      post(MARXAN_ENDPOINT_HTTPS + "createImportProject", formData, {withCredentials: SEND_CREDENTIALS}).then((response) => {
+      post(this.httpsEndpoint + "createImportProject", formData, {withCredentials: SEND_CREDENTIALS}).then((response) => {
         this.setState({ loadingProjects: false });
         if (!this.checkForErrors(response.data)) {
           this.setState({ snackbarOpen: true, snackbarMessage: response.data.info });
@@ -813,7 +872,7 @@ class App extends React.Component {
   //REST call to delete a specific project
   deleteProject(user, project) {
     this.setState({ loadingProjects: true });
-    jsonp(MARXAN_ENDPOINT_HTTPS + "deleteProject?user=" + user + "&project=" + project, { timeout: TIMEOUT }).promise.then(function(response) {
+    jsonp(this.httpsEndpoint + "deleteProject?user=" + user + "&project=" + project, { timeout: TIMEOUT }).promise.then(function(response) {
       if (!this.checkForErrors(response)) {
         //refresh the projects list
         this.getProjects();
@@ -839,7 +898,7 @@ class App extends React.Component {
 
   cloneProject(user, project) {
     this.setState({ loadingProjects: true });
-    jsonp(MARXAN_ENDPOINT_HTTPS + "cloneProject?user=" + user + "&project=" + project, { timeout: TIMEOUT }).promise.then(function(response) {
+    jsonp(this.httpsEndpoint + "cloneProject?user=" + user + "&project=" + project, { timeout: TIMEOUT }).promise.then(function(response) {
       if (!this.checkForErrors(response)) {
         //refresh the projects list
         this.getProjects();
@@ -864,7 +923,7 @@ class App extends React.Component {
   renameProject(newName) {
     this.setState({ editingProjectName: false });
     if (newName !== '' && newName !== this.state.project) {
-      jsonp(MARXAN_ENDPOINT_HTTPS + "renameProject?user=" + this.state.owner + "&project=" + this.state.project + "&newName=" + newName, { timeout: TIMEOUT }).promise.then(function(response) {
+      jsonp(this.httpsEndpoint + "renameProject?user=" + this.state.owner + "&project=" + this.state.project + "&newName=" + newName, { timeout: TIMEOUT }).promise.then(function(response) {
         if (!this.checkForErrors(response)) {
           this.setState({ project: newName, snackbarOpen: true, snackbarMessage: response.info });
         }
@@ -883,7 +942,7 @@ class App extends React.Component {
 
   getProjects() {
     this.setState({ loadingProjects: true });
-    jsonp(MARXAN_ENDPOINT_HTTPS + "getProjects?user=" + this.state.user, { timeout: TIMEOUT }).promise.then(function(response) {
+    jsonp(this.httpsEndpoint + "getProjects?user=" + this.state.user, { timeout: TIMEOUT }).promise.then(function(response) {
       let projects = [];
       this.setState({ loadingProjects: false });
       if (!this.checkForErrors(response)) {
@@ -898,7 +957,7 @@ class App extends React.Component {
 
   // getProjects() {
   //   this.setState({ loadingProjects: true });
-  //   fetchJsonp(MARXAN_ENDPOINT_HTTPS + "getProjects?user=" + this.state.user, { timeout: TIMEOUT }).then(function(response) {
+  //   fetchJsonp(this.httpsEndpoint + "getProjects?user=" + this.state.user, { timeout: TIMEOUT }).then(function(response) {
   //       return response.json();
   //     }).then(function(json) {
   //       this.setState({ loadingProjects: false });
@@ -941,7 +1000,7 @@ class App extends React.Component {
   }
 
   stopMarxan() {
-    jsonp(MARXAN_ENDPOINT_HTTPS + "stopMarxan?pid=" + this.state.pid, { timeout: 10000 }).promise.then(function(response) {
+    jsonp(this.httpsEndpoint + "stopMarxan?pid=" + this.state.pid, { timeout: 10000 }).promise.then(function(response) {
       if (!this.checkForErrors(response)) {
         this.setState({ running: false});
       }
@@ -973,7 +1032,7 @@ class App extends React.Component {
     formData.append('interest_features', interest_features.join(","));
     formData.append('target_values', target_values.join(","));
     formData.append('spf_values', spf_values.join(","));
-    return post(MARXAN_ENDPOINT_HTTPS + "updateSpecFile", formData, {withCredentials: SEND_CREDENTIALS}).then((response) => {
+    return post(this.httpsEndpoint + "updateSpecFile", formData, {withCredentials: SEND_CREDENTIALS}).then((response) => {
       //check if there are no timeout errors or empty responses
       this.checkForErrors(response.data);
     });
@@ -1018,7 +1077,7 @@ class App extends React.Component {
       //switches the results pane to the log tab
       this.log_tab_active();
       this.setState({preprocessingFeature: true});
-      ws = new WebSocket(MARXAN_ENDPOINT_WSS + "preprocessFeature?user=" + this.state.owner + "&project=" + this.state.project + "&planning_grid_name=" + this.state.metadata.PLANNING_UNIT_NAME + "&feature_class_name=" + feature.feature_class_name + "&alias=" + feature.alias + "&id=" + feature.id);
+      ws = new WebSocket(this.wssEndpoint + "preprocessFeature?user=" + this.state.owner + "&project=" + this.state.project + "&planning_grid_name=" + this.state.metadata.PLANNING_UNIT_NAME + "&feature_class_name=" + feature.feature_class_name + "&alias=" + feature.alias + "&id=" + feature.id);
       ws.onmessage = function (evt) {
         //TODO This code is duplicated in other websocket onmessage functions - sort out
         let response = JSON.parse(evt.data);
@@ -1052,7 +1111,7 @@ class App extends React.Component {
       //update the ui to reflect the fact that a job is running
       this.setState({active_pu: undefined});
       //make the request to get the marxan data
-      ws = new WebSocket(MARXAN_ENDPOINT_WSS + "runMarxan?user=" + user + "&project=" + project);
+      ws = new WebSocket(this.wssEndpoint + "runMarxan?user=" + user + "&project=" + project);
       ws.onmessage = function(evt){
         let response = JSON.parse(evt.data);
         switch (response.status) {
@@ -1088,7 +1147,7 @@ class App extends React.Component {
   //gets the results for a project
   getResults(user, project){
     //make the request to get the results
-    jsonp(MARXAN_ENDPOINT_HTTPS + "getResults?user=" + user + "&project=" + project, { timeout: TIMEOUT }).promise.then(function(response) {
+    jsonp(this.httpsEndpoint + "getResults?user=" + user + "&project=" + project, { timeout: TIMEOUT }).promise.then(function(response) {
       if (!this.checkForErrors(response)) {
           this.runCompleted(response);
       }
@@ -1218,7 +1277,7 @@ class App extends React.Component {
   }
   uploadFile(formData){
     return new Promise(function(resolve, reject) {
-      post(MARXAN_ENDPOINT_HTTPS + "uploadFile", formData, {withCredentials: SEND_CREDENTIALS}).then(function(response){
+      post(this.httpsEndpoint + "uploadFile", formData, {withCredentials: SEND_CREDENTIALS}).then(function(response){
         //resolve the promise
         resolve();
       });
@@ -1289,7 +1348,7 @@ class App extends React.Component {
   getSolution(user, project, solution){
     return new Promise(function(resolve, reject) {
       //request the data for the specific solution
-      jsonp(MARXAN_ENDPOINT_HTTPS + "getSolution?user=" + user + "&project=" + project + "&solution=" + solution, { timeout: TIMEOUT }).promise.then(function(response) {
+      jsonp(this.httpsEndpoint + "getSolution?user=" + user + "&project=" + project + "&solution=" + solution, { timeout: TIMEOUT }).promise.then(function(response) {
         if (!this.checkForErrors(response, false)) { //dont show the snackbar as it is likely that any errors are coming from the clumping dialog when a user clicks cancel and the projects are deleted while they are still running
           resolve(response);
         }
@@ -1918,7 +1977,7 @@ class App extends React.Component {
       });
     }
     //post to the server
-    post(MARXAN_ENDPOINT_HTTPS + "updatePUFile", formData, {withCredentials: SEND_CREDENTIALS}).then((response) => {
+    post(this.httpsEndpoint + "updatePUFile", formData, {withCredentials: SEND_CREDENTIALS}).then((response) => {
       if (!this.checkForErrors(response.data)) {
         // this.setState({ snackbarOpen: true, snackbarMessage: response.data.info });
       }
@@ -2056,7 +2115,7 @@ class App extends React.Component {
 
   createNewPlanningUnitGrid() {
     this.setState({ creatingNewPlanningGrid: true });
-    jsonp(MARXAN_ENDPOINT_HTTPS + "createPlanningUnitGrid?iso3=" + this.state.iso3 + "&domain=" + this.state.domain + "&areakm2=" + this.state.areakm2, { timeout: 0 }).promise.then(function(response) {
+    jsonp(this.httpsEndpoint + "createPlanningUnitGrid?iso3=" + this.state.iso3 + "&domain=" + this.state.domain + "&areakm2=" + this.state.areakm2, { timeout: 0 }).promise.then(function(response) {
       if (!this.checkForErrors(response)) {
         //feedback
         this.setState({ snackbarOpen: true, snackbarMessage: "Planning grid: '" + response.planning_unit_grid.split(",")[1].replace(/"/gm, '').replace(")", "") + "' created" }); //response is (pu_cok_terrestrial_hexagons_10,"Cook Islands Terrestrial 10Km2 hexagon grid")
@@ -2076,7 +2135,7 @@ class App extends React.Component {
   }
 
   deletePlanningUnitGrid(feature_class_name){
-    jsonp(MARXAN_ENDPOINT_HTTPS + "deletePlanningUnitGrid?planning_grid_name=" + feature_class_name, { timeout: 0 }).promise.then(function(response) {
+    jsonp(this.httpsEndpoint + "deletePlanningUnitGrid?planning_grid_name=" + feature_class_name, { timeout: 0 }).promise.then(function(response) {
       if (!this.checkForErrors(response)) {
         //feedback
       }
@@ -2099,7 +2158,7 @@ class App extends React.Component {
   }
   
   getCountries() {
-    jsonp(MARXAN_ENDPOINT_HTTPS + "getCountries", { timeout: 10000 }).promise.then(function(response) {
+    jsonp(this.httpsEndpoint + "getCountries", { timeout: 10000 }).promise.then(function(response) {
       if (!this.checkForErrors(response)) {
         //valid response
         this.setState({ countries: response.records });
@@ -2112,7 +2171,7 @@ class App extends React.Component {
 
   //uploads the named feature class to mapbox on the server
   uploadToMapBox(feature_class_name, mapbox_layer_name) {
-    jsonp(MARXAN_ENDPOINT_HTTPS + "uploadTilesetToMapBox?feature_class_name=" + feature_class_name + "&mapbox_layer_name=" + mapbox_layer_name, { timeout: 300000 }).promise.then(function(response) {
+    jsonp(this.httpsEndpoint + "uploadTilesetToMapBox?feature_class_name=" + feature_class_name + "&mapbox_layer_name=" + mapbox_layer_name, { timeout: 300000 }).promise.then(function(response) {
       if (!this.checkForErrors(response)) {
         this.setState({ snackbarOpen: true, snackbarMessage: "Uploading to MapBox with the id: " + response.uploadid });
         this.timer = setInterval(() => this.pollMapboxForUploadComplete(response.uploadid), 5000);
@@ -2125,7 +2184,7 @@ class App extends React.Component {
 
   pollMapboxForUploadComplete(uploadid) {
     var request = require('request');
-    request("https://api.mapbox.com/uploads/v1/" + MAPBOX_USER + "/" + uploadid + "?access_token=sk.eyJ1IjoiYmxpc2h0ZW4iLCJhIjoiY2piNm1tOGwxMG9lajMzcXBlZDR4aWVjdiJ9.Z1Jq4UAgGpXukvnUReLO1g", this.pollMapboxForUploadCompleteResponse.bind(this));
+    request("https://api.mapbox.com/uploads/v1/" + MAPBOX_USER + "/" + uploadid + "?access_token=" + mb_tk, this.pollMapboxForUploadCompleteResponse.bind(this));
   }
 
   pollMapboxForUploadCompleteResponse(error, response, body) {
@@ -2167,7 +2226,7 @@ class App extends React.Component {
   //used by the import wizard to import a users zipped shapefile as the planning units
   importZippedShapefileAsPu(zipname, alias, description) {
     //the zipped shapefile has been uploaded to the MARXAN folder - it will be imported to PostGIS and a record will be entered in the metadata_planning_units table
-    return jsonp(MARXAN_ENDPOINT_HTTPS + "importPlanningUnitGrid?filename=" + zipname + "&name=" + alias + "&description=" + description, { timeout: TIMEOUT }).promise;
+    return jsonp(this.httpsEndpoint + "importPlanningUnitGrid?filename=" + zipname + "&name=" + alias + "&description=" + description, { timeout: TIMEOUT }).promise;
   }
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2283,7 +2342,7 @@ class App extends React.Component {
 
   createNewFeature() {
     //the zipped shapefile has been uploaded to the MARXAN folder and the metadata are in the featureDatasetName, featureDatasetDescription and featureDatasetFilename state variables - 
-    jsonp(MARXAN_ENDPOINT_HTTPS + "importFeature?filename=" + this.state.featureDatasetFilename + "&name=" + this.state.featureDatasetName + "&description=" + this.state.featureDatasetDescription, { timeout: TIMEOUT }).promise.then(function(response) {
+    jsonp(this.httpsEndpoint + "importFeature?filename=" + this.state.featureDatasetFilename + "&name=" + this.state.featureDatasetName + "&description=" + this.state.featureDatasetDescription, { timeout: TIMEOUT }).promise.then(function(response) {
       if (!this.checkForErrors(response)) {
         if (response.id){
           this.getInterestFeature(response.id);
@@ -2307,7 +2366,7 @@ class App extends React.Component {
 
   getInterestFeature(id) {
     //load the interest feature from the marxan web database
-    jsonp(MARXAN_ENDPOINT_HTTPS + "getFeature?oid=" + id + "&format=json", { timeout: 10000 }).promise.then(function(response) {
+    jsonp(this.httpsEndpoint + "getFeature?oid=" + id + "&format=json", { timeout: 10000 }).promise.then(function(response) {
       if (!this.checkForErrors(response)) {
         //add the required attributes to use it in Marxan Web
         this.addFeatureAttributes(response.data[0]);
@@ -2327,7 +2386,7 @@ class App extends React.Component {
   }
   
   deleteFeature(feature) {
-    jsonp(MARXAN_ENDPOINT_HTTPS + "deleteFeature?feature_name=" + feature.feature_class_name, { timeout: TIMEOUT }).promise.then(function(response) {
+    jsonp(this.httpsEndpoint + "deleteFeature?feature_name=" + feature.feature_class_name, { timeout: TIMEOUT }).promise.then(function(response) {
       if (!this.checkForErrors(response)) {
         this.setState({ snackbarOpen: true, snackbarMessage: "Feature deleted" });
         //remove it from the current project if necessary
@@ -2354,7 +2413,7 @@ class App extends React.Component {
   getAllFeatures(){
     this.setState({loadingFeatures: true});
     return new Promise(function(resolve, reject) {
-      jsonp(MARXAN_ENDPOINT_HTTPS + "getAllSpeciesData", { timeout: TIMEOUT }).promise.then(function(response){
+      jsonp(this.httpsEndpoint + "getAllSpeciesData", { timeout: TIMEOUT }).promise.then(function(response){
         if (!this.checkForErrors(response)) {
           //set the allfeatures state
           this.setState({allFeatures: response.data, loadingFeatures: false});
@@ -2449,7 +2508,7 @@ class App extends React.Component {
   }
 
   getFeaturePlanningUnits(oid){
-    return jsonp(MARXAN_ENDPOINT_HTTPS + "getFeaturePlanningUnits?user=" + this.state.owner + "&project=" + this.state.project + "&oid=" + oid, { timeout: TIMEOUT }).promise;
+    return jsonp(this.httpsEndpoint + "getFeaturePlanningUnits?user=" + this.state.owner + "&project=" + this.state.project + "&oid=" + oid, { timeout: TIMEOUT }).promise;
   }
 
   //removes the current feature from the project
@@ -2736,7 +2795,7 @@ class App extends React.Component {
         this.startLogging();
         //set state to prevent users changing the IUCN category drop down while processing is happening        
         this.setState({preprocessingProtectedAreas: true });
-        ws = new WebSocket(MARXAN_ENDPOINT_WSS + "preprocessProtectedAreas?user=" + this.state.owner + "&project=" + this.state.project + "&planning_grid_name=" + this.state.metadata.PLANNING_UNIT_NAME);
+        ws = new WebSocket(this.wssEndpoint + "preprocessProtectedAreas?user=" + this.state.owner + "&project=" + this.state.project + "&planning_grid_name=" + this.state.metadata.PLANNING_UNIT_NAME);
         ws.onmessage = function (evt) {
           let response = JSON.parse(evt.data);
           switch (response.status) {
@@ -2790,7 +2849,7 @@ class App extends React.Component {
       return new Promise(function(resolve, reject) {
         //start the logging
         this.startLogging();
-        ws = new WebSocket(MARXAN_ENDPOINT_WSS + "preprocessPlanningUnits?user=" + this.state.owner + "&project=" + this.state.project);
+        ws = new WebSocket(this.wssEndpoint + "preprocessPlanningUnits?user=" + this.state.owner + "&project=" + this.state.project);
         ws.onmessage = function (evt) {
           let response = JSON.parse(evt.data);
           switch (response.status) {
@@ -2851,7 +2910,7 @@ class App extends React.Component {
     //clear any exists projects
     if (this.projects) this.deleteProjects();
     return new Promise(function(resolve, reject) {
-      jsonp(MARXAN_ENDPOINT_HTTPS + "createProjectGroup?user=" + this.state.owner + "&project=" + this.state.project + "&copies=5&blmValues=" + this.state.blmValues.join(","), { timeout: TIMEOUT }).promise.then(function(response) {
+      jsonp(this.httpsEndpoint + "createProjectGroup?user=" + this.state.owner + "&project=" + this.state.project + "&copies=5&blmValues=" + this.state.blmValues.join(","), { timeout: TIMEOUT }).promise.then(function(response) {
         if (!this.checkForErrors(response)) {
           //set the local variable for the projects
           this.projects = response.data;
@@ -2874,7 +2933,7 @@ class App extends React.Component {
       //clear the local variable
       this.projects = undefined;
       return new Promise(function(resolve, reject) {
-         jsonp(MARXAN_ENDPOINT_HTTPS + "deleteProjects?projectNames=" + projectNames.join(","), { timeout: TIMEOUT }).promise.then(function(response) {
+         jsonp(this.httpsEndpoint + "deleteProjects?projectNames=" + projectNames.join(","), { timeout: TIMEOUT }).promise.then(function(response) {
           if (!this.checkForErrors(response)) {
             resolve();
           }
@@ -2963,14 +3022,6 @@ class App extends React.Component {
     this.updateRunParams(newRunParams);
   }
   
-  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  ////////////////////////// MANAGING SERVERS
-  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-  setActiveServer(value){
-    this.setState({activeServer: value});
-  }
-
   render() {
     return (
       <MuiThemeProvider>
@@ -2989,11 +3040,9 @@ class App extends React.Component {
             createNewUser={this.createNewUser.bind(this)}
             creatingNewUser={this.state.creatingNewUser}
             resending={this.state.resending}
-            availableServers={MARXAN_REMOTE_SERVERS}
-            activeServer={this.state.activeServer}
-            setActiveServer={this.setActiveServer.bind(this)}
-            servers={this.state.servers}
-            
+            marxanServers={this.state.marxanServers}
+            selectServer={this.selectServer.bind(this)}
+            marxanServer={this.state.marxanServer}
           />
           <RegisterDialog 
             open={this.state.registerDialogOpen} 
@@ -3202,7 +3251,7 @@ class App extends React.Component {
             filename={this.state.featureDatasetFilename}
             createNewFeature={this.createNewFeature.bind(this)}
             checkForErrors={this.checkForErrors.bind(this)} 
-            MARXAN_ENDPOINT_HTTPS={MARXAN_ENDPOINT_HTTPS}
+            httpsEndpoint={this.httpsEndpoint}
             SEND_CREDENTIALS={SEND_CREDENTIALS}
           />
           <CostsDialog
@@ -3259,7 +3308,7 @@ class App extends React.Component {
           <ImportDialog 
             open={this.state.importDialogOpen}
             onOk={this.closeImportDialog.bind(this)}
-            MARXAN_ENDPOINT_HTTPS={MARXAN_ENDPOINT_HTTPS}
+            httpsEndpoint={this.httpsEndpoint}
             SEND_CREDENTIALS={SEND_CREDENTIALS}
             importProject={this.importProject.bind(this)}
             checkForErrors={this.checkForErrors.bind(this)} 

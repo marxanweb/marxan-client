@@ -68,7 +68,7 @@ class ImportDialog extends React.Component {
                         {stepIndex === 0 ? <UploadMarxanFiles 
                             filesListed={this.filesListed.bind(this)}
                             setZipFilename={this.setZipFilename.bind(this)}
-                            MARXAN_ENDPOINT_HTTPS={this.props.MARXAN_ENDPOINT_HTTPS} 
+                            httpsEndpoint={this.props.httpsEndpoint} 
                             SEND_CREDENTIALS={this.props.SEND_CREDENTIALS}
                             checkForErrors={this.props.checkForErrors} 
                         /> : null}
