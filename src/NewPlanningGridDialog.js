@@ -7,6 +7,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowAltCircleUp } from '@fortawesome/free-regular-svg-icons';
 let domains = ["Marine", "Terrestrial"];
 let areakm2s = [10, 20, 30, 40, 50];
+let shapes = ['Hexagon', 'Square'];
 
 class NewPlanningGridDialog extends React.Component {
   changeIso3(evt, value) {
@@ -17,6 +18,9 @@ class NewPlanningGridDialog extends React.Component {
   }
   changeAreaKm2(evt, value) {
     this.props.changeAreaKm2(areakm2s[value]);
+  }
+  changeShape(evt, value) {
+    this.props.changeShape(shapes[value]);
   }
   render() {
     let dropDownStyle = { width: "240px" };
@@ -72,6 +76,28 @@ class NewPlanningGridDialog extends React.Component {
                 floatingLabelFixed={true}
               >
                 {domains.map(item => {
+                  return (
+                    <MenuItem
+                      style={{ fontSize: "12px" }}
+                      value={item}
+                      primaryText={item}
+                      key={item}
+                    />
+                  );
+                })}
+              </SelectField>
+            </div>
+            <div>
+              <SelectField
+                menuItemStyle={{ fontSize: "12px" }}
+                labelStyle={{ fontSize: "12px" }}
+                onChange={this.changeShape.bind(this)}
+                value={this.props.shape}
+                style={dropDownStyle}
+                floatingLabelText="Planning unit shape"
+                floatingLabelFixed={true}
+              >
+                {shapes.map(item => {
                   return (
                     <MenuItem
                       style={{ fontSize: "12px" }}

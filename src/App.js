@@ -189,6 +189,7 @@ class App extends React.Component {
       iso3: '',
       domain: '',
       areakm2: undefined,
+      shape: '',
       countries: [],
       planning_units: [],
       planning_unit_grids: [],
@@ -2115,7 +2116,7 @@ class App extends React.Component {
 
   createNewPlanningUnitGrid() {
     this.setState({ creatingNewPlanningGrid: true });
-    jsonp(this.httpsEndpoint + "createPlanningUnitGrid?iso3=" + this.state.iso3 + "&domain=" + this.state.domain + "&areakm2=" + this.state.areakm2, { timeout: 0 }).promise.then(function(response) {
+    jsonp(this.httpsEndpoint + "createPlanningUnitGrid?iso3=" + this.state.iso3 + "&domain=" + this.state.domain + "&areakm2=" + this.state.areakm2 + "&shape=" + this.state.shape, { timeout: 0 }).promise.then(function(response) {
       if (!this.checkForErrors(response)) {
         //feedback
         this.setState({ snackbarOpen: true, snackbarMessage: "Planning grid: '" + response.planning_unit_grid.split(",")[1].replace(/"/gm, '').replace(")", "") + "' created" }); //response is (pu_cok_terrestrial_hexagons_10,"Cook Islands Terrestrial 10Km2 hexagon grid")
@@ -2155,6 +2156,10 @@ class App extends React.Component {
   
   changeAreaKm2(value) {
     this.setState({ areakm2: value });
+  }
+  
+  changeShape(value){
+    this.setState({ shape: value });
   }
   
   getCountries() {
@@ -3219,9 +3224,11 @@ class App extends React.Component {
             changeIso3={this.changeIso3.bind(this)}
             changeDomain={this.changeDomain.bind(this)}
             changeAreaKm2={this.changeAreaKm2.bind(this)}
+            changeShape={this.changeShape.bind(this)}
             iso3={this.state.iso3}
             domain={this.state.domain}
             areakm2={this.state.areakm2}
+            shape={this.state.shape}
           />
           <FeaturesDialog
             open={this.state.featuresDialogOpen}
