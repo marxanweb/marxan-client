@@ -17,6 +17,5 @@ Download the release zip file and unzip the files into the web root directory (e
 wget https://github.com/andrewcottam/marxan-client/archive/v<VERSION>.zip
 unzip v<VERSION>.zip
 ```
-Rename the marxan-client-\<VERSION> folder to marxan-client  
 The Marxan Client will be available at:  
-https://\<host>/marxan-client/build/index.html  
+https://\<host>/marxan-client-<VERSION>/build/index.html  
