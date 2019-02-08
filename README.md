@@ -18,4 +18,4 @@ wget https://github.com/andrewcottam/marxan-client/archive/v<VERSION>.zip
 unzip v<VERSION>.zip
 ```
 The Marxan Client will be available at:  
-https://\<host>/marxan-client-<VERSION>/build/index.html  
+https://\<host>/marxan-client-\<VERSION>/build/index.html  
