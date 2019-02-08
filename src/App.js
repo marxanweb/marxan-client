@@ -301,8 +301,8 @@ class App extends React.Component {
         return response.json();
       }).then(function(json) {
         if (json.hasOwnProperty('info')){
-          //see if CORS is enabled from this domain
-          let corsEnabled = (json.serverData.CORS_DOMAINS.indexOf(window.location.hostname)>-1) ? true : false;
+          //see if CORS is enabled from this domain - either the domain has been added as an allowable domain on the server, or the client and server are on the same machine
+          let corsEnabled = ((json.serverData.CORS_DOMAINS.indexOf(window.location.hostname)>-1)||(json.serverData.host === window.location.hostname)) ? true : false;
           //set the flags for the server capabilities
           server = Object.assign(server, {guestUserEnabled: json.serverData.ENABLE_GUEST_USER, corsEnabled: corsEnabled, offline: false});
         }
