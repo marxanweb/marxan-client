@@ -265,8 +265,8 @@ class App extends React.Component {
     //get the server capabilities - when all the servers have responded, finalise the marxanServer array
     this.getAllServerCapabilities(marxanServers).then(function(server){
       //remove the current domain if either the marxan server is not installed, or it is already in the list of servers from the marxan registry
-      marxanServers = marxanServers.filter(function(server){
-        return ((!(server.type==="local" && server.offline))||(!(server.type==="local" && hosts.indexOf(server.host)>-1)));
+      marxanServers = marxanServers.filter(function(item){
+        return ((!(item.type==="local" && item.offline))||(!(item.type==="local" && hosts.indexOf(item.host)>-1)));
       });
       //sort the servers by the name 
       marxanServers.sort(function(a, b) {
@@ -302,7 +302,7 @@ class App extends React.Component {
       }).then(function(json) {
         if (json.hasOwnProperty('info')){
           //see if CORS is enabled from this domain - either the domain has been added as an allowable domain on the server, or the client and server are on the same machine
-          let corsEnabled = ((json.serverData.CORS_DOMAINS.indexOf(window.location.hostname)>-1)||(json.serverData.host === window.location.hostname)) ? true : false;
+          let corsEnabled = ((json.serverData.CORS_DOMAINS.indexOf(window.location.hostname)>-1)||(server.host === window.location.hostname)) ? true : false;
           //set the flags for the server capabilities
           server = Object.assign(server, {guestUserEnabled: json.serverData.ENABLE_GUEST_USER, corsEnabled: corsEnabled, offline: false});
         }
