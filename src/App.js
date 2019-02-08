@@ -2119,9 +2119,9 @@ class App extends React.Component {
     jsonp(this.httpsEndpoint + "createPlanningUnitGrid?iso3=" + this.state.iso3 + "&domain=" + this.state.domain + "&areakm2=" + this.state.areakm2 + "&shape=" + this.state.shape, { timeout: 0 }).promise.then(function(response) {
       if (!this.checkForErrors(response)) {
         //feedback
-        this.setState({ snackbarOpen: true, snackbarMessage: "Planning grid: '" + response.planning_unit_grid.split(",")[1].replace(/"/gm, '').replace(")", "") + "' created" }); //response is (pu_cok_terrestrial_hexagons_10,"Cook Islands Terrestrial 10Km2 hexagon grid")
+        this.setState({ snackbarOpen: true, snackbarMessage: "Planning grid: '" + response.planning_unit_grid.split(",")[1].replace(/"/gm, '').replace(")", "") + "' created" }); //response is (pu_cok_terrestrial_hexagon_10,"Cook Islands Terrestrial 10Km2 hexagon grid")
         //upload this data to mapbox for visualisation
-        this.uploadToMapBox(response.planning_unit_grid.split(",")[0].replace(/"/gm, '').replace("(", ""), "hexagons");
+        this.uploadToMapBox(response.planning_unit_grid.split(",")[0].replace(/"/gm, '').replace("(", ""), "planningunits");
         //update the planning unit items
         this.getPlanningUnitGrids();
       }

@@ -8,7 +8,7 @@ import SelectField from 'material-ui/SelectField';
 // mapboxUser   the mapbox user id where the tilesets are stored, e.g. blished
 // items:       the items that you want to display in the select box. these must contain the following properties: 
 //  alias               - a string for the text that will be shown in the select box
-//  feature_class_name  - the actual value that determines which item is selected - this should be the tileset name, e.g. pupng_terrestrial_hexagons_50
+//  feature_class_name  - the actual value that determines which item is selected - this should be the tileset name, e.g. pupng_terrestrial_hexagon_50
 //  envelope            - a well-known-text representation of the bounds of the mapbox layer, e.g. "POLYGON((60.4758290002083 29.3772500001874,60.4758290002083 38.4906960004201,74.8898619998315 38.4906960004201,74.8898619998315 29.3772500001874,60.4758290002083 29.3772500001874))" (optional)
 // selectedValue the value that is selected (controlled from the controlling component)
 //prerequisitives:
