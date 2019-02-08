@@ -11,7 +11,7 @@ https://andrewcottam.github.io/marxan-client/build
 ### beta.biopama.org
 http://beta.biopama.org/marxan-client/build/   
 
-## Installation
+## Deployment
 Download the release zip file and unzip the files into the web root directory (e.g. for Apache2 on Ubuntu - /var/www/html).  
 ```
 wget https://github.com/andrewcottam/marxan-client/archive/v<VERSION>.zip
