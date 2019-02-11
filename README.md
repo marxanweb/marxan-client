@@ -1,5 +1,5 @@
 # marxan-client
-##Architecture
+## Architecture
 ![marxan-client architecture](architecture_client.png)
 
 ## hosts
