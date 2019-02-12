@@ -87,7 +87,7 @@ let BACKUP_MAPBOX_BASEMAPS = [{name: 'Streets', description: 'A complete basemap
     {name: 'Satellite', description: 'A beautiful global satellite and aerial imagery layer.', id:'mapbox/satellite-v9', provider:'mapbox'},
     {name: 'Satellite Streets', description: 'Global imagery enhanced with road and label hierarchy.', id:'mapbox/satellite-streets-v9', provider:'mapbox'}];
 //array of Marxan servers to use if the CDN that provides this array is unavailable
-let BACKUP_MARXAN_SERVERS = [{name: 'Joint Research Centre, Italy', host: 'https://db-server-blishten.c9users.io', description: ''}];
+let BACKUP_MARXAN_SERVERS = [{name: 'Joint Research Centre, Italy', host: 'https://marxan-server-blishten.c9users.io', description: ''}];
 //an array of feature property information that is used in the Feature Information dialog box
 let FEATURE_PROPERTIES = [{ name: 'id', key: 'ID',hint: 'The unique identifier for the feature', showForOld: false},
   { name: 'alias', key: 'Alias',hint: 'A human readable name for the feature', showForOld: true},
@@ -304,7 +304,7 @@ class App extends React.Component {
           //see if CORS is enabled from this domain - either the domain has been added as an allowable domain on the server, or the client and server are on the same machine
           let corsEnabled = ((json.serverData.CORS_DOMAINS.indexOf(window.location.hostname)>-1)||(server.host === window.location.hostname)) ? true : false;
           //set the flags for the server capabilities
-          server = Object.assign(server, {guestUserEnabled: json.serverData.ENABLE_GUEST_USER, corsEnabled: corsEnabled, offline: false});
+          server = Object.assign(server, {guestUserEnabled: json.serverData.ENABLE_GUEST_USER, corsEnabled: corsEnabled, offline: false, machine:json.serverData.MACHINE,client_version:json.serverData.MARXAN_CLIENT_VERSION,server_version:json.serverData.MARXAN_SERVER_VERSION,node:json.serverData.NODE,processor:json.serverData.PROCESSOR,release:json.serverData.RELEASE,name:json.serverData.SERVER_NAME,system:json.serverData.SYSTEM,version:json.serverData.VERSION});
         }
         //return the server capabilities
         resolve(server);
@@ -2102,7 +2102,7 @@ class App extends React.Component {
       let puid_array = statuses[position][1];
       let new_array = puid_array.filter(function(item) {
         return puids.indexOf(item) < 0;
-      });
+      }); 
       statuses[position][1] = new_array;
       //if there are no more items in the puid array then remove it
       if (new_array.length === 0) statuses.splice(position, 1);
