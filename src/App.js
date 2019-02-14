@@ -251,18 +251,20 @@ class App extends React.Component {
       console.warn("Unable to load Marxan Servers from https://andrewcottam.github.io/cdn/marxan.js. Using a local copy.");
       marxanServers = BACKUP_MARXAN_SERVERS;
     }
+    //get all the information for the marxan servers by polling them
     this.initialiseServers(marxanServers);
   }
   
   //initialises the servers by requesting their capabilities and then filtering the list of available servers
   initialiseServers(marxanServers){
-    //add the current domain (if it isnt in the list from the marxan registry) - this may be a local/local network install
-    marxanServers.push(({name:window.location.hostname, host:window.location.hostname, description:'Local machine', type:'local'}));
+    //add the current domain - this may be a local/local network install
+    let name = (window.location.hostname === "localhost") ? "This computer" : window.location.hostname;
+    marxanServers.push(({name: name, host:window.location.hostname, description:'Local machine', type:'local'}));
     //get a list of server hosts
     let hosts = marxanServers.map(function(server){
       return server.host;  
     });
-    //get the server capabilities - when all the servers have responded, finalise the marxanServer array
+    //get all the server capabilities - when all the servers have responded, finalise the marxanServer array
     this.getAllServerCapabilities(marxanServers).then(function(server){
       //remove the current domain if either the marxan server is not installed, or it is already in the list of servers from the marxan registry
       marxanServers = marxanServers.filter(function(item){
@@ -294,9 +296,9 @@ class App extends React.Component {
   //gets the capabilities of the server by making a request to the getServerData method
   getServerCapabilities(server){
     return new Promise(function(resolve, reject) {
-      //set the default properties for the server
-      server = Object.assign(server, {httpsEndpoint: "https://" + server.host + TORNADO_PATH, wssEndpoint: "wss://" + server.host + TORNADO_PATH, offline: true, guestUserEnabled: false, corsEnabled: false});
-      //poll the server to make sure tornado is running - this uses featchJsonp which can catch errors
+      //set the default properties for the server - by default the server is offline, has no guest access and CORS is not enabled
+      server = Object.assign(server, {httpEndpoint: "http://" + server.host + TORNADO_PATH, httpsEndpoint: "https://" + server.host + TORNADO_PATH, wssEndpoint: "wss://" + server.host + TORNADO_PATH, offline: true, guestUserEnabled: false, corsEnabled: false});
+      //poll the server to make sure tornado is running - this uses fetchJsonp which can catch http errors
       fetchJsonp(server.httpsEndpoint + "getServerData", { timeout: 2000 }).then(function(response){
         return response.json();
       }).then(function(json) {
@@ -304,16 +306,26 @@ class App extends React.Component {
           //see if CORS is enabled from this domain - either the domain has been added as an allowable domain on the server, or the client and server are on the same machine
           let corsEnabled = ((json.serverData.CORS_DOMAINS.indexOf(window.location.hostname)>-1)||(server.host === window.location.hostname)) ? true : false;
           //set the flags for the server capabilities
-          server = Object.assign(server, {guestUserEnabled: json.serverData.ENABLE_GUEST_USER, corsEnabled: corsEnabled, offline: false, machine:json.serverData.MACHINE,client_version:json.serverData.MARXAN_CLIENT_VERSION,server_version:json.serverData.MARXAN_SERVER_VERSION,node:json.serverData.NODE,processor:json.serverData.PROCESSOR,release:json.serverData.RELEASE,name:json.serverData.SERVER_NAME,system:json.serverData.SYSTEM,version:json.serverData.VERSION});
+          server = Object.assign(server, {guestUserEnabled: json.serverData.ENABLE_GUEST_USER, corsEnabled: corsEnabled, offline: false, machine: json.serverData.MACHINE, client_version: json.serverData.MARXAN_CLIENT_VERSION, server_version: json.serverData.MARXAN_SERVER_VERSION, node: json.serverData.NODE, processor: json.serverData.PROCESSOR, release: json.serverData.RELEASE, system:json.serverData.SYSTEM, version: json.serverData.VERSION});
+          //if the server defines its own name then set it 
+          if(json.serverData.SERVER_NAME!=="") {
+            server = Object.assign(server, {name:json.serverData.SERVER_NAME});
+          }
+          //if the server defines its own description then set it 
+          if(json.serverData.SERVER_DESCRIPTION!=="") {
+            server = Object.assign(server, {description:json.serverData.SERVER_DESCRIPTION});
+          }
         }
         //return the server capabilities
         resolve(server);
         }).catch(function(ex) {
-          //the server does not exist or did not respond before the timeout
+          //the server does not exist or did not respond before the timeout - return the default properties
           resolve(server);
       });
     });
   }
+  
+  //called when the user selects a server
   selectServer(value){
     this.setState({marxanServer: value});
     //set the endpoint hosts 

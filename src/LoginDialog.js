@@ -22,7 +22,7 @@ class LoginDialog extends React.Component {
                     okLabel={this.props.loggingIn ? "Logging in" : (this.props.marxanServer&&!this.props.marxanServer.offline&&!this.props.marxanServer.corsEnabled&&this.props.marxanServer.guestUserEnabled) ? "Login (Read-Only)" : "Login"}
                     showCancelButton={true}
                     cancelLabel={"Register"}
-                    cancelDisabled={this.props.loggingIn ? true : false} 
+                    cancelDisabled={((this.props.marxanServer===undefined) || this.props.loggingIn || (this.props.marxanServer&&this.props.marxanServer.offline) || (this.props.marxanServer&&!this.props.marxanServer.corsEnabled)) ? true : false} 
                     contentWidth={358}
                     offsetY={200}
                     children={[
@@ -37,14 +37,14 @@ class LoginDialog extends React.Component {
                             value={this.props.marxanServer&&this.props.marxanServer.name} 
                             onChange={this.selectServer.bind(this)}
                             children= {this.props.marxanServers.map((item)=> {
-                                //if the server is offline - just put that otherwise if CORS is enabled for this domain then it is read/write otherwise if the guest user is enabled then put the domain and read only otherwise put the domain and guest user disabled
-                                let text = (item.offline) ? item.name + " (offline)" : (item.corsEnabled) ? item.name : (item.guestUserEnabled) ? item.name + " (ReadOnly)" : item.name + " (Guest user disabled)";
+                                //if the server is offline - just put that otherwise: if CORS is enabled for this domain then it is read/write otherwise: if the guest user is enabled then put the domain and read only otherwise: put the domain and guest user disabled
+                                let text = (item.offline) ? item.name + " (offline)" : (item.corsEnabled) ? item.name : (item.guestUserEnabled) ? item.name + " (Read-Only)" : item.name + " (Guest user disabled)";
                                 return  <MenuItem 
                                     value={item.name} 
                                     key={item.name} 
                                     primaryText={text} 
                                     style={{fontSize:'12px'}}
-                                    title={item.host}
+                                    title={item.host + "\n" + item.description}
                                 />;
                             })}
                         />
