@@ -13,7 +13,7 @@ class NewFeatureDialog extends React.Component {
     render() {
         let c = 
             <React.Fragment key="k12">
-                <div>
+                <div> 
                     <TextField value={this.props.name} onChange={this.changeName.bind(this)} style={{display:'block'}} floatingLabelText="Enter a name" floatingLabelFixed={true}/>
                     <TextField value={this.props.description} onChange={this.changeDescription.bind(this)} style={{display:'block'}} multiLine={true} rows={2} floatingLabelText="Enter a description" floatingLabelFixed={true}/>
                     <ShapefileUpload SEND_CREDENTIALS={this.props.SEND_CREDENTIALS} requestEndpoint={this.props.requestEndpoint} checkForErrors={this.props.checkForErrors} mandatory={true} name={this.props.name} description={this.props.description} filename={this.props.filename} setFilename={this.props.setFilename} label="Shapefile" style={{'paddingTop':'10px'}}/>
@@ -23,9 +23,10 @@ class NewFeatureDialog extends React.Component {
             <MarxanDialog  
                 {...this.props} 
                 onOk={this.props.createNewFeature}
-                okDisabled={!(this.props.name!=='' && this.props.description!=='' && this.props.filename!=='')}
-                okLabel={this.props.creatingNewPlanningGrid ? "Creating..." : "OK" }
+                okDisabled={!(this.props.name!=='' && this.props.description!=='' && this.props.filename!=='' && (this.props.creatingNewFeature===false))}
+                okLabel={this.props.creatingNewFeature ? "Creating..." : "OK" }
                 showCancelButton={true}
+                showSpinner={(this.props.creatingNewFeature)}
                 contentWidth={420}
                 title="New feature" 
                 children={c} 

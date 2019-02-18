@@ -94,12 +94,13 @@ class ResultsPane extends React.Component {
                     icon={<Settings style={{height:'20px',width:'20px'}}/>} 
                     title="Legend Settings"
                     onClick={this.props.openClassificationDialog} 
-                    style={{ top:'440px', position:'absolute', marginLeft:'-7px'}}
+                    style={{ top:'427px', position:'absolute', marginLeft:'-7px'}}
                   />
                 </div>
               </Tab>
               <Tab label="Solutions" value="solutions" onActive={this.props.solutions_tab_active} >
                 <div id="solutionsPanel" style={{'display': (!this.props.running ? 'block' : 'none')}}>
+                {(this.props.solutions&&this.props.solutions.length>0) ? 
                   <ReactTable
                     thisRef={this}
                     getTrProps={(state, rowInfo, column, instance) => {
@@ -116,7 +117,7 @@ class ResultsPane extends React.Component {
                     className={'solutions_infoTable -highlight'}
                     showPagination={false}
                     minRows={0}
-                    pageSize={200}
+                    pageSize={this.props.solutions.length} 
                     noDataText=''
                     data={this.props.solutions}
                     columns={[{
@@ -146,6 +147,7 @@ class ResultsPane extends React.Component {
                        headerStyle:{'textAlign':'left'}
                     }]}
                   />
+                : null}
                 </div>
               </Tab>
               <Tab label="Log" value="log" onActive={this.props.log_tab_active} >

@@ -140,7 +140,7 @@ class InfoPanel extends React.Component {
                         key={item} 
                         primaryText={item}
                         style={{fontSize:'12px'}}
-                        />;
+                        />; 
                     })}
                   /> 
                   <div style={{display: (this.props.userRole === "ReadOnly") ? 'none' : 'block'}}>

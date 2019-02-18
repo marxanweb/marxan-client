@@ -11,8 +11,8 @@ class Popup extends React.Component {
                 <div className={'popupHeader'}>Planning unit properties</div>
                 <ReactTable
                   showPagination={false}
+                  pageSize={data.length}
                   minRows={0}
-                  pageSize={200}
                   noDataText=''
                   data={data}
                   columns={[{

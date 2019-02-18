@@ -63,7 +63,7 @@ class FeaturesDialog extends React.Component {
                           <div style={{marginBottom:'5px'}}>There are a total of {this.props.allFeatures.length} features:</div>
                               <div id="projectsTable">
                                   <ReactTable 
-                                      pageSize={15}
+                                      pageSize={this.props.allFeatures.length}
                                       className={'projectsReactTable'}
                                       showPagination={false} 
                                       minRows={0}

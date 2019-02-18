@@ -67,7 +67,7 @@ class RunSettingsDialog extends React.Component {
                             showPagination={false} 
                             className={'summary_infoTable'}
                             minRows={0}
-                            pageSize={200}
+                            pageSize={this.state.data.length}
                             data={this.state.data}
                             noDataText=''
                             columns={[{

@@ -85,7 +85,6 @@ class ProjectsDialog extends React.Component {
                             <div style={{marginBottom:'5px'}}>There are a total of {this.props.projects.length} projects:</div>
                                 <div id="projectsTable">
                                     <ReactTable 
-                                        pageSize={15}
                                         className={'projectsReactTable'}
                                         showPagination={false} 
                                         minRows={0}

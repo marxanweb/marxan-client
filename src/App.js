@@ -171,6 +171,7 @@ class App extends React.Component {
       featureDatasetDescription: '',
       featureDatasetFilename: '',
       creatingNewPlanningGrid: false,
+      creatingNewFeature: false,
       loadingFeatures: false,
       loadingProjects: false,
       loadingUsers: false,
@@ -2368,6 +2369,7 @@ class App extends React.Component {
   }
 
   createNewFeature() {
+    this.setState({ creatingNewFeature: true });
     //the zipped shapefile has been uploaded to the MARXAN folder and the metadata are in the featureDatasetName, featureDatasetDescription and featureDatasetFilename state variables - 
     jsonp(this.requestEndpoint + "importFeature?filename=" + this.state.featureDatasetFilename + "&name=" + this.state.featureDatasetName + "&description=" + this.state.featureDatasetDescription, { timeout: TIMEOUT }).promise.then(function(response) {
       if (!this.checkForErrors(response)) {
@@ -2384,6 +2386,8 @@ class App extends React.Component {
       else {
         //server error
       }
+      //return ui to previous state
+      this.setState({creatingNewFeature: false});
     }.bind(this));
   }
 
@@ -3279,6 +3283,7 @@ class App extends React.Component {
             description={this.state.featureDatasetDescription}
             filename={this.state.featureDatasetFilename}
             createNewFeature={this.createNewFeature.bind(this)}
+            creatingNewFeature={this.state.creatingNewFeature}
             checkForErrors={this.checkForErrors.bind(this)} 
             requestEndpoint={this.requestEndpoint}
             SEND_CREDENTIALS={SEND_CREDENTIALS}

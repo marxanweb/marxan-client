@@ -44,8 +44,9 @@ class UsersDialog extends React.Component {
                   <React.Fragment key="k2">
                       <div style={{marginBottom:'5px'}}>There are a total of {this.props.users.length} users:</div>
                           <div id="usersTable">
+                            {(this.props.users&&this.props.users.length>0) ? 
                               <ReactTable 
-                                  pageSize={15}
+                                  pageSize={this.props.users.length}
                                   className={'projectsReactTable'}
                                   showPagination={false} 
                                   minRows={0}
@@ -90,6 +91,7 @@ class UsersDialog extends React.Component {
                                       };
                                   }}
                               />
+                              :null}
                         </div>
                         <div id="projectsToolbar">
                           <ToolbarButton  
