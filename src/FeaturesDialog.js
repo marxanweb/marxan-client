@@ -7,22 +7,35 @@ import { faTrashAlt } from '@fortawesome/free-regular-svg-icons';
 import ToolbarButton from './ToolbarButton';
 import MarxanDialog from './MarxanDialog';
 import ReactTable from "react-table";
+import Popover from 'material-ui/Popover';
+import Menu from 'material-ui/Menu';
+import MenuItem from 'material-ui/MenuItem';
 
 class FeaturesDialog extends React.Component {
 
     constructor(props) {
       super(props);
-      this.state = { selectedFeature: undefined };
+      this.state = { selectedFeature: undefined};
     }
     _delete() {
       this.props.deleteFeature(this.state.selectedFeature);
       this.setState({ selectedFeature: undefined });
     }
-    _new() {
-      //show the new feature dialog
-      this.props.openNewFeatureDialog();
+    _new(event) {
+      this.setState({anchorEl: event.currentTarget});
+      this.props.showNewFeaturesDialogPopover();
+    }
+    _newByImport(){
       //close the dialog
-      this.props.onCancel();
+      this.props.onCancel(); 
+      //show the new feature dialog
+      this.props.openNewFeatureDialog("import");
+    }
+    _newByDigitising(){
+      //hide this dialog
+      this.onOk();
+      //show the drawing controls
+      this.props.initialiseDigitising();
     }
     clickFeature(event, feature) {
       if (this.props.addingRemovingFeatures) {
@@ -95,6 +108,18 @@ class FeaturesDialog extends React.Component {
                                   onClick={this._new.bind(this)} 
                                   label={"New"}
                               />
+                              <Popover
+                                open={this.props.featuresDialogPopupOpen}
+                                anchorEl={this.state.anchorEl}
+                                anchorOrigin={{horizontal: 'left', vertical: 'bottom'}} 
+                                targetOrigin={{horizontal: 'left', vertical: 'top'}}
+                                onRequestClose={this.props.closePopover}
+                              >
+                                <Menu desktop={true} >
+                                  <MenuItem primaryText="Import shapefile" onClick={this._newByImport.bind(this)}/>
+                                  <MenuItem primaryText="Draw on screen" onClick={this._newByDigitising.bind(this)}/>
+                                </Menu>
+                              </Popover>
                               <ToolbarButton  
                                   show={(this.props.userRole === "Admin")&&(!this.props.metadata.OLDVERSION)&&(!this.props.addingRemovingFeatures)}
                                   icon={<FontAwesomeIcon icon={faTrashAlt}  color='rgb(255, 64, 129)'/>} 

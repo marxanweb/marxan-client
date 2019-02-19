@@ -78,7 +78,6 @@ class UsersDialog extends React.Component {
 											                  );
 											                })}
 											              </SelectField>
-                                  	
                                   }]}
                                   getTrProps={(state, rowInfo, column) => {
                                       return {
@@ -86,7 +85,7 @@ class UsersDialog extends React.Component {
                                               background: (rowInfo.original.user === (state.thisRef.state.selectedUser&&state.thisRef.state.selectedUser.user)) ? "aliceblue" : ""
                                           },
                                           onClick: (e) => {
-                                              state.thisRef.changeUser(e, rowInfo.original);
+                                            if (USER_ROLES.indexOf(e.target.textContent)===-1) state.thisRef.changeUser(e, rowInfo.original);
                                           }
                                       };
                                   }}

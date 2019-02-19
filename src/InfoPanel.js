@@ -83,9 +83,9 @@ class InfoPanel extends React.Component {
     return (
       <React.Fragment>  
         <div className={'infoPanel'} style={{display: this.props.open ? 'block' : 'none'}}>
-          <Paper zDepth={2} className="InfoPanelPaper">
+          <Paper zDepth={2} className="InfoPanelPaper"> 
             <Paper zDepth={2} className="titleBar">
-              {(this.props.userRole === "ReadOnly") ? <span className={'projectNameEditBox'} title={this.props.project + " (Read-only)"}>{this.props.project} (Read-only)</span> : <span onClick={this.startEditingProjectName.bind(this)} className={'projectNameEditBox'} title="Click to rename the project">{this.props.project}</span>}
+              {(this.props.userRole === "ReadOnly") ? <span className={'projectNameEditBox'} title={this.props.project + " (Read-only)"}><FontAwesomeIcon style={{color: 'white', height: '16px', marginTop:'4px',marginBottom: '2px', marginRight: '5px'}} icon={faLock}/>{this.props.project}</span> : <span onClick={this.startEditingProjectName.bind(this)} className={'projectNameEditBox'} title="Click to rename the project">{this.props.project}</span>}
               {(this.props.userRole === "ReadOnly") ? null : <input id="projectName" style={{position:'absolute', 'display': (this.props.editingProjectName) ? 'block' : 'none',left:'39px',top:'32px',width:'365px', border:'1px lightgray solid'}} className={'projectNameEditBox'} onKeyPress={this.onKeyPress.bind(this)} onBlur={this.onBlur.bind(this)}/>}
             </Paper>
             <Tabs contentContainerStyle={{'margin':'20px'}} className={'tabs'} value={this.props.activeTab}>

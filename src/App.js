@@ -4,6 +4,8 @@ import fetchJsonp from 'fetch-jsonp';
 /*eslint-disable no-unused-vars*/ 
 import axios, { post } from 'axios';
 /*eslint-enable no-unused-vars*/
+import MapboxDraw from '@mapbox/mapbox-gl-draw';
+import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import mapboxgl from 'mapbox-gl';
@@ -349,10 +351,19 @@ class App extends React.Component {
     // this.map.addControl(new mapboxgl.FullscreenControl(), 'bottom-right'); // currently full screen hides the info panel and setting position:absolute and z-index: 10000000000 doesnt work properly
     this.map.addControl(new mapboxgl.ScaleControl());
     this.map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
+    //create the draw controls for the map
+    this.mapboxDrawControls = new MapboxDraw({
+      displayControlsDefault: false,
+      controls: {
+        polygon: true,
+        trash: true
+      }
+    });
     this.map.on("mousemove", this.mouseMove.bind(this));
     this.map.on("moveend", function(evt){
       this.setState({mapCentre:this.map.getCenter(), mapZoom:this.map.getZoom()});
     }.bind(this));
+    this.map.on('draw.create', this.polygonDrawn.bind(this));
   }
 
   //catch all event handler for map errors
@@ -546,11 +557,30 @@ class App extends React.Component {
         usersCopy = usersCopy.filter(function(item){return item.user !== user});
         //update the users state   
         this.setState({users: usersCopy});
+        //see if the current project belongs to the deleted user
+        if (this.state.owner === user) {
+          this.setState({ snackbarOpen: true, snackbarMessage: "Current project no longer exists. Loading next available." });
+          //load the next available project
+          this.state.projects.some((project) => {
+            if (project.user !== user) this.loadProject(project.name, project.user);
+            return project.name !== this.state.project;
+          }, this);
+          //delete all the projects belonging to that user
+          this.deleteProjectsForUser(user);
+        }
       }
       else {
         this.setState({ snackbarOpen: true, snackbarMessage: "User not deleted" });
       }
     }.bind(this));
+  }
+  
+  //deletes all of the projects belonging to the passed user from the state
+  deleteProjectsForUser(user){
+    let projects = this.state.projects.map(function(project){
+      return (project.user !== user);
+    });
+    this.setState({projects: projects});
   }
   
   //changes a users role
@@ -1193,6 +1223,8 @@ class App extends React.Component {
       });
       //add in the row for the summed solutions
       solutions.splice(0, 0, { 'Run_Number': 'Sum', 'Score': '', 'Cost': '', 'Planning_Units': '', 'Missing_Values': '' });
+      //select the first row in the solutions table
+      
       //update the amount of each target that is protected in the current run from the output_mvbest.txt file
       this.updateProtectedAmount(this.runMarxanResponse.mvbest);
     }else{
@@ -1205,6 +1237,7 @@ class App extends React.Component {
   runFinished(solutions){
     this.setState({ running: false, solutions: solutions });
   }
+  
   //gets the protected area information in m2 from the marxan run and populates the interest features with the values
   updateProtectedAmount(mvData) {
     //iterate through the features and set the protected amount
@@ -2223,18 +2256,26 @@ class App extends React.Component {
     }
   }
   
-  openNewFeatureDialog() {
-    this.setState({ NewFeatureDialogOpen: true });
+  openNewFeatureDialog(newFeatureSource) {
+    this.setState({ NewFeatureDialogOpen: true, newFeatureSource: newFeatureSource});
   }
   closeNewFeatureDialog() {
     this.setState({ NewFeatureDialogOpen: false });
+    //finalise digitising if necessary
+    if (this.state.newFeatureSource === "digitising") this.finaliseDigitising();
   }
   openFeaturesDialog(showClearSelectAll) {
     this.setState({ featuresDialogOpen: true, addingRemovingFeatures: showClearSelectAll});
     if (showClearSelectAll) this.getSelectedFeatureIds();
   }
   closeFeaturesDialog() {
-    this.setState({ featuresDialogOpen: false });
+    this.setState({ featuresDialogOpen: false, featuresDialogPopupOpen: false });
+  }
+  showNewFeaturesDialogPopover(){
+    this.setState({ featuresDialogPopupOpen: true });
+  }
+  closePopover(){
+    this.setState({ featuresDialogPopupOpen: false });
   }
   openCostsDialog() {
     this.setState({ CostsDialogOpen: true });
@@ -2314,6 +2355,25 @@ class App extends React.Component {
     this.setState({ selectedFeatureIds: ids });
   }
   
+  //starts a digitising session
+  initialiseDigitising(){
+    //show the digitising controls if they are not already present, mapbox-gl-draw-cold and mapbox-gl-draw-hot
+    if (!this.map.getSource('mapbox-gl-draw-cold')) this.map.addControl(this.mapboxDrawControls);
+  }
+  
+  //finalises the digitising
+  finaliseDigitising(){
+    //hide the drawing controls
+    this.map.removeControl(this.mapboxDrawControls);
+  }
+  //called when the user has drawn a polygon on screen
+  polygonDrawn(evt){
+    //open the new feature dialog for the metadata
+    this.openNewFeatureDialog("digitising");
+    //save the feature in a local variable
+    this.digitisedFeatures = evt.features;
+  }
+  
   //selects all the features
   selectAllFeatures() {
     let ids = [];
@@ -2370,17 +2430,26 @@ class App extends React.Component {
 
   createNewFeature() {
     this.setState({ creatingNewFeature: true });
+    //see the source of the new feature
+    switch (this.state.newFeatureSource) {
+      case 'import':
+        this.createNewFeatureFromImport();
+        break;
+      case 'digitising':
+        this.createNewFeatureFromDigitising();
+        break;
+      default:
+        // code
+    }
+  }
+
+  //create the new feature from the already uploaded zipped shapefile
+  createNewFeatureFromImport(){
     //the zipped shapefile has been uploaded to the MARXAN folder and the metadata are in the featureDatasetName, featureDatasetDescription and featureDatasetFilename state variables - 
     jsonp(this.requestEndpoint + "importFeature?filename=" + this.state.featureDatasetFilename + "&name=" + this.state.featureDatasetName + "&description=" + this.state.featureDatasetDescription, { timeout: TIMEOUT }).promise.then(function(response) {
       if (!this.checkForErrors(response)) {
         if (response.id){
-          this.getInterestFeature(response.id);
-          //ui response
-          this.setState({ snackbarOpen: true, snackbarMessage: response.info });
-          //close the dialog
-          this.closeNewFeatureDialog();
-          //reset the state
-          this.resetNewConservationFeature();
+          this.newFeatureCreated(response);
         }
       }
       else {
@@ -2390,7 +2459,43 @@ class App extends React.Component {
       this.setState({creatingNewFeature: false});
     }.bind(this));
   }
-
+  
+  //create the new feature from the feature that has been digitised on the map
+  createNewFeatureFromDigitising(){
+    //post the geometry to the server with the metadata
+    let formData = new FormData();
+    formData.append('name', this.state.featureDatasetName);
+    formData.append('description', this.state.featureDatasetDescription);
+    //convert the coordinates into a linestring to create the polygon in postgis
+    let coords = this.digitisedFeatures[0].geometry.coordinates[0].map(function(coordinate){
+      return coordinate[0] + " " + coordinate[1];
+    }).join(",");
+    formData.append('linestring', "Linestring(" + coords + ")");
+    post(this.requestEndpoint + "createFeatureFromLinestring", formData, {withCredentials: SEND_CREDENTIALS}).then((response) => {
+      if (!this.checkForErrors(response.data)) {
+        if (response.data.id){
+          this.newFeatureCreated(response.data);
+        }
+      }
+      else {
+        //server error
+      }
+      //return ui to previous state
+      this.setState({creatingNewFeature: false});
+    });
+  }
+  
+  //gets the new feature information and updates the state
+  newFeatureCreated(response){
+    this.getInterestFeature(response.id);
+    //ui response
+    this.setState({ snackbarOpen: true, snackbarMessage: response.info });
+    //close the dialog
+    this.closeNewFeatureDialog();
+    //reset the state
+    this.resetNewConservationFeature();
+  }
+  
   resetNewConservationFeature() {
     this.setState({ featureDatasetName: '', featureDatasetDescription: '', featureDatasetFilename: '' });
   }
@@ -3091,12 +3196,15 @@ class App extends React.Component {
           />
           <UserMenu 
             userMenuOpen={this.state.userMenuOpen} 
+            user={this.state.user}
+            userRole={this.state.userData.ROLE}
             menuAnchor={this.state.menuAnchor}
             hideUserMenu={this.hideUserMenu.bind(this)} 
             openOptionsDialog={this.openOptionsDialog.bind(this)}
             openProfileDialog={this.openProfileDialog.bind(this)}
             logout={this.logout.bind(this)}
             userRole={this.state.userData.ROLE}
+            marxanServer={this.state.marxanServer}
           />
           <HelpMenu 
             open={this.state.helpMenuOpen} 
@@ -3271,6 +3379,10 @@ class App extends React.Component {
             clickFeature={this.clickFeature.bind(this)}
             addingRemovingFeatures={this.state.addingRemovingFeatures}
             selectedFeatureIds={this.state.selectedFeatureIds}
+            initialiseDigitising={this.initialiseDigitising.bind(this)}
+            featuresDialogPopupOpen={this.state.featuresDialogPopupOpen}
+            closePopover={this.closePopover.bind(this)}
+            showNewFeaturesDialogPopover={this.showNewFeaturesDialogPopover.bind(this)}
           />
           <NewFeatureDialog
             open={this.state.NewFeatureDialogOpen} 
@@ -3287,6 +3399,7 @@ class App extends React.Component {
             checkForErrors={this.checkForErrors.bind(this)} 
             requestEndpoint={this.requestEndpoint}
             SEND_CREDENTIALS={SEND_CREDENTIALS}
+            newFeatureSource={this.state.newFeatureSource}
           />
           <CostsDialog
             open={this.state.CostsDialogOpen}

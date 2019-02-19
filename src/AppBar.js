@@ -7,8 +7,8 @@ import { faArrowAltCircleLeft } from '@fortawesome/free-solid-svg-icons';
 import { faArrowAltCircleRight } from '@fortawesome/free-solid-svg-icons';
 import { faArrowAltCircleLeft as a } from '@fortawesome/free-regular-svg-icons';
 import { faArrowAltCircleRight as b} from '@fortawesome/free-regular-svg-icons';
-import { faQuestionCircle} from '@fortawesome/free-regular-svg-icons';
-import { faUser } from '@fortawesome/free-solid-svg-icons';
+import { faQuestionCircle} from '@fortawesome/free-regular-svg-icons'; 
+import { faUser } from '@fortawesome/free-solid-svg-icons'; 
 import { faUsers } from '@fortawesome/free-solid-svg-icons';
 class AppBar extends React.Component {
     openFeaturesDialog(evt){

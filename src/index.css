@@ -503,3 +503,7 @@ div.rt-tbody>div>div>div>div[contenteditable="true"] {
 .editableText{
   color:rgb(255, 64, 129);
 }
+.mapboxgl-ctrl-top-right {
+  top: 11px !important;
+  right: 431px !important;
+}

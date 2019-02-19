@@ -23,6 +23,9 @@ class ResultsPane extends React.Component {
       }
       this.resetSolution();//unselect a solution
     }
+    if (this.props.solutions !== prevProps.solutions) {
+      this.resetSolution();//unselect a solution
+    }
   }
   loadSolution(solution) { //loads the solution using the projects owner
     this.props.loadSolution(solution, this.props.owner);

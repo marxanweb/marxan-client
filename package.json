@@ -7,6 +7,7 @@
     "@fortawesome/free-regular-svg-icons": "^5.6.3",
     "@fortawesome/free-solid-svg-icons": "^5.6.3",
     "@fortawesome/react-fontawesome": "^0.1.4",
+    "@mapbox/mapbox-gl-draw": "^1.1.1",
     "axios": "^0.18.0",
     "classybrew": "0.0.3",
     "fetch-jsonp": "^1.1.3",
