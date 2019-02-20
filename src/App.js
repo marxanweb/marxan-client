@@ -4,7 +4,7 @@ import fetchJsonp from 'fetch-jsonp';
 /*eslint-disable no-unused-vars*/ 
 import axios, { post } from 'axios';
 /*eslint-enable no-unused-vars*/
-import MapboxDraw from '@mapbox/mapbox-gl-draw';
+import MapboxDraw from '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.js';
 import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -357,7 +357,8 @@ class App extends React.Component {
       controls: {
         polygon: true,
         trash: true
-      }
+      },
+      defaultMode: 'draw_polygon'
     });
     this.map.on("mousemove", this.mouseMove.bind(this));
     this.map.on("moveend", function(evt){
@@ -3203,7 +3204,6 @@ class App extends React.Component {
             openOptionsDialog={this.openOptionsDialog.bind(this)}
             openProfileDialog={this.openProfileDialog.bind(this)}
             logout={this.logout.bind(this)}
-            userRole={this.state.userData.ROLE}
             marxanServer={this.state.marxanServer}
           />
           <HelpMenu 
