@@ -8,7 +8,7 @@ class ToolbarButton extends React.Component {
         Object.assign(_style1, _style2);
         return (
             <RaisedButton 
-                {...this.props} 
+                {...this.props}  
                 style={_style1}
                 overlayStyle={{lineHeight:'24px',height:'24px'}}
                 buttonStyle={{lineHeight:'24px',height:'24px'}} 
