@@ -507,3 +507,6 @@ div.rt-tbody>div>div>div>div[contenteditable="true"] {
   top: 11px !important;
   right: 431px !important;
 }
+.gbifLogo {
+  background-image: url(./gbif.jpg);
+}

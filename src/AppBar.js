@@ -24,7 +24,7 @@ class AppBar extends React.Component {
                             <FontAwesomeIcon icon={faFish} className={"appBarIcon"} onClick={this.openFeaturesDialog.bind(this)} title="Features"/>
                             <FontAwesomeIcon style={{fontSize: '20px', marginBottom:'7px'}} icon={(this.props.infoPanelOpen) ? faArrowAltCircleLeft : a} className={"appBarIcon"} onClick={this.props.toggleInfoPanel} title={(this.props.infoPanelOpen) ? "Hide the project window" : "Show the project window"}/>
                             <FontAwesomeIcon style={{fontSize: '20px', marginBottom:'7px'}} icon={(this.props.resultsPanelOpen) ? faArrowAltCircleRight : b} className={"appBarIcon"} onClick={this.props.toggleResultsPanel} title={(this.props.resultsPanelOpen) ? "Hide the results window" : "Show the results window"}/>
-                            <FontAwesomeIcon icon={faUser} className={"appBarIcon"} onClick={this.props.showUserMenu} title={"Logged in as " + this.props.user + " (" + this.props.userRole + ")"}/>
+                            <FontAwesomeIcon icon={faUser} className={"appBarIcon"} onClick={this.props.showUserMenu} title={"User: " + this.props.user + " (" + this.props.userRole + ")"}/>
                             <FontAwesomeIcon style={{display: (this.props.userRole === 'Admin') ? 'inline-block' : 'none'}} icon={faUsers} className={"appBarIcon"} onClick={this.props.openUsersDialog} title={"Users"}/>
                             <FontAwesomeIcon icon={faQuestionCircle} className={"appBarIcon"} onClick={this.props.showHelpMenu} title={"Help and support"}/>
                         </div>

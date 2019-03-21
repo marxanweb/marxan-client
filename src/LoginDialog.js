@@ -48,7 +48,7 @@ class LoginDialog extends React.Component {
                                     primaryText={text} 
                                     style={{fontSize:'12px'}}
                                     innerDivStyle={{padding:'0px 10px 0px 52px'}}
-                                    leftIcon={(item.offline) ? <FontAwesomeIcon style={{height: '16px', marginTop:'4px'}} icon={faUnlink}/> : (item.corsEnabled) ? null : <FontAwesomeIcon style={{height: '16px', marginTop:'4px'}} icon={faLock}/>}
+                                    leftIcon={(item.offline) ? <FontAwesomeIcon style={{height: '12px', marginTop:'5px'}} icon={faUnlink}/> : (item.corsEnabled) ? null : <FontAwesomeIcon style={{height: '12px', marginTop:'5px'}} icon={faLock}/>}
                                     title={(item.offline) ? item.host + " (offline)\n" + item.description  : (item.corsEnabled) ? item.host + "\n" + item.description : (item.guestUserEnabled) ? item.host + " (read-only)\n" + item.description : item.host + " (guest user disabled)\n" + item.description}
                                 />;
                             })}

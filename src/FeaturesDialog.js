@@ -10,6 +10,9 @@ import ReactTable from "react-table";
 import Popover from 'material-ui/Popover';
 import Menu from 'material-ui/Menu';
 import MenuItem from 'material-ui/MenuItem';
+//import gbif_logo from './gbif.jpg';
+//import FontIcon from 'material-ui/FontIcon';
+// add this to the gbif item: leftIcon={<FontIcon className="gbifLogo"/> 
 
 class FeaturesDialog extends React.Component {
 
@@ -118,6 +121,8 @@ class FeaturesDialog extends React.Component {
                                 <Menu desktop={true} >
                                   <MenuItem primaryText="Import shapefile" onClick={this._newByImport.bind(this)}/>
                                   <MenuItem primaryText="Draw on screen" onClick={this._newByDigitising.bind(this)}/>
+                                  <MenuItem primaryText="Add from GBIF" disabled={true}/>  
+                                  <MenuItem primaryText="Add from IUCN Red List" disabled={true}/>
                                 </Menu>
                               </Popover>
                               <ToolbarButton  

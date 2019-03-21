@@ -169,7 +169,7 @@ class InfoPanel extends React.Component {
                 />
                 <ToolbarButton 
                   label="Stop" 
-                  title="Click to stop this project"  
+                  title="Click to stop the current run"  
                   show={this.props.userRole !== "ReadOnly"}
                   style={{marginLeft: '194px'}}
                   onClick={this.props.stopMarxan} 
