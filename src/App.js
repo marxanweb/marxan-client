@@ -1321,15 +1321,18 @@ class App extends React.Component {
     var file, filepath;
     for (var i = 0; i < files.length; i++) {
       file = files.item(i);
-      const formData = new FormData();
-      formData.append('user', this.state.owner);
-      formData.append('project', project);
-      //the webkitRelativePath will include the folder itself so we have to remove this, e.g. Marxan default project - Copy/input/puvspr.dat -> /input/puvspr.da
-      filepath = file.webkitRelativePath.split("/").slice(1).join("/");
-      formData.append('filename', filepath);
-      formData.append('value', file);
-      this.setState({streamingLog: this.state.streamingLog + "Uploading: " + file.webkitRelativePath + "\n"});
-      await this.uploadFile(formData);
+      //see if it is a marxan data file
+      if (file.name.slice(-4) === '.dat'){
+        const formData = new FormData();
+        formData.append('user', this.state.owner);
+        formData.append('project', project);
+        //the webkitRelativePath will include the folder itself so we have to remove this, e.g. 'Marxan project/input/puvspr.dat' -> '/input/puvspr.dat'
+        filepath = file.webkitRelativePath.split("/").slice(1).join("/");
+        formData.append('filename', filepath);
+        formData.append('value', file);
+        this.setState({streamingLog: this.state.streamingLog + "Uploading: " + file.webkitRelativePath + "\n"});
+        await this.uploadFile(formData);
+      }
     }
     return 'All files uploaded';
   }
@@ -1339,7 +1342,7 @@ class App extends React.Component {
         //resolve the promise
         resolve();
       });
-    });
+    }.bind(this));
   }
   cleanupFailedImport(project, planning_unit_grid){
     // //delete the project
@@ -1409,6 +1412,8 @@ class App extends React.Component {
       jsonp(this.requestEndpoint + "getSolution?user=" + user + "&project=" + project + "&solution=" + solution, { timeout: TIMEOUT }).promise.then(function(response) {
         if (!this.checkForErrors(response, false)) { //dont show the snackbar as it is likely that any errors are coming from the clumping dialog when a user clicks cancel and the projects are deleted while they are still running
           resolve(response);
+        }else{
+          this.setState({ snackbarOpen: true, snackbarMessage: response.error });  
         }
       }.bind(this));
     }.bind(this));
