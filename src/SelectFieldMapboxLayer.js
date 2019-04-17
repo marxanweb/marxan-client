@@ -19,8 +19,10 @@ class SelectFieldMapboxLayer extends React.Component {
         //get the selected item
         let item = this.props.items[newValue];
         //zoom to the layer
-        let envelope = this.getLatLngLikeFromWKT(item.envelope);
-        this.props.map.fitBounds(envelope, { easing: function(num) { return 1; } });
+        if (item.envelope !== null){
+            var envelope = this.getLatLngLikeFromWKT(item.envelope);
+            this.props.map.fitBounds(envelope, { easing: function(num) { return 1; } });
+        }
         // this.props.map.setPitch(60);
         //add the layer to the map
         this.addLayerToMap(item.feature_class_name);
@@ -89,7 +91,7 @@ class SelectFieldMapboxLayer extends React.Component {
                 labelStyle={{fontSize:'12px'}} 
                 floatingLabelText="Select the planning units" 
                 floatingLabelFixed={true} 
-                style={{marginTop:'293px', width:this.props.width}}>
+                style={{width:this.props.width, verticalAlign:'middle'}}>
                     {this.props.items.map((item)=>{
                     return <MenuItem 
                     value={item.feature_class_name} 

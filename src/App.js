@@ -43,6 +43,7 @@ import FeatureInfoDialog from './FeatureInfoDialog';
 import ProjectsDialog from './ProjectsDialog';
 import NewProjectDialog from './NewProjectDialog';
 import NewPlanningGridDialog from './NewPlanningGridDialog';
+import UploadPlanningGridDialog from './UploadPlanningGridDialog';
 import FeaturesDialog from './FeaturesDialog';
 import NewFeatureDialog from './NewFeatureDialog';
 import CostsDialog from './CostsDialog';
@@ -72,8 +73,8 @@ let PLANNING_UNIT_LAYER_OPACITY = 0.2;
 let PLANNING_UNIT_EDIT_LAYER_LINE_WIDTH = 1.5;
 let PUVSPR_LAYER_LAYER_LINE_WIDTH = 1.5;
 let RESULTS_LAYER_NAME = "results_layer";
-let RESULTS_LAYER_FILL_OPACITY_ACTIVE = 0.5;
-let RESULTS_LAYER_FILL_OPACITY_INACTIVE = 0.1;
+let RESULTS_LAYER_FILL_OPACITY_ACTIVE = 0.9;
+let RESULTS_LAYER_FILL_OPACITY_INACTIVE = 0.3;
 let HIDE_PUVSPR_LAYER_TEXT = "Remove planning unit outlines";
 let SHOW_PUVSPR_LAYER_TEXT = "Outline planning units where the feature occurs";
 let WDPA_SOURCE_NAME = "wdpa_source";
@@ -132,6 +133,7 @@ class App extends React.Component {
       classificationDialogOpen: false,
       resendPasswordDialogOpen: false,
       NewPlanningGridDialogOpen: false, 
+      importPlanningGridDialogOpen: false,
       NewFeatureDialogOpen: false,
       featuresDialogOpen: false,
       infoPanelOpen: false,
@@ -177,6 +179,7 @@ class App extends React.Component {
       loadingFeatures: false,
       loadingProjects: false,
       loadingUsers: false,
+      uploadingPlanningUnit: false,
       savingOptions: false,
       dataBreaks: [],
       allFeatures: [], //all of the interest features in the metadata_interest_features table
@@ -2208,6 +2211,23 @@ class App extends React.Component {
     }.bind(this));
   }
   
+  //imports a zipped shapefile as a new planning grid
+  importPlanningUnitGrid(zipFilename, alias, description){
+    this.setState({uploadingPlanningUnit:true});
+    this.importZippedShapefileAsPu(zipFilename, alias, description).then(function(response) {
+      if (!this.checkForErrors(response)) {
+        this.setState({ snackbarOpen: true, snackbarMessage: "Planning grid imported" }); 
+        // close the dialog
+        this.closeImportPlanningGridDialog();
+        //update the planning unit items
+        this.getPlanningUnitGrids();
+      }else{ //importZippedShapefileAsPu failed 
+        this.setState({ snackbarOpen: true, snackbarMessage: response.error });  
+      }
+      this.setState({uploadingPlanningUnit:false});
+    }.bind(this));
+  }
+  
   changeIso3(value) {
     this.setState({ iso3: value });
   }
@@ -2719,6 +2739,12 @@ class App extends React.Component {
   }
   closeNewPlanningGridDialog() {
     this.setState({ NewPlanningGridDialogOpen: false });
+  }
+  openImportPlanningGridDialog(){
+    this.setState({ importPlanningGridDialogOpen: true });
+  }
+  closeImportPlanningGridDialog(){
+    this.setState({ importPlanningGridDialogOpen: false });
   }
   openInfoDialog() {
       this.setState({ openInfoDialogOpen: true, featureMenuOpen: false });
@@ -3347,6 +3373,7 @@ class App extends React.Component {
             getPlanningUnitGrids={this.getPlanningUnitGrids.bind(this)}
             planning_unit_grids={this.state.planning_unit_grids}
             openNewPlanningGridDialog={this.openNewPlanningGridDialog.bind(this)}
+            openImportPlanningGridDialog={this.openImportPlanningGridDialog.bind(this)}
             openFeaturesDialog={this.openFeaturesDialog.bind(this)}
             features={this.state.allFeatures} 
             openCostsDialog={this.openCostsDialog.bind(this)}
@@ -3368,6 +3395,15 @@ class App extends React.Component {
             domain={this.state.domain}
             areakm2={this.state.areakm2}
             shape={this.state.shape}
+          />
+          <UploadPlanningGridDialog
+            open={this.state.importPlanningGridDialogOpen} 
+            onOk={this.importPlanningUnitGrid.bind(this)}
+            onCancel={this.closeImportPlanningGridDialog.bind(this)}
+            requestEndpoint={this.requestEndpoint}
+            SEND_CREDENTIALS={SEND_CREDENTIALS}
+            checkForErrors={this.checkForErrors.bind(this)} 
+            uploadingPlanningUnit={this.state.uploadingPlanningUnit}
           />
           <FeaturesDialog
             open={this.state.featuresDialogOpen}

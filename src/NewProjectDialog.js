@@ -1,6 +1,6 @@
 import React from 'react';
 import Metadata from './Metadata';
-import PlanningUnits from './PlanningUnits';
+import PlanningUnitsDialog from './PlanningUnitsDialog';
 import SelectFeatures from './SelectFeatures';
 import SelectCostFeatures from './SelectCostFeatures';
 import MarxanDialog from './MarxanDialog';
@@ -156,7 +156,12 @@ class NewProjectDialog extends React.Component {
       ];
       let c = <div key="k3">
                   {stepIndex === 0 ? <Metadata name={this.state.name} description={this.state.description} setName={this.setName.bind(this)} setDescription={this.setDescription.bind(this)}/> : null}
-                  {stepIndex === 1 ? <PlanningUnits getPlanningUnitGrids={this.props.getPlanningUnitGrids} planning_unit_grids={this.props.planning_unit_grids} changeItem={this.changePU.bind(this)} pu={this.state.pu} openNewPlanningGridDialog={this.props.openNewPlanningGridDialog} /> : null}
+                  {stepIndex === 1 ? <PlanningUnitsDialog 
+                    getPlanningUnitGrids={this.props.getPlanningUnitGrids} 
+                    planning_unit_grids={this.props.planning_unit_grids} 
+                    changeItem={this.changePU.bind(this)} pu={this.state.pu} 
+                    openNewPlanningGridDialog={this.props.openNewPlanningGridDialog} 
+                    openImportPlanningGridDialog={this.props.openImportPlanningGridDialog}/> : null}
                   {stepIndex === 2 ? <SelectFeatures 
                       features={this.state.allFeatures.filter((item)=>{return item.selected;})}
                       openFeaturesDialog={this.openFeaturesDialog.bind(this)}  
@@ -173,7 +178,7 @@ class NewProjectDialog extends React.Component {
           <MarxanDialog 
               {...this.props} 
               title={'New project - ' + this.state.steps[stepIndex]}
-              contentWidth={420}
+              contentWidth={530}
               children={c} 
               actions={actions} 
               okLabel={"Cancel"}
