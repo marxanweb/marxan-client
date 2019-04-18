@@ -42,6 +42,7 @@ import ResultsPane from './ResultsPane';
 import FeatureInfoDialog from './FeatureInfoDialog';
 import ProjectsDialog from './ProjectsDialog';
 import NewProjectDialog from './NewProjectDialog';
+import PlanningGridsDialog from './PlanningGridsDialog';
 import NewPlanningGridDialog from './NewPlanningGridDialog';
 import UploadPlanningGridDialog from './UploadPlanningGridDialog';
 import FeaturesDialog from './FeaturesDialog';
@@ -134,6 +135,7 @@ class App extends React.Component {
       resendPasswordDialogOpen: false,
       NewPlanningGridDialogOpen: false, 
       importPlanningGridDialogOpen: false,
+      planningGridsDialogOpen: false,
       NewFeatureDialogOpen: false,
       featuresDialogOpen: false,
       infoPanelOpen: false,
@@ -174,7 +176,6 @@ class App extends React.Component {
       featureDatasetName: '',
       featureDatasetDescription: '',
       featureDatasetFilename: '',
-      creatingNewPlanningGrid: false,
       creatingNewFeature: false,
       loadingFeatures: false,
       loadingProjects: false,
@@ -192,10 +193,6 @@ class App extends React.Component {
       wdpa_layer_opacity: WDPA_FILL_LAYER_OPACITY, //initial value
       costs: [],
       selectedCosts: [],
-      iso3: '',
-      domain: '',
-      areakm2: undefined,
-      shape: '',
       countries: [],
       planning_units: [],
       planning_unit_grids: [],
@@ -503,6 +500,8 @@ class App extends React.Component {
           //get the users last project and load it 
           this.loadProject(response.userData.LASTPROJECT, this.state.user);
         }.bind(this));
+        //get all planning grids
+        this.getPlanningUnitGrids();
       }else{
         this.setState({ loggingIn: false });    
       } 
@@ -1260,9 +1259,9 @@ class App extends React.Component {
   ////////IMPORT PROJECT ROUTINES
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
-  importProject(project, description, zipFilename, files){
+  importProject(project, description, zipFilename, files, planning_grid_name){
     return new Promise(function(resolve, reject) {
-      let feature_class_name = "";
+      let feature_class_name = "", uploadId;
       //start the logging
       this.startLogging();
       this.setState({streamingLog: "Starting import...\n"});
@@ -1270,28 +1269,36 @@ class App extends React.Component {
       //TODO: SORT OUT ROLLING BACK IF AN IMPORT FAILS - AND DONT PROVIDE REST CALLS TO DELETE PLANNING UNITS
       this.createImportProject(project).then(function(response) {
         if (!this.checkForErrors(response)) {
-          this.setState({streamingLog: this.state.streamingLog + "Project '" + project + "' created\n"});
+          this.setState({streamingLog: this.state.streamingLog + " Project '" + project + "' created\n"});
           //create the planning unit file
-          this.importZippedShapefileAsPu(zipFilename, zipFilename.slice(0, -4), "Imported as " + zipFilename + " using the import wizard").then(function(response) {
+          this.importZippedShapefileAsPu(zipFilename, planning_grid_name, "Imported as " + zipFilename + " using the import wizard").then(function(response) {
             if (!this.checkForErrors(response)) {
               //get the planning unit feature_class_name
               feature_class_name = response.feature_class_name;
-              this.setState({streamingLog: this.state.streamingLog + feature_class_name + " imported as the planning grid\n"});
+              //get the uploadid
+              uploadId = response.uploadId;
+              this.setState({streamingLog: this.state.streamingLog + " Planning grid imported\n"});
               //upload all of the files from the local system
               this.uploadFiles(files, project).then(function(response){
                 if (!this.checkForErrors(response)) {
-                  this.setState({streamingLog: this.state.streamingLog + "All files uploaded\n"});
+                  this.setState({streamingLog: this.state.streamingLog + " All files uploaded\n"});
                   //upgrade the project to the new version of Marxan - this adds the necessary settings in the project file and calculates the statistics for species in the puvspr.dat and puts them in the feature_preprocessing.dat file
                   this.upgradeProject(project).then(function(response){
                     if (!this.checkForErrors(response)) {
-                      this.setState({streamingLog: this.state.streamingLog + "Project updated to new version\n"});
+                      this.setState({streamingLog: this.state.streamingLog + " Project updated to new version\n"});
                       //update the project file with the new settings
                       this.updateProjectParams(project, {DESCRIPTION: description + " (imported from an existing Marxan project)", CREATEDATE: new Date(Date.now()).toString(), OLDVERSION: 'True', PLANNING_UNIT_NAME: feature_class_name}).then(function(response){
                         if (!this.checkForErrors(response)) {
-                          this.setState({streamingLog: this.state.streamingLog + "Import complete\n"});
-                          resolve();
-                          //now open the project
-                          this.loadProject(project, this.state.user);
+                          this.setState({streamingLog: this.state.streamingLog + " Uploading planning grid to Mapbox"});
+                          // wait for the tileset to upload to mapbox
+                          this.pollMapbox(uploadId).then(function(response){
+                            //upload the planning grids
+                            this.getPlanningUnitGrids();
+                            this.setState({streamingLog: this.state.streamingLog + "Import complete\n"});
+                            //now open the project
+                            this.loadProject(project, this.state.user);
+                            resolve();
+                          }.bind(this));
                         }else{ //updateProjectParams failed
                           this.cleanupFailedImport(project, feature_class_name);
                           reject(response.error);
@@ -1333,7 +1340,7 @@ class App extends React.Component {
         filepath = file.webkitRelativePath.split("/").slice(1).join("/");
         formData.append('filename', filepath);
         formData.append('value', file);
-        this.setState({streamingLog: this.state.streamingLog + "Uploading: " + file.webkitRelativePath + "\n"});
+        this.setState({streamingLog: this.state.streamingLog + " Uploading: " + file.webkitRelativePath + "\n"});
         await this.uploadFile(formData);
       }
     }
@@ -1723,6 +1730,11 @@ class App extends React.Component {
     return fetch("https://api.mapbox.com/v4/" + tilesetId + ".json?secure&access_token=" + this.state.userData.MAPBOXACCESSTOKEN)
       .then(response => response.json())
       .then(function(response) {
+        if (response.message != null){
+          if (response.message.indexOf('does not exist') > 0){
+            this.setState({ snackbarOpen: true, snackbarMessage: "The tileset does not exist on Mapbox."});
+          }
+        }
         return response;
       })
       .catch(function(error) {
@@ -1736,7 +1748,7 @@ class App extends React.Component {
     //add the results layer, planning unit layer and wdpa layers
     this.addSpatialLayers(tileset);
     //zoom to the layers extent
-    this.zoomToBounds(tileset.bounds);
+    if (tileset.bounds != null) this.zoomToBounds(tileset.bounds);
     //set the state
     this.setState({ tileset: tileset });
     //filter the wdpa vector tiles as the map doesn't respond to state changes
@@ -2179,31 +2191,33 @@ class App extends React.Component {
   //ROUTINES FOR CREATING A NEW PROJECT AND PLANNING UNIT GRIDS
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  createNewPlanningUnitGrid() {
-    this.setState({ creatingNewPlanningGrid: true });
-    jsonp(this.requestEndpoint + "createPlanningUnitGrid?iso3=" + this.state.iso3 + "&domain=" + this.state.domain + "&areakm2=" + this.state.areakm2 + "&shape=" + this.state.shape, { timeout: 0 }).promise.then(function(response) {
-      if (!this.checkForErrors(response)) {
-        //feedback
-        this.setState({ snackbarOpen: true, snackbarMessage: "Planning grid: '" + response.planning_unit_grid.split(",")[1].replace(/"/gm, '').replace(")", "") + "' created" }); //response is (pu_cok_terrestrial_hexagon_10,"Cook Islands Terrestrial 10Km2 hexagon grid")
-        //upload this data to mapbox for visualisation
-        this.uploadToMapBox(response.planning_unit_grid.split(",")[0].replace(/"/gm, '').replace("(", ""), "planningunits");
-        //update the planning unit items
-        this.getPlanningUnitGrids();
-      }
-      else {
-        //do something
-      }
-      //reset the state
-      this.setState({ creatingNewPlanningGrid: false });
-      //close the NewPlanningGridDialog
-      this.closeNewPlanningGridDialog();
+  //creates a new planning grid unit on the server using the passed parameters
+  createNewPlanningUnitGrid(iso3, domain, areakm2, shape) {
+    return new Promise(function(resolve, reject) {
+      jsonp(this.requestEndpoint + "createPlanningUnitGrid?iso3=" + iso3 + "&domain=" + domain + "&areakm2=" + areakm2 + "&shape=" + shape, { timeout: 0 }).promise.then(function(response) {
+        if (!this.checkForErrors(response)) {
+          //feedback
+          this.setState({ snackbarOpen: true, snackbarMessage: "Planning grid: '" + response.planning_unit_grid.split(",")[1].replace(/"/gm, '').replace(")", "") + "' created" }); //response is (pu_cok_terrestrial_hexagon_10,"Cook Islands Terrestrial 10Km2 hexagon grid")
+          //upload this data to mapbox for visualisation
+          this.uploadToMapBox(response.planning_unit_grid.split(",")[0].replace(/"/gm, '').replace("(", ""), "planningunits").then(function(response){
+            resolve();
+          });
+          //update the planning unit items
+          this.getPlanningUnitGrids();
+        }
+        else {
+          //do something
+        }
+      }.bind(this));
     }.bind(this));
   }
 
   deletePlanningUnitGrid(feature_class_name){
     jsonp(this.requestEndpoint + "deletePlanningUnitGrid?planning_grid_name=" + feature_class_name, { timeout: 0 }).promise.then(function(response) {
       if (!this.checkForErrors(response)) {
-        //feedback
+        //update the planning unit grids
+        this.getPlanningUnitGrids();
+        this.setState({ snackbarOpen: true, snackbarMessage: "Planning grid deleted" });  
       }
       else {
         //do something
@@ -2216,32 +2230,20 @@ class App extends React.Component {
     this.setState({uploadingPlanningUnit:true});
     this.importZippedShapefileAsPu(zipFilename, alias, description).then(function(response) {
       if (!this.checkForErrors(response)) {
-        this.setState({ snackbarOpen: true, snackbarMessage: "Planning grid imported" }); 
-        // close the dialog
-        this.closeImportPlanningGridDialog();
-        //update the planning unit items
-        this.getPlanningUnitGrids();
+        this.setState({ snackbarOpen: true, snackbarMessage: "Planning grid imported. Uploading to Mapbox" }); 
+        //start polling to see when the upload is done
+        this.pollMapbox(response.uploadId).then(function(response){
+          // close the dialog
+          this.closeImportPlanningGridDialog();
+          //update the planning unit items
+          this.getPlanningUnitGrids();
+          //reset state
+          this.setState({uploadingPlanningUnit:false});
+        }.bind(this));
       }else{ //importZippedShapefileAsPu failed 
         this.setState({ snackbarOpen: true, snackbarMessage: response.error });  
       }
-      this.setState({uploadingPlanningUnit:false});
     }.bind(this));
-  }
-  
-  changeIso3(value) {
-    this.setState({ iso3: value });
-  }
-  
-  changeDomain(value) {
-    this.setState({ domain: value });
-  }
-  
-  changeAreaKm2(value) {
-    this.setState({ areakm2: value });
-  }
-  
-  changeShape(value){
-    this.setState({ shape: value });
   }
   
   getCountries() {
@@ -2258,28 +2260,43 @@ class App extends React.Component {
 
   //uploads the named feature class to mapbox on the server
   uploadToMapBox(feature_class_name, mapbox_layer_name) {
-    jsonp(this.requestEndpoint + "uploadTilesetToMapBox?feature_class_name=" + feature_class_name + "&mapbox_layer_name=" + mapbox_layer_name, { timeout: 300000 }).promise.then(function(response) {
-      if (!this.checkForErrors(response)) {
-        this.setState({ snackbarOpen: true, snackbarMessage: "Uploading to MapBox with the id: " + response.uploadid });
-        this.timer = setInterval(() => this.pollMapboxForUploadComplete(response.uploadid), 5000);
-      }
-      else {
-        //server error
-      }
+    return new Promise(function(resolve, reject) {
+      jsonp(this.requestEndpoint + "uploadTilesetToMapBox?feature_class_name=" + feature_class_name + "&mapbox_layer_name=" + mapbox_layer_name, { timeout: 300000 }).promise.then(function(response) {
+        if (!this.checkForErrors(response)) {
+          this.setState({ snackbarOpen: true, snackbarMessage: "Uploading to MapBox"});
+          //poll mapbox to see when the upload has finished
+          this.pollMapbox(response.uploadid).then(function(response){
+            resolve();
+          });
+        }
+        else {
+          //server error
+        }
+      }.bind(this));
     }.bind(this));
   }
 
-  pollMapboxForUploadComplete(uploadid) {
-    var request = require('request');
-    request("https://api.mapbox.com/uploads/v1/" + MAPBOX_USER + "/" + uploadid + "?access_token=" + mb_tk, this.pollMapboxForUploadCompleteResponse.bind(this));
-  }
-
-  pollMapboxForUploadCompleteResponse(error, response, body) {
-    if (JSON.parse(body).complete) {
-      clearInterval(this.timer);
-      this.timer = null;
-      this.setState({ snackbarOpen: true, snackbarMessage: "Uploaded to MapBox" });
-    }
+  //polls mapbox to see when an upload has finished - returns as promise
+  pollMapbox(uploadid){
+    return new Promise(function(resolve, reject) {
+      this.timer = setInterval(() => {
+        fetch("https://api.mapbox.com/uploads/v1/" + MAPBOX_USER + "/" + uploadid + "?access_token=" + mb_tk)
+          .then(response => response.json())
+          .then(function(response) {
+            if (response.complete){
+              //clear the timer
+              clearInterval(this.timer);
+              this.timer = null;
+              //reset state
+              this.setState({ snackbarOpen: true, snackbarMessage: "Uploaded to MapBox" });
+              resolve();
+            }
+          }.bind(this))
+          .catch(function(error) {
+            reject();
+          });
+      }, 3000);
+    }.bind(this));
   }
   
   openNewFeatureDialog(newFeatureSource) {
@@ -2296,6 +2313,12 @@ class App extends React.Component {
   }
   closeFeaturesDialog() {
     this.setState({ featuresDialogOpen: false, featuresDialogPopupOpen: false });
+  }
+  openPlanningGridsDialog(){
+    this.setState({planningGridsDialogOpen: true});
+  }
+  closePlanningGridsDialog(){
+    this.setState({planningGridsDialogOpen: false});
   }
   showNewFeaturesDialogPopover(){
     this.setState({ featuresDialogPopupOpen: true });
@@ -3372,8 +3395,6 @@ class App extends React.Component {
             onOk={this.closeNewProjectDialog.bind(this)}
             getPlanningUnitGrids={this.getPlanningUnitGrids.bind(this)}
             planning_unit_grids={this.state.planning_unit_grids}
-            openNewPlanningGridDialog={this.openNewPlanningGridDialog.bind(this)}
-            openImportPlanningGridDialog={this.openImportPlanningGridDialog.bind(this)}
             openFeaturesDialog={this.openFeaturesDialog.bind(this)}
             features={this.state.allFeatures} 
             openCostsDialog={this.openCostsDialog.bind(this)}
@@ -3382,19 +3403,9 @@ class App extends React.Component {
           />
           <NewPlanningGridDialog 
             open={this.state.NewPlanningGridDialogOpen} 
-            onOk={this.createNewPlanningUnitGrid.bind(this)}
             onCancel={this.closeNewPlanningGridDialog.bind(this)}
             createNewPlanningUnitGrid={this.createNewPlanningUnitGrid.bind(this)}
-            creatingNewPlanningGrid={this.state.creatingNewPlanningGrid}
             countries={this.state.countries}
-            changeIso3={this.changeIso3.bind(this)}
-            changeDomain={this.changeDomain.bind(this)}
-            changeAreaKm2={this.changeAreaKm2.bind(this)}
-            changeShape={this.changeShape.bind(this)}
-            iso3={this.state.iso3}
-            domain={this.state.domain}
-            areakm2={this.state.areakm2}
-            shape={this.state.shape}
           />
           <UploadPlanningGridDialog
             open={this.state.importPlanningGridDialogOpen} 
@@ -3441,6 +3452,16 @@ class App extends React.Component {
             requestEndpoint={this.requestEndpoint}
             SEND_CREDENTIALS={SEND_CREDENTIALS}
             newFeatureSource={this.state.newFeatureSource}
+          />
+          <PlanningGridsDialog
+            open={this.state.planningGridsDialogOpen}
+            onOk={this.closePlanningGridsDialog.bind(this)}
+            getPlanningUnitGrids={this.getPlanningUnitGrids.bind(this)}
+            unauthorisedMethods={this.state.unauthorisedMethods}
+            planningGrids={this.state.planning_unit_grids}
+            openNewPlanningGridDialog={this.openNewPlanningGridDialog.bind(this)}
+            openImportPlanningGridDialog={this.openImportPlanningGridDialog.bind(this)}
+            deletePlanningGrid={this.deletePlanningUnitGrid.bind(this)}
           />
           <CostsDialog
             open={this.state.CostsDialogOpen}
@@ -3529,6 +3550,7 @@ class App extends React.Component {
             resultsPanelOpen={this.state.resultsPanelOpen}
             openProjectsDialog={this.openProjectsDialog.bind(this)}
             openFeaturesDialog={this.openFeaturesDialog.bind(this)}
+            openPlanningGridsDialog={this.openPlanningGridsDialog.bind(this)}
             toggleInfoPanel={this.toggleInfoPanel.bind(this)}
             toggleResultsPanel={this.toggleResultsPanel.bind(this)}
             showUserMenu={this.showUserMenu.bind(this)}

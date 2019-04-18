@@ -160,7 +160,6 @@ class NewProjectDialog extends React.Component {
                     getPlanningUnitGrids={this.props.getPlanningUnitGrids} 
                     planning_unit_grids={this.props.planning_unit_grids} 
                     changeItem={this.changePU.bind(this)} pu={this.state.pu} 
-                    openNewPlanningGridDialog={this.props.openNewPlanningGridDialog} 
                     openImportPlanningGridDialog={this.props.openImportPlanningGridDialog}/> : null}
                   {stepIndex === 2 ? <SelectFeatures 
                       features={this.state.allFeatures.filter((item)=>{return item.selected;})}

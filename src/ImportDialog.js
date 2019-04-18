@@ -2,21 +2,21 @@ import React from 'react';
 import MarxanDialog from './MarxanDialog';
 import ToolbarButton from './ToolbarButton';
 import Metadata from './Metadata';
-import UploadMarxanFiles from './UploadMarxanFiles';
+import UploadMarxanFiles from './UploadMarxanFiles'; 
 
 //some of the code in this component should be moved up to app.js like the POSTs but I have limited time
 
 class ImportDialog extends React.Component {
     constructor(props) {
         super(props);
-        this.state = { steps: ['Files and planning grid','Info' ], loading: false, stepIndex: 0, name: '', description: '', zipFilename: '', files:[] };
+        this.state = { steps: ['Files and planning grid','Info' ], loading: false, stepIndex: 0, name: '', description: '', zipFilename: '', files:[], planning_grid_name:'' };
     }
     handleNext = () => {
         const { stepIndex } = this.state;
         if (stepIndex === 1) {
             this.setState({loading: true});
             //create the new project 
-            this.props.importProject(this.state.name, this.state.description, this.state.zipFilename, this.state.files).then(function(response){
+            this.props.importProject(this.state.name, this.state.description, this.state.zipFilename, this.state.files, this.state.planning_grid_name).then(function(response){
                 //close the import wizard
                 this.onOk();
             }.bind(this), function(error) {
@@ -38,6 +38,9 @@ class ImportDialog extends React.Component {
     }
     setZipFilename(filename){
         this.setState({zipFilename: filename});
+    }
+    setPlanningGridName(event, planning_grid_name){
+        this.setState({planning_grid_name: planning_grid_name});
     }
     setName(value) {
         this.setState({ name: value });
@@ -71,6 +74,8 @@ class ImportDialog extends React.Component {
                             requestEndpoint={this.props.requestEndpoint} 
                             SEND_CREDENTIALS={this.props.SEND_CREDENTIALS}
                             checkForErrors={this.props.checkForErrors} 
+                            setPlanningGridName={this.setPlanningGridName.bind(this)}
+                            planning_grid_name={this.state.planning_grid_name}
                         /> : null}
                         {stepIndex === 1 ? <Metadata name={this.state.name} description={this.state.description} setName={this.setName.bind(this)} setDescription={this.setDescription.bind(this)}/> : null}
                     </div>
