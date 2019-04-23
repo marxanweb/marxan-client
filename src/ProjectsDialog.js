@@ -58,13 +58,16 @@ class ProjectsDialog extends React.Component {
         renderTitle(row){
             return <div style={{width: '100%',height: '100%',backgroundColor: '#dadada',borderRadius: '2px'}} title={row.original.description}>{row.original.description}</div>;        
         }
+        renderName(row){
+            return <div style={{width: '100%',height: '100%',backgroundColor: '#dadada',borderRadius: '2px'}} title={row.original.name}>{row.original.name}</div>;        
+        }
         render() {
                 let tableColumns = [];
                 if (['Admin', 'ReadOnly'].includes(this.props.userRole)) {
-                    tableColumns = [{ Header: 'User', accessor: 'user', width: 90, headerStyle: { 'textAlign': 'left' } }, { Header: 'Name', accessor: 'name', width: 200, headerStyle: { 'textAlign': 'left' } }, { Header: 'Description', accessor: 'description', width: 250, headerStyle: { 'textAlign': 'left' }, Cell: this.renderTitle.bind(this) }, { Header: 'Date', accessor: 'createdate', width: 180, headerStyle: { 'textAlign': 'left' }, sortMethod: this.sortDate.bind(this)}];
+                    tableColumns = [{ Header: 'User', accessor: 'user', width: 90, headerStyle: { 'textAlign': 'left' } }, { Header: 'Name', accessor: 'name', width: 200, headerStyle: { 'textAlign': 'left' }, Cell: this.renderName.bind(this) }, { Header: 'Description', accessor: 'description', width: 250, headerStyle: { 'textAlign': 'left' }, Cell: this.renderTitle.bind(this) }, { Header: 'Date', accessor: 'createdate', width: 180, headerStyle: { 'textAlign': 'left' }, sortMethod: this.sortDate.bind(this)}];
                 }
                 else {
-                    tableColumns = [{ Header: 'Name', accessor: 'name', width: 170, headerStyle: { 'textAlign': 'left' } }, { Header: 'Description', accessor: 'description', width: 330, headerStyle: { 'textAlign': 'left' }, Cell: this.renderTitle.bind(this) }, { Header: 'Date', accessor: 'createdate', width: 220, headerStyle: { 'textAlign': 'left' }, sortMethod: this.sortDate.bind(this) }];
+                    tableColumns = [{ Header: 'Name', accessor: 'name', width: 170, headerStyle: { 'textAlign': 'left' }, Cell: this.renderName.bind(this) }, { Header: 'Description', accessor: 'description', width: 330, headerStyle: { 'textAlign': 'left' }, Cell: this.renderTitle.bind(this) }, { Header: 'Date', accessor: 'createdate', width: 220, headerStyle: { 'textAlign': 'left' }, sortMethod: this.sortDate.bind(this) }];
                 }
                 if (this.props.projects) {
                     return (

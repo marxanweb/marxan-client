@@ -24,7 +24,6 @@ class NewFeatureDialog extends React.Component {
                 {...this.props} 
                 onOk={this.props.createNewFeature}
                 okDisabled={!(this.props.name!=='' && this.props.description!=='' && ((this.props.filename!=='' && this.props.newFeatureSource === "import")||(this.props.filename==='' && this.props.newFeatureSource === "digitising")) && (this.props.creatingNewFeature===false))}
-                okLabel={this.props.creatingNewFeature ? "Creating..." : "OK" }
                 showCancelButton={true}
                 showSpinner={(this.props.creatingNewFeature)}
                 contentWidth={420}

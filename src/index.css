@@ -84,7 +84,7 @@ body {
 }
 
 .settings {
-  position: absolute;
+  position: absolute; 
   bottom: 60px;
   left: 43px;
 }
@@ -94,6 +94,9 @@ body {
   padding-top: 10px;
 }
 
+.uploadForm{
+  margin-top: 20px;
+}
 .uploadControls {
   font-size: 13px;
   margin-top: 5px;
@@ -106,18 +109,26 @@ body {
   /*border: 1px solid #F0F0F0;*/
 }
 
+.uploadLabel{
+  font-size:12px;
+}
 .uploadFileField {
   display: inline-block;
   padding: 2px;
+  width: 216px;
+  background-color: rgb(250, 250, 250);  
+  margin-top: 6px;
 }
 
 .uploadFileFieldLabel {
   display: inline-block;
   padding-left: 5px;
+  font-size: 16px;
 }
 
 .uploadFileFieldIcon {
   display: inline-block;
+  margin-left: 10px;
 }
 
 .mandatoryIcon {

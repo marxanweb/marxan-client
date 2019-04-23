@@ -42,6 +42,7 @@ class SelectCostFeatures extends React.Component {
         return (
             <React.Fragment>
                 <div className={'newPUDialogPane'}>
+                    <div>Select the costs</div>
                     <List>
                         {this.props.selectedCosts.map((item)=>{
                             return <ListItem 

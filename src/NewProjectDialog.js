@@ -155,7 +155,7 @@ class NewProjectDialog extends React.Component {
           </div>
       ];
       let c = <div key="k3">
-                  {stepIndex === 0 ? <Metadata name={this.state.name} description={this.state.description} setName={this.setName.bind(this)} setDescription={this.setDescription.bind(this)}/> : null}
+                  {stepIndex === 0 ? <Metadata name={this.state.name} description={this.state.description} setName={this.setName.bind(this)} setDescription={this.setDescription.bind(this)} paddingBottom={'198px'}/> : null}
                   {stepIndex === 1 ? <PlanningUnitsDialog 
                     getPlanningUnitGrids={this.props.getPlanningUnitGrids} 
                     planning_unit_grids={this.props.planning_unit_grids} 
@@ -176,8 +176,8 @@ class NewProjectDialog extends React.Component {
           <React.Fragment>
           <MarxanDialog 
               {...this.props} 
-              title={'New project - ' + this.state.steps[stepIndex]}
-              contentWidth={530}
+              title={'New project'}
+              contentWidth={400}
               children={c} 
               actions={actions} 
               okLabel={"Cancel"}

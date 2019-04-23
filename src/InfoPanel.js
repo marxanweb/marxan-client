@@ -148,9 +148,9 @@ class InfoPanel extends React.Component {
                     <FontAwesomeIcon icon={(this.state.puEditing) ? faUnlock : faLock} onClick={this.startStopPuEditSession.bind(this)} title={(this.state.puEditing) ? "Save" : "Click to edit"} style={{cursor:'pointer', marginRight: '10px', color: 'rgba(255, 64, 129, 0.7)'}}/>
                     <div className={'description'} style={{display: 'inline-block'}}>{(this.state.puEditing) ? "Click on the map to change the status" : "Click to edit"}</div>
                     <div style={{display: (this.state.puEditing) ? "block" : "none"}}>
-                      <div className={"statusRow"}><div className={"statusSwatch"} style={{border: '1px rgba(63, 191, 63, 1) solid'}}></div><div className={"puStatus"}>Included in the initial reserve system but may or may not be in the final solution</div></div>
-                      <div className={"statusRow"}><div className={"statusSwatch"} style={{ border: '1px rgba(63, 63, 191, 1) solid'}}></div><div className={"puStatus"}>Locked in the reserve system. It starts in the initial reserve system and cannot be removed.</div></div>
-                      <div className={"statusRow"}><div className={"statusSwatch"} style={{ border: '1px rgba(191, 63, 63, 1) solid'}}></div><div className={"puStatus"}>Locked out of the reserve system. It is not included in the initial reserve system and cannot be added.</div></div>
+                      <div className={"statusRow"}><div className={"statusSwatch"} style={{border: '1px rgba(63, 191, 63, 1) solid'}}></div><div className={"puStatus"}>Initially included</div></div>
+                      <div className={"statusRow"}><div className={"statusSwatch"} style={{ border: '1px rgba(63, 63, 191, 1) solid'}}></div><div className={"puStatus"}>Locked in the reserve system</div></div>
+                      <div className={"statusRow"}><div className={"statusSwatch"} style={{ border: '1px rgba(191, 63, 63, 1) solid'}}></div><div className={"puStatus"}>Locked out of the reserve system</div></div>
                       <ToolbarButton  
                         icon={<FontAwesomeIcon icon={faEraser} />} 
                         title="Clear all manual edits"

@@ -17,9 +17,9 @@ class Metadata extends React.Component {
     render() {
         return (
             <React.Fragment>
-                <div>
-                    <TextField errorText={this.state.validName === false ? 'Required field' : ''} value={this.props.name} onChange={this.changeName.bind(this)} floatingLabelText="Enter a name" floatingLabelFixed={true} />
-                    <TextField value={this.props.description} onChange={this.changeDescription.bind(this)} multiLine={true} rows={3} floatingLabelText="Enter a description" floatingLabelFixed={true} />
+                <div style={{marginBottom:this.props.paddingBottom}}> 
+                    <TextField errorText={this.state.validName === false ? 'Required field' : ''} value={this.props.name} onChange={this.changeName.bind(this)} floatingLabelText="Enter a name for the project" floatingLabelFixed={true} />
+                    <TextField value={this.props.description} onChange={this.changeDescription.bind(this)} multiLine={true} rows={3} floatingLabelText="Enter a description for the project" floatingLabelFixed={true} />
                 </div>
             </React.Fragment>
         );

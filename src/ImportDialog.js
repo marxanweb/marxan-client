@@ -77,15 +77,15 @@ class ImportDialog extends React.Component {
                             setPlanningGridName={this.setPlanningGridName.bind(this)}
                             planning_grid_name={this.state.planning_grid_name}
                         /> : null}
-                        {stepIndex === 1 ? <Metadata name={this.state.name} description={this.state.description} setName={this.setName.bind(this)} setDescription={this.setDescription.bind(this)}/> : null}
+                        {stepIndex === 1 ? <Metadata name={this.state.name} description={this.state.description} setName={this.setName.bind(this)} setDescription={this.setDescription.bind(this)} paddingBottom={'50px'}/> : null}
                     </div>
                 </React.Fragment>;
         return (
             <MarxanDialog 
                 {...this.props} 
                 showSpinner={this.state.loading}
-                title={'Import - ' + this.state.steps[stepIndex]}
-                contentWidth={420}
+                title={'Import existing Marxan project'}
+                contentWidth={358}
                 children={c} 
                 okLabel={"Cancel"}
                 actions={actions} 

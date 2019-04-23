@@ -1271,7 +1271,7 @@ class App extends React.Component {
         if (!this.checkForErrors(response)) {
           this.setState({streamingLog: this.state.streamingLog + " Project '" + project + "' created\n"});
           //create the planning unit file
-          this.importZippedShapefileAsPu(zipFilename, planning_grid_name, "Imported as " + zipFilename + " using the import wizard").then(function(response) {
+          this.importZippedShapefileAsPu(zipFilename, planning_grid_name, "Imported with the project '" + project + "'").then(function(response) {
             if (!this.checkForErrors(response)) {
               //get the planning unit feature_class_name
               feature_class_name = response.feature_class_name;
@@ -1289,12 +1289,12 @@ class App extends React.Component {
                       //update the project file with the new settings
                       this.updateProjectParams(project, {DESCRIPTION: description + " (imported from an existing Marxan project)", CREATEDATE: new Date(Date.now()).toString(), OLDVERSION: 'True', PLANNING_UNIT_NAME: feature_class_name}).then(function(response){
                         if (!this.checkForErrors(response)) {
-                          this.setState({streamingLog: this.state.streamingLog + " Uploading planning grid to Mapbox"});
+                          this.setState({streamingLog: this.state.streamingLog + " Uploading planning grid to Mapbox (this may take a minute or two)"});
                           // wait for the tileset to upload to mapbox
                           this.pollMapbox(uploadId).then(function(response){
                             //upload the planning grids
                             this.getPlanningUnitGrids();
-                            this.setState({streamingLog: this.state.streamingLog + "Import complete\n"});
+                            this.setState({streamingLog: this.state.streamingLog + "\nImport complete\n"});
                             //now open the project
                             this.loadProject(project, this.state.user);
                             resolve();
@@ -2228,21 +2228,25 @@ class App extends React.Component {
   //imports a zipped shapefile as a new planning grid
   importPlanningUnitGrid(zipFilename, alias, description){
     this.setState({uploadingPlanningUnit:true});
-    this.importZippedShapefileAsPu(zipFilename, alias, description).then(function(response) {
-      if (!this.checkForErrors(response)) {
-        this.setState({ snackbarOpen: true, snackbarMessage: "Planning grid imported. Uploading to Mapbox" }); 
-        //start polling to see when the upload is done
-        this.pollMapbox(response.uploadId).then(function(response){
-          // close the dialog
-          this.closeImportPlanningGridDialog();
-          //update the planning unit items
-          this.getPlanningUnitGrids();
+    return new Promise(function(resolve, reject) {
+      this.importZippedShapefileAsPu(zipFilename, alias, description).then(function(response) {
+        if (!this.checkForErrors(response)) {
+          this.setState({ snackbarOpen: true, snackbarMessage: "Planning grid imported. Uploading to Mapbox" }); 
+          //start polling to see when the upload is done
+          this.pollMapbox(response.uploadId).then(function(response){
+            // close the dialog
+            this.closeImportPlanningGridDialog();
+            //update the planning unit items
+            this.getPlanningUnitGrids();
+            //reset state
+            this.setState({uploadingPlanningUnit:false});
+        }.bind(this));
+        }else{ //importZippedShapefileAsPu failed 
           //reset state
           this.setState({uploadingPlanningUnit:false});
-        }.bind(this));
-      }else{ //importZippedShapefileAsPu failed 
-        this.setState({ snackbarOpen: true, snackbarMessage: response.error });  
-      }
+          reject(response.error);
+        }
+      }.bind(this));
     }.bind(this));
   }
   
@@ -2492,21 +2496,32 @@ class App extends React.Component {
     }
   }
 
+  jsonpRequest(params, timeout = TIMEOUT){
+    return new Promise((resolve, reject) => {
+      jsonp(this.requestEndpoint + params, { timeout: timeout }).promise.then((response) => {
+        if (!this.checkForErrors(response)) {
+          resolve(response);
+        }
+        else {
+          reject(response.error);
+        }
+      });
+    });
+  }
+  
   //create the new feature from the already uploaded zipped shapefile
   createNewFeatureFromImport(){
-    //the zipped shapefile has been uploaded to the MARXAN folder and the metadata are in the featureDatasetName, featureDatasetDescription and featureDatasetFilename state variables - 
-    jsonp(this.requestEndpoint + "importFeature?filename=" + this.state.featureDatasetFilename + "&name=" + this.state.featureDatasetName + "&description=" + this.state.featureDatasetDescription, { timeout: TIMEOUT }).promise.then(function(response) {
-      if (!this.checkForErrors(response)) {
-        if (response.id){
+    this.jsonpRequest("importFeature?filename=" + this.state.featureDatasetFilename + "&name=" + this.state.featureDatasetName + "&description=" + this.state.featureDatasetDescription).then((response) => {
+      if (response.id){
+        this.setState({ snackbarOpen: true, snackbarMessage: "Feature imported. Uploading to Mapbox" }); 
+        //start polling to see when the upload is done
+        this.pollMapbox(response.uploadId).then(function(){
           this.newFeatureCreated(response);
-        }
+        }.bind(this));
       }
-      else {
-        //server error
-      }
-      //return ui to previous state
+    }).catch((error) => {
       this.setState({creatingNewFeature: false});
-    }.bind(this));
+    });
   }
   
   //create the new feature from the feature that has been digitised on the map
@@ -2538,6 +2553,7 @@ class App extends React.Component {
   newFeatureCreated(response){
     this.getInterestFeature(response.id);
     //ui response
+    this.setState({ creatingNewFeature: false });
     this.setState({ snackbarOpen: true, snackbarMessage: response.info });
     //close the dialog
     this.closeNewFeatureDialog();

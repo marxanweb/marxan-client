@@ -47,7 +47,7 @@ class NewPlanningGridDialog extends React.Component {
         okDisabled={ !this.state.iso3 ||!this.state.domain ||!this.state.areakm2 ||this.state.creatingNewPlanningGrid}
         cancelLabel={"Cancel"}
         showCancelButton={true}
-        title="New Planning Grid"
+        title="New planning grid"
         contentWidth={358}
         children={
           <React.Fragment key="k13">
