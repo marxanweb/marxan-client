@@ -181,7 +181,7 @@ class InfoPanel extends React.Component {
                   title="Click to run this project"  
                   show={this.props.userRole !== "ReadOnly"}
                   onClick={this.props.runMarxan} 
-                  disabled={!this.props.runnable || this.props.preprocessingFeature || this.props.running || (this.props.features.length === 0) || this.state.puEditing}  
+                  disabled={this.props.preprocessingFeature || this.props.running || (this.props.features.length === 0) || this.state.puEditing}  
                   secondary={true} 
                 />  
             </Paper>

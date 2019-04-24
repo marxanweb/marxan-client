@@ -19,13 +19,12 @@ class LoginDialog extends React.Component {
             <React.Fragment>
                 <MarxanDialog 
                     {...this.props} 
-                    showSpinner={this.props.loggingIn}
                     showOverlay={true}
-                    okDisabled={(!this.props.user || !this.props.password || this.props.loggingIn ||!this.props.marxanServer||(this.props.marxanServer&&this.props.marxanServer.offline)||(this.props.marxanServer&&!this.props.marxanServer.guestUserEnabled)) ? true : false} 
-                    okLabel={this.props.loggingIn ? "Logging in" : (this.props.marxanServer&&!this.props.marxanServer.offline&&!this.props.marxanServer.corsEnabled&&this.props.marxanServer.guestUserEnabled) ? "Login (Read-Only)" : "Login"}
+                    okDisabled={(!this.props.user || !this.props.password || this.props.loading ||!this.props.marxanServer||(this.props.marxanServer&&this.props.marxanServer.offline)||(this.props.marxanServer&&!this.props.marxanServer.guestUserEnabled)) ? true : false} 
+                    okLabel={(this.props.marxanServer&&!this.props.marxanServer.offline&&!this.props.marxanServer.corsEnabled&&this.props.marxanServer.guestUserEnabled) ? "Login (Read-Only)" : "Login"}
                     showCancelButton={true}
                     cancelLabel={"Register"}
-                    cancelDisabled={((this.props.marxanServer===undefined) || this.props.loggingIn || (this.props.marxanServer&&this.props.marxanServer.offline) || (this.props.marxanServer&&!this.props.marxanServer.corsEnabled)) ? true : false} 
+                    cancelDisabled={((this.props.marxanServer===undefined) || this.props.loading || (this.props.marxanServer&&this.props.marxanServer.offline) || (this.props.marxanServer&&!this.props.marxanServer.corsEnabled)) ? true : false} 
                     contentWidth={358}
                     offsetY={200}
                     children={[
@@ -61,7 +60,7 @@ class LoginDialog extends React.Component {
                                 inputStyle={{fontSize:'12px'}} 
                                 value={this.props.user} 
                                 className='loginUserField' 
-                                disabled = {(this.props.loggingIn||(this.props.marxanServer&&!this.props.marxanServer.corsEnabled)) ? true : false} 
+                                disabled = {(this.props.loading||(this.props.marxanServer&&!this.props.marxanServer.corsEnabled)) ? true : false} 
                                 onKeyPress={this.handleKeyPress.bind(this)}
                             />
                             <span><TextField 
@@ -71,7 +70,7 @@ class LoginDialog extends React.Component {
                                 onChange = {(event, value)=>this.props.changePassword(value)} 
                                 value={this.props.password} 
                                 className='loginUserField' 
-                                disabled = {this.props.loggingIn||(this.props.marxanServer&&!this.props.marxanServer.corsEnabled) ? true : false} 
+                                disabled = {this.props.loading||(this.props.marxanServer&&!this.props.marxanServer.corsEnabled) ? true : false} 
                                 onKeyPress={this.handleKeyPress.bind(this)}
                             /></span>
                             <span onClick={this.props.openResendPasswordDialog.bind(this)} className="forgotLink" title="Click to resend password">Forgot</span>

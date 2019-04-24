@@ -14,11 +14,11 @@ class ResendPasswordDialog extends React.Component {
                     {...this.props} 
                     contentWidth={358}
                     showCancelButton={true}
-                    okDisabled={!this.props.email || this.props.resending}
+                    okDisabled={!this.props.email || this.props.loading}
                     cancelDisabled={this.props.resending}
                     title="Resend password" 
                     children={[<div key="resendDiv">
-                        <TextField floatingLabelText="email address" floatingLabelFixed={true} onChange = {(event, value)=>this.props.changeEmail(value)}  value={this.props.email} className='loginUserField' disabled = {this.props.resending} onKeyPress={this.handleKeyPress.bind(this)}/>
+                        <TextField floatingLabelText="email address" floatingLabelFixed={true} onChange = {(event, value)=>this.props.changeEmail(value)}  value={this.props.email} className='loginUserField' disabled = {this.props.loading} onKeyPress={this.handleKeyPress.bind(this)}/>
                 </div>]}
                     onRequestClose={this.props.onCancel} 
                 />

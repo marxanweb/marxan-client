@@ -83,7 +83,6 @@ class ImportDialog extends React.Component {
         return (
             <MarxanDialog 
                 {...this.props} 
-                showSpinner={this.state.loading}
                 title={'Import existing Marxan project'}
                 contentWidth={358}
                 children={c} 

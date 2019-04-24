@@ -147,7 +147,6 @@ class App extends React.Component {
       project: DISABLE_LOGIN ? 'Tonga marine' : '',
       owner: '', // the owner of the project - may be different to the user, e.g. if logged on as guest (user) and accessing someone elses project (owner)
       loggedIn: false,
-      loggingIn: false,
       userData: {},
       unauthorisedMethods: [],
       metadata: {},
@@ -157,31 +156,24 @@ class App extends React.Component {
       runParams: [],
       files: {},
       running: false,
-      runnable: false,
       active_pu: undefined,
       popup_point: { x: 0, y: 0 },
       snackbarOpen: false,
       snackbarMessage: '',
       tilesets: [],
-      updatingRunParameters: false,
       userMenuOpen: false,
       helpMenuOpen: false,
       menuAnchor: undefined,
       preprocessingFeature: false,
       preprocessingProtectedAreas: false,
       preprocessingBoundaryLengths: false,
-      pa_layer_visible:false,
+      pa_layer_visible: false,
       currentFeature:{},
       puvsprLayerText: '',
       featureDatasetName: '',
       featureDatasetDescription: '',
       featureDatasetFilename: '',
-      creatingNewFeature: false,
-      loadingFeatures: false,
-      loadingProjects: false,
-      loadingUsers: false,
-      uploadingPlanningUnit: false,
-      savingOptions: false,
+      loading: false,
       dataBreaks: [],
       allFeatures: [], //all of the interest features in the metadata_interest_features table
       projectFeatures: [], //the features for the currently loaded project
@@ -223,10 +215,86 @@ class App extends React.Component {
     this.setState({ brew: new classyBrew() });
   }
   
-  componentDidUpdate(prevProps, prevState) {
-    //if any files have been uploaded then check to see if we have all of the mandatory file inputs - if so, set the state to being runnable
-    if (this.state.files !== prevState.files) {
-      (this.state.files.SPECNAME !== '' && this.state.files.PUNAME !== '') ? this.setState({ runnable: true }): this.setState({ runnable: false });
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  ////////////////////////// REQUEST HELPERS
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  //makes a GET request and returns a promise which will either be resolved (passing the response) or rejected (passing the error)
+  _get(params, timeout = TIMEOUT){
+    return new Promise((resolve, reject) => {
+      //set the global loading flag
+      this.setState({loading: true});
+      jsonp(this.requestEndpoint + params, { timeout: timeout }).promise.then((response) => {
+        if (!this.checkForErrors(response)) {
+          this.setState({loading: false});
+          resolve(response);
+        }
+        else {
+          this.setState({loading: false});
+          reject(response.error);
+        }
+      });
+    });
+  }
+ 
+  //makes a POST request and returns a promise which will either be resolved (passing the response) or rejected (passing the error)
+  _post(method, formData, timeout = TIMEOUT, withCredentials = SEND_CREDENTIALS){
+    return new Promise((resolve, reject) => {
+      //set the global loading flag
+      this.setState({loading: true});
+      post(this.requestEndpoint + method, formData, {withCredentials: withCredentials}).then((response) => {
+        if (!this.checkForErrors(response.data)) {
+          this.setState({loading: false});
+          resolve(response.data);
+        }
+        else {
+          this.setState({loading: false});
+          reject(response.data.error);
+        }
+      });
+    });
+  }
+ 
+  //checks the reponse for errors
+  checkForErrors(response, showSnackbar = true) {
+    let networkError = this.responseIsTimeoutOrEmpty(response, showSnackbar);
+    let serverError = this.isServerError(response, showSnackbar);
+    let isError = (networkError || serverError);
+    if (isError) {
+      //write the full trace to the console if available
+      let error = (response.hasOwnProperty('trace')) ? response.trace : (response.hasOwnProperty('error')) ? response.error : "No error message returned";
+      console.error("Error message from server: " + error);
+    }
+    return isError;
+  }
+
+  //checks the response from a REST call for timeout errors or empty responses
+  responseIsTimeoutOrEmpty(response, showSnackbar = true) {
+    if (!response) {
+      let msg = "No response received from server";
+      if (showSnackbar) this.setState({ snackbarOpen: true, snackbarMessage: msg});
+      return true;
+    }
+    else {
+      return false;
+    }
+  }
+
+  //checks to see if the rest server raised an error and if it did then show in the snackbar
+  isServerError(response, showSnackbar = true) {
+    //errors may come from the marxan server or from the rest server which have slightly different json responses
+    if ((response && response.error) || (response && response.hasOwnProperty('metadata') && response.metadata.hasOwnProperty('error') && response.metadata.error != null)) {
+      var err = (response.error) ? (response.error) : response.metadata.error;
+      if (showSnackbar) this.setState({ snackbarOpen: true, snackbarMessage: err });
+      // this.setState({ snackbarOpen: true, snackbarMessage: "This is a test. See <a href='https://www.marxan.org' target='_blank' class='snackbarLink'>here</a>"});
+      return true;
+    }
+    else {
+      //some server responses are warnings and will not stop the function from running as normal
+      if (response.warning) {
+        if (showSnackbar) this.setState({ snackbarOpen: true, snackbarMessage: response.warning });
+      }
+      return false;
     }
   }
 
@@ -298,7 +366,7 @@ class App extends React.Component {
 
   //gets the capabilities of the server by making a request to the getServerData method
   getServerCapabilities(server){
-    return new Promise(function(resolve, reject) {
+    return new Promise((resolve, reject) => {
       //set the default properties for the server - by default the server is offline, has no guest access and CORS is not enabled
       server = Object.assign(server, {httpEndpoint: "http://" + server.host + TORNADO_PATH, httpsEndpoint: "https://" + server.host + TORNADO_PATH, wsEndpoint: "ws://" + server.host + TORNADO_PATH, wssEndpoint: "wss://" + server.host + TORNADO_PATH, offline: true, guestUserEnabled: false, corsEnabled: false});
       //get the server endpoint - if calling from http then use that (i.e. from localhost)
@@ -384,48 +452,6 @@ class App extends React.Component {
     this.setState({ snackbarOpen: false });
   }
 
-  //checks the reponse for errors
-  checkForErrors(response, showSnackbar = true) {
-    let networkError = this.responseIsTimeoutOrEmpty(response, showSnackbar);
-    let serverError = this.isServerError(response, showSnackbar);
-    let isError = (networkError || serverError);
-    if (isError) {
-      //write the full trace to the console if available
-      let error = (response.hasOwnProperty('trace')) ? response.trace : (response.hasOwnProperty('error')) ? response.error : "No error message returned";
-      console.error("Error message from server: " + error);
-    }
-    return isError;
-  }
-
-  //checks the response from a REST call for timeout errors or empty responses
-  responseIsTimeoutOrEmpty(response, showSnackbar = true) {
-    if (!response) {
-      let msg = "No response received from server";
-      if (showSnackbar) this.setState({ snackbarOpen: true, snackbarMessage: msg, loggingIn: false });
-      return true;
-    }
-    else {
-      return false;
-    }
-  }
-
-  //checks to see if the rest server raised an error and if it did then show in the snackbar
-  isServerError(response, showSnackbar = true) {
-    //errors may come from the marxan server or from the rest server which have slightly different json responses
-    if ((response && response.error) || (response && response.hasOwnProperty('metadata') && response.metadata.hasOwnProperty('error') && response.metadata.error != null)) {
-      var err = (response.error) ? (response.error) : response.metadata.error;
-      if (showSnackbar) this.setState({ snackbarOpen: true, snackbarMessage: err });
-      return true;
-    }
-    else {
-      //some server responses are warnings and will not stop the function from running as normal
-      if (response.warning) {
-        if (showSnackbar) this.setState({ snackbarOpen: true, snackbarMessage: response.warning });
-      }
-      return false;
-    }
-  }
-
   startLogging(clearLog = false){
     //switches the results pane to the log tab
     this.log_tab_active();
@@ -461,51 +487,41 @@ class App extends React.Component {
   
   //gets the server data and then validates the user
   processLogin(){
-    //get the server data
-    jsonp(this.requestEndpoint + "getServerData", { timeout: TIMEOUT }).promise.then(function(response){
-      if (!this.checkForErrors(response)) {
+    this._get("getServerData").then((response) => {
         //set the state for enabling the guest user
         this.setState({guestUserEnabled: response.serverData.ENABLE_GUEST_USER});
         //validate the use
         this.validateUser();
-      }
-    }.bind(this));    
+    });
   }
   
+  //checks the users credentials
   validateUser() {
-    this.setState({ loggingIn: true });
-    //get a list of existing users 
-    jsonp(this.requestEndpoint + "validateUser?user=" + this.state.user + "&password=" + this.state.password, { timeout: 10000 }).promise.then(function(response) {
-      if (!this.checkForErrors(response)) {
-        //user validated - log them in
-        this.login();
-      }
-      else {
-        this.setState({ loggingIn: false });
-      }
-    }.bind(this));
+    this._get("validateUser?user=" + this.state.user + "&password=" + this.state.password, 10000).then((response) => {
+      //user validated - log them in
+      this.login();
+    }).catch((error) => {
+      //do something
+    });
   }
 
   //the user is validated so login
   login() {
-    //get the users data
-    this.getUserInfo().then(function(response) {
-      if (!this.checkForErrors(response)) {
-        this.setState({userData: response.userData, unauthorisedMethods: response.unauthorisedMethods, project: response.userData.LASTPROJECT});
-        //set the basemap
-        var basemap = this.state.basemaps.filter(function(item){return (item.name === response.userData.BASEMAP);})[0];
-        this.changeBasemap(basemap, false);
-        //get all features
-        this.getAllFeatures().then(function(){
-          //get the users last project and load it 
-          this.loadProject(response.userData.LASTPROJECT, this.state.user);
-        }.bind(this));
-        //get all planning grids
-        this.getPlanningUnitGrids();
-      }else{
-        this.setState({ loggingIn: false });    
-      } 
-    }.bind(this));
+    this._get("getUser?user=" + this.state.user).then((response) => {
+      this.setState({userData: response.userData, unauthorisedMethods: response.unauthorisedMethods, project: response.userData.LASTPROJECT});
+      //set the basemap
+      var basemap = this.state.basemaps.filter(function(item){return (item.name === response.userData.BASEMAP);})[0];
+      this.changeBasemap(basemap, false);
+      //get all features
+      this.getAllFeatures().then(() => {
+        //get the users last project and load it 
+        this.loadProject(response.userData.LASTPROJECT, this.state.user);
+      });
+      //get all planning grids
+      this.getPlanningUnitGrids();
+    }).catch((error) => {
+      //do something
+    });
   }
 
   //log out and reset some state 
@@ -518,64 +534,49 @@ class App extends React.Component {
   }
 
   resendPassword() {
-    this.setState({ resending: true });
-    jsonp(this.requestEndpoint + "resendPassword?user=" + this.state.user, { timeout: TIMEOUT }).promise.then(function(response) {
-      this.setState({ resending: false });
-      if (!this.checkForErrors(response)) {
-        //ui feedback
-        this.setState({ snackbarOpen: true, snackbarMessage: response.info });
-        //close the resend password dialog
-        this.closeResendPasswordDialog();
-      }
-    }.bind(this));
-  }
-
-  //gets all the information for the user that is logging in
-  getUserInfo() {
-    return jsonp(this.requestEndpoint + "getUser?user=" + this.state.user, { timeout: TIMEOUT }).promise;
+    this._get("resendPassword?user=" + this.state.user).then((response) => {
+      //ui feedback
+      this.setState({ snackbarOpen: true, snackbarMessage: response.info });
+      //close the resend password dialog
+      this.closeResendPasswordDialog();
+    }).catch((error) => {
+      //do something
+  	});
   }
 
   //gets data for all users
   getUsers() {
-    this.setState({ loadingUsers: true });
-    jsonp(this.requestEndpoint + "getUsers", { timeout: TIMEOUT }).promise.then(function(response) {
-      this.setState({ loadingUsers: false });
-      if (!this.checkForErrors(response)) {
-        this.setState({ users: response.users });
-      }
-      else {
-        this.setState({ users: [] });
-      }
-    }.bind(this));
+    this._get("getUsers").then((response) => {
+      this.setState({ users: response.users });
+    }).catch((error) => {
+      this.setState({ users: [] });
+    });
   }
 
   //deletes a user
   deleteUser(user) {
-    jsonp(this.requestEndpoint + "deleteUser?user=" + user, { timeout: TIMEOUT }).promise.then(function(response) {
-      if (!this.checkForErrors(response)) {
-        this.setState({ snackbarOpen: true, snackbarMessage: "User deleted" });
-        //remove it from the users array
-        let usersCopy = this.state.users;
-        //remove the user 
-        usersCopy = usersCopy.filter(function(item){return item.user !== user});
-        //update the users state   
-        this.setState({users: usersCopy});
-        //see if the current project belongs to the deleted user
-        if (this.state.owner === user) {
-          this.setState({ snackbarOpen: true, snackbarMessage: "Current project no longer exists. Loading next available." });
-          //load the next available project
-          this.state.projects.some((project) => {
-            if (project.user !== user) this.loadProject(project.name, project.user);
-            return project.name !== this.state.project;
-          }, this);
-          //delete all the projects belonging to that user
-          this.deleteProjectsForUser(user);
-        }
+    this._get("deleteUser?user=" + user).then((response) => {
+      this.setState({ snackbarOpen: true, snackbarMessage: "User deleted" });
+      //remove it from the users array
+      let usersCopy = this.state.users;
+      //remove the user 
+      usersCopy = usersCopy.filter(function(item){return item.user !== user});
+      //update the users state   
+      this.setState({users: usersCopy});
+      //see if the current project belongs to the deleted user
+      if (this.state.owner === user) {
+        this.setState({ snackbarOpen: true, snackbarMessage: "Current project no longer exists. Loading next available." });
+        //load the next available project
+        this.state.projects.some((project) => {
+          if (project.user !== user) this.loadProject(project.name, project.user);
+          return project.name !== this.state.project;
+        }, this);
+        //delete all the projects belonging to that user
+        this.deleteProjectsForUser(user);
       }
-      else {
-        this.setState({ snackbarOpen: true, snackbarMessage: "User not deleted" });
-      }
-    }.bind(this));
+    }).catch((error) => {
+      //do something
+    });
   }
   
   //deletes all of the projects belonging to the passed user from the state
@@ -605,21 +606,21 @@ class App extends React.Component {
 
   //toggles if the guest user is enabled on the server or not
   toggleEnableGuestUser(){
-    return jsonp(this.requestEndpoint + "toggleEnableGuestUser").promise.then(function(response){
-      if (!this.checkForErrors(response)) {
-        //if succesfull set the state
-        this.setState({ guestUserEnabled: response.enabled });
-      }
-    }.bind(this));
+    this._get("toggleEnableGuestUser").then((response) => {
+      //if succesfull set the state
+      this.setState({ guestUserEnabled: response.enabled });
+    }).catch((error) => {
+      //do something
+    });
   }
   
   //toggles the projects privacy
   toggleProjectPrivacy(newValue){
-    this.updateProjectParameter("PRIVATE", newValue).then(function(response) {
-      if (!this.checkForErrors(response)) {
-        this.setState({ metadata: Object.assign(this.state.metadata, { PRIVATE: (newValue === "True") })});
-      }
-    }.bind(this));
+    this.updateProjectParameter("PRIVATE", newValue).then((response) => {
+      this.setState({ metadata: Object.assign(this.state.metadata, { PRIVATE: (newValue === "True") })});
+    }).catch((error) => {
+      //do something
+    });
   }
   
   appendToFormData(formData, obj) {
@@ -644,8 +645,6 @@ class App extends React.Component {
 
   //updates all parameter in the user.dat file then updates the state (in userData)
   updateUser(parameters, user = this.state.user) {
-    //ui feedback
-    this.setState({ savingOptions: true });
     //remove the keys that are not part of the users information
     parameters = this.removeKeys(parameters, ["updated", "validEmail"]);
     //initialise the form data
@@ -655,12 +654,12 @@ class App extends React.Component {
     //append all the key/value pairs
     this.appendToFormData(formData, parameters);
     //post to the server
-    post(this.requestEndpoint + "updateUserParameters", formData, {withCredentials: SEND_CREDENTIALS}).then((response) => {
-      if (!this.checkForErrors(response.data)) {
-        // if succesfull write the state back to the userData key
-        if (this.state.user === user) this.setState({ userData: this.newUserData});
-        this.setState({savingOptions: false, optionsDialogOpen: false });
-      }
+    this._post("updateUserParameters", formData).then((response) => {
+      // if succesfull write the state back to the userData key
+      if (this.state.user === user) this.setState({ userData: this.newUserData});
+      this.setState({optionsDialogOpen: false });
+    }).catch((error) => {
+      //do something
     });
     //if we have updated the current user then save a local property so that if the changes are saved to the server then we can update the local state
     if (this.state.user === user) this.newUserData = Object.assign(this.state.userData, parameters);
@@ -674,7 +673,7 @@ class App extends React.Component {
   }
   //updates the project from the old version to the new version
   upgradeProject(project){
-    return jsonp(this.requestEndpoint + "upgradeProject?user=" + this.state.user + "&project=" + project).promise;
+    return this._get("upgradeProject?user=" + this.state.user + "&project=" + project);
   }
   
   //updates the project parameters back to the server (i.e. the input.dat file)
@@ -687,84 +686,73 @@ class App extends React.Component {
     formData.append("project", project);
     //append all the key/value pairs
     this.appendToFormData(formData, parameters);
-    //post to the server
-    return post(this.requestEndpoint + "updateProjectParameters", formData, {withCredentials: SEND_CREDENTIALS});
+    //post to the server and return a promise
+    return this._post("updateProjectParameters", formData);
   }
 
   //updates a single parameter in the input.dat file directly
   updateProjectParameter(parameter, value) {
     let obj = {};
     obj[parameter] = value;
+    //update the parameter and return a promise
     return this.updateProjectParams(this.state.project, obj);
   }
 
   //updates the run parameters for the current project
   updateRunParams(array) {
-    //ui feedback
-    this.setState({ updatingRunParameters: true });
-    //convert the parameters array into an object
+    //convert the run parameters array into an object
     let parameters = {};
     array.map((obj) => { parameters[obj.key] = obj.value; return null; });
-    //update
-    this.updateProjectParams(this.state.project, parameters).then(function(response){
-      //ui feedback
-      this.setState({ updatingRunParameters: false });
-      if (!this.checkForErrors(response.data)) {
-        //if succesfull write the state back 
-        this.setState({ runParams: this.runParams});
-      }
-    }.bind(this));
+    //update the project parameters
+    this.updateProjectParams(this.state.project, parameters).then((response) => {
+      //if succesfull write the state back 
+      this.setState({ runParams: this.runParams});
+    }).catch((error) => {
+      //do something
+    });
     //save the local state to be able to update the state on callback
     this.runParams = array;
   }
 
   //gets the planning unit grids
   getPlanningUnitGrids() {
-    return jsonp(this.requestEndpoint + "getPlanningUnitGrids", { timeout: TIMEOUT }).promise.then(function(response) {
-      if (!this.checkForErrors(response)) {
-        this.setState({ planning_unit_grids: response.planning_unit_grids });
-      }
-      else {
-        //ui feedback
-        this.setState({ loadingProjects: false });
-      }
-    }.bind(this));
+    this._get("getPlanningUnitGrids").then((response) => {
+      this.setState({ planning_unit_grids: response.planning_unit_grids });
+    }).catch((error) => {
+      //do something
+    });
   }
 
   //loads a project
   loadProject(project, user) {
-    this.setState({ loadingProject: true });
     //reset the results from any previous projects
     this.resetResults();
-    jsonp(this.requestEndpoint + "getProject?user=" + user + "&project=" + project, { timeout: TIMEOUT }).promise.then(function(response) {
-      this.setState({ loadingProject: false, loggingIn: false});
-      if (!this.checkForErrors(response)) {
-        //set the state for the app based on the data that is returned from the server
-        this.setState({ loggedIn: true, project: response.project, owner: user, runParams: response.runParameters, files: Object.assign(response.files), metadata: response.metadata, renderer: response.renderer, planning_units: response.planning_units, infoPanelOpen: true, resultsPanelOpen: true  });
-        //if there is a PLANNING_UNIT_NAME passed then programmatically change the select box to this map 
-        if (response.metadata.PLANNING_UNIT_NAME) this.changeTileset(MAPBOX_USER + "." + response.metadata.PLANNING_UNIT_NAME);
-        //set a local variable for the feature preprocessing - this is because we dont need to track state with these variables as they are not bound to anything
-        this.feature_preprocessing = response.feature_preprocessing;
-        //set a local variable for the protected area intersections - this is because we dont need to track state with these variables as they are not bound to anything
-        this.protected_area_intersections = response.protected_area_intersections;
-        //set a local variable for the selected iucn category
-        this.previousIucnCategory = response.metadata.IUCN_CATEGORY;
-        //initialise all the interest features with the interest features for this project
-        this.initialiseInterestFeatures(response.metadata.OLDVERSION, response.features);
-        //poll the server to see if results are available for this project - if there are these will be loaded
-        this.getResults(user, response.project);
-      }else{
-        if (response.error.indexOf('Logged on as read-only guest user')>-1){
+    this._get("getProject?user=" + user + "&project=" + project).then((response) => {
+      //set the state for the app based on the data that is returned from the server
+      this.setState({ loggedIn: true, project: response.project, owner: user, runParams: response.runParameters, files: Object.assign(response.files), metadata: response.metadata, renderer: response.renderer, planning_units: response.planning_units, infoPanelOpen: true, resultsPanelOpen: true  });
+      //if there is a PLANNING_UNIT_NAME passed then programmatically change the select box to this map 
+      if (response.metadata.PLANNING_UNIT_NAME) this.changeTileset(MAPBOX_USER + "." + response.metadata.PLANNING_UNIT_NAME);
+      //set a local variable for the feature preprocessing - this is because we dont need to track state with these variables as they are not bound to anything
+      this.feature_preprocessing = response.feature_preprocessing;
+      //set a local variable for the protected area intersections - this is because we dont need to track state with these variables as they are not bound to anything
+      this.protected_area_intersections = response.protected_area_intersections;
+      //set a local variable for the selected iucn category
+      this.previousIucnCategory = response.metadata.IUCN_CATEGORY;
+      //initialise all the interest features with the interest features for this project
+      this.initialiseInterestFeatures(response.metadata.OLDVERSION, response.features);
+      //poll the server to see if results are available for this project - if there are these will be loaded
+      this.getResults(user, response.project);
+    }).catch((error) => {
+        if (error.indexOf('Logged on as read-only guest user')>-1){
           this.setState({loggedIn: true});
         }
-        if (response.error.indexOf("no longer exists")>-1){
+        if (error.indexOf("does not exist")>-1){
           //probably the last loaded project has been deleted - send some feedback and load another project
           this.setState({ snackbarOpen: true, snackbarMessage: "Loading first available project"});
           //passing an empty project to loadProject will load the first project
           this.loadProject('', this.state.user);
         }
-      }
-    }.bind(this));
+    });
   }
 
   //matches and returns an item in an object array with the passed id - this assumes the first item in the object is the id identifier
@@ -843,32 +831,26 @@ class App extends React.Component {
 
   //create a new user on the server
   createNewUser(user, password, name, email, mapboxaccesstoken) {
-    this.setState({ creatingNewUser: true });
     let formData = new FormData();
     formData.append('user', user);
     formData.append('password', password);
     formData.append('fullname', name);
     formData.append('email', email);
     formData.append('mapboxaccesstoken', mapboxaccesstoken);
-    post(this.requestEndpoint + "createUser", formData, {withCredentials: SEND_CREDENTIALS}).then((response) => {
-      this.setState({ creatingNewUser: false });
-      if (!this.checkForErrors(response.data)) {
-        //ui feedback
-        this.setState({ snackbarOpen: true, snackbarMessage: response.data.info});
-        //close the register dialog
-        this.closeRegisterDialog();
-        //enter the new users name in the username box and a blank password
-        this.setState({user: user, password:''});
-      }
-      else {
-        this.setState({ snackbarOpen: true, snackbarMessage: response.data.error });
-      }
+    this._post("createUser", formData).then((response) => {
+      //ui feedback
+      this.setState({ snackbarOpen: true, snackbarMessage: response.info});
+      //close the register dialog
+      this.closeRegisterDialog();
+      //enter the new users name in the username box and a blank password
+      this.setState({user: user, password:''});
+    }).catch((error) => {
+      //do something
     });
   }
 
   //REST call to create a new project from the wizard
   createNewProject(project) {
-    this.setState({ loadingProjects: true });
     let formData = new FormData();
     formData.append('user', this.state.user);
     formData.append('project', project.name);
@@ -886,79 +868,53 @@ class App extends React.Component {
     formData.append('interest_features', interest_features.join(","));
     formData.append('target_values', target_values.join(","));
     formData.append('spf_values', spf_values.join(","));
-    post(this.requestEndpoint + "createProject", formData, {withCredentials: SEND_CREDENTIALS}).then((response) => {
-      this.setState({ loadingProjects: false });
-      if (!this.checkForErrors(response.data)) {
-        this.setState({ snackbarOpen: true, snackbarMessage: response.data.info, projectsDialogOpen: false });
-        this.loadProject(response.data.name, response.data.user);
-      }
-      else {
-        this.setState({ snackbarOpen: true, snackbarMessage: response.data.error });
-      }
+    this._post("createProject", formData).then((response) => {
+      this.setState({ snackbarOpen: true, snackbarMessage: response.info, projectsDialogOpen: false });
+      this.loadProject(response.name, response.user);
+    }).catch((error) => {
+      //do something
     });
   }
 
   //REST call to create a new import project from the wizard
   createImportProject(project) {
-    return new Promise(function(resolve, reject) {
-      this.setState({ loadingProjects: true });
-      let formData = new FormData();
-      formData.append('user', this.state.user);
-      formData.append('project', project);
-      post(this.requestEndpoint + "createImportProject", formData, {withCredentials: SEND_CREDENTIALS}).then((response) => {
-        this.setState({ loadingProjects: false });
-        if (!this.checkForErrors(response.data)) {
-          this.setState({ snackbarOpen: true, snackbarMessage: response.data.info });
-        }
-        else {
-          this.setState({ snackbarOpen: true, snackbarMessage: response.data.error });
-        }
-        resolve(response.data);
-      });
-    }.bind(this));
+    let formData = new FormData();
+    formData.append('user', this.state.user);
+    formData.append('project', project);
+    return this._post("createImportProject", formData);
   }
 
   //REST call to delete a specific project
   deleteProject(user, project) {
-    this.setState({ loadingProjects: true });
-    jsonp(this.requestEndpoint + "deleteProject?user=" + user + "&project=" + project, { timeout: TIMEOUT }).promise.then(function(response) {
-      if (!this.checkForErrors(response)) {
-        //refresh the projects list
-        this.getProjects();
+    this._get("deleteProject?user=" + user + "&project=" + project).then((response) => {
+      //refresh the projects list
+      this.getProjects();
+      //ui feedback
+      this.setState({ snackbarOpen: true, snackbarMessage: response.info });
+      //see if the user deleted the current project
+      if (response.project === this.state.project) {
         //ui feedback
-        this.setState({ snackbarOpen: true, snackbarMessage: response.info });
-        //see if the user deleted the current project
-        if (response.project === this.state.project) {
-          //ui feedback
-          this.setState({ snackbarOpen: true, snackbarMessage: "Current project deleted - loading first available" });
-          //load the next available project
-          this.state.projects.some((project) => {
-            if (project.name !== this.state.project) this.loadProject(project.name, this.state.user);
-            return project.name !== this.state.project;
-          }, this);
-        }
+        this.setState({ snackbarOpen: true, snackbarMessage: "Current project deleted - loading first available" });
+        //load the next available project
+        this.state.projects.some((project) => {
+          if (project.name !== this.state.project) this.loadProject(project.name, this.state.user);
+          return project.name !== this.state.project;
+        }, this);
       }
-      else {
-        //ui feedback
-        this.setState({ loadingProjects: false });
-      }
-    }.bind(this));
+    }).catch((error) => {
+      //do something
+    });
   }
 
   cloneProject(user, project) {
-    this.setState({ loadingProjects: true });
-    jsonp(this.requestEndpoint + "cloneProject?user=" + user + "&project=" + project, { timeout: TIMEOUT }).promise.then(function(response) {
-      if (!this.checkForErrors(response)) {
-        //refresh the projects list
-        this.getProjects();
-        //ui feedback
-        this.setState({ snackbarOpen: true, snackbarMessage: response.info });
-      }
-      else {
-        //ui feedback
-        this.setState({ loadingProjects: false });
-      }
-    }.bind(this));
+    this._get("cloneProject?user=" + user + "&project=" + project).then((response) => {
+      //refresh the projects list
+      this.getProjects();
+      //ui feedback
+      this.setState({ snackbarOpen: true, snackbarMessage: response.info });
+    }).catch((error) => {
+        //do something
+    });
   }
 
   startEditingProjectName() {
@@ -968,58 +924,39 @@ class App extends React.Component {
   startEditingDescription() {
     this.setState({ editingDescription: true });
   }
-  //REST call to rename a specific project on the server
+  //rename a specific project on the server
   renameProject(newName) {
     this.setState({ editingProjectName: false });
     if (newName !== '' && newName !== this.state.project) {
-      jsonp(this.requestEndpoint + "renameProject?user=" + this.state.owner + "&project=" + this.state.project + "&newName=" + newName, { timeout: TIMEOUT }).promise.then(function(response) {
-        if (!this.checkForErrors(response)) {
-          this.setState({ project: newName, snackbarOpen: true, snackbarMessage: response.info });
-        }
-      }.bind(this));
+      this._get("renameProject?user=" + this.state.owner + "&project=" + this.state.project + "&newName=" + newName).then((response) => {
+        this.setState({ project: newName, snackbarOpen: true, snackbarMessage: response.info });
+      }).catch((error) => {
+        //do something
+      });
     }
   }
-
+  //rename the description for a specific project on the server
   renameDescription(newDesc) {
     this.setState({ editingDescription: false });
-    this.updateProjectParameter("DESCRIPTION", newDesc).then(function(response) {
-        if (!this.checkForErrors(response)) {
-          this.setState({ metadata: Object.assign(this.state.metadata, { DESCRIPTION: newDesc })});
-        }
-      }.bind(this));
-    }
-
-  getProjects() {
-    this.setState({ loadingProjects: true });
-    jsonp(this.requestEndpoint + "getProjects?user=" + this.state.user, { timeout: TIMEOUT }).promise.then(function(response) {
-      let projects = [];
-      this.setState({ loadingProjects: false });
-      if (!this.checkForErrors(response)) {
-        //filter the projects so that private ones arent shown
-        response.projects.forEach(function(project){
-          if (!(project.private && project.user !== this.state.user && this.state.userData.ROLE !== "Admin")) projects.push(project);
-        }, this);
-      }
-      this.setState({ projects: projects});
-    }.bind(this));
+    this.updateProjectParameter("DESCRIPTION", newDesc).then((response) => {
+      this.setState({ metadata: Object.assign(this.state.metadata, { DESCRIPTION: newDesc })});
+    }).catch((error) => {
+      //do something
+    });
   }
 
-  // getProjects() {
-  //   this.setState({ loadingProjects: true });
-  //   fetchJsonp(this.requestEndpoint + "getProjects?user=" + this.state.user, { timeout: TIMEOUT }).then(function(response) {
-  //       return response.json();
-  //     }).then(function(json) {
-  //       this.setState({ loadingProjects: false });
-  //       if (!this.checkForErrors(json)) {
-  //         this.setState({ projects: json.projects });
-  //       }
-  //       else {
-  //         this.setState({ projects: undefined });
-  //       }
-  //     }.bind(this)).catch(function(ex) {
-  //       console.log('parsing failed', ex);
-  //     }.bind(this));
-  // }
+  getProjects() {
+    this._get("getProjects?user=" + this.state.user).then((response) => {
+      let projects = [];
+      //filter the projects so that private ones arent shown
+      response.projects.forEach(function(project){
+        if (!(project.private && project.user !== this.state.user && this.state.userData.ROLE !== "Admin")) projects.push(project);
+      }, this);
+      this.setState({ projects: projects});
+    }).catch((error) => {
+      //do something
+    });
+  }
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   ////////CODE TO PREPROCESS AND RUN MARXAN
@@ -1034,13 +971,13 @@ class App extends React.Component {
     //reset all of the protected and target areas for all features
     this.resetProtectedAreas();
     //update the spec.dat file with any that have been added or removed or changed target or spf
-    this.updateSpecFile().then(function(value) {
+    this.updateSpecFile().then((value)=> {
       //when the species file has been updated, update the planning unit file 
       this.updatePuFile();
-      //when the planning unit file has been updated, update the PuVSpr file - this does all the preprocessing
-      this.updatePuvsprFile().then(function(value) {
+      //when the planning unit file has been updated, update the PuVSpr file - this does all the preprocessing using websockets
+      this.updatePuvsprFile().then((value) => {
         //start the marxan job
-        this.startMarxanJob(this.state.owner, this.state.project).then(function(response){
+        this.startMarxanJob(this.state.owner, this.state.project).then((response) => {
           if (!this.checkForErrors(response)) {
             //run completed - get the results
             this.getResults(response.user, response.project);
@@ -1048,17 +985,19 @@ class App extends React.Component {
             //set state with no solutions
             this.runFinished([]);
           }
-        }.bind(this));
-      }.bind(this));
-    }.bind(this));
+        }); //startMarxanJob
+      }); //updatePuvsprFile
+    }).catch((error) => { //updateSpecFile error
+      //
+    });
   }
 
   stopMarxan() {
-    jsonp(this.requestEndpoint + "stopMarxan?pid=" + this.state.pid, { timeout: 10000 }).promise.then(function(response) {
-      if (!this.checkForErrors(response)) {
-        this.setState({ running: false});
-      }
-    }.bind(this));
+    this._get("stopMarxan?pid=" + this.state.pid, 10000).then((response) => {
+      this.setState({ running: false});
+    }).catch((error) => {
+      //do something
+    });
   }
 
   resetProtectedAreas() {
@@ -1086,10 +1025,7 @@ class App extends React.Component {
     formData.append('interest_features', interest_features.join(","));
     formData.append('target_values', target_values.join(","));
     formData.append('spf_values', spf_values.join(","));
-    return post(this.requestEndpoint + "updateSpecFile", formData, {withCredentials: SEND_CREDENTIALS}).then((response) => {
-      //check if there are no timeout errors or empty responses
-      this.checkForErrors(response.data);
-    });
+    return this._post("updateSpecFile", formData);
   }
 
   //updates the planning unit file with any changes - not implemented yet
@@ -1200,12 +1136,11 @@ class App extends React.Component {
 
   //gets the results for a project
   getResults(user, project){
-    //make the request to get the results
-    jsonp(this.requestEndpoint + "getResults?user=" + user + "&project=" + project, { timeout: TIMEOUT }).promise.then(function(response) {
-      if (!this.checkForErrors(response)) {
-          this.runCompleted(response);
-      }
-    }.bind(this));
+    this._get("getResults?user=" + user + "&project=" + project).then((response) => {
+      this.runCompleted(response);
+    }).catch((error) => {
+      //do something
+    });
   }
   
   //run completed
@@ -1260,73 +1195,65 @@ class App extends React.Component {
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
   importProject(project, description, zipFilename, files, planning_grid_name){
-    return new Promise(function(resolve, reject) {
+    return new Promise((resolve, reject) => {
       let feature_class_name = "", uploadId;
       //start the logging
       this.startLogging();
+      //set the spinner and lot states
       this.setState({streamingLog: "Starting import...\n"});
       //create a new project
       //TODO: SORT OUT ROLLING BACK IF AN IMPORT FAILS - AND DONT PROVIDE REST CALLS TO DELETE PLANNING UNITS
-      this.createImportProject(project).then(function(response) {
-        if (!this.checkForErrors(response)) {
-          this.setState({streamingLog: this.state.streamingLog + " Project '" + project + "' created\n"});
-          //create the planning unit file
-          this.importZippedShapefileAsPu(zipFilename, planning_grid_name, "Imported with the project '" + project + "'").then(function(response) {
-            if (!this.checkForErrors(response)) {
-              //get the planning unit feature_class_name
-              feature_class_name = response.feature_class_name;
-              //get the uploadid
-              uploadId = response.uploadId;
-              this.setState({streamingLog: this.state.streamingLog + " Planning grid imported\n"});
-              //upload all of the files from the local system
-              this.uploadFiles(files, project).then(function(response){
-                if (!this.checkForErrors(response)) {
-                  this.setState({streamingLog: this.state.streamingLog + " All files uploaded\n"});
-                  //upgrade the project to the new version of Marxan - this adds the necessary settings in the project file and calculates the statistics for species in the puvspr.dat and puts them in the feature_preprocessing.dat file
-                  this.upgradeProject(project).then(function(response){
-                    if (!this.checkForErrors(response)) {
-                      this.setState({streamingLog: this.state.streamingLog + " Project updated to new version\n"});
-                      //update the project file with the new settings
-                      this.updateProjectParams(project, {DESCRIPTION: description + " (imported from an existing Marxan project)", CREATEDATE: new Date(Date.now()).toString(), OLDVERSION: 'True', PLANNING_UNIT_NAME: feature_class_name}).then(function(response){
-                        if (!this.checkForErrors(response)) {
-                          this.setState({streamingLog: this.state.streamingLog + " Uploading planning grid to Mapbox (this may take a minute or two)"});
-                          // wait for the tileset to upload to mapbox
-                          this.pollMapbox(uploadId).then(function(response){
-                            //upload the planning grids
-                            this.getPlanningUnitGrids();
-                            this.setState({streamingLog: this.state.streamingLog + "\nImport complete\n"});
-                            //now open the project
-                            this.loadProject(project, this.state.user);
-                            resolve();
-                          }.bind(this));
-                        }else{ //updateProjectParams failed
-                          this.cleanupFailedImport(project, feature_class_name);
-                          reject(response.error);
-                        }
-                      }.bind(this));
-                    }else{ //upgradeProject failed
-                      this.cleanupFailedImport(project, feature_class_name);
-                      reject(response.error);
-                    }
-                  }.bind(this));
-                }else{ //uploadFiles failed
+      this.createImportProject(project).then((response) => {
+        this.setState({streamingLog: this.state.streamingLog + " Project '" + project + "' created\n"});
+        //create the planning unit file
+        this.importZippedShapefileAsPu(zipFilename, planning_grid_name, "Imported with the project '" + project + "'").then((response) => {
+          //get the planning unit feature_class_name
+          feature_class_name = response.feature_class_name;
+          //get the uploadid
+          uploadId = response.uploadId;
+          this.setState({streamingLog: this.state.streamingLog + " Planning grid imported\n"});
+          //upload all of the files from the local system
+          this.uploadFiles(files, project).then((response) => {
+            this.setState({streamingLog: this.state.streamingLog + " All files uploaded\n"});
+            //upgrade the project to the new version of Marxan - this adds the necessary settings in the project file and calculates the statistics for species in the puvspr.dat and puts them in the feature_preprocessing.dat file
+            this.upgradeProject(project).then((response) => {
+              this.setState({streamingLog: this.state.streamingLog + " Project updated to new version\n"});
+              //update the project file with the new settings
+              this.updateProjectParams(project, {DESCRIPTION: description + " (imported from an existing Marxan project)", CREATEDATE: new Date(Date.now()).toString(), OLDVERSION: 'True', PLANNING_UNIT_NAME: feature_class_name}).then((response) => {
+                this.setState({streamingLog: this.state.streamingLog + " Uploading planning grid to Mapbox (this may take a minute or two)"});
+                // wait for the tileset to upload to mapbox
+                this.pollMapbox(uploadId).then((response) => {
+                  //refresh the planning grids
+                  this.getPlanningUnitGrids();
+                  this.setState({streamingLog: this.state.streamingLog + "\nImport complete\n"});
+                  //now open the project
+                  this.loadProject(project, this.state.user);
+                  resolve("Import complete");
+                });
+              }).catch((error) => { //updateProjectParams error
                   this.cleanupFailedImport(project, feature_class_name);
                   reject(response.error);
-                }
-              }.bind(this));
-            }else{ //importZippedShapefileAsPu failed - delete the project
+              });
+            }).catch((error) => { //upgradeProject error
               this.cleanupFailedImport(project, feature_class_name);
               reject(response.error);
-            }
-          }.bind(this));
-        }else{ //createImportProject failed - the project already exists
-          // this.cleanupFailedImport(project, feature_class_name);
-          reject(response.error);
-        }
-      }.bind(this));
-    }.bind(this));
+            }); 
+          }).catch((error) => { //uploadFiles error
+              this.cleanupFailedImport(project, feature_class_name);
+              reject(response.error);
+          }); 
+        }).catch((error) => { //importZippedShapefileAsPu error - delete the project
+            this.cleanupFailedImport(project, feature_class_name);
+            reject(response.error);
+        });
+      }).catch((error) => { //createImportProject failed - the project already exists
+        // this.cleanupFailedImport(project, feature_class_name);
+        reject(error);
+      });
+    });
   }
   
+  //uploads a list of files
   async uploadFiles(files, project) {
     var file, filepath;
     for (var i = 0; i < files.length; i++) {
@@ -1346,14 +1273,12 @@ class App extends React.Component {
     }
     return 'All files uploaded';
   }
+  
+  //uploads a single file
   uploadFile(formData){
-    return new Promise(function(resolve, reject) {
-      post(this.requestEndpoint + "uploadFile", formData, {withCredentials: SEND_CREDENTIALS}).then(function(response){
-        //resolve the promise
-        resolve();
-      });
-    }.bind(this));
+    return this._post("uploadFile", formData);
   }
+  
   cleanupFailedImport(project, planning_unit_grid){
     // //delete the project
     // this.deleteProject(project);
@@ -1417,16 +1342,7 @@ class App extends React.Component {
   
   //gets a solution and returns a promise
   getSolution(user, project, solution){
-    return new Promise(function(resolve, reject) {
-      //request the data for the specific solution
-      jsonp(this.requestEndpoint + "getSolution?user=" + user + "&project=" + project + "&solution=" + solution, { timeout: TIMEOUT }).promise.then(function(response) {
-        if (!this.checkForErrors(response, false)) { //dont show the snackbar as it is likely that any errors are coming from the clumping dialog when a user clicks cancel and the projects are deleted while they are still running
-          resolve(response);
-        }else{
-          this.setState({ snackbarOpen: true, snackbarMessage: response.error });  
-        }
-      }.bind(this));
-    }.bind(this));
+    return this._get("getSolution?user=" + user + "&project=" + project + "&solution=" + solution);
   }
   
   //gets the total number of planning units in the ssoln and outputs the statistics of the distribution to state, e.g. 2 PUs with a value of 1, 3 with a value of 2 etc.
@@ -1713,7 +1629,7 @@ class App extends React.Component {
         this.map.setStyle(url);
       }
       this.map.on('style.load', function(evt){
-        resolve();
+        resolve("Map style loaded");
       });
     }.bind(this));
   }
@@ -2055,10 +1971,10 @@ class App extends React.Component {
       });
     }
     //post to the server
-    post(this.requestEndpoint + "updatePUFile", formData, {withCredentials: SEND_CREDENTIALS}).then((response) => {
-      if (!this.checkForErrors(response.data)) {
-        // this.setState({ snackbarOpen: true, snackbarMessage: response.data.info });
-      }
+    this._post("updatePUFile", formData).then((response) => {
+      //do something
+    }).catch((error) => {
+      //do something
     });
   }
 
@@ -2193,96 +2109,80 @@ class App extends React.Component {
 
   //creates a new planning grid unit on the server using the passed parameters
   createNewPlanningUnitGrid(iso3, domain, areakm2, shape) {
-    return new Promise(function(resolve, reject) {
-      jsonp(this.requestEndpoint + "createPlanningUnitGrid?iso3=" + iso3 + "&domain=" + domain + "&areakm2=" + areakm2 + "&shape=" + shape, { timeout: 0 }).promise.then(function(response) {
-        if (!this.checkForErrors(response)) {
-          //feedback
-          this.setState({ snackbarOpen: true, snackbarMessage: "Planning grid: '" + response.planning_unit_grid.split(",")[1].replace(/"/gm, '').replace(")", "") + "' created" }); //response is (pu_cok_terrestrial_hexagon_10,"Cook Islands Terrestrial 10Km2 hexagon grid")
-          //upload this data to mapbox for visualisation
-          this.uploadToMapBox(response.planning_unit_grid.split(",")[0].replace(/"/gm, '').replace("(", ""), "planningunits").then(function(response){
-            resolve();
-          });
-          //update the planning unit items
-          this.getPlanningUnitGrids();
-        }
-        else {
-          //do something
-        }
-      }.bind(this));
-    }.bind(this));
+    return new Promise((resolve, reject) => {
+      this._get("createPlanningUnitGrid?iso3=" + iso3 + "&domain=" + domain + "&areakm2=" + areakm2 + "&shape=" + shape).then((response) => {
+        //feedback
+        this.setState({ snackbarOpen: true, snackbarMessage: "Planning grid: '" + response.planning_unit_grid.split(",")[1].replace(/"/gm, '').replace(")", "") + "' created" }); //response is (pu_cok_terrestrial_hexagon_10,"Cook Islands Terrestrial 10Km2 hexagon grid")
+        //upload this data to mapbox for visualisation
+        this.uploadToMapBox(response.planning_unit_grid.split(",")[0].replace(/"/gm, '').replace("(", ""), "planningunits").then((response) => {
+          resolve("New planning grid created");
+        });
+        //update the planning unit items
+        this.getPlanningUnitGrids();
+      }).catch((error) => {
+        //do something
+        reject(error);
+      });
+    });
   }
 
+  //deletes a planning unit grid
   deletePlanningUnitGrid(feature_class_name){
-    jsonp(this.requestEndpoint + "deletePlanningUnitGrid?planning_grid_name=" + feature_class_name, { timeout: 0 }).promise.then(function(response) {
-      if (!this.checkForErrors(response)) {
-        //update the planning unit grids
-        this.getPlanningUnitGrids();
-        this.setState({ snackbarOpen: true, snackbarMessage: "Planning grid deleted" });  
-      }
-      else {
-        //do something
-      }
-    }.bind(this));
+    this._get("deletePlanningUnitGrid?planning_grid_name=" + feature_class_name).then((response) => {
+      //update the planning unit grids
+      this.getPlanningUnitGrids();
+      this.setState({ snackbarOpen: true, snackbarMessage: "Planning grid deleted" });  
+    }).catch((error) => {
+      //do something
+    });
   }
   
   //imports a zipped shapefile as a new planning grid
   importPlanningUnitGrid(zipFilename, alias, description){
-    this.setState({uploadingPlanningUnit:true});
-    return new Promise(function(resolve, reject) {
-      this.importZippedShapefileAsPu(zipFilename, alias, description).then(function(response) {
-        if (!this.checkForErrors(response)) {
-          this.setState({ snackbarOpen: true, snackbarMessage: "Planning grid imported. Uploading to Mapbox" }); 
-          //start polling to see when the upload is done
-          this.pollMapbox(response.uploadId).then(function(response){
-            // close the dialog
-            this.closeImportPlanningGridDialog();
-            //update the planning unit items
-            this.getPlanningUnitGrids();
-            //reset state
-            this.setState({uploadingPlanningUnit:false});
-        }.bind(this));
-        }else{ //importZippedShapefileAsPu failed 
-          //reset state
-          this.setState({uploadingPlanningUnit:false});
-          reject(response.error);
-        }
-      }.bind(this));
-    }.bind(this));
+    return new Promise((resolve, reject) => {
+      this.importZippedShapefileAsPu(zipFilename, alias, description).then((response) => {
+        this.setState({ snackbarOpen: true, snackbarMessage: "Planning grid imported. Uploading to Mapbox" }); 
+        //start polling to see when the upload is done
+        this.pollMapbox(response.uploadId).then((response) => {
+          // close the dialog
+          this.closeImportPlanningGridDialog();
+          //update the planning unit items
+          this.getPlanningUnitGrids();
+          resolve("Planning grid imported");
+        });
+      }).catch((error) => { //importZippedShapefileAsPu error
+        reject(error);
+      });
+    });
   }
   
   getCountries() {
-    jsonp(this.requestEndpoint + "getCountries", { timeout: 10000 }).promise.then(function(response) {
-      if (!this.checkForErrors(response)) {
-        //valid response
-        this.setState({ countries: response.records });
-      }
-      else {
-        this.setState({ loggingIn: false });
-      }
-    }.bind(this));
+    this._get("getCountries").then((response) => {
+      this.setState({ countries: response.records });
+    }).catch((error) => {
+      //do something
+    });
   }
 
   //uploads the named feature class to mapbox on the server
   uploadToMapBox(feature_class_name, mapbox_layer_name) {
-    return new Promise(function(resolve, reject) {
-      jsonp(this.requestEndpoint + "uploadTilesetToMapBox?feature_class_name=" + feature_class_name + "&mapbox_layer_name=" + mapbox_layer_name, { timeout: 300000 }).promise.then(function(response) {
-        if (!this.checkForErrors(response)) {
-          this.setState({ snackbarOpen: true, snackbarMessage: "Uploading to MapBox"});
-          //poll mapbox to see when the upload has finished
-          this.pollMapbox(response.uploadid).then(function(response){
-            resolve();
-          });
-        }
-        else {
-          //server error
-        }
-      }.bind(this));
-    }.bind(this));
+    return new Promise((resolve, reject) => {
+      this._get("uploadTilesetToMapBox?feature_class_name=" + feature_class_name + "&mapbox_layer_name=" + mapbox_layer_name, 300000).then((response) => {
+        this.setState({ snackbarOpen: true, snackbarMessage: "Uploading to MapBox", loading: true});
+        //poll mapbox to see when the upload has finished
+        this.pollMapbox(response.uploadid).then((response2) => {
+          resolve("Uploaded to Mapbox");
+        });
+      }).catch((error) => {
+        reject(error);
+      });
+    });
   }
 
   //polls mapbox to see when an upload has finished - returns as promise
   pollMapbox(uploadid){
-    return new Promise(function(resolve, reject) {
+    this.setState({loading: true});
+    return new Promise((resolve, reject) => {
       this.timer = setInterval(() => {
         fetch("https://api.mapbox.com/uploads/v1/" + MAPBOX_USER + "/" + uploadid + "?access_token=" + mb_tk)
           .then(response => response.json())
@@ -2292,15 +2192,16 @@ class App extends React.Component {
               clearInterval(this.timer);
               this.timer = null;
               //reset state
-              this.setState({ snackbarOpen: true, snackbarMessage: "Uploaded to MapBox" });
-              resolve();
+              this.setState({ snackbarOpen: true, snackbarMessage: "Uploaded to MapBox", loading: false });
+              resolve("Uploaded to Mapbox");
             }
           }.bind(this))
           .catch(function(error) {
-            reject();
+            this.setState({loading: false });
+            reject(error);
           });
       }, 3000);
-    }.bind(this));
+    });
   }
   
   openNewFeatureDialog(newFeatureSource) {
@@ -2348,7 +2249,7 @@ class App extends React.Component {
   //used by the import wizard to import a users zipped shapefile as the planning units
   importZippedShapefileAsPu(zipname, alias, description) {
     //the zipped shapefile has been uploaded to the MARXAN folder - it will be imported to PostGIS and a record will be entered in the metadata_planning_units table
-    return jsonp(this.requestEndpoint + "importPlanningUnitGrid?filename=" + zipname + "&name=" + alias + "&description=" + description, { timeout: TIMEOUT }).promise;
+    return this._get("importPlanningUnitGrid?filename=" + zipname + "&name=" + alias + "&description=" + description);
   }
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2393,11 +2294,11 @@ class App extends React.Component {
     let ids = this.state.selectedFeatureIds;
     //remove the feature  - this requires a callback on setState otherwise the state is not updated before updateSelectedFeatures is called
     ids = ids.filter(function(value, index, arr){return value !== feature.id});
-    return new Promise(function(resolve, reject) {
+    return new Promise((resolve, reject) => {
       this.setState({ selectedFeatureIds: ids }, function(){
-        resolve();  
+        resolve("Feature removed");  
       });
-    }.bind(this));
+    });
   }
   
   //adds a feature to the selectedFeatureIds array
@@ -2468,21 +2369,20 @@ class App extends React.Component {
   }
 
   setFeaturesState(newFeatures){
-      //update allFeatures and projectFeatures with the new value
-      this.setState({ allFeatures: newFeatures, projectFeatures: newFeatures.filter(function(item) { return item.selected }) });
+    //update allFeatures and projectFeatures with the new value
+    this.setState({ allFeatures: newFeatures, projectFeatures: newFeatures.filter(function(item) { return item.selected }) });
   }
   
   //unselects a single Conservation feature
   unselectItem(feature) {
     //remove it from the selectedFeatureIds array
-    this.removeFeature(feature).then(function(){
+    this.removeFeature(feature).then(() => {
       //refresh the selected features
       this.updateSelectedFeatures();
-    }.bind(this));
+    });
   }
 
   createNewFeature() {
-    this.setState({ creatingNewFeature: true });
     //see the source of the new feature
     switch (this.state.newFeatureSource) {
       case 'import':
@@ -2496,22 +2396,9 @@ class App extends React.Component {
     }
   }
 
-  jsonpRequest(params, timeout = TIMEOUT){
-    return new Promise((resolve, reject) => {
-      jsonp(this.requestEndpoint + params, { timeout: timeout }).promise.then((response) => {
-        if (!this.checkForErrors(response)) {
-          resolve(response);
-        }
-        else {
-          reject(response.error);
-        }
-      });
-    });
-  }
-  
   //create the new feature from the already uploaded zipped shapefile
   createNewFeatureFromImport(){
-    this.jsonpRequest("importFeature?filename=" + this.state.featureDatasetFilename + "&name=" + this.state.featureDatasetName + "&description=" + this.state.featureDatasetDescription).then((response) => {
+    this._get("importFeature?filename=" + this.state.featureDatasetFilename + "&name=" + this.state.featureDatasetName + "&description=" + this.state.featureDatasetDescription).then((response) => {
       if (response.id){
         this.setState({ snackbarOpen: true, snackbarMessage: "Feature imported. Uploading to Mapbox" }); 
         //start polling to see when the upload is done
@@ -2520,7 +2407,7 @@ class App extends React.Component {
         }.bind(this));
       }
     }).catch((error) => {
-      this.setState({creatingNewFeature: false});
+      //do something
     });
   }
   
@@ -2535,17 +2422,10 @@ class App extends React.Component {
       return coordinate[0] + " " + coordinate[1];
     }).join(",");
     formData.append('linestring', "Linestring(" + coords + ")");
-    post(this.requestEndpoint + "createFeatureFromLinestring", formData, {withCredentials: SEND_CREDENTIALS}).then((response) => {
-      if (!this.checkForErrors(response.data)) {
-        if (response.data.id){
-          this.newFeatureCreated(response.data);
-        }
-      }
-      else {
-        //server error
-      }
-      //return ui to previous state
-      this.setState({creatingNewFeature: false});
+    this._post("createFeatureFromLinestring", formData).then((response) => {
+      if (response.id) this.newFeatureCreated(response);
+    }).catch((error) => {
+      //do something
     });
   }
   
@@ -2553,7 +2433,6 @@ class App extends React.Component {
   newFeatureCreated(response){
     this.getInterestFeature(response.id);
     //ui response
-    this.setState({ creatingNewFeature: false });
     this.setState({ snackbarOpen: true, snackbarMessage: response.info });
     //close the dialog
     this.closeNewFeatureDialog();
@@ -2567,15 +2446,14 @@ class App extends React.Component {
 
   getInterestFeature(id) {
     //load the interest feature from the marxan web database
-    jsonp(this.requestEndpoint + "getFeature?oid=" + id + "&format=json", { timeout: 10000 }).promise.then(function(response) {
-      if (!this.checkForErrors(response)) {
-        //add the required attributes to use it in Marxan Web
-        this.addFeatureAttributes(response.data[0]);
-        //update the allFeatures array
-        this.addNewFeature(response.data[0]);
-      }
-      else {}
-    }.bind(this));
+    this._get("getFeature?oid=" + id + "&format=json").then((response) => {
+      //add the required attributes to use it in Marxan Web
+      this.addFeatureAttributes(response.data[0]);
+      //update the allFeatures array
+      this.addNewFeature(response.data[0]);
+    }).catch((error) => {
+      //do something
+    });
   }
 
   //adds a new feature to the allFeatures array
@@ -2587,18 +2465,15 @@ class App extends React.Component {
   }
   
   deleteFeature(feature) {
-    jsonp(this.requestEndpoint + "deleteFeature?feature_name=" + feature.feature_class_name, { timeout: TIMEOUT }).promise.then(function(response) {
-      if (!this.checkForErrors(response)) {
-        this.setState({ snackbarOpen: true, snackbarMessage: "Feature deleted" });
-        //remove it from the current project if necessary
-        this.removeFeature(feature);
-        //remove it from the allFeatures array
-        this.removeFeatureFromAllFeatures(feature);
-      }
-      else {
-        this.setState({ snackbarOpen: true, snackbarMessage: "Feature not deleted" });
-      }
-    }.bind(this));
+    this._get("deleteFeature?feature_name=" + feature.feature_class_name).then((response) => {
+      this.setState({ snackbarOpen: true, snackbarMessage: "Feature deleted" });
+      //remove it from the current project if necessary
+      this.removeFeature(feature);
+      //remove it from the allFeatures array
+      this.removeFeatureFromAllFeatures(feature);
+    }).catch((error) => {
+      //do something
+    });
   }
 
   //removes a feature from the allFeatures array
@@ -2612,16 +2487,15 @@ class App extends React.Component {
   
   //gets all the features 
   getAllFeatures(){
-    this.setState({loadingFeatures: true});
-    return new Promise(function(resolve, reject) {
-      jsonp(this.requestEndpoint + "getAllSpeciesData", { timeout: TIMEOUT }).promise.then(function(response){
-        if (!this.checkForErrors(response)) {
-          //set the allfeatures state
-          this.setState({allFeatures: response.data, loadingFeatures: false});
-          resolve();
-        } 
-      }.bind(this));
-    }.bind(this));
+    return new Promise((resolve, reject) => {
+      this._get("getAllSpeciesData").then((response) => {
+        //set the allfeatures state
+        this.setState({allFeatures: response.data});
+        resolve("Features returned");
+      }).catch((error) => {
+        //do something
+      });
+    });
   }
 
   openFeatureMenu(evt, feature){
@@ -2689,27 +2563,28 @@ class App extends React.Component {
       //set the text
       this.setState({puvsprLayerText: HIDE_PUVSPR_LAYER_TEXT});
       //get the planning units where the feature occurs from the puvspr.dat file
-      this.getFeaturePlanningUnits(feature.id).then(function(response){
-        if (!this.checkForErrors(response)) {
-          //update the paint property for the layer
-          var line_color_expression = this.initialiseFillColorExpression("puid");
-          response.data.forEach(function(puid) {
-              line_color_expression.push(puid, "rgba(255, 255, 255, 1)"); 
-          });
-          // Last value is the default, used where there is no data
-          line_color_expression.push("rgba(0,0,0,0)");
-          this.map.setPaintProperty(PLANNING_UNIT_PUVSPR_LAYER_NAME, "line-color", line_color_expression);
-          //show the layer
-          this.showLayer(PLANNING_UNIT_PUVSPR_LAYER_NAME);
-          //set the puvsprLayerId value - this is used to see which puvspr layer is currently being shown on the map to be able to set the text for the menu item
-          this.puvsprLayerId = feature.id;
-        }
-      }.bind(this));
+      this.getFeaturePlanningUnits(feature.id);
     }
   }
 
+  //get the planning unit ids where the feature occurs
   getFeaturePlanningUnits(oid){
-    return jsonp(this.requestEndpoint + "getFeaturePlanningUnits?user=" + this.state.owner + "&project=" + this.state.project + "&oid=" + oid, { timeout: TIMEOUT }).promise;
+    this._get("getFeaturePlanningUnits?user=" + this.state.owner + "&project=" + this.state.project + "&oid=" + oid).then((response) => {
+      //update the paint property for the layer
+      var line_color_expression = this.initialiseFillColorExpression("puid");
+      response.data.forEach(function(puid) {
+          line_color_expression.push(puid, "rgba(255, 255, 255, 1)"); 
+      });
+      // Last value is the default, used where there is no data
+      line_color_expression.push("rgba(0,0,0,0)");
+      this.map.setPaintProperty(PLANNING_UNIT_PUVSPR_LAYER_NAME, "line-color", line_color_expression);
+      //show the layer
+      this.showLayer(PLANNING_UNIT_PUVSPR_LAYER_NAME);
+      //set the puvsprLayerId value - this is used to see which puvspr layer is currently being shown on the map to be able to set the text for the menu item
+      this.puvsprLayerId = oid;
+    }).catch((error) => {
+      //do something
+    });
   }
 
   //removes the current feature from the project
@@ -2929,7 +2804,7 @@ class App extends React.Component {
 
   //called when the iucn category changes - gets the puids that need to be added/removed, adds/removes them and updates the PuEdit layer
   async renderPAGridIntersections(iucnCategory) {
-    await this.preprocessProtectedAreas(iucnCategory).then(function(intersections) {
+    await this.preprocessProtectedAreas(iucnCategory).then((intersections) => {
       //get all the puids of the intersecting protected areas in this iucn category 
       let puids = this.getPuidsFromIucnCategory(iucnCategory);
       //see if any of them will overwrite existing manually edited planning units - these will be in status 1 and 3
@@ -2949,7 +2824,7 @@ class App extends React.Component {
       this.previousIucnCategory = iucnCategory;
       //rerender
       this.updatePlanningUnits(previousPuids, puids);
-    }.bind(this));
+    });
   }
 
   //updates the planning units by reconciling the passed arrays of puids
@@ -2997,7 +2872,7 @@ class App extends React.Component {
     }
     else {
       //do the intersection on the server
-      return new Promise(function(resolve, reject) {
+      return new Promise((resolve, reject) => {
         //start the logging
         this.startLogging();
         //set state to prevent users changing the IUCN category drop down while processing is happening        
@@ -3031,7 +2906,7 @@ class App extends React.Component {
               break;
           }
         }.bind(this); //onmessage
-      }.bind(this)); //return
+      }); //return
     }
   }
 
@@ -3053,54 +2928,62 @@ class App extends React.Component {
       return Promise.resolve();
     }else{
       //calculate the boundary lengths on the server
-      return new Promise(function(resolve, reject) {
+      return new Promise((resolve, reject) => {
         //start the logging
         this.startLogging();
         ws = new WebSocket(this.websocketEndpoint + "preprocessPlanningUnits?user=" + this.state.owner + "&project=" + this.state.project);
         ws.onmessage = function (evt) {
           let response = JSON.parse(evt.data);
-          switch (response.status) {
-            case 'Started': 
-              this.setState({streamingLog: this.state.streamingLog + response.info + "\n"});
-              break;
-            case 'Running':
-              this.setState({streamingLog: this.state.streamingLog + response.info + " (elapsed time: " + response.elapsedtime + ")\n"});
-              break;
-            case 'Finishing': 
-              this.setState({streamingLog: this.state.streamingLog + response.info + " (Total time: " + response.elapsedtime + ")\n\n"});
-              break;
-            case 'Finished': 
-              //update the state
-              var currentFiles = this.state.files;
-              currentFiles.BOUNDNAME = "bounds.dat";
-              this.setState({files: currentFiles, preprocessingBoundaryLengths: false});
-              //return a value to the then() call
-              resolve(response.info);
-              break;
-            default:
-              break;
+          if (response.hasOwnProperty('error')){
+            reject(response.error);
+          }else{
+            switch (response.status) {
+              case 'Started': 
+                this.setState({streamingLog: this.state.streamingLog + response.info + "\n"});
+                break;
+              case 'Running':
+                this.setState({streamingLog: this.state.streamingLog + response.info + " (elapsed time: " + response.elapsedtime + ")\n"});
+                break;
+              case 'Finishing': 
+                this.setState({streamingLog: this.state.streamingLog + response.info + " (Total time: " + response.elapsedtime + ")\n\n"});
+                break;
+              case 'Finished': 
+                //update the state
+                var currentFiles = this.state.files;
+                currentFiles.BOUNDNAME = "bounds.dat";
+                this.setState({files: currentFiles, preprocessingBoundaryLengths: false});
+                //return a value to the then() call
+                resolve(response.info);
+                break;
+              default:
+                break;
+            }
           }
         }.bind(this); //onmessage
-      }.bind(this)); //return
+      }); //return
     }
   }
 
   showClumpingDialog(){
     //when the boundary lengths have been calculated
-    this.preprocessBoundaryLengths().then(function(intersections) {
+    this.preprocessBoundaryLengths().then((intersections) => {
       //update the spec.dat file with any that have been added or removed or changed target or spf
-      this.updateSpecFile().then(function(value) {
+      this.updateSpecFile().then((value) => {
         //when the species file has been updated, update the planning unit file 
         this.updatePuFile();
-        //when the planning unit file has been updated, update the PuVSpr file - this does all the preprocessing
-        this.updatePuvsprFile().then(function(value) {
+        //when the planning unit file has been updated, update the PuVSpr file - this does all the preprocessing using web sockets
+        this.updatePuvsprFile().then((value) => {
           //show the clumping dialog
           this.setState({ clumpingDialogOpen: true, clumpingRunning: true });
           //create the project group and run
           this.createProjectGroupAndRun();
-        }.bind(this));
-      }.bind(this));
-    }.bind(this));
+        });
+      }).catch((error) => { //updateSpecFile error
+
+      });
+    }).catch((error) => { //preprocessBoundaryLengths error
+      console.log(error);
+    }); 
   }
 
   hideClumpingDialog(){
@@ -3116,19 +2999,18 @@ class App extends React.Component {
   createProjectGroupAndRun(){
     //clear any exists projects
     if (this.projects) this.deleteProjects();
-    return new Promise(function(resolve, reject) {
-      jsonp(this.requestEndpoint + "createProjectGroup?user=" + this.state.owner + "&project=" + this.state.project + "&copies=5&blmValues=" + this.state.blmValues.join(","), { timeout: TIMEOUT }).promise.then(function(response) {
-        if (!this.checkForErrors(response)) {
-          //set the local variable for the projects
-          this.projects = response.data;
-          //run the projects
-          this.runProjects(response.data);
-        }
-        else {
-          //ui feedback
-        }
-      }.bind(this));
-    }.bind(this));
+    return new Promise((resolve, reject) => {
+      this._get("createProjectGroup?user=" + this.state.owner + "&project=" + this.state.project + "&copies=5&blmValues=" + this.state.blmValues.join(",")).then((response) => {
+        //set the local variable for the projects
+        this.projects = response.data;
+        //run the projects
+        this.runProjects(response.data);
+        resolve("Project group created");
+      }).catch((error) => {
+        //do something
+        reject(error);
+      });
+    });
   }
   
   //deletes the projects from the _clumping folder
@@ -3139,16 +3021,13 @@ class App extends React.Component {
       });
       //clear the local variable
       this.projects = undefined;
-      return new Promise(function(resolve, reject) {
-         jsonp(this.requestEndpoint + "deleteProjects?projectNames=" + projectNames.join(","), { timeout: TIMEOUT }).promise.then(function(response) {
-          if (!this.checkForErrors(response)) {
-            resolve();
-          }
-          else {
-            //ui feedback
-          }
-        }.bind(this));
-      }.bind(this));
+      return new Promise((resolve, reject) => {
+        this._get("deleteProjects?projectNames=" + projectNames.join(",")).then((response) => {
+          resolve("Projects deleted");
+        }).catch((error) => {
+          reject(error);
+        });
+      });
     }
   }
   
@@ -3158,8 +3037,8 @@ class App extends React.Component {
     //set the intitial state
     this.setState({clumpingRunning: true});
     //run the projects
-    projects.map(function(project){
-      this.startMarxanJob("_clumping", project.projectName, false).then(function(response){
+    projects.forEach((project) => {
+      this.startMarxanJob("_clumping", project.projectName, false).then((response) => {
         if (!this.checkForErrors(response, false)) {
           //run completed - get a single solution
           this.loadOtherSolution(response.user, response.project, 1);
@@ -3168,8 +3047,8 @@ class App extends React.Component {
         this.projectsRun = this.projectsRun + 1;
         //set the state
         if (this.projectsRun===5) this.setState({clumpingRunning: false});
-      }.bind(this));
-    }.bind(this));
+      });
+    });
   }
   
   rerunProjects(){
@@ -3230,6 +3109,7 @@ class App extends React.Component {
   }
   
   render() {
+    const message = (<span id="snackbar-message-id" dangerouslySetInnerHTML={{ __html: this.state.snackbarMessage }} />);    
     return (
       <MuiThemeProvider>
         <React.Fragment>
@@ -3238,15 +3118,12 @@ class App extends React.Component {
             open={!this.state.loggedIn} 
             onOk={this.processLogin.bind(this)} 
             onCancel={this.openRegisterDialog.bind(this)} 
+            loading={this.state.loading} 
             user={this.state.user} 
             changeUserName={this.changeUserName.bind(this)} 
             changePassword={this.changePassword.bind(this)} 
             password={this.state.password} 
             openResendPasswordDialog={this.openResendPasswordDialog.bind(this)}
-            loggingIn={this.state.loggingIn} 
-            createNewUser={this.createNewUser.bind(this)}
-            creatingNewUser={this.state.creatingNewUser}
-            resending={this.state.resending}
             marxanServers={this.state.marxanServers}
             selectServer={this.selectServer.bind(this)}
             marxanServer={this.state.marxanServer}
@@ -3255,15 +3132,15 @@ class App extends React.Component {
             open={this.state.registerDialogOpen} 
             onOk={this.createNewUser.bind(this)}
             onCancel={this.closeRegisterDialog.bind(this)}
-            creatingNewUser={this.props.creatingNewUser}
+            loading={this.state.loading} 
           />
           <ResendPasswordDialog
             open={this.state.resendPasswordDialogOpen} 
             onOk={this.resendPassword.bind(this)}
             onCancel={this.closeResendPasswordDialog.bind(this)}
+            loading={this.state.loading} 
             changeEmail={this.changeEmail.bind(this)} 
             email={this.state.resendEmail} 
-            resending={this.state.resending}
           />
           <UserMenu 
             userMenuOpen={this.state.userMenuOpen} 
@@ -3287,9 +3164,9 @@ class App extends React.Component {
             open={this.state.optionsDialogOpen}
             onOk={this.closeOptionsDialog.bind(this)}
             onCancel={this.closeOptionsDialog.bind(this)}
+            loading={this.state.loading} 
             userData={this.state.userData}
             saveOptions={this.saveOptions.bind(this)}
-            savingOptions={this.state.savingOptions}
             changeBasemap={this.changeBasemap.bind(this)}
             basemaps={this.state.basemaps}
             basemap={this.state.basemap}
@@ -3297,9 +3174,10 @@ class App extends React.Component {
           <UsersDialog
             open={this.state.usersDialogOpen}
             onOk={this.closeUsersDialog.bind(this)}
+            onCancel={this.closeUsersDialog.bind(this)}
+            loading={this.state.loading}
             user={this.state.user}
             users={this.state.users}
-            loadingUsers={this.state.loadingUsers}
             deleteUser={this.deleteUser.bind(this)}
             changeRole={this.changeRole.bind(this)}
             guestUserEnabled={this.state.guestUserEnabled}
@@ -3309,6 +3187,7 @@ class App extends React.Component {
             open={this.state.profileDialogOpen}
             onOk={this.closeProfileDialog.bind(this)}
             onCancel={this.closeProfileDialog.bind(this)}
+            loading={this.state.loading}
             userData={this.state.userData}
             updateUser={this.updateUser.bind(this)}
           />
@@ -3329,7 +3208,6 @@ class App extends React.Component {
             stopMarxan={this.stopMarxan.bind(this)}
             pid={this.state.pid}
             running={this.state.running} 
-            runnable={this.state.runnable}
             renameProject={this.renameProject.bind(this)}
             renameDescription={this.renameDescription.bind(this)}
             startEditingProjectName={this.startEditingProjectName.bind(this)}
@@ -3379,6 +3257,7 @@ class App extends React.Component {
             open={this.state.openInfoDialogOpen}
             onOk={this.closeInfoDialog.bind(this)}
             onCancel={this.closeInfoDialog.bind(this)}
+            loading={this.state.loading}
             feature={this.state.currentFeature}
             updateFeature={this.updateFeature.bind(this)}
             FEATURE_PROPERTIES={FEATURE_PROPERTIES}
@@ -3392,10 +3271,8 @@ class App extends React.Component {
             open={this.state.projectsDialogOpen} 
             onOk={this.closeProjectsDialog.bind(this)}
             onCancel={this.closeProjectsDialog.bind(this)}
-            loadingProjects={this.state.loadingProjects}
-            loadingProject={this.state.loadingProject}
+            loading={this.state.loading}
             projects={this.state.projects}
-            project={this.state.project}
             oldVersion={this.state.metadata.OLDVERSION}
             deleteProject={this.deleteProject.bind(this)}
             loadProject={this.loadProject.bind(this)}
@@ -3409,6 +3286,7 @@ class App extends React.Component {
           <NewProjectDialog
             open={this.state.newProjectDialogOpen}
             onOk={this.closeNewProjectDialog.bind(this)}
+            loading={this.state.loading}
             getPlanningUnitGrids={this.getPlanningUnitGrids.bind(this)}
             planning_unit_grids={this.state.planning_unit_grids}
             openFeaturesDialog={this.openFeaturesDialog.bind(this)}
@@ -3420,6 +3298,7 @@ class App extends React.Component {
           <NewPlanningGridDialog 
             open={this.state.NewPlanningGridDialogOpen} 
             onCancel={this.closeNewPlanningGridDialog.bind(this)}
+            loading={this.state.loading}
             createNewPlanningUnitGrid={this.createNewPlanningUnitGrid.bind(this)}
             countries={this.state.countries}
           />
@@ -3427,16 +3306,16 @@ class App extends React.Component {
             open={this.state.importPlanningGridDialogOpen} 
             onOk={this.importPlanningUnitGrid.bind(this)}
             onCancel={this.closeImportPlanningGridDialog.bind(this)}
+            loading={this.state.loading}
             requestEndpoint={this.requestEndpoint}
             SEND_CREDENTIALS={SEND_CREDENTIALS}
             checkForErrors={this.checkForErrors.bind(this)} 
-            uploadingPlanningUnit={this.state.uploadingPlanningUnit}
           />
           <FeaturesDialog
             open={this.state.featuresDialogOpen}
             onOk={this.updateSelectedFeatures.bind(this)}
             onCancel={this.closeFeaturesDialog.bind(this)}
-            loadingFeatures={this.state.loadingFeatures}
+            loading={this.state.loading}
             metadata={this.state.metadata}
             allFeatures={this.state.allFeatures}
             deleteFeature={this.deleteFeature.bind(this)}
@@ -3456,6 +3335,7 @@ class App extends React.Component {
             open={this.state.NewFeatureDialogOpen} 
             onOk={this.closeNewFeatureDialog.bind(this)}
             onCancel={this.closeNewFeatureDialog.bind(this)}
+            loading={this.state.loading}
             setName={this.setNewFeatureDatasetName.bind(this)}
             setDescription={this.setNewFeatureDatasetDescription.bind(this)}
             setFilename={this.setNewFeatureDatasetFilename.bind(this)}
@@ -3463,7 +3343,6 @@ class App extends React.Component {
             description={this.state.featureDatasetDescription}
             filename={this.state.featureDatasetFilename}
             createNewFeature={this.createNewFeature.bind(this)}
-            creatingNewFeature={this.state.creatingNewFeature}
             checkForErrors={this.checkForErrors.bind(this)} 
             requestEndpoint={this.requestEndpoint}
             SEND_CREDENTIALS={SEND_CREDENTIALS}
@@ -3472,6 +3351,8 @@ class App extends React.Component {
           <PlanningGridsDialog
             open={this.state.planningGridsDialogOpen}
             onOk={this.closePlanningGridsDialog.bind(this)}
+            onCancel={this.closePlanningGridsDialog.bind(this)}
+            loading={this.state.loading}
             getPlanningUnitGrids={this.getPlanningUnitGrids.bind(this)}
             unauthorisedMethods={this.state.unauthorisedMethods}
             planningGrids={this.state.planning_unit_grids}
@@ -3489,8 +3370,8 @@ class App extends React.Component {
             open={this.state.settingsDialogOpen}
             onOk={this.closeRunSettingsDialog.bind(this)}
             onCancel={this.closeRunSettingsDialog.bind(this)}
+            loading={this.state.loading}
             updateRunParams={this.updateRunParams.bind(this)}
-            updatingRunParameters={this.state.updatingRunParameters}
             runParams={this.state.runParams}
             showClumpingDialog={this.showClumpingDialog.bind(this)}
             userRole={this.state.userData.ROLE}
@@ -3499,6 +3380,7 @@ class App extends React.Component {
             open={this.state.classificationDialogOpen}
             onOk={this.closeClassificationDialog.bind(this)}
             onCancel={this.closeClassificationDialog.bind(this)}
+            loading={this.state.loading}
             renderer={this.state.renderer}
             changeColorCode={this.changeColorCode.bind(this)}
             changeRenderer={this.changeRenderer.bind(this)}
@@ -3533,6 +3415,7 @@ class App extends React.Component {
           <ImportDialog 
             open={this.state.importDialogOpen}
             onOk={this.closeImportDialog.bind(this)}
+            loading={this.state.loading}
             requestEndpoint={this.requestEndpoint}
             SEND_CREDENTIALS={SEND_CREDENTIALS}
             importProject={this.importProject.bind(this)}
@@ -3542,7 +3425,7 @@ class App extends React.Component {
           />
           <Snackbar
             open={this.state.snackbarOpen}
-            message={this.state.snackbarMessage}
+            message={message}
             onRequestClose={this.closeSnackbar.bind(this)}
             style={{maxWidth:'800px !important'}}
             contentStyle={{maxWidth:'800px !important'}}

@@ -68,7 +68,6 @@ class FeaturesDialog extends React.Component {
           return (
               <MarxanDialog 
                   {...this.props}  
-                  showSpinner={this.props.loadingFeatures} 
                   autoDetectWindowHeight={false}
                   bodyStyle={{ padding:'0px 24px 0px 24px'}}
                   title="Features"  
@@ -108,6 +107,7 @@ class FeaturesDialog extends React.Component {
                                   show={(this.props.userRole !== "ReadOnly")&&(!this.props.metadata.OLDVERSION)&&(!this.props.addingRemovingFeatures)}
                                   icon={<FontAwesomeIcon icon={faPlusCircle} />} 
                                   title="New feature"
+                                  disabled={this.props.loading}
                                   onClick={this._new.bind(this)} 
                                   label={"New"}
                               />
@@ -129,7 +129,7 @@ class FeaturesDialog extends React.Component {
                                   show={(this.props.userRole === "Admin")&&(!this.props.metadata.OLDVERSION)&&(!this.props.addingRemovingFeatures)}
                                   icon={<FontAwesomeIcon icon={faTrashAlt}  color='rgb(255, 64, 129)'/>} 
                                   title="Delete feature" 
-                                  disabled={this.state.selectedFeature === undefined}
+                                  disabled={this.state.selectedFeature === undefined || this.props.loading}
                                   onClick={this._delete.bind(this)} 
                                   label={"Delete"}
                               />

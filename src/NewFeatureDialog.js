@@ -23,9 +23,8 @@ class NewFeatureDialog extends React.Component {
             <MarxanDialog  
                 {...this.props} 
                 onOk={this.props.createNewFeature}
-                okDisabled={!(this.props.name!=='' && this.props.description!=='' && ((this.props.filename!=='' && this.props.newFeatureSource === "import")||(this.props.filename==='' && this.props.newFeatureSource === "digitising")) && (this.props.creatingNewFeature===false))}
+                okDisabled={!(this.props.name!=='' && this.props.description!=='' && ((this.props.filename!=='' && this.props.newFeatureSource === "import")||(this.props.filename==='' && this.props.newFeatureSource === "digitising")) && (this.props.loading===false))}
                 showCancelButton={true}
-                showSpinner={(this.props.creatingNewFeature)}
                 contentWidth={420}
                 title="New feature" 
                 children={c} 

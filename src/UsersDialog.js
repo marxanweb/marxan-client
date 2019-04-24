@@ -36,7 +36,7 @@ class UsersDialog extends React.Component {
               {...this.props} 
               onOk={this.closeDialog.bind(this)}
               onRequestClose={this.closeDialog.bind(this)}
-              showSpinner={(this.props.loadingUsers)}
+              showCancelButton={true}
               autoDetectWindowHeight={false}
               bodyStyle={{ padding:'0px 24px 0px 24px'}}
               title="Users"   
@@ -96,7 +96,7 @@ class UsersDialog extends React.Component {
                           <ToolbarButton  
                               icon={<FontAwesomeIcon icon={faTrashAlt}  color='rgb(255, 64, 129)'/>} 
                               title="Delete user" 
-                              disabled={!this.state.selectedUser || this.props.loadingUsers || (this.props.user === this.state.selectedUser.user)||(this.state.selectedUser.user === 'guest')}
+                              disabled={!this.state.selectedUser || this.props.loading || (this.props.user === this.state.selectedUser.user)||(this.state.selectedUser.user === 'guest')}
                               onClick={this._delete.bind(this)} 
                               label={"Delete"}
                           />

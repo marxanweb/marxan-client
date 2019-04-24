@@ -521,3 +521,6 @@ div.rt-tbody>div>div>div>div[contenteditable="true"] {
 .gbifLogo {
   background-image: url(./gbif.jpg);
 }
+.snackbarLink{
+  text-decoration: underline;
+}

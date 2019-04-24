@@ -59,7 +59,6 @@ class RunSettingsDialog extends React.Component {
                 offsetX={80}
                 offsetY={260}
                 onOk={this.updateRunParams.bind(this)}
-                showSpinner={this.props.updatingRunParameters}
                 title="Run settings" 
                 children={
                     <div style={{height:'275px'}} key="k16">

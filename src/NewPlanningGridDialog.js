@@ -12,7 +12,7 @@ let shapes = ['Hexagon', 'Square'];
 class NewPlanningGridDialog extends React.Component {
   constructor(props){
     super(props);
-    this.state = {iso3: '', domain:'', shape:'', areakm2: undefined, creatingNewPlanningGrid: false};
+    this.state = {iso3: '', domain:'', shape:'', areakm2: undefined};
   }
   changeIso3(evt, value) {
     this.setState({iso3: this.props.countries[value].iso3});
@@ -27,11 +27,8 @@ class NewPlanningGridDialog extends React.Component {
     this.setState({areakm2: areakm2s[value]});
   }
   onOk(){
-    this.setState({creatingNewPlanningGrid: true});
     //create the new planning grid
     this.props.createNewPlanningUnitGrid(this.state.iso3, this.state.domain, this.state.areakm2, this.state.shape).then(function(response){
-      //when its finished restore state
-      this.setState({creatingNewPlanningGrid: false});
       //close the dialog
       this.props.onCancel();
     }.bind(this));
@@ -43,8 +40,7 @@ class NewPlanningGridDialog extends React.Component {
         {...this.props}
         onOk={this.onOk.bind(this)}
         onRequestClose={this.props.onCancel}
-        showSpinner={this.state.creatingNewPlanningGrid}
-        okDisabled={ !this.state.iso3 ||!this.state.domain ||!this.state.areakm2 ||this.state.creatingNewPlanningGrid}
+        okDisabled={ !this.state.iso3 ||!this.state.domain ||!this.state.areakm2 ||this.props.loading}
         cancelLabel={"Cancel"}
         showCancelButton={true}
         title="New planning grid"

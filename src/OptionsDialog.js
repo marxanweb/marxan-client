@@ -28,7 +28,6 @@ class OptionsDialog extends React.Component {
         return (
             <MarxanDialog 
                 {...this.props} 
-                showSpinner={this.props.savingOptions}
                 contentWidth={370}
                 offsetY={80}
                 showCancelButton={true}

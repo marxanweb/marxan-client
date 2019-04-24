@@ -74,7 +74,6 @@ class ProjectsDialog extends React.Component {
                     <MarxanDialog 
                     {...this.props} 
                     // titleBarIcon={faBookOpen}
-                    showSpinner={(this.props.loadingProjects || this.props.loadingProject)}
                     okLabel={(this.props.userRole === "ReadOnly") ? "Open (Read-only)" : "Open"}
                     onOk={this.load.bind(this)}
                     onCancel={this.closeDialog.bind(this)}
@@ -126,14 +125,14 @@ class ProjectsDialog extends React.Component {
                                     icon={<Clone style={{height:'20px',width:'20px'}}/>} 
                                     title="Duplicate project" 
                                     onClick={this.cloneProject.bind(this)} 
-                                    disabled={!this.state.selectedProject || this.props.loadingProjects || this.props.loadingProject}
+                                    disabled={!this.state.selectedProject || this.props.loading}
                                     label={"Duplicate"}
                                 /> 
                                 <ToolbarButton  
                                     show={!this.props.unauthorisedMethods.includes("deleteProject")}
                                     icon={<FontAwesomeIcon icon={faTrashAlt}  color='rgb(255, 64, 129)'/>} 
                                     title="Delete project" 
-                                    disabled={!this.state.selectedProject || this.props.loadingProjects || this.props.loadingProject}
+                                    disabled={!this.state.selectedProject || this.props.loading}
                                     onClick={this._delete.bind(this)} 
                                     label={"Delete"}
                                 />

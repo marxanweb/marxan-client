@@ -83,11 +83,10 @@ class RegisterDialog extends React.Component {
             <MarxanDialog 
                 {...this.props} 
                 contentWidth={358}
-                showSpinner={this.props.creatingNewUser}
                 onOk={this.createNewUser.bind(this)}
-                okDisabled={!(this.state.user && this.state.password && this.state.name && this.state.email && this.state.mb_tk) || this.props.creatingNewUser} 
+                okDisabled={!(this.state.user && this.state.password && this.state.name && this.state.email && this.state.mb_tk) || this.props.loading} 
                 showCancelButton={true}
-                cancelDisabled={this.props.creatingNewUser} 
+                cancelDisabled={this.props.loading} 
                 title="Register" 
                 children={c} 
                 onRequestClose={this.props.onCancel} 
