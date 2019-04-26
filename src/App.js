@@ -255,6 +255,27 @@ class App extends React.Component {
     });
   }
  
+  //web socket requests
+  _ws(params, msgCallback){
+    return new Promise((resolve, reject) => {
+      let ws = new WebSocket(this.websocketEndpoint + params);
+      //get the message and pass it to the msgCallback function
+      ws.onmessage = (evt) => {
+        let message = JSON.parse(evt.data);
+        if (message.status === "Finished"){
+          msgCallback(message);
+          //if the web socket has finished then resolve the promise
+          resolve(message);
+        }else{
+          msgCallback(message);
+        }
+      };
+      ws.onerror = function (evt) {
+        reject(evt);
+      };
+    });
+  }
+  
   //checks the reponse for errors
   checkForErrors(response, showSnackbar = true) {
     let networkError = this.responseIsTimeoutOrEmpty(response, showSnackbar);
@@ -298,6 +319,33 @@ class App extends React.Component {
     }
   }
 
+  //called when a websocket message is received
+  wsMessageCallback(message){
+    var logMessage = "";
+    switch (message.status) {
+      case 'Started': //from both asynchronous queries and marxan runs
+        logMessage = this.state.streamingLog + message.info + "\n";
+        break;
+      case 'pid': //from marxan runs
+        this.setState({pid: message.pid});
+        break;
+      case 'RunningMarxan': //from marxan runs
+        logMessage = this.state.streamingLog + message.info.replace(/(\n\n {2}Init)/gm,"\n  Init").replace(/(\n\n {2}ThermalAnnealing)/gm,"\n  ThermalAnnealing").replace(/(\n\n {2}Iterative)/gm,"\n  Iterative").replace(/(\n\n {2}Best)/gm,"\n  Best");
+        break;
+      case 'RunningQuery': //from asynchronous queries
+      case 'FinishedQuery': //from asynchronous queries
+        logMessage = this.state.streamingLog + message.info + " (elapsed time: " + message.elapsedtime + ")\n";
+        break;
+      case 'Finished': //from both asynchronous queries and marxan runs
+        logMessage = this.state.streamingLog + message.info + " (Total time: " + message.elapsedtime + ")\n\n";
+        break;
+      default:
+        break;
+    }
+    //update the log if there is a new message and we are not running the clumping projects (there will be 5 simultaneous outputs)
+    if (logMessage !== "" && !this.state.clumpingRunning) this.setState({streamingLog: logMessage});
+  }
+  
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////// MANAGING MARXAN SERVERS
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -443,6 +491,7 @@ class App extends React.Component {
         message = "The tileset '" + e.source.url + "' was not found";
         break;
       default:
+        message = e.error.message;
         break;
     }
     this.setState({ snackbarOpen: true, snackbarMessage: "MapError: " + message});
@@ -1062,76 +1111,37 @@ class App extends React.Component {
 
   //preprocesses a feature using websockets - i.e. intersects it with the planning units grid and writes the intersection results into the puvspr.dat file ready for a marxan run - this will have no server timeout as its running using websockets
   preprocessFeature(feature) {
-    var logMessage = "";
-    return new Promise(function(resolve, reject) {
+    return new Promise((resolve, reject) => {
       //switches the results pane to the log tab
       this.log_tab_active();
       this.setState({preprocessingFeature: true});
-      ws = new WebSocket(this.websocketEndpoint + "preprocessFeature?user=" + this.state.owner + "&project=" + this.state.project + "&planning_grid_name=" + this.state.metadata.PLANNING_UNIT_NAME + "&feature_class_name=" + feature.feature_class_name + "&alias=" + feature.alias + "&id=" + feature.id);
-      ws.onmessage = function (evt) {
-        //TODO This code is duplicated in other websocket onmessage functions - sort out
-        let response = JSON.parse(evt.data);
-        switch (response.status) {
-          case 'Started': 
-            logMessage = this.state.streamingLog + response.info + "\n";
-            break;
-          case 'Running': 
-            logMessage = this.state.streamingLog + response.info + " (elapsed time: " + response.elapsedtime + ")\n";
-            break;
-          case 'Finished': 
-            logMessage = this.state.streamingLog + response.info + " (Total time: " + response.elapsedtime + ")\n\n";
-            //reset the preprocessing state
-            this.setState({preprocessingFeature: false});
-            //update the feature that has been preprocessed
-            this.updateFeature(feature, {preprocessed: true, pu_count: Number(response.pu_count), pu_area: Number(response.pu_area), occurs_in_planning_grid: (Number(response.pu_count) >0)});
-            resolve(evt.data);
-            break;
-          default:
-            break;
-        }
-        this.setState({streamingLog: logMessage});
-      }.bind(this);
-    }.bind(this));
+      //call the websocket 
+      this._ws("preprocessFeature?user=" + this.state.owner + "&project=" + this.state.project + "&planning_grid_name=" + this.state.metadata.PLANNING_UNIT_NAME + "&feature_class_name=" + feature.feature_class_name + "&alias=" + feature.alias + "&id=" + feature.id, this.wsMessageCallback.bind(this)).then((message) => {
+        //websocket has finished
+        this.updateFeature(feature, {preprocessed: true, pu_count: Number(message.pu_count), pu_area: Number(message.pu_area), occurs_in_planning_grid: (Number(message.pu_count) >0)});
+        //reset the preprocessing state
+        this.setState({preprocessingFeature: false});
+        resolve(message);
+      }).catch((error) => {
+        reject(error);
+      });
+    });
   }
 
   //calls the marxan executeable and runs it getting the output streamed through websockets
-  startMarxanJob(user, project, showLog = true) {
-    var logMessage = "";
-    return new Promise(function(resolve, reject) {
+  startMarxanJob(user, project) {
+    return new Promise((resolve, reject) => {
       //update the ui to reflect the fact that a job is running
       this.setState({active_pu: undefined});
       //make the request to get the marxan data
-      ws = new WebSocket(this.websocketEndpoint + "runMarxan?user=" + user + "&project=" + project);
-      ws.onmessage = function(evt){
-        let response = JSON.parse(evt.data);
-        switch (response.status) {
-          case 'pid': 
-            this.setState({pid: response.pid});
-            break;
-          case 'Started': 
-            logMessage = this.state.streamingLog + response.info + "\n\n";
-            break;
-          case 'Running': 
-            logMessage = this.state.streamingLog + response.info.replace(/(\n\n {2}Init)/gm,"\n  Init").replace(/(\n\n {2}ThermalAnnealing)/gm,"\n  ThermalAnnealing").replace(/(\n\n {2}Iterative)/gm,"\n  Iterative").replace(/(\n\n {2}Best)/gm,"\n  Best");
-            break;
-          case 'Finished': 
-            this.setState({pid: 0});
-            logMessage = this.state.streamingLog + "\n" + response.info + " (Total time: " + response.elapsedtime + ")\n";
-            resolve(response);
-            break;
-          default:
-            break;
-        }
-        if (showLog) this.setState({streamingLog: logMessage});
-      }.bind(this);
-      ws.onerror = function (evt) {
-        resolve({error: "The project '" + evt.target.url.substr(evt.target.url.lastIndexOf('=')+1) + "' timed out"});
-      };
-    }.bind(this));
-  }
-
-  //called every time there is a message from the running marxan websocket
-  marxanJobMessageReceived (evt) {
+      this._ws("runMarxan?user=" + user + "&project=" + project, this.wsMessageCallback.bind(this)).then((message) => {
+        //websocket has finished
+        this.setState({pid: 0});
+        resolve(message);
+      }).catch((error) => {
+        reject(error);
+      });
+    });
   }
 
   //gets the results for a project
@@ -1636,26 +1646,29 @@ class App extends React.Component {
   
   //called when the planning unit layer has changed, i.e. the project has changed
   changeTileset(tilesetid) {
-    this.getMetadata(tilesetid).then(function(response) {
+    this.getMetadata(tilesetid).then((response) => {
       this.spatialLayerChanged(response, true);
-    }.bind(this));
+    }).catch((error) => {
+      this.setState({ snackbarOpen: true, snackbarMessage: error});
+    });
   }
 
   //gets all of the metadata for the tileset
   getMetadata(tilesetId) {
-    return fetch("https://api.mapbox.com/v4/" + tilesetId + ".json?secure&access_token=" + this.state.userData.MAPBOXACCESSTOKEN)
+    return new Promise((resolve, reject) => {
+      fetch("https://api.mapbox.com/v4/" + tilesetId + ".json?secure&access_token=" + this.state.userData.MAPBOXACCESSTOKEN)
       .then(response => response.json())
-      .then(function(response) {
-        if (response.message != null){
-          if (response.message.indexOf('does not exist') > 0){
-            this.setState({ snackbarOpen: true, snackbarMessage: "The tileset does not exist on Mapbox."});
-          }
+      .then((response2) => {
+        if ((response2.message != null) && (response2.message.indexOf('does not exist') > 0)){
+          reject("The tileset '" + tilesetId + "' does not exist on Mapbox.");
+        }else{
+          resolve(response2);
         }
-        return response;
       })
       .catch(function(error) {
-        return error;
+        reject(error);
       });
+    });
   }
 
   spatialLayerChanged(tileset, zoomToBounds) {
@@ -2186,7 +2199,7 @@ class App extends React.Component {
       this.timer = setInterval(() => {
         fetch("https://api.mapbox.com/uploads/v1/" + MAPBOX_USER + "/" + uploadid + "?access_token=" + mb_tk)
           .then(response => response.json())
-          .then(function(response) {
+          .then((response) => {
             if (response.complete){
               //clear the timer
               clearInterval(this.timer);
@@ -2195,7 +2208,7 @@ class App extends React.Component {
               this.setState({ snackbarOpen: true, snackbarMessage: "Uploaded to MapBox", loading: false });
               resolve("Uploaded to Mapbox");
             }
-          }.bind(this))
+          })
           .catch(function(error) {
             this.setState({loading: false });
             reject(error);
@@ -2877,35 +2890,17 @@ class App extends React.Component {
         this.startLogging();
         //set state to prevent users changing the IUCN category drop down while processing is happening        
         this.setState({preprocessingProtectedAreas: true });
-        ws = new WebSocket(this.websocketEndpoint + "preprocessProtectedAreas?user=" + this.state.owner + "&project=" + this.state.project + "&planning_grid_name=" + this.state.metadata.PLANNING_UNIT_NAME);
-        ws.onmessage = function (evt) {
-          let response = JSON.parse(evt.data);
-          switch (response.status) {
-            case 'Started': 
-              this.setState({streamingLog: this.state.streamingLog + response.info + "\n"});
-              break;
-            case 'Running':
-              if (response.hasOwnProperty('error')){
-                this.setState({streamingLog: this.state.streamingLog + response.error + " (elapsed time: " + response.elapsedtime + ")\n"});
-              }else{
-                this.setState({streamingLog: this.state.streamingLog + response.info + " (elapsed time: " + response.elapsedtime + ")\n"});
-              }
-              break;
-            case 'Finishing': 
-              this.setState({streamingLog: this.state.streamingLog + response.info + " (Total time: " + response.elapsedtime + ")\n\n"});
-              break;
-            case 'Finished': 
-              //set the local variable
-              this.protected_area_intersections = response.info;
-              //return the state to normal
-              this.setState({preprocessingProtectedAreas: false });
-              //return a value to the then() call
-              resolve(response.info);
-              break;
-            default:
-              break;
-          }
-        }.bind(this); //onmessage
+        //call the websocket 
+        this._ws("preprocessProtectedAreas?user=" + this.state.owner + "&project=" + this.state.project + "&planning_grid_name=" + this.state.metadata.PLANNING_UNIT_NAME, this.wsMessageCallback.bind(this)).then((message) => {
+          //set the local variable
+          this.protected_area_intersections = message.intersections;
+          //return the state to normal
+          this.setState({preprocessingProtectedAreas: false });
+          //return a value to the then() call
+          resolve(message);
+        }).catch((error) => {
+          reject(error);
+        });
       }); //return
     }
   }
@@ -2931,35 +2926,17 @@ class App extends React.Component {
       return new Promise((resolve, reject) => {
         //start the logging
         this.startLogging();
-        ws = new WebSocket(this.websocketEndpoint + "preprocessPlanningUnits?user=" + this.state.owner + "&project=" + this.state.project);
-        ws.onmessage = function (evt) {
-          let response = JSON.parse(evt.data);
-          if (response.hasOwnProperty('error')){
-            reject(response.error);
-          }else{
-            switch (response.status) {
-              case 'Started': 
-                this.setState({streamingLog: this.state.streamingLog + response.info + "\n"});
-                break;
-              case 'Running':
-                this.setState({streamingLog: this.state.streamingLog + response.info + " (elapsed time: " + response.elapsedtime + ")\n"});
-                break;
-              case 'Finishing': 
-                this.setState({streamingLog: this.state.streamingLog + response.info + " (Total time: " + response.elapsedtime + ")\n\n"});
-                break;
-              case 'Finished': 
-                //update the state
-                var currentFiles = this.state.files;
-                currentFiles.BOUNDNAME = "bounds.dat";
-                this.setState({files: currentFiles, preprocessingBoundaryLengths: false});
-                //return a value to the then() call
-                resolve(response.info);
-                break;
-              default:
-                break;
-            }
-          }
-        }.bind(this); //onmessage
+        //call the websocket 
+        this._ws("preprocessPlanningUnits?user=" + this.state.owner + "&project=" + this.state.project, this.wsMessageCallback.bind(this)).then((message) => {
+          //update the state
+          var currentFiles = this.state.files;
+          currentFiles.BOUNDNAME = "bounds.dat";
+          this.setState({files: currentFiles, preprocessingBoundaryLengths: false});
+          //return a value to the then() call
+          resolve(message);
+        }).catch((error) => {
+          reject(error);
+        });
       }); //return
     }
   }
