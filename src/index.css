@@ -461,8 +461,8 @@ div.rt-tbody>div>div>div>div[contenteditable="true"] {
   width: 24px;
   height: 24px;
   position: absolute;
-  right: 13px;
-  bottom: 128px;
+  right: -3px;
+  top: -56px;
 }
 
 .processingText {
