@@ -16,7 +16,7 @@ class LinearGauge extends React.Component {
 		//the number of pixels from the left hand side to offset the target line
 		let targetPxOffset = (this.props.target_value * scaleFactor);
 		//the number of pixels from the left hand side to the protected line
-		protectedWidth = (this.props.protected_percent === -1) ? 0 : (this.props.protected_percent * scaleFactor);
+		protectedWidth = Math.round((this.props.protected_percent === -1) ? 0 : (this.props.protected_percent * scaleFactor));
 		//get whether or not the % protected should be visible or hidden
 		protectedHidden = (protectedWidth < 26 && !(this.state.alwaysShowPercent));
 		//get the width of the target shortfall
