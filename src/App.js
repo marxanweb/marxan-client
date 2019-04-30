@@ -4,11 +4,12 @@ import fetchJsonp from 'fetch-jsonp';
 /*eslint-disable no-unused-vars*/ 
 import axios, { post } from 'axios';
 /*eslint-enable no-unused-vars*/
-import MapboxDraw from '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.js';
-import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
-import 'mapbox-gl/dist/mapbox-gl.css';
+//mapbox imports
+import MapboxDraw from '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.js';
 import mapboxgl from 'mapbox-gl';
+import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
+import 'mapbox-gl/dist/mapbox-gl.css';
 import jsonp from 'jsonp-promise';
 import classyBrew from 'classybrew';
 //material-ui components and icons
@@ -56,7 +57,7 @@ import Popup from './Popup';
 mapboxgl.accessToken = 'pk.eyJ1IjoiYmxpc2h0ZW4iLCJhIjoiMEZrNzFqRSJ9.0QBRA2HxTb8YHErUFRMPZg'; //this is my public access token for using in the Mapbox GL client - TODO change this to the logged in users public access token
 
 //CONSTANTS
-//THE MARXAN_ENDPOINT_HTTPS MUST ALSO BE CHANGED IN THE FILEUPLOAD.JS FILE 
+let MARXAN_CLIENT_RELEASE_VERSION = "v0.5"; //TODO UPDATE THIS WHEN THERE IS A NEW RELEASE
 let SEND_CREDENTIALS = true; //if true all post requests will send credentials
 let TORNADO_PATH = ":8081/marxan-server/";
 let TIMEOUT = 0; //disable timeout setting
@@ -65,12 +66,13 @@ let MAPBOX_USER = "blishten";
 let MAPBOX_STYLE_PREFIX = 'mapbox://styles/';
 let PLANNING_UNIT_STATUSES = [1, 2, 3];
 let PLANNING_UNIT_SOURCE_NAME = "planning_units_source";
-let PLANNING_UNIT_LAYER_NAME = "planning_units_layer";
-let PLANNING_UNIT_EDIT_LAYER_NAME = "planning_units_layer_edit";
-let PLANNING_UNIT_PUVSPR_LAYER_NAME = "planning_units_puvspr_layer";
-let PLANNING_UNIT_LAYER_OPACITY = 0.2;
-let PLANNING_UNIT_EDIT_LAYER_LINE_WIDTH = 1.5;
-let PUVSPR_LAYER_LAYER_LINE_WIDTH = 1.5;
+let PU_LAYER_NAME = "planning_units_layer";
+let PU_LAYER_OPACITY = 0.2;
+let EDIT_LAYER_NAME = "planning_units_layer_edit";
+let EDIT_LAYER_LINE_WIDTH = 1.5;
+let PUVSPR_LAYER_NAME = "planning_units_puvspr_layer";
+let PUVSPR_LAYER_LINE_WIDTH = 1.5;
+let PUVSPR_LAYER_OUTLINE_COLOR = 'rgba(255, 0, 0, 1)';
 let RESULTS_LAYER_NAME = "results_layer";
 let RESULTS_LAYER_FILL_OPACITY_ACTIVE = 0.9;
 let RESULTS_LAYER_FILL_OPACITY_INACTIVE = 0.3;
@@ -113,7 +115,6 @@ class App extends React.Component {
     super(props);
     this.state = {
       marxanServers: [],
-      marxanServer: undefined,
       usersDialogOpen: false,
       featureMenuOpen: false,
       profileDialogOpen: false,
@@ -152,14 +153,12 @@ class App extends React.Component {
       editingDescription: false,
       runParams: [],
       files: {},
-      active_pu: undefined,
       popup_point: { x: 0, y: 0 },
       snackbarOpen: false,
       snackbarMessage: '',
       tilesets: [],
       userMenuOpen: false,
       helpMenuOpen: false,
-      menuAnchor: undefined,
       preprocessing: false,
       pa_layer_visible: false,
       currentFeature:{},
@@ -173,8 +172,6 @@ class App extends React.Component {
       projectFeatures: [], //the features for the currently loaded project
       selectedFeatureIds :[],
       addingRemovingFeatures: false,
-      resultsLayer: undefined,
-      wdpaLayer: undefined,
       results_layer_opacity: RESULTS_LAYER_FILL_OPACITY_ACTIVE, //initial value
       wdpa_layer_opacity: WDPA_FILL_LAYER_OPACITY, //initial value
       costs: [],
@@ -196,7 +193,9 @@ class App extends React.Component {
       clumpingRunning: false,
       pid: 0,
       basemaps: [],
-      basemap: 'North Star'
+      basemap: 'North Star',
+      mapCentre: {lng: 0, lat: 0},
+      mapZoom: 12
     };
   }
 
@@ -381,7 +380,8 @@ class App extends React.Component {
       console.warn("Unable to load Mapbox basemaps from https://andrewcottam.github.io/cdn/marxan.js. Using local copy.");
       basemaps = BACKUP_MAPBOX_BASEMAPS;
     }
-    this.initialiseMaps(basemaps);
+    //initialise the basemaps
+    this.setState({basemaps: basemaps});
     //get the list of marxan servers from the marxan registry
     if (window.MARXAN_SERVERS){
       console.log("Loading Marxan Servers from https://andrewcottam.github.io/cdn/marxan.js");
@@ -477,44 +477,6 @@ class App extends React.Component {
     if (!value.offline && !value.corsEnabled && value.guestUserEnabled){
       this.setState({user: "guest", password:"password"});
     }
-  }
-  
-  initialiseMaps(basemaps){
-    this.setState({basemaps: basemaps});
-  }
-
-  mapLoaded(e) {
-    // this.map.addControl(new mapboxgl.FullscreenControl(), 'bottom-right'); // currently full screen hides the info panel and setting position:absolute and z-index: 10000000000 doesnt work properly
-    this.map.addControl(new mapboxgl.ScaleControl());
-    this.map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
-    //create the draw controls for the map
-    this.mapboxDrawControls = new MapboxDraw({
-      displayControlsDefault: false,
-      controls: {
-        polygon: true,
-        trash: true
-      },
-      defaultMode: 'draw_polygon'
-    });
-    this.map.on("mousemove", this.mouseMove.bind(this));
-    this.map.on("moveend", (evt) => {
-      if (this.state.clumpingDialogOpen) this.setState({mapCentre:this.map.getCenter(), mapZoom:this.map.getZoom()}); //only update the state if the clumping dialog is open
-    });
-    this.map.on('draw.create', this.polygonDrawn.bind(this));
-  }
-
-  //catch all event handler for map errors
-  mapError(e){
-    var message = "";
-    switch (e.error.message) {
-      case 'Not Found':
-        message = "The tileset '" + e.source.url + "' was not found";
-        break;
-      default:
-        message = e.error.message;
-        break;
-    }
-    this.setSnackBar("MapError: " + message);
   }
   
   closeSnackbar() {
@@ -888,14 +850,7 @@ class App extends React.Component {
     //reset any feature layers that are shown
     this.hideFeatureLayer();
     //reset the puvspr layer
-    this.hideLayer(PLANNING_UNIT_PUVSPR_LAYER_NAME);
-  }
-
-  //called after a file has been uploaded
-  fileUploaded(parameter, filename) {
-    let newFiles = Object.assign({}, this.state.files); //creating copy of object
-    newFiles[parameter] = filename; //updating value
-    this.setState({ files: newFiles });
+    this.hideLayer(PUVSPR_LAYER_NAME);
   }
 
   //create a new user on the server
@@ -1576,8 +1531,8 @@ class App extends React.Component {
       expression = "rgba(150, 150, 150, 0)";
     }
     //set the render paint property
-    this.map.setPaintProperty(PLANNING_UNIT_EDIT_LAYER_NAME, "line-color", expression);
-    this.map.setPaintProperty(PLANNING_UNIT_EDIT_LAYER_NAME, "line-width", PLANNING_UNIT_EDIT_LAYER_LINE_WIDTH);
+    this.map.setPaintProperty(EDIT_LAYER_NAME, "line-color", expression);
+    this.map.setPaintProperty(EDIT_LAYER_NAME, "line-width", EDIT_LAYER_LINE_WIDTH);
   }
 
   mouseMove(e) {
@@ -1618,21 +1573,57 @@ class App extends React.Component {
   ///MAP INSTANTIATION, LAYERS ADDING/REMOVING AND INTERACTION
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  //instantiates the mapbox gl map
+  //instantiates the mapboxgl map
   createMap(url){
     this.map = new mapboxgl.Map({
       container: this.mapContainer,
       style: url,
-      // center: [0.043476868184143314, 0.0460817578557311],
       center: [0, 0],
       zoom: 2
     });
+    //add event handlers for the load and error events
     this.map.on("load", this.mapLoaded.bind(this));
     this.map.on("error", this.mapError.bind(this));
-    //set a reference to this App in the map object 
-    this.map.App = this;
   }
 
+  mapLoaded(e) {
+    // this.map.addControl(new mapboxgl.FullscreenControl(), 'bottom-right'); // currently full screen hides the info panel and setting position:absolute and z-index: 10000000000 doesnt work properly
+    this.map.addControl(new mapboxgl.ScaleControl());
+    this.map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
+    //create the draw controls for the map
+    this.mapboxDrawControls = new MapboxDraw({
+      displayControlsDefault: false,
+      controls: {
+        polygon: true,
+        trash: true
+      },
+      defaultMode: 'draw_polygon'
+    });
+    this.map.on("mousemove", this.mouseMove.bind(this));
+    this.map.on("moveend", (evt) => {
+      if (this.state.clumpingDialogOpen) this.updateMapCentreAndZoom(); //only update the state if the clumping dialog is open
+    });
+    this.map.on('draw.create', this.polygonDrawn.bind(this));
+  }
+
+  updateMapCentreAndZoom(){
+    this.setState({mapCentre: this.map.getCenter(), mapZoom: this.map.getZoom()}); 
+  }
+
+  //catch all event handler for map errors
+  mapError(e){
+    var message = "";
+    switch (e.error.message) {
+      case 'Not Found':
+        message = "The tileset '" + e.source.url + "' was not found";
+        break;
+      default:
+        message = e.error.message;
+        break;
+    }
+    this.setSnackBar("MapError: " + message);
+  }
+  
   //changes the default basemap for the user
   changeBasemap(basemap, getResults = true){
     //change the state
@@ -1750,7 +1741,7 @@ class App extends React.Component {
     this.setState({resultsLayer: this.map.getLayer(RESULTS_LAYER_NAME)});
     //add the planning unit layer 
     this.map.addLayer({
-      'id': PLANNING_UNIT_LAYER_NAME,
+      'id': PU_LAYER_NAME,
       'type': "fill",
       'source': PLANNING_UNIT_SOURCE_NAME,
       "layout": {
@@ -1759,12 +1750,12 @@ class App extends React.Component {
       'source-layer': tileset.name,
       'paint': {
         'fill-color': "rgba(0, 0, 0, 0)",
-        'fill-outline-color': "rgba(150, 150, 150, " + PLANNING_UNIT_LAYER_OPACITY + ")"
+        'fill-outline-color': "rgba(150, 150, 150, " + PU_LAYER_OPACITY + ")"
       }
     }, beforeLayer);
     //add the planning units manual edit layer - this layer shows which individual planning units have had their status changed
     this.map.addLayer({
-      'id': PLANNING_UNIT_EDIT_LAYER_NAME,
+      'id': EDIT_LAYER_NAME,
       'type': "line",
       'source': PLANNING_UNIT_SOURCE_NAME,
       "layout": {
@@ -1773,12 +1764,12 @@ class App extends React.Component {
       'source-layer': tileset.name,
       'paint': {
         'line-color': "rgba(150, 150, 150, 0)",
-        'line-width': PLANNING_UNIT_EDIT_LAYER_LINE_WIDTH
+        'line-width': EDIT_LAYER_LINE_WIDTH
       }
     }, beforeLayer);
     //add the puvspr planning unit layer - this layer shows the planning unit distribution of a feature from the puvspr file
     this.map.addLayer({
-      'id': PLANNING_UNIT_PUVSPR_LAYER_NAME,
+      'id': PUVSPR_LAYER_NAME,
       'type': "line",
       'source': PLANNING_UNIT_SOURCE_NAME,
       "layout": {
@@ -1787,7 +1778,7 @@ class App extends React.Component {
       'source-layer': tileset.name,
       'paint': {
         'line-color': "rgba(255, 255, 255, 1)",
-        'line-width': PUVSPR_LAYER_LAYER_LINE_WIDTH
+        'line-width': PUVSPR_LAYER_LINE_WIDTH
       }
     }, beforeLayer);
     //add the wdpa layer
@@ -1845,31 +1836,6 @@ class App extends React.Component {
       if (layerId === WDPA_LAYER_NAME) this.setState({wdpa_layer_opacity: opacity});
     }
   }
-  //iterates through all the map layers and sets the opacity for all those layers with the source matching the passed source
-  setOpacityBySource(source, opacity) {
-    this.map.getStyle().layers.forEach((layer) => {
-      if (layer.source === source) {
-        switch (layer.type) {
-          case 'fill':
-            let opacity2 = (layer.id.substr(0,9) === 'hillshade') ? 0 : opacity;
-            this.map.setPaintProperty(layer.id, "fill-opacity", opacity2);
-            break;
-          case 'line':
-            this.map.setPaintProperty(layer.id, "line-opacity", opacity);
-            break;
-          case 'symbol':
-            this.map.setPaintProperty(layer.id, "text-opacity", opacity);
-            //also icon-opacity
-            this.map.setPaintProperty(layer.id, "icon-opacity", opacity);
-            break;
-          default:
-            // code
-        }
-      }else{
-        if (layer.id === 'background') this.map.setLayoutProperty(layer.id, 'visibility', 'none');
-      }
-    });
-  }
 
   zoomToBounds(bounds) {
     let minLng = (bounds[0] < -180) ? -180 : bounds[0];
@@ -1904,35 +1870,31 @@ class App extends React.Component {
   pu_tab_active() {
     this.setState({ activeTab: "planning_units" });
     //set a flag to capture if the outlined planning units layer needs to be reshown when switching back to any other tab
-    this.reinstatePuvsprLayer = this.isLayerVisible(PLANNING_UNIT_PUVSPR_LAYER_NAME);
+    this.reinstatePuvsprLayer = this.isLayerVisible(PUVSPR_LAYER_NAME);
     //hide the outlined planning units layer
-    this.hideLayer(PLANNING_UNIT_PUVSPR_LAYER_NAME);
+    this.hideLayer(PUVSPR_LAYER_NAME);
     //show the planning units layer 
-    this.showLayer(PLANNING_UNIT_LAYER_NAME);
+    this.showLayer(PU_LAYER_NAME);
     //change the opacity on the results layer to make it more transparent
     this.changeOpacity(RESULTS_LAYER_NAME, RESULTS_LAYER_FILL_OPACITY_INACTIVE);
     //store the values for the result layers opacities
     this.previousResultsOpacity = this.state.results_layer_opacity;
-    //change the opacity on all of the composite source layers to make them more transparent
-    // this.setOpacityBySource("composite", 0.5);
     //show the planning units edit layer 
-    this.showLayer(PLANNING_UNIT_EDIT_LAYER_NAME);
+    this.showLayer(EDIT_LAYER_NAME);
     //render the planning_units_layer_edit layer
-    this.renderPuEditLayer(PLANNING_UNIT_EDIT_LAYER_NAME);
+    this.renderPuEditLayer(EDIT_LAYER_NAME);
   }
 
   //fired whenever another tab is selected
   pu_tab_inactive() {
     //reinstate the outlined planning units layer if needs be
-    if (this.reinstatePuvsprLayer) this.showLayer(PLANNING_UNIT_PUVSPR_LAYER_NAME);
+    if (this.reinstatePuvsprLayer) this.showLayer(PUVSPR_LAYER_NAME);
     //change the opacity on the results layer to back to what it was
     this.changeOpacity(RESULTS_LAYER_NAME, (this.previousResultsOpacity) ? this.previousResultsOpacity : RESULTS_LAYER_FILL_OPACITY_ACTIVE);
-    //change the opacity on all of the composite source layers to restore the opacity
-    // this.setOpacityBySource("composite", 1);
     //hide the planning units layer 
-    this.hideLayer(PLANNING_UNIT_LAYER_NAME);
+    this.hideLayer(PU_LAYER_NAME);
     //hide the planning units edit layer 
-    this.hideLayer(PLANNING_UNIT_EDIT_LAYER_NAME);
+    this.hideLayer(EDIT_LAYER_NAME);
   }
 
   //fired when the legend tab is selected
@@ -1958,18 +1920,18 @@ class App extends React.Component {
     //set the cursor to a crosshair
     this.map.getCanvas().style.cursor = "crosshair";
     //add the left mouse click event to the planning unit layer
-    this.map.on("click", PLANNING_UNIT_LAYER_NAME, this.moveStatusUp);
+    this.map.on("click", PU_LAYER_NAME, this.moveStatusUp);
     //add the mouse right click event to the planning unit layer 
-    this.map.on("contextmenu", PLANNING_UNIT_LAYER_NAME, this.resetStatus);
+    this.map.on("contextmenu", PU_LAYER_NAME, this.resetStatus);
   }
 
   stopPuEditSession() {
     //reset the cursor
     this.map.getCanvas().style.cursor = "pointer";
     //remove the mouse left click event
-    this.map.off("click", PLANNING_UNIT_LAYER_NAME, this.moveStatusUp);
+    this.map.off("click", PU_LAYER_NAME, this.moveStatusUp);
     //remove the mouse right click event
-    this.map.off("contextmenu", PLANNING_UNIT_LAYER_NAME, this.resetStatus);
+    this.map.off("contextmenu", PU_LAYER_NAME, this.resetStatus);
     //update the pu.dat file
     this.updatePuDatFile();
   }
@@ -2022,7 +1984,7 @@ class App extends React.Component {
 
   changeStatus(e, direction) {
     //get the feature that the user has clicked 
-    var features = this.map.queryRenderedFeatures(e.point, { layers: [PLANNING_UNIT_LAYER_NAME] });
+    var features = this.map.queryRenderedFeatures(e.point, { layers: [PU_LAYER_NAME] });
     //get the featureid
     if (features.length > 0) {
       //get the puid
@@ -2545,7 +2507,7 @@ class App extends React.Component {
   //get feature menu text for puvspr layer
   getMenuTextForPuvsprLayer(feature){
     //see if the layer that shows the planning units for a feature is currently visible on the map
-    let visible = this.isLayerVisible(PLANNING_UNIT_PUVSPR_LAYER_NAME);
+    let visible = this.isLayerVisible(PUVSPR_LAYER_NAME);
     //see if the feature layer is different from the one that is already being shown on the map
     let newFeature = ((feature.id !== this.puvsprLayerId) || (this.puvsprLayerId === undefined));
     //really confusing line!
@@ -2581,7 +2543,7 @@ class App extends React.Component {
           'fill-color': "rgba(255, 0, 0, 1)",
           'fill-outline-color': "rgba(255, 0, 0, 1)"
         }
-      }, PLANNING_UNIT_PUVSPR_LAYER_NAME); //add it before the layer that shows the planning unit outlines for the feature
+      }, PUVSPR_LAYER_NAME); //add it before the layer that shows the planning unit outlines for the feature
       this.updateFeature(feature, {feature_layer_loaded: true});
     }
   }
@@ -2589,7 +2551,7 @@ class App extends React.Component {
   toggleFeaturePuvsprLayer(feature){
     // this.closeFeatureMenu();
     if (this.state.puvsprLayerText === HIDE_PUVSPR_LAYER_TEXT){
-      this.hideLayer(PLANNING_UNIT_PUVSPR_LAYER_NAME);
+      this.hideLayer(PUVSPR_LAYER_NAME);
       //set the text
       this.setState({puvsprLayerText: SHOW_PUVSPR_LAYER_TEXT});
       //reset the id of the currently shown pu layer
@@ -2608,13 +2570,13 @@ class App extends React.Component {
       //update the paint property for the layer
       var line_color_expression = this.initialiseFillColorExpression("puid");
       response.data.forEach((puid) => {
-          line_color_expression.push(puid, "rgba(255, 255, 255, 1)"); 
+          line_color_expression.push(puid, PUVSPR_LAYER_OUTLINE_COLOR); 
       });
       // Last value is the default, used where there is no data
       line_color_expression.push("rgba(0,0,0,0)");
-      this.map.setPaintProperty(PLANNING_UNIT_PUVSPR_LAYER_NAME, "line-color", line_color_expression);
+      this.map.setPaintProperty(PUVSPR_LAYER_NAME, "line-color", line_color_expression);
       //show the layer
-      this.showLayer(PLANNING_UNIT_PUVSPR_LAYER_NAME);
+      this.showLayer(PUVSPR_LAYER_NAME);
       //set the puvsprLayerId value - this is used to see which puvspr layer is currently being shown on the map to be able to set the text for the menu item
       this.puvsprLayerId = oid;
     }).catch((error) => {
@@ -2800,6 +2762,7 @@ class App extends React.Component {
   filterWdpaByIucnCategory(iucnCategory) {
     //get the individual iucn categories
     let iucnCategories = this.getIndividualIucnCategories(iucnCategory);
+    //TODO FILTER THE WDPA CLIENT SIDE BY INTERSECTING IT WITH THE PLANNING GRID
     //filter the vector tiles for those iucn categories - and if the planning unit name has an iso3 country code - then use that as well. e.g. pu_ton_marine_hexagon_50 (has iso3 code) or pu_a4402723a92444ff829e9411f07e7 (no iso3 code)
     let filterExpr = (this.state.metadata.PLANNING_UNIT_NAME.match(/_/g).length> 1) ? ['all', ['in', 'IUCN_CAT'].concat(iucnCategories), ['==', 'PARENT_ISO', this.state.metadata.PLANNING_UNIT_NAME.substr(3, 3).toUpperCase()]] : ['all', ['in', 'IUCN_CAT'].concat(iucnCategories)];
     this.map.setFilter(WDPA_LAYER_NAME, filterExpr);
@@ -2961,6 +2924,8 @@ class App extends React.Component {
   }
 
   showClumpingDialog(){
+    //update the map centre and zoom state which is used by the maps in the clumping dialog
+    this.updateMapCentreAndZoom();
     //when the boundary lengths have been calculated
     this.preprocessBoundaryLengths().then((intersections) => {
       //update the spec.dat file with any that have been added or removed or changed target or spf
@@ -3194,6 +3159,7 @@ class App extends React.Component {
           <AboutDialog 
             open={this.state.aboutDialogOpen}
             onOk={this.closeAboutDialog.bind(this)}
+            marxanClientReleaseVersion={MARXAN_CLIENT_RELEASE_VERSION}
           />
           <InfoPanel
             open={this.state.infoPanelOpen}

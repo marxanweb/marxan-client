@@ -13,7 +13,7 @@ import Sync from 'material-ui/svg-icons/notification/sync';
 class ResultsPane extends React.Component {
 	constructor(props) {
 		super(props);
-		this.state = { showClipboard: false, selectedSolution: undefined };
+		this.state = { showClipboard: false, selectedSolution: undefined, runtime: 0 };
 	}
 	componentDidUpdate(prevProps, prevState) {
 		//if the streaming log has changed then scroll to the bottom of the div
@@ -27,6 +27,19 @@ class ResultsPane extends React.Component {
 		if (this.props.solutions !== prevProps.solutions) {
 			this.resetSolution();//unselect a solution
 		}
+		if (this.props && this.props.preprocessing && prevProps && !prevProps.preprocessing) this.startTimer();
+		if (prevProps && prevProps.preprocessing && this.props && !this.props.preprocessing) this.stopTimer();
+	}
+	startTimer(){
+		this.setState({runtime: 0});
+    this.timer = setInterval(() => {
+			this.setState({runtime: this.state.runtime + 1 });
+    }, 1000);
+	}
+	stopTimer(){
+    //clear the timer
+    clearInterval(this.timer);
+    this.timer = null;
 	}
 	loadSolution(solution) { //loads the solution using the projects owner
 		this.props.loadSolution(solution, this.props.owner);
@@ -143,7 +156,7 @@ class ResultsPane extends React.Component {
 											 Header: 'Planning Units', 
 											 accessor: 'Planning_Units' ,
 											 width:50,
-											 headerStyle:{'textAlign':'left'}
+											 headerStyle:{'textAlign':'left'} 
 										},{
 											 Header: 'Missing Values',
 											 accessor: 'Missing_Values' ,
@@ -155,13 +168,8 @@ class ResultsPane extends React.Component {
 								</div>
 							</Tab>
 							<Tab label="Log" value="log" onActive={this.props.log_tab_active} >
-								<div className="processingDiv" style={{display:(this.props.preprocessing) ? 'block' : 'none'}} title="Processing..">
-									<Paper zDepth={2}>
-										<div className="processingText"></div>
-										<Sync className='spin processingSpin' style={{color: 'rgb(255, 64, 129)'}}/>
-									</Paper>
-								</div>
 								<div id="log" onMouseEnter={this.mouseEnter.bind(this)} onMouseLeave={this.mouseLeave.bind(this)}>{this.props.log}
+									<div className={"runtime"} style={{'display': (this.props.preprocessing ? 'block' : 'none')}}>Runtime: {this.state.runtime}s</div>
 									<ToolbarButton  
 										icon={<Clipboard style={{height:'20px',width:'20px'}}/>} 
 										title="Copy to clipboard"
@@ -179,6 +187,12 @@ class ResultsPane extends React.Component {
 								</div>
 							</Tab>
 						</Tabs>     
+						<div className="processingDiv" style={{display:(this.props.preprocessing) ? 'block' : 'none'}} title="Processing..">
+							<Paper zDepth={2}>
+								<div className="processingText"></div>
+								<Sync className='spin processingSpin' style={{color: 'rgb(255, 64, 129)'}}/>
+							</Paper>
+						</div>
 					</Paper>
 				</div>
 			</React.Fragment>

@@ -18,7 +18,7 @@ class AboutDialog extends React.Component {
           <div key="k5">
             <div className={"aboutTitle"}>Software development</div>
             <div className={"aboutText"}>
-              Marxan Web v1.5 Feedback:{" "}
+              Marxan Web {this.props.marxanClientReleaseVersion} Feedback:{" "}
               <a href="mailto:andrew.cottam@ec.europa.eu" className="email">
                 Andrew Cottam
               </a>
@@ -32,10 +32,7 @@ class AboutDialog extends React.Component {
             </div>
             <div className={"aboutTitle"}>Funding and in-kind contributions</div>
             <div className={"aboutText"} style={{marginTop:'10px'}}>
-              Funded by the BIOPAMA project of the European Commission
-            </div>
-             <div className={"aboutText"} style={{marginTop:'10px'}}>
-              With in-kind contributions from Mapbox
+              Funded by the BIOPAMA project of the European Commission. With in-kind contributions from Mapbox
             </div>
            <div className={"logos"}>
             <a href="https://www.iucn.org/">

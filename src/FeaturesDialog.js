@@ -76,8 +76,8 @@ class FeaturesDialog extends React.Component {
       return (
         <MarxanDialog {...this.props} autoDetectWindowHeight={ false } bodyStyle={ { padding: '0px 24px 0px 24px' } } title="Features" onOk={ this.onOk.bind(this) } showCancelButton={ (this.props.userRole !== "ReadOnly") }
           children={ <React.Fragment key="k10">
-                       <div style={ { marginBottom: '5px' } }>There are a total of
-                         { this.props.allFeatures.length } features:</div>
+                       <div style={ { marginBottom: '5px' } }>There are a total of 
+                         {" " + this.props.allFeatures.length } features:</div>
                        <div id="projectsTable">
                          <ReactTable pageSize={ this.props.allFeatures.length } className={ 'projectsReactTable' } showPagination={ false } minRows={ 0 } data={ this.props.allFeatures }
                            thisRef={ this } columns={ [{ Header: 'Name', accessor: 'alias', width: 170, headerStyle: { 'textAlign': 'left' } }, { Header: 'Description', accessor: 'description', width: 330, headerStyle: { 'textAlign': 'left' } }, { Header: 'Date', accessor: 'creation_date', width: 220, headerStyle: { 'textAlign': 'left' }, sortMethod: this.sortDate.bind(this) }] } getTrProps={ (state, rowInfo, column) => {
