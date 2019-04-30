@@ -121,7 +121,7 @@ class InfoPanel extends React.Component {
 							</Tab>
 							<Tab label="Planning units" onActive={this.props.pu_tab_active} value="planning_units">
 								<div>
-									<div className={'tabTitle'}>Planning area</div>
+									<div className={'tabTitle'}>Planning grid</div>
 									<div className={'description'}>{this.props.metadata.pu_alias}</div>
 									<div className={'tabTitle tabTitleTopMargin'}>Protected areas</div>
 									<SelectField 

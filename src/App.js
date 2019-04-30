@@ -256,15 +256,20 @@ class App extends React.Component {
       //get the message and pass it to the msgCallback function
       ws.onmessage = (evt) => {
         let message = JSON.parse(evt.data);
-        if (message.status === "Finished"){
-          //pass the message back to the callback
-          msgCallback(message);
-          //reset state
-          this.setState({preprocessing: false});
-          //if the web socket has finished then resolve the promise
-          resolve(message);
+        //check for errors
+        if (!this.checkForErrors(message)){
+          if (message.status === "Finished"){
+            //pass the message back to the callback
+            msgCallback(message);
+            //reset state
+            this.setState({preprocessing: false});
+            //if the web socket has finished then resolve the promise
+            resolve(message);
+          }else{
+            msgCallback(message);
+          }
         }else{
-          msgCallback(message);
+          reject(message.error);
         }
       };
       ws.onopen = (evt) => {
@@ -274,6 +279,8 @@ class App extends React.Component {
         reject(evt);
       };
       ws.onclose = (evt) => {
+        //reset state
+        this.setState({preprocessing: false});
         if (!evt.wasClean) {
           reject("The WebSocket connection closed unexpectedly");
         }else{
@@ -2793,8 +2800,9 @@ class App extends React.Component {
   filterWdpaByIucnCategory(iucnCategory) {
     //get the individual iucn categories
     let iucnCategories = this.getIndividualIucnCategories(iucnCategory);
-    //filter the vector tiles for those iucn categories
-    this.map.setFilter(WDPA_LAYER_NAME, ['all', ['in', 'IUCN_CAT'].concat(iucnCategories), ['==', 'PARENT_ISO', this.state.metadata.PLANNING_UNIT_NAME.substr(3, 3).toUpperCase()]]);
+    //filter the vector tiles for those iucn categories - and if the planning unit name has an iso3 country code - then use that as well. e.g. pu_ton_marine_hexagon_50 (has iso3 code) or pu_a4402723a92444ff829e9411f07e7 (no iso3 code)
+    let filterExpr = (this.state.metadata.PLANNING_UNIT_NAME.match(/_/g).length> 1) ? ['all', ['in', 'IUCN_CAT'].concat(iucnCategories), ['==', 'PARENT_ISO', this.state.metadata.PLANNING_UNIT_NAME.substr(3, 3).toUpperCase()]] : ['all', ['in', 'IUCN_CAT'].concat(iucnCategories)];
+    this.map.setFilter(WDPA_LAYER_NAME, filterExpr);
     //turn on/off the protected areas legend
     (iucnCategory === "None") ? this.hidePALegend() : this.showPALegend();
   }
@@ -2852,6 +2860,8 @@ class App extends React.Component {
       this.previousIucnCategory = iucnCategory;
       //rerender
       this.updatePlanningUnits(previousPuids, puids);
+    }).catch((error) => {
+      this.setSnackBar(error);
     });
   }
 

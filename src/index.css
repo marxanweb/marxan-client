@@ -73,8 +73,8 @@ body {
   color: rgb(255, 64, 129);
 }
 
-.tabTitleTopMargin{
-  margin-top: 15px;  
+.tabTitleTopMargin {
+  margin-top: 15px;
 }
 
 .run {
@@ -84,7 +84,7 @@ body {
 }
 
 .settings {
-  position: absolute; 
+  position: absolute;
   bottom: 60px;
   left: 43px;
 }
@@ -94,9 +94,10 @@ body {
   padding-top: 10px;
 }
 
-.uploadForm{
+.uploadForm {
   margin-top: 20px;
 }
+
 .uploadControls {
   font-size: 13px;
   margin-top: 5px;
@@ -109,14 +110,15 @@ body {
   /*border: 1px solid #F0F0F0;*/
 }
 
-.uploadLabel{
-  font-size:12px;
+.uploadLabel {
+  font-size: 12px;
 }
+
 .uploadFileField {
   display: inline-block;
   padding: 2px;
   width: 216px;
-  background-color: rgb(250, 250, 250);  
+  background-color: rgb(250, 250, 250);
   margin-top: 6px;
 }
 
@@ -228,9 +230,10 @@ body {
   height: 340px;
 }
 
-#usersTable{
+#usersTable {
   height: 340px;
 }
+
 .projectsReactTable {
   max-height: 340px;
 }
@@ -434,7 +437,7 @@ input:-webkit-autofill {
   -moz-animation-duration: 1500ms;
   -moz-animation-iteration-count: infinite;
   -moz-animation-timing-function: linear;
-  -ms-animation-name: spin; 
+  -ms-animation-name: spin;
   -ms-animation-duration: 1500ms;
   -ms-animation-iteration-count: infinite;
   -ms-animation-timing-function: linear;
@@ -468,7 +471,7 @@ div.rt-tbody>div>div>div>div[contenteditable="true"] {
 .processingText {
   font-size: 12px;
   background-color: rgba(0, 188, 212, 0.9);
-  color:white;
+  color: white;
   padding-left: 4px;
 }
 
@@ -476,51 +479,63 @@ div.rt-tbody>div>div>div>div[contenteditable="true"] {
   color: rgb(255, 64, 129);
   position: absolute;
   right: 2px;
-  top:0px;
+  top: 0px;
 }
 
-.aboutText{
+.aboutText {
   font-size: 12px;
   display: inline-block;
 }
-.aboutLogo{
+
+.aboutTitle {
+  font-size: 13px;
+  font-weight: 500;
+  margin-top: 10px;
+}
+
+.aboutLogo {
   display: inline-block;
-  margin:10px;
+  margin: 10px;
   vertical-align: middle;
 }
 
-.logos{
+.logos {
   vertical-align: middle;
+  text-align: center;
 }
 
-.puStatus{
+.puStatus {
   font-size: 12px;
   color: rgba(0, 0, 0, 0.9);
   display: inline-block;
   padding-left: 4px;
 }
-.statusRow{
+
+.statusRow {
   display: flex;
   margin: 10px;
 }
 
-.statusSwatch{
-  width: 12px; 
-  height: 16px; 
-  margin: 3px; 
-  display: inline-block; 
+.statusSwatch {
+  width: 12px;
+  height: 16px;
+  margin: 3px;
+  display: inline-block;
 }
 
-.editableText{
-  color:rgb(255, 64, 129);
+.editableText {
+  color: rgb(255, 64, 129);
 }
+
 .mapboxgl-ctrl-top-right {
   top: 11px !important;
   right: 431px !important;
 }
+
 .gbifLogo {
   background-image: url(./gbif.jpg);
 }
-.snackbarLink{
+
+.snackbarLink {
   text-decoration: underline;
 }
