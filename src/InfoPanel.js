@@ -78,7 +78,9 @@ class InfoPanel extends React.Component {
 		let checkedString = (isInputChecked) ? "True" : "False";
 		this.props.toggleProjectPrivacy(checkedString);
 	}
-	
+	stopMarxan(){
+		this.props.stopMarxan(this.props.pid);
+	}
 	render() {
 		return (
 			<React.Fragment>  
@@ -172,7 +174,7 @@ class InfoPanel extends React.Component {
 									title="Click to stop the current run"  
 									show={this.props.userRole !== "ReadOnly"}
 									style={{marginLeft: '194px'}}
-									onClick={this.props.stopMarxan} 
+									onClick={this.stopMarxan.bind(this)} 
 									disabled={this.props.pid===0}  
 									secondary={true} 
 								/>  

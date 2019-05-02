@@ -11,6 +11,7 @@ import { faArrowAltCircleRight as b } from '@fortawesome/free-regular-svg-icons'
 import { faQuestionCircle } from '@fortawesome/free-regular-svg-icons';
 import { faUser } from '@fortawesome/free-solid-svg-icons';
 import { faUsers } from '@fortawesome/free-solid-svg-icons';
+import { faRunning } from '@fortawesome/free-solid-svg-icons';
 class AppBar extends React.Component {
 	//opens the features dialog without the ability to add/remove features (i.e. different from the dialog that is opened from a project)
   openFeaturesDialog(evt) {
@@ -29,6 +30,7 @@ class AppBar extends React.Component {
               <FontAwesomeIcon style={ { fontSize: '20px', marginBottom: '7px' } } icon={ (this.props.resultsPanelOpen) ? faArrowAltCircleRight : b } className={ "appBarIcon" } onClick={ this.props.toggleResultsPanel } title={ (this.props.resultsPanelOpen) ? "Hide the results window" : "Show the results window" }              />
               <FontAwesomeIcon icon={ faUser } className={ "appBarIcon" } onClick={ this.props.showUserMenu } title={ "User: " + this.props.user + " (" + this.props.userRole + ")" } />
               <FontAwesomeIcon style={ { display: (this.props.userRole === 'Admin') ? 'inline-block' : 'none' } } icon={ faUsers } className={ "appBarIcon" } onClick={ this.props.openUsersDialog } title={ "Users" }              />
+              <FontAwesomeIcon style={ { display: (this.props.userRole === 'Admin') ? 'inline-block' : 'none' } } icon={ faRunning } className={ "appBarIcon" } onClick={ this.props.openRunLogDialog } title={ "Run log" }/>
               <FontAwesomeIcon icon={ faQuestionCircle } className={ "appBarIcon" } onClick={ this.props.showHelpMenu } title={ "Help and support" } />
             </div>
           </Paper>

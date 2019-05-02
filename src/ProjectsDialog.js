@@ -87,16 +87,18 @@ class ProjectsDialog extends React.Component {
 							<div style={{marginBottom:'5px'}}>There are a total of {this.props.projects.length} projects:</div>
 								<div id="projectsTable">
 									<ReactTable 
+									  pageSize={ this.props.projects.length }
 										className={'projectsReactTable'}
 										showPagination={false} 
 										minRows={0}
+										noDataText=''
 										data={this.props.projects}
 										thisRef={this} 
 										columns={tableColumns}
 										getTrProps={(state, rowInfo, column) => {
 											return {
 												style: {
-													background: (rowInfo.original.name === (state.thisRef.state.selectedProject&&state.thisRef.state.selectedProject.name)) ? "aliceblue" : ""
+													background: ((rowInfo.original.user === (state.thisRef.state.selectedProject&&state.thisRef.state.selectedProject.user))&&(rowInfo.original.name === (state.thisRef.state.selectedProject&&state.thisRef.state.selectedProject.name))) ? "aliceblue" : ""
 												},
 												onClick: (e) => {
 													state.thisRef.changeProject(e, rowInfo.original);

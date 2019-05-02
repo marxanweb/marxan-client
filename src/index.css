@@ -547,3 +547,6 @@ div.rt-tbody>div>div>div>div[contenteditable="true"] {
   background-color: aliceblue;
   padding: 2px 30px 2px 10px;
 }
+.table_column_right_align{
+  text-align: right;
+}

@@ -51,6 +51,7 @@ import RunSettingsDialog from './RunSettingsDialog';
 import ClassificationDialog from './ClassificationDialog';
 import ClumpingDialog from './ClumpingDialog';
 import ImportDialog from './ImportDialog';
+import RunLogDialog from './RunLogDialog';
 import Popup from './Popup';
 
 //GLOBAL VARIABLE IN MAPBOX CLIENT
@@ -136,6 +137,7 @@ class App extends React.Component {
       planningGridsDialogOpen: false,
       NewFeatureDialogOpen: false,
       featuresDialogOpen: false,
+      runLogDialogOpen: false,
       infoPanelOpen: false,
       resultsPanelOpen: false,
       guestUserEnabled: true,
@@ -195,7 +197,8 @@ class App extends React.Component {
       basemaps: [],
       basemap: 'North Star',
       mapCentre: {lng: 0, lat: 0},
-      mapZoom: 12
+      mapZoom: 12,
+      runLogs:[]
     };
   }
 
@@ -268,6 +271,8 @@ class App extends React.Component {
             msgCallback(message);
           }
         }else{
+          //reset state
+          this.setState({preprocessing: false});
           reject(message.error);
         }
       };
@@ -275,6 +280,8 @@ class App extends React.Component {
         //do something if necessary
       };
       ws.onerror = (evt) => {
+        //reset state
+        this.setState({preprocessing: false});
         reject(evt);
       };
       ws.onclose = (evt) => {
@@ -1002,6 +1009,8 @@ class App extends React.Component {
       this.updatePuvsprFile().then((value) => {
         //start the marxan job
         this.startMarxanJob(this.state.owner, this.state.project).then((response) => {
+          //update the run log
+          this.getRunLogs();
           if (!this.checkForErrors(response)) {
             //run completed - get the results
             this.getResults(response.user, response.project);
@@ -1010,9 +1019,8 @@ class App extends React.Component {
             this.runFinished([]);
           }
         }).catch((error) => {
-            this.setSnackBar(error);
             //reset the running state
-            this.marxanStopped();
+            this.marxanStopped(error);
         }); //startMarxanJob
       }); //updatePuvsprFile
     }).catch((error) => { //updateSpecFile error
@@ -1020,17 +1028,17 @@ class App extends React.Component {
     });
   }
 
-  stopMarxan() {
-    this._get("stopMarxan?pid=" + this.state.pid, 10000).then((response) => {
-      this.marxanStopped();
-    }).catch((error) => {
-      this.marxanStopped();
-    });
+  //stops marxan running on the server
+  stopMarxan(pid) {
+    this._get("stopMarxan?pid=" + pid, 10000);
   }
 
   //ui feedback when marxan is stopped by the user
-  marxanStopped(){
-    this.setState({pid: 0, preprocessing: false, streamingLog: this.state.streamingLog + "\nRun stopped by user\n\n"});
+  marxanStopped(error){
+    //update the run log
+    this.getRunLogs();
+    //return an error message
+    this.setState({pid: 0, streamingLog: this.state.streamingLog + "\n" + error + "\n\n"});
   }
   
   resetProtectedAreas() {
@@ -2741,6 +2749,14 @@ class App extends React.Component {
   toggleResultsPanel() {
     this.setState({ resultsPanelOpen: !this.state.resultsPanelOpen });
   }
+  
+  openRunLogDialog(){
+    this.getRunLogs();
+    this.setState({runLogDialogOpen: true});
+  }
+  closeRunLogDialog(){
+    this.setState({runLogDialogOpen: false});
+  }
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////// PROTECTED AREAS LAYERS STUFF
@@ -3069,6 +3085,27 @@ class App extends React.Component {
     this.updateRunParams(newRunParams);
   }
   
+  
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  ////////////////////////// MANAGING RUNS
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  //returns the log of all of the runs from the server
+  getRunLogs(){
+    if (!this.state.unauthorisedMethods.includes("getRunLogs")){
+      this._get("getRunLogs").then((response) => {
+          this.setState({runLogs: response.data});
+      });
+    }
+  }
+  
+  //clears the records from the run logs file
+  clearRunLogs(){
+    this._get("clearRunLogs").then((response) => {
+        this.getRunLogs();
+    });
+  }
+  
   render() {
     const message = (<span id="snackbar-message-id" dangerouslySetInnerHTML={{ __html: this.state.snackbarMessage }} />);    
     return (
@@ -3384,6 +3421,18 @@ class App extends React.Component {
             setSnackBar={this.setSnackBar.bind(this)}
             user={this.state.user}
           />
+          <RunLogDialog
+            open={this.state.runLogDialogOpen}
+            onOk={this.closeRunLogDialog.bind(this)}
+            onCancel={this.closeRunLogDialog.bind(this)}
+            onRequestClose={this.closeRunLogDialog.bind(this)}
+            loading={this.state.loading}
+            unauthorisedMethods={this.state.unauthorisedMethods}
+            getRunLogs={this.getRunLogs.bind(this)}
+            runLogs={this.state.runLogs}
+            clearRunLogs={this.clearRunLogs.bind(this)}
+            stopMarxan={this.stopMarxan.bind(this)}
+          />
           <Snackbar
             open={this.state.snackbarOpen}
             message={message}
@@ -3416,6 +3465,7 @@ class App extends React.Component {
             showUserMenu={this.showUserMenu.bind(this)}
             showHelpMenu={this.showHelpMenu.bind(this)}
             openUsersDialog={this.openUsersDialog.bind(this)}
+            openRunLogDialog={this.openRunLogDialog.bind(this)}
           />
         </React.Fragment>
       </MuiThemeProvider>

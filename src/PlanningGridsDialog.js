@@ -11,7 +11,7 @@ import ReactTable from "react-table";
 class PlanningGridsDialog extends React.Component { 
 	constructor(props) {
 		super(props);
-		this.state = {loading: false, selectedPlanningGrid: undefined};
+		this.state = {selectedPlanningGrid: undefined};
 	}
 	_delete() {
 		this.props.deletePlanningGrid(this.state.selectedPlanningGrid.feature_class_name);
@@ -67,9 +67,11 @@ class PlanningGridsDialog extends React.Component {
 						<div style={{marginBottom:'5px'}}>There are a total of {this.props.planningGrids.length} planning grids:</div>
 							<div id="projectsTable">
 								<ReactTable 
+								  pageSize={ this.props.planningGrids.length }
 									className={'projectsReactTable'}
 									showPagination={false} 
 									minRows={0}
+									noDataText=''
 									data={this.props.planningGrids}
 									thisRef={this} 
 									columns={tableColumns}

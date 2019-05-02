@@ -50,6 +50,7 @@ class UsersDialog extends React.Component {
 																	className={'projectsReactTable'}
 																	showPagination={false} 
 																	minRows={0}
+																	noDataText=''
 																	data={this.props.users}
 																	thisRef={this} 
 																	columns={[{ Header: 'User', accessor: 'user', width: 90, headerStyle: { 'textAlign': 'left' } }, 
