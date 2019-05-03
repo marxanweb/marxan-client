@@ -1,7 +1,7 @@
 import React from 'react';
 import Dialog from 'material-ui/Dialog';
 import ToolbarButton from './ToolbarButton';
-import Sync from 'material-ui/svg-icons/notification/sync';
+import Sync from 'material-ui/svg-icons/notification/sync'; 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 //properties can be:

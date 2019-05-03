@@ -1549,6 +1549,8 @@ class App extends React.Component {
   }
 
   mouseMove(e) {
+    //hide the popup feature list if it is visible
+    if (this.state.puFeatures && this.state.puFeatures.length > 0) this.setState({puFeatures:[]});
     //error check
     if (!this.state.userData.SHOWPOPUP) return;
     //get the features under the mouse
