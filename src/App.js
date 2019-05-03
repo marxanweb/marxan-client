@@ -53,6 +53,7 @@ import ClumpingDialog from './ClumpingDialog';
 import ImportDialog from './ImportDialog';
 import RunLogDialog from './RunLogDialog';
 import Popup from './Popup';
+import PopupFeatureList from './PopupFeatureList';
 
 //GLOBAL VARIABLE IN MAPBOX CLIENT
 mapboxgl.accessToken = 'pk.eyJ1IjoiYmxpc2h0ZW4iLCJhIjoiMEZrNzFqRSJ9.0QBRA2HxTb8YHErUFRMPZg'; //this is my public access token for using in the Mapbox GL client - TODO change this to the logged in users public access token
@@ -159,6 +160,7 @@ class App extends React.Component {
       snackbarOpen: false,
       snackbarMessage: '',
       tilesets: [],
+      puFeatures: [],
       userMenuOpen: false,
       helpMenuOpen: false,
       preprocessing: false,
@@ -1595,6 +1597,7 @@ class App extends React.Component {
     //add event handlers for the load and error events
     this.map.on("load", this.mapLoaded.bind(this));
     this.map.on("error", this.mapError.bind(this));
+    this.map.on("click", this.mapClick.bind(this));
   }
 
   mapLoaded(e) {
@@ -1633,6 +1636,24 @@ class App extends React.Component {
         break;
     }
     this.setSnackBar("MapError: " + message);
+  }
+  
+  //
+  mapClick(e){
+    var features = this.map.queryRenderedFeatures(e.point, { layers: [RESULTS_LAYER_NAME] });
+    //set the popup point
+    this.setState({ popup_point: e.point });
+    //see if there are any planning unit features under the mouse
+    if (features.length && features[0].properties.puid) this.getPUFeatureList(features[0].properties.puid);
+  }
+  
+  //gets a list of features for the planning unit
+  getPUFeatureList(puid){
+    this._get("getPUSpeciesList?user=" + this.state.owner + "&project=" + this.state.project + "&puid=" + puid).then((response) => {
+      this.setState({puFeatures: response.data});
+    }).catch((error) => {
+      //do something
+    });
   }
   
   //changes the default basemap for the user
@@ -3266,6 +3287,11 @@ class App extends React.Component {
           <Popup
             active_pu={this.state.active_pu} 
             xy={this.state.popup_point}
+          />
+          <PopupFeatureList
+            xy={this.state.popup_point}
+            features={this.state.puFeatures}
+            loading={this.state.loading}
           />
           <ProjectsDialog 
             open={this.state.projectsDialogOpen} 
