@@ -1030,7 +1030,10 @@ class App extends React.Component {
 
   //stops marxan running on the server
   stopMarxan(pid) {
-    this._get("stopMarxan?pid=" + pid, 10000);
+    this._get("stopMarxan?pid=" + pid, 10000).catch((error) => {
+      //if the pid no longer exists then the state needs to be reset anyway
+      this.getRunLogs();
+    });
   }
 
   //ui feedback when marxan is stopped by the user
@@ -3424,9 +3427,9 @@ class App extends React.Component {
           <RunLogDialog
             open={this.state.runLogDialogOpen}
             onOk={this.closeRunLogDialog.bind(this)}
-            onCancel={this.closeRunLogDialog.bind(this)}
             onRequestClose={this.closeRunLogDialog.bind(this)}
             loading={this.state.loading}
+            preprocessing={this.state.preprocessing}
             unauthorisedMethods={this.state.unauthorisedMethods}
             getRunLogs={this.getRunLogs.bind(this)}
             runLogs={this.state.runLogs}
