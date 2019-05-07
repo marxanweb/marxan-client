@@ -52,6 +52,8 @@ import ClassificationDialog from './ClassificationDialog';
 import ClumpingDialog from './ClumpingDialog';
 import ImportDialog from './ImportDialog';
 import RunLogDialog from './RunLogDialog';
+import ServerDetailsDialog from './ServerDetailsDialog';
+import ChangePasswordDialog from './ChangePasswordDialog';
 import Popup from './Popup';
 import PopupFeatureList from './PopupFeatureList';
 
@@ -59,7 +61,7 @@ import PopupFeatureList from './PopupFeatureList';
 mapboxgl.accessToken = 'pk.eyJ1IjoiYmxpc2h0ZW4iLCJhIjoiMEZrNzFqRSJ9.0QBRA2HxTb8YHErUFRMPZg'; //this is my public access token for using in the Mapbox GL client - TODO change this to the logged in users public access token
 
 //CONSTANTS
-let MARXAN_CLIENT_RELEASE_VERSION = "v0.5"; //TODO UPDATE THIS WHEN THERE IS A NEW RELEASE
+let MARXAN_CLIENT_RELEASE_VERSION = "v0.6"; //TODO UPDATE THIS WHEN THERE IS A NEW RELEASE
 let SEND_CREDENTIALS = true; //if true all post requests will send credentials
 let TORNADO_PATH = ":8081/marxan-server/";
 let TIMEOUT = 0; //disable timeout setting
@@ -135,6 +137,8 @@ class App extends React.Component {
       resendPasswordDialogOpen: false,
       NewPlanningGridDialogOpen: false, 
       importPlanningGridDialogOpen: false,
+      changePasswordDialogOpen: false,
+      serverDetailsDialogOpen: false,
       planningGridsDialogOpen: false,
       NewFeatureDialogOpen: false,
       featuresDialogOpen: false,
@@ -536,8 +540,18 @@ class App extends React.Component {
   }
   
   //checks the users credentials
+  checkPassword(user, password) {
+    return new Promise((resolve, reject) => {
+      this._get("validateUser?user=" +user + "&password=" + password, 10000).then((response) => {
+        resolve();
+      }).catch((error) => {
+        reject(error);
+      });
+    });
+  }
+  //validates the user and then logs in if successful
   validateUser() {
-    this._get("validateUser?user=" + this.state.user + "&password=" + this.state.password, 10000).then((response) => {
+    this.checkPassword(this.state.user, this.state.password).then(() => {
       //user validated - log them in
       this.login();
     }).catch((error) => {
@@ -685,24 +699,27 @@ class App extends React.Component {
 
   //updates all parameter in the user.dat file then updates the state (in userData)
   updateUser(parameters, user = this.state.user) {
-    //remove the keys that are not part of the users information
-    parameters = this.removeKeys(parameters, ["updated", "validEmail"]);
-    //initialise the form data
-    let formData = new FormData();
-    //add the current user
-    formData.append("user", user);
-    //append all the key/value pairs
-    this.appendToFormData(formData, parameters);
-    //post to the server
-    this._post("updateUserParameters", formData).then((response) => {
-      // if succesfull write the state back to the userData key
-      if (this.state.user === user) this.setState({ userData: this.newUserData});
-      this.setState({optionsDialogOpen: false });
-    }).catch((error) => {
-      //do something
+    return new Promise((resolve, reject) => {
+      //remove the keys that are not part of the users information
+      parameters = this.removeKeys(parameters, ["updated", "validEmail"]);
+      //initialise the form data
+      let formData = new FormData();
+      //add the current user
+      formData.append("user", user);
+      //append all the key/value pairs
+      this.appendToFormData(formData, parameters);
+      //post to the server
+      this._post("updateUserParameters", formData).then((response) => {
+        // if succesfull write the state back to the userData key
+        if (this.state.user === user) this.setState({ userData: this.newUserData});
+        this.setState({optionsDialogOpen: false });
+        resolve();
+      }).catch((error) => {
+        reject(error);
+      });
+      //if we have updated the current user then save a local property so that if the changes are saved to the server then we can update the local state
+      if (this.state.user === user) this.newUserData = Object.assign(this.state.userData, parameters);
     });
-    //if we have updated the current user then save a local property so that if the changes are saved to the server then we can update the local state
-    if (this.state.user === user) this.newUserData = Object.assign(this.state.userData, parameters);
   }
 
   //saveOptions - the options are in the users data so we use the updateUser REST call to update them
@@ -2783,7 +2800,20 @@ class App extends React.Component {
   closeRunLogDialog(){
     this.setState({runLogDialogOpen: false});
   }
-
+  openServerDetailsDialog(){
+    this.setState({serverDetailsDialogOpen: true});
+    this.hideHelpMenu();
+  }
+  closeServerDetailsDialog(){
+    this.setState({serverDetailsDialogOpen: false});
+  }
+  openChangePasswordDialog(){
+    this.hideUserMenu();
+    this.setState({changePasswordDialogOpen: true});
+  }
+  closeChangePasswordDialog(){
+    this.setState({changePasswordDialogOpen: false});
+  }
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////// PROTECTED AREAS LAYERS STUFF
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3176,6 +3206,7 @@ class App extends React.Component {
             openProfileDialog={this.openProfileDialog.bind(this)}
             logout={this.logout.bind(this)}
             marxanServer={this.state.marxanServer}
+            openChangePasswordDialog={this.openChangePasswordDialog.bind(this)}
           />
           <HelpMenu 
             open={this.state.helpMenuOpen} 
@@ -3183,6 +3214,7 @@ class App extends React.Component {
             hideHelpMenu={this.hideHelpMenu.bind(this)} 
             openAboutDialog={this.openAboutDialog.bind(this)}
             openHelpDialog={this.openHelpDialog.bind(this)}
+            openServerDetailsDialog={this.openServerDetailsDialog.bind(this)}
           />
           <OptionsDialog 
             open={this.state.optionsDialogOpen}
@@ -3463,6 +3495,21 @@ class App extends React.Component {
             runLogs={this.state.runLogs}
             clearRunLogs={this.clearRunLogs.bind(this)}
             stopMarxan={this.stopMarxan.bind(this)}
+          />
+          <ServerDetailsDialog  
+            open={this.state.serverDetailsDialogOpen}
+            onOk={this.closeServerDetailsDialog.bind(this)}
+            onRequestClose={this.closeServerDetailsDialog.bind(this)}
+            marxanServer={this.state.marxanServer}
+          />
+          <ChangePasswordDialog  
+            open={this.state.changePasswordDialogOpen}
+            onOk={this.closeChangePasswordDialog.bind(this)}
+            user={this.state.user}
+            onRequestClose={this.closeChangePasswordDialog.bind(this)}
+            checkPassword={this.checkPassword.bind(this)}
+            setSnackBar={this.setSnackBar.bind(this)}
+            updateUser={this.updateUser.bind(this)}
           />
           <Snackbar
             open={this.state.snackbarOpen}

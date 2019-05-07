@@ -9,7 +9,7 @@ class SelectFeatures extends React.Component {
 	render() { 
 		return (
 			<React.Fragment>
-				<div className={'newPUDialogPane'}>  
+				<div className={'newPUDialogPane'}>   
 					<FeaturesList 
 						features={this.props.features}  
 						openFeatureMenu={this.props.openFeatureMenu}
@@ -18,13 +18,7 @@ class SelectFeatures extends React.Component {
 						updateFeature={this.props.updateFeature}
 						userRole={this.props.userRole}
 					/>
-					<ToolbarButton 
-						label="+/-" 
-						onClick={this.openFeaturesDialog.bind(this)}
-						show={!((this.props.metadata && this.props.metadata.OLDVERSION)||(this.props.userRole === "ReadOnly"))}
-						style={{marginLeft:this.props.leftmargin,width:'30px', marginTop:'5px'}}
-						title={'Add/remove features from the project'}
-					/>
+					<ToolbarButton label="+/-" onClick={this.openFeaturesDialog.bind(this)} show={!(this.props.metadata && this.props.metadata.OLDVERSION)||(this.props.userRole === "ReadOnly")} style={{marginLeft:this.props.leftmargin,width:'30px', marginTop:'5px'}} title={'Add/remove features from the project'}/>
 				</div>
 			</React.Fragment>
 		);

@@ -7,7 +7,7 @@ class ProfileDialog extends React.Component {
 	constructor(props) { 
 		super(props);
 		this.state = { updated: false, validEmail: true };
-	}
+	} 
 	handleKeyPress(e) {
 		if (e.nativeEvent.key === "Enter") this.updateUser();
 	}

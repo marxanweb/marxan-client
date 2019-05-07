@@ -15,10 +15,8 @@ body {
   display: flex;
   top: 0px;
   transform: translate(-50%, 0px);
-}
-
-.appBarPaper {
-  /*width: 400px;*/
+  color: white;
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 10px, rgba(0, 0, 0, 0.23) 0px 3px 10px;
 }
 
 .appBarTitle {
@@ -549,4 +547,12 @@ div.rt-tbody>div>div>div>div[contenteditable="true"] {
 }
 .table_column_right_align{
   text-align: right;
+}
+.adminDiv{
+  font-size: 16px;
+  display: inline-block;
+  vertical-align: top;
+}
+.serverDetails{
+  font-size: 12px;
 }

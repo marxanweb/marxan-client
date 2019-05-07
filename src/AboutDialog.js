@@ -32,7 +32,10 @@ class AboutDialog extends React.Component {
             </div>
             <div className={"aboutTitle"}>Funding and in-kind contributions</div>
             <div className={"aboutText"} style={{marginTop:'10px'}}>
-              Funded by the BIOPAMA project of the European Commission. With in-kind contributions from Mapbox
+              Marxan Web funded by the BIOPAMA project of the European Commission. With in-kind contributions from Mapbox. 
+            </div>
+            <div className={"aboutText"} style={{marginTop:'10px'}}>
+              Marxan funded by a range of donors - see <a href='http://marxan.org/credits.html' target='_blank' rel="noopener noreferrer">here</a>.
             </div>
            <div className={"logos"}>
             <a href="https://www.iucn.org/">
