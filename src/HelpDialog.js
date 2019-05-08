@@ -11,7 +11,7 @@ class HelpDialog extends React.Component {
 				title="Help"
 				children={
 					<div key="k20" className="serverDetails">
-						Documentation is available here: <a href='https://andrewcottam.github.io/marxan-web/docs_overview.html' target='_blank'  rel="noopener noreferrer">https://github.com/andrewcottam/marxan-client/wiki/Documentation</a>
+						Documentation is available here: <a href='https://andrewcottam.github.io/marxan-web/docs_overview.html' target='_blank'  rel="noopener noreferrer">https://andrewcottam.github.io/marxan-web/docs_overview.html</a>
 					</div>
 				}
 			/>
