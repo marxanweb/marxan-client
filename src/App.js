@@ -33,7 +33,6 @@ import HelpMenu from './HelpMenu';
 import OptionsDialog from './OptionsDialog';
 import ProfileDialog from './ProfileDialog';
 import UsersDialog from './UsersDialog';
-import HelpDialog from './HelpDialog';
 import AboutDialog from './AboutDialog';
 import MenuItemWithButton from './MenuItemWithButton';
 import InfoPanel from './InfoPanel';
@@ -61,7 +60,8 @@ import PopupFeatureList from './PopupFeatureList';
 mapboxgl.accessToken = 'pk.eyJ1IjoiYmxpc2h0ZW4iLCJhIjoiMEZrNzFqRSJ9.0QBRA2HxTb8YHErUFRMPZg'; //this is my public access token for using in the Mapbox GL client - TODO change this to the logged in users public access token
 
 //CONSTANTS
-let MARXAN_CLIENT_RELEASE_VERSION = "v0.6"; //TODO UPDATE THIS WHEN THERE IS A NEW RELEASE
+let MARXAN_CLIENT_RELEASE_VERSION = "v0.6.2"; //TODO UPDATE THIS WHEN THERE IS A NEW RELEASE
+let MARXAN_REGISTRY_FILENAME = "https://andrewcottam.github.io/marxan-web/registry/marxan.js";
 let SEND_CREDENTIALS = true; //if true all post requests will send credentials
 let TORNADO_PATH = ":8081/marxan-server/";
 let TIMEOUT = 0; //disable timeout setting
@@ -211,7 +211,7 @@ class App extends React.Component {
   componentDidMount() {
     //if disabling the login, then programatically log in
     if (DISABLE_LOGIN) this.validateUser();
-    //check application level variables have been loaded from my github CDN (the https://andrewcottam.github.io/cdn/marxan.js)
+    //check application level variables have been loaded from my github CDN (the MARXAN_REGISTRY_FILENAME)
     this.getGlobalVariables();
     //instantiate the classybrew to get the color ramps for the renderers
     this.setState({ brew: new classyBrew() });
@@ -387,20 +387,20 @@ class App extends React.Component {
     var basemaps = [], marxanServers = [];
     //get the mapbox basemaps
     if (window.MAPBOX_BASEMAPS){
-      console.log("Loading Mapbox basemaps from https://andrewcottam.github.io/cdn/marxan.js");
+      console.log("Loading Mapbox basemaps from " + MARXAN_REGISTRY_FILENAME);
       basemaps = window.MAPBOX_BASEMAPS;
     }else{
-      console.warn("Unable to load Mapbox basemaps from https://andrewcottam.github.io/cdn/marxan.js. Using local copy.");
+      console.warn("Unable to load Mapbox basemaps from " + MARXAN_REGISTRY_FILENAME + ". Using local copy.");
       basemaps = BACKUP_MAPBOX_BASEMAPS;
     }
     //initialise the basemaps
     this.setState({basemaps: basemaps});
     //get the list of marxan servers from the marxan registry
     if (window.MARXAN_SERVERS){
-      console.log("Loading Marxan Servers from https://andrewcottam.github.io/cdn/marxan.js");
+      console.log("Loading Marxan Servers from " + MARXAN_REGISTRY_FILENAME);
       marxanServers = window.MARXAN_SERVERS;
     }else{
-      console.warn("Unable to load Marxan Servers from https://andrewcottam.github.io/cdn/marxan.js. Using a local copy.");
+      console.warn("Unable to load Marxan Servers from " + MARXAN_REGISTRY_FILENAME + ". Using a local copy.");
       marxanServers = BACKUP_MARXAN_SERVERS;
     }
     //get all the information for the marxan servers by polling them
@@ -2741,15 +2741,6 @@ class App extends React.Component {
     this.setState({ aboutDialogOpen: false });
   }
   
-  openHelpDialog(){
-    this.setState({ helpDialogOpen: true });
-    this.hideHelpMenu();
-  }
-
-  closeHelpDialog() {
-    this.setState({ helpDialogOpen: false });
-  }
-  
   showRunSettingsDialog() {
     this.setState({ settingsDialogOpen: true });
   }
@@ -3213,7 +3204,6 @@ class App extends React.Component {
             menuAnchor={this.state.menuAnchor}
             hideHelpMenu={this.hideHelpMenu.bind(this)} 
             openAboutDialog={this.openAboutDialog.bind(this)}
-            openHelpDialog={this.openHelpDialog.bind(this)}
             openServerDetailsDialog={this.openServerDetailsDialog.bind(this)}
           />
           <OptionsDialog 
@@ -3246,10 +3236,6 @@ class App extends React.Component {
             loading={this.state.loading}
             userData={this.state.userData}
             updateUser={this.updateUser.bind(this)}
-          />
-          <HelpDialog
-            open={this.state.helpDialogOpen}
-            onOk={this.closeHelpDialog.bind(this)}
           />
           <AboutDialog 
             open={this.state.aboutDialogOpen}
