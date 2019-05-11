@@ -1,5 +1,6 @@
 /*global fetch*/
 import React from 'react';
+import packageJson from '../package.json';
 import fetchJsonp from 'fetch-jsonp';
 /*eslint-disable no-unused-vars*/ 
 import axios, { post } from 'axios';
@@ -60,7 +61,7 @@ import PopupFeatureList from './PopupFeatureList';
 mapboxgl.accessToken = 'pk.eyJ1IjoiYmxpc2h0ZW4iLCJhIjoiMEZrNzFqRSJ9.0QBRA2HxTb8YHErUFRMPZg'; //this is my public access token for using in the Mapbox GL client - TODO change this to the logged in users public access token
 
 //CONSTANTS
-let MARXAN_CLIENT_RELEASE_VERSION = "v0.6.2"; //TODO UPDATE THIS WHEN THERE IS A NEW RELEASE
+let MARXAN_CLIENT_VERSION = packageJson.version; //TODO UPDATE PACKAGE.JSON WHEN THERE IS A NEW VERSION
 let MARXAN_REGISTRY_FILENAME = "https://andrewcottam.github.io/marxan-web/registry/marxan.js";
 let SEND_CREDENTIALS = true; //if true all post requests will send credentials
 let TORNADO_PATH = ":8081/marxan-server/";
@@ -3240,7 +3241,7 @@ class App extends React.Component {
           <AboutDialog 
             open={this.state.aboutDialogOpen}
             onOk={this.closeAboutDialog.bind(this)}
-            marxanClientReleaseVersion={MARXAN_CLIENT_RELEASE_VERSION}
+            marxanClientReleaseVersion={MARXAN_CLIENT_VERSION}
           />
           <InfoPanel
             open={this.state.infoPanelOpen}
