@@ -454,7 +454,7 @@ class App extends React.Component {
       //get the server endpoint - if calling from http then use that (i.e. from localhost)
       let endpoint = (window.location.protocol === 'https:') ? server.httpsEndpoint : server.httpEndpoint;
       //poll the server to make sure tornado is running - this uses fetchJsonp which can catch http errors
-      fetchJsonp(endpoint + "getServerData", { timeout: 2000 }).then((response) => {
+      fetchJsonp(endpoint + "getServerData").then((response) => {
         return response.json();
       }).then((json) => {
         if (json.hasOwnProperty('info')){
