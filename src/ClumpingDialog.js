@@ -55,9 +55,9 @@ class ClumpingDialog extends React.Component {
 								<div>Move and zoom the main map to preview the clumping</div>
 								<div style={{'paddingTop':'30px'}}>
 									<span>BLM from </span>
-									<TextField value={this.props.blmMin} onChange={this.props.changBlmMin.bind(this)} style={{width:'20px'}} inputStyle={{'textAlign':'center', 'fontSize':'14px'}} id="blmmin" disabled={this.props.clumpingRunning}/>
+									<TextField value={this.props.blmMin} onChange={this.props.changBlmMin.bind(this)} style={{width:'36px'}} inputStyle={{'textAlign':'center', 'fontSize':'14px'}} id="blmmin" disabled={this.props.clumpingRunning}/>
 									<span> to </span>
-									<TextField value={this.props.blmMax} onChange={this.props.changBlmMax.bind(this)} style={{width:'20px'}} inputStyle={{'textAlign':'center', 'fontSize':'14px'}} id="blmmax" disabled={this.props.clumpingRunning}/>
+									<TextField value={this.props.blmMax} onChange={this.props.changBlmMax.bind(this)} style={{width:'36px'}} inputStyle={{'textAlign':'center', 'fontSize':'14px'}} id="blmmax" disabled={this.props.clumpingRunning}/>
 								</div>
 						</div>
 					</div>

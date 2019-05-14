@@ -196,9 +196,9 @@ class App extends React.Component {
       map2_paintProperty: [],
       map3_paintProperty: [],
       map4_paintProperty: [],
-      blmValues: [0,0.25,0.5,0.75,1],
-      blmMin: 0,
-      blmMax: 1, 
+      blmValues: [0.001,0.01,0.1,1,10],
+      blmMin: 0.001,
+      blmMax: 10, 
       clumpingRunning: false,
       pid: 0,
       basemaps: [],
@@ -583,6 +583,12 @@ class App extends React.Component {
   logout() {
     this.hideUserMenu();
     this.setState({ loggedIn: false, user: '', password: '', project: '', infoPanelOpen: false, resultsPanelOpen: false });
+    //clear the currently set cookies
+    this._get("logout").then((response) => {
+        //do something
+    }).catch((error) => {
+      //do something
+    });
   }
   changeEmail(value) { 
       this.setState({ resendEmail: value });

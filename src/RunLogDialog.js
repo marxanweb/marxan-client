@@ -21,7 +21,6 @@ class RunLogDialog extends React.Component {
 			//see of any of the run logs are running
 			let runningLogs = this.props.runLogs.filter((item) => {return item.status === 'Running'});
 			this.setState({runningJobs: (runningLogs.length > 0)});
-			console.log((runningLogs.length > 0));
 		}
 	}
 	closeDialog() {
