@@ -1994,9 +1994,9 @@ class App extends React.Component {
     //reset the cursor
     this.map.getCanvas().style.cursor = "pointer";
     //remove the mouse left click event
-    this.map.off("click", PU_LAYER_NAME, this.moveStatusUp.bind(this));
+    this.map.off("click", PU_LAYER_NAME, this.moveStatusUp);
     //remove the mouse right click event
-    this.map.off("contextmenu", PU_LAYER_NAME, this.resetStatus.bind(this));
+    this.map.off("contextmenu", PU_LAYER_NAME, this.resetStatus);
     //update the pu.dat file
     this.updatePuDatFile();
   }
