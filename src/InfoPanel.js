@@ -16,7 +16,6 @@ import { faEraser } from '@fortawesome/free-solid-svg-icons';
 class InfoPanel extends React.Component {
 	constructor(props) {
 		super(props);
-		this.state = {puEditing: false };
 		//local variable 
 		this.iucnCategories = ['None','IUCN I-II','IUCN I-IV','IUCN I-V','IUCN I-VI'];
 	}
@@ -59,7 +58,7 @@ class InfoPanel extends React.Component {
 		}
 	}
 	startStopPuEditSession(evt) {
-		(this.state.puEditing) ? this.stopPuEditSession(): this.startPuEditSession();
+		(this.props.puEditing) ? this.stopPuEditSession(): this.startPuEditSession();
 	}
 	startPuEditSession() {
 		this.setState({ puEditing: true });
@@ -147,9 +146,9 @@ class InfoPanel extends React.Component {
 									/> 
 									<div style={{display: (this.props.userRole === "ReadOnly") ? 'none' : 'block'}}>
 									<div className={'tabTitle'}>Manual edits</div>
-										<FontAwesomeIcon icon={(this.state.puEditing) ? faUnlock : faLock} onClick={this.startStopPuEditSession.bind(this)} title={(this.state.puEditing) ? "Save" : "Click to edit"} style={{cursor:'pointer', marginRight: '10px', color: 'rgba(255, 64, 129, 0.7)'}}/>
-										<div className={'description'} style={{display: 'inline-block'}}>{(this.state.puEditing) ? "Click on the map to change the status" : "Click to edit"}</div>
-										<div style={{display: (this.state.puEditing) ? "block" : "none"}}>
+										<FontAwesomeIcon icon={(this.props.puEditing) ? faUnlock : faLock} onClick={this.startStopPuEditSession.bind(this)} title={(this.props.puEditing) ? "Save" : "Click to edit"} style={{cursor:'pointer', marginRight: '10px', color: 'rgba(255, 64, 129, 0.7)'}}/>
+										<div className={'description'} style={{display: 'inline-block'}}>{(this.props.puEditing) ? "Click on the map to change the status" : "Click to edit"}</div>
+										<div style={{display: (this.props.puEditing) ? "block" : "none"}}>
 											<div className={"statusRow"}><div className={"statusSwatch"} style={{border: '1px rgba(63, 191, 63, 1) solid'}}></div><div className={"puStatus"}>Initially included</div></div>
 											<div className={"statusRow"}><div className={"statusSwatch"} style={{ border: '1px rgba(63, 63, 191, 1) solid'}}></div><div className={"puStatus"}>Locked in the reserve system</div></div>
 											<div className={"statusRow"}><div className={"statusSwatch"} style={{ border: '1px rgba(191, 63, 63, 1) solid'}}></div><div className={"puStatus"}>Locked out of the reserve system</div></div>
@@ -183,7 +182,7 @@ class InfoPanel extends React.Component {
 									title="Click to run this project"  
 									show={this.props.userRole !== "ReadOnly"}
 									onClick={this.props.runMarxan} 
-									disabled={this.props.preprocessing || (this.props.features.length === 0) || this.state.puEditing}  
+									disabled={this.props.preprocessing || (this.props.features.length === 0) || this.props.puEditing}  
 									secondary={true} 
 								/>  
 						</Paper>

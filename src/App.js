@@ -205,7 +205,8 @@ class App extends React.Component {
       basemap: 'North Star',
       mapCentre: {lng: 0, lat: 0},
       mapZoom: 12,
-      runLogs:[]
+      runLogs:[],
+      puEditing: false
     };
   }
 
@@ -454,7 +455,7 @@ class App extends React.Component {
       //get the server endpoint - if calling from http then use that (i.e. from localhost)
       let endpoint = (window.location.protocol === 'https:') ? server.httpsEndpoint : server.httpEndpoint;
       //poll the server to make sure tornado is running - this uses fetchJsonp which can catch http errors
-      fetchJsonp(endpoint + "getServerData").then((response) => {
+      fetchJsonp(endpoint + "getServerData", 1000).then((response) => {
         return response.json();
       }).then((json) => {
         if (json.hasOwnProperty('info')){
@@ -1666,11 +1667,13 @@ class App extends React.Component {
   
   //
   mapClick(e){
-    var features = this.map.queryRenderedFeatures(e.point, { layers: [RESULTS_LAYER_NAME] });
-    //set the popup point
-    this.setState({ popup_point: e.point });
-    //see if there are any planning unit features under the mouse
-    if (features.length && features[0].properties.puid) this.getPUFeatureList(features[0].properties.puid);
+    if (!this.state.puEditing){ //dont run the onclick if the user is editing planning units
+      var features = this.map.queryRenderedFeatures(e.point, { layers: [RESULTS_LAYER_NAME] });
+      //set the popup point
+      this.setState({ popup_point: e.point });
+      //see if there are any planning unit features under the mouse
+      if (features.length && features[0].properties.puid) this.getPUFeatureList(features[0].properties.puid);
+    }
   }
   
   //gets a list of features for the planning unit
@@ -1975,21 +1978,25 @@ class App extends React.Component {
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   startPuEditSession() {
+    //set the state
+    this.setState({puEditing: true});
     //set the cursor to a crosshair
     this.map.getCanvas().style.cursor = "crosshair";
     //add the left mouse click event to the planning unit layer
-    this.map.on("click", PU_LAYER_NAME, this.moveStatusUp);
+    this.map.on("click", PU_LAYER_NAME, this.moveStatusUp.bind(this));
     //add the mouse right click event to the planning unit layer 
-    this.map.on("contextmenu", PU_LAYER_NAME, this.resetStatus);
+    this.map.on("contextmenu", PU_LAYER_NAME, this.resetStatus.bind(this));
   }
 
   stopPuEditSession() {
+    //set the state
+    this.setState({puEditing: false});
     //reset the cursor
     this.map.getCanvas().style.cursor = "pointer";
     //remove the mouse left click event
-    this.map.off("click", PU_LAYER_NAME, this.moveStatusUp);
+    this.map.off("click", PU_LAYER_NAME, this.moveStatusUp.bind(this));
     //remove the mouse right click event
-    this.map.off("contextmenu", PU_LAYER_NAME, this.resetStatus);
+    this.map.off("contextmenu", PU_LAYER_NAME, this.resetStatus.bind(this));
     //update the pu.dat file
     this.updatePuDatFile();
   }
@@ -2032,12 +2039,12 @@ class App extends React.Component {
 
   //fired when the user left clicks on a planning unit to move its status up
   moveStatusUp(e) {
-    this.App.changeStatus(e, "up");
+    this.changeStatus(e, "up");
   }
 
   //fired when the user left clicks on a planning unit to reset its status 
   resetStatus(e) {
-    this.App.changeStatus(e, "reset");
+    this.changeStatus(e, "reset");
   }
 
   changeStatus(e, direction) {
@@ -3269,6 +3276,7 @@ class App extends React.Component {
             pu_tab_active={this.pu_tab_active.bind(this)}
             startPuEditSession={this.startPuEditSession.bind(this)}
             stopPuEditSession={this.stopPuEditSession.bind(this)}
+            puEditing={this.state.puEditing}
             clearManualEdits={this.clearManualEdits.bind(this)}
             showRunSettingsDialog={this.showRunSettingsDialog.bind(this)}
             openFeatureMenu={this.openFeatureMenu.bind(this)}
