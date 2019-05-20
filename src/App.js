@@ -827,9 +827,9 @@ class App extends React.Component {
     return returnValue;
   }
 
-  //initialises the interest features based on the current project
+  //initialises the interest features based on the currently loading project
   initialiseInterestFeatures(oldVersion, projectFeatures) {
-    //if the database is from an old version of marxan then the interest features can only come from the list of features in the current project
+    //if the project is from an old version of marxan then the interest features can only come from the list of features in the current project
     let features = (oldVersion) ? JSON.parse(JSON.stringify(projectFeatures)) : this.state.allFeatures; //make a copy of the projectFeatures
     //get a list of the ids for the features that are in this project
     var ids = projectFeatures.map((item) => {

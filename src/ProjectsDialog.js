@@ -35,8 +35,11 @@ class ProjectsDialog extends React.Component {
 			this.closeDialog();
 		}
 		_new() {
-			this.props.openNewProjectDialog();
-			this.closeDialog();
+			//get all the features again otherwise the allFeatures state may be bound to an old version of marxans features
+			this.props.getAllFeatures().then(function() {
+				this.props.openNewProjectDialog();
+				this.closeDialog();
+			}.bind(this));
 		}
 		cloneProject() {
 			this.props.cloneProject(this.state.selectedProject.user, this.state.selectedProject.name);
