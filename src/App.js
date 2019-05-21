@@ -422,7 +422,7 @@ class App extends React.Component {
     this.getAllServerCapabilities(marxanServers).then((server) => {
       //remove the current domain if either the marxan server is not installed, or it is already in the list of servers from the marxan registry
       marxanServers = marxanServers.filter((item) => {
-        return (item.type==="remote" || (item.type==="local" && !item.offline && hosts.indexOf(item.host) === -1));
+        return (item.type==="remote" || (item.type==="local" && !item.offline && hosts.indexOf(item.host) === -1) || (item.host === 'localhost'));
       });
       //sort the servers by the name 
       marxanServers.sort((a, b) => {
