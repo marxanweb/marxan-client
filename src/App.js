@@ -413,7 +413,7 @@ class App extends React.Component {
   initialiseServers(marxanServers){
     //add the current domain - this may be a local/local network install
     let name = (window.location.hostname === "localhost") ? "localhost" : window.location.hostname;
-    marxanServers.push(({name: name, host:window.location.hostname, description:'Local machine', type:'local'}));
+    marxanServers.push(({name: name, host: window.location.hostname, description:'Local machine', type:'local'}));
     //get a list of server hosts
     let hosts = marxanServers.map((server) => {
       return server.host;  
@@ -422,7 +422,7 @@ class App extends React.Component {
     this.getAllServerCapabilities(marxanServers).then((server) => {
       //remove the current domain if either the marxan server is not installed, or it is already in the list of servers from the marxan registry
       marxanServers = marxanServers.filter((item) => {
-        return ((!(item.type==="local" && item.offline))||(!(item.type==="local" && hosts.indexOf(item.host)>-1)));
+        return (item.type==="remote" || (item.type==="local" && !item.offline && hosts.indexOf(item.host) === -1));
       });
       //sort the servers by the name 
       marxanServers.sort((a, b) => {
@@ -455,7 +455,7 @@ class App extends React.Component {
       //get the server endpoint - if calling from http then use that (i.e. from localhost)
       let endpoint = (window.location.protocol === 'https:') ? server.httpsEndpoint : server.httpEndpoint;
       //poll the server to make sure tornado is running - this uses fetchJsonp which can catch http errors
-      fetchJsonp(endpoint + "getServerData", 1000).then((response) => {
+      fetchJsonp(endpoint + "getServerData",{timeout: 1000}).then((response) => {
         return response.json();
       }).then((json) => {
         if (json.hasOwnProperty('info')){
@@ -1667,7 +1667,7 @@ class App extends React.Component {
   
   //
   mapClick(e){
-    if (!this.state.puEditing){ //dont run the onclick if the user is editing planning units
+    if (!this.state.puEditing){ //if the user is not editing planning units then show what features were in the planning unit for the clicked point
       var features = this.map.queryRenderedFeatures(e.point, { layers: [RESULTS_LAYER_NAME] });
       //set the popup point
       this.setState({ popup_point: e.point });
@@ -1983,9 +1983,11 @@ class App extends React.Component {
     //set the cursor to a crosshair
     this.map.getCanvas().style.cursor = "crosshair";
     //add the left mouse click event to the planning unit layer
-    this.map.on("click", PU_LAYER_NAME, this.moveStatusUp.bind(this));
+    this.onClickRef = this.moveStatusUp.bind(this); //using bind creates a new function instance so we need to get a reference to that to be able to remove it later
+    this.map.on("click", PU_LAYER_NAME, this.onClickRef); 
     //add the mouse right click event to the planning unit layer 
-    this.map.on("contextmenu", PU_LAYER_NAME, this.resetStatus.bind(this));
+    this.onContextMenu = this.resetStatus.bind(this); //using bind creates a new function instance so we need to get a reference to that to be able to remove it later
+    this.map.on("contextmenu", PU_LAYER_NAME, this.onContextMenu); 
   }
 
   stopPuEditSession() {
@@ -1994,9 +1996,9 @@ class App extends React.Component {
     //reset the cursor
     this.map.getCanvas().style.cursor = "pointer";
     //remove the mouse left click event
-    this.map.off("click", PU_LAYER_NAME, this.moveStatusUp);
+    this.map.off("click", PU_LAYER_NAME, this.onClickRef);
     //remove the mouse right click event
-    this.map.off("contextmenu", PU_LAYER_NAME, this.resetStatus);
+    this.map.off("contextmenu", PU_LAYER_NAME, this.onContextMenu);
     //update the pu.dat file
     this.updatePuDatFile();
   }
