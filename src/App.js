@@ -64,7 +64,7 @@ mapboxgl.accessToken = 'pk.eyJ1IjoiYmxpc2h0ZW4iLCJhIjoiMEZrNzFqRSJ9.0QBRA2HxTb8Y
 let MARXAN_CLIENT_VERSION = packageJson.version; //TODO UPDATE PACKAGE.JSON WHEN THERE IS A NEW VERSION
 let MARXAN_REGISTRY_FILENAME = "https://andrewcottam.github.io/marxan-web/registry/marxan.js";
 let SEND_CREDENTIALS = true; //if true all post requests will send credentials
-let TORNADO_PATH = ":8081/marxan-server/";
+let TORNADO_PATH = "/marxan-server/";
 let TIMEOUT = 0; //disable timeout setting
 let DISABLE_LOGIN = false; //to not show the login form, set loggedIn to true
 let MAPBOX_USER = "blishten";
@@ -450,8 +450,10 @@ class App extends React.Component {
   //gets the capabilities of the server by making a request to the getServerData method
   getServerCapabilities(server){
     return new Promise((resolve, reject) => {
+      //get the full host 
+      let fullhost = server.host + ":" + server.port;
       //set the default properties for the server - by default the server is offline, has no guest access and CORS is not enabled
-      server = Object.assign(server, {httpEndpoint: "http://" + server.host + TORNADO_PATH, httpsEndpoint: "https://" + server.host + TORNADO_PATH, wsEndpoint: "ws://" + server.host + TORNADO_PATH, wssEndpoint: "wss://" + server.host + TORNADO_PATH, offline: true, guestUserEnabled: false, corsEnabled: false});
+      server = Object.assign(server, {httpEndpoint: "http://" + fullhost + TORNADO_PATH, httpsEndpoint: "https://" + fullhost + TORNADO_PATH, wsEndpoint: "ws://" + fullhost + TORNADO_PATH, wssEndpoint: "wss://" + fullhost + TORNADO_PATH, offline: true, guestUserEnabled: false, corsEnabled: false});
       //get the server endpoint - if calling from http then use that (i.e. from localhost)
       let endpoint = (window.location.protocol === 'https:') ? server.httpsEndpoint : server.httpEndpoint;
       //poll the server to make sure tornado is running - this uses fetchJsonp which can catch http errors
