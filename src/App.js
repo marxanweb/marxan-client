@@ -452,9 +452,9 @@ class App extends React.Component {
   getServerCapabilities(server){
     return new Promise((resolve, reject) => {
       //get the endpoint for all http/https requests
-      let endpoint = server.protocol + "//" + server.host + TORNADO_PATH;
+      let endpoint = server.protocol + "//" + server.host + ":" + server.port + TORNADO_PATH;
       //get the WebService endpoint
-      let websocketEndpoint = (server.protocol ==='http:') ? "ws://" + server.host + TORNADO_PATH : "wss://" + server.host + TORNADO_PATH;
+      let websocketEndpoint = (server.protocol ==='http:') ? "ws://" + server.host + ":" + server.port + TORNADO_PATH : "wss://" + server.host + ":" + server.port + TORNADO_PATH;
       //set the default properties for the server - by default the server is offline, has no guest access and CORS is not enabled
       server = Object.assign(server, {endpoint: endpoint, websocketEndpoint: websocketEndpoint, offline: true, guestUserEnabled: false, corsEnabled: false});
       //poll the server to make sure tornado is running - this uses fetchJsonp which can catch http errors
