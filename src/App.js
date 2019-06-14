@@ -414,7 +414,7 @@ class App extends React.Component {
   initialiseServers(marxanServers){
     //add the current domain - this may be a local/local network install
     let name = (window.location.hostname === "localhost") ? "localhost" : window.location.hostname;
-    marxanServers.push(({name: name, host: window.location.hostname, description:'Local machine', type:'local', protocol: window.location.protocol}));
+    marxanServers.push(({name: name, protocol: window.location.protocol, host: window.location.hostname, port: 8080, description:'Local machine', type:'local', }));
     //get a list of server hosts
     let hosts = marxanServers.map((server) => {
       return server.host;  
