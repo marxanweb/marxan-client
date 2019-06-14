@@ -120,6 +120,7 @@ class App extends React.Component {
     super(props);
     this.state = {
       marxanServers: [],
+      marxanServer: {},
       usersDialogOpen: false,
       featureMenuOpen: false,
       profileDialogOpen: false,
@@ -228,7 +229,7 @@ class App extends React.Component {
     return new Promise((resolve, reject) => {
       //set the global loading flag
       this.setState({loading: true});
-      jsonp(this.requestEndpoint + params, { timeout: timeout }).promise.then((response) => {
+      jsonp(this.state.marxanServer.endpoint + params, { timeout: timeout }).promise.then((response) => {
         if (!this.checkForErrors(response)) {
           this.setState({loading: false});
           resolve(response);
@@ -246,7 +247,7 @@ class App extends React.Component {
     return new Promise((resolve, reject) => {
       //set the global loading flag
       this.setState({loading: true});
-      post(this.requestEndpoint + method, formData, {withCredentials: withCredentials}).then((response) => {
+      post(this.state.marxanServer.endpoint + method, formData, {withCredentials: withCredentials}).then((response) => {
         if (!this.checkForErrors(response.data)) {
           this.setState({loading: false});
           resolve(response.data);
@@ -262,7 +263,7 @@ class App extends React.Component {
   //web socket requests
   _ws(params, msgCallback){
     return new Promise((resolve, reject) => {
-      let ws = new WebSocket(this.websocketEndpoint + params);
+      let ws = new WebSocket(this.state.marxanServer.websocketEndpoint + params);
       //get the message and pass it to the msgCallback function
       ws.onmessage = (evt) => {
         let message = JSON.parse(evt.data);
@@ -413,7 +414,7 @@ class App extends React.Component {
   initialiseServers(marxanServers){
     //add the current domain - this may be a local/local network install
     let name = (window.location.hostname === "localhost") ? "localhost" : window.location.hostname;
-    marxanServers.push(({name: name, host: window.location.hostname, description:'Local machine', type:'local'}));
+    marxanServers.push(({name: name, host: window.location.hostname, description:'Local machine', type:'local', protocol: window.location.protocol}));
     //get a list of server hosts
     let hosts = marxanServers.map((server) => {
       return server.host;  
@@ -450,12 +451,12 @@ class App extends React.Component {
   //gets the capabilities of the server by making a request to the getServerData method
   getServerCapabilities(server){
     return new Promise((resolve, reject) => {
-      //get the full host 
-      let fullhost = server.host + ":" + server.port;
+      //get the endpoint for all http/https requests
+      let endpoint = server.protocol + "//" + server.host + TORNADO_PATH;
+      //get the WebService endpoint
+      let websocketEndpoint = (server.protocol ==='http:') ? "ws://" + server.host + TORNADO_PATH : "wss://" + server.host + TORNADO_PATH;
       //set the default properties for the server - by default the server is offline, has no guest access and CORS is not enabled
-      server = Object.assign(server, {httpEndpoint: "http://" + fullhost + TORNADO_PATH, httpsEndpoint: "https://" + fullhost + TORNADO_PATH, wsEndpoint: "ws://" + fullhost + TORNADO_PATH, wssEndpoint: "wss://" + fullhost + TORNADO_PATH, offline: true, guestUserEnabled: false, corsEnabled: false});
-      //get the server endpoint - if calling from http then use that (i.e. from localhost)
-      let endpoint = (window.location.protocol === 'https:') ? server.httpsEndpoint : server.httpEndpoint;
+      server = Object.assign(server, {endpoint: endpoint, websocketEndpoint: websocketEndpoint, offline: true, guestUserEnabled: false, corsEnabled: false});
       //poll the server to make sure tornado is running - this uses fetchJsonp which can catch http errors
       fetchJsonp(endpoint + "getServerData",{timeout: 1000}).then((response) => {
         return response.json();
@@ -486,10 +487,6 @@ class App extends React.Component {
   //called when the user selects a server
   selectServer(value){
     this.setState({marxanServer: value});
-    //set the endpoint hosts - set as secure if this host is secure
-    this.requestEndpoint = (window.location.protocol === 'https:') ? value.httpsEndpoint : value.httpEndpoint; 
-    this.websocketEndpoint = (window.location.protocol === 'https:') ? value.wssEndpoint : value.wsEndpoint; 
-    this.guestUserEnabled = value.guestUserEnabled;
     //if the server is ready only then change the user/password to the guest user
     if (!value.offline && !value.corsEnabled && value.guestUserEnabled){
       this.setState({user: "guest", password:"password"});
@@ -3372,7 +3369,7 @@ class App extends React.Component {
             onOk={this.importPlanningUnitGrid.bind(this)}
             onCancel={this.closeImportPlanningGridDialog.bind(this)}
             loading={this.state.loading}
-            requestEndpoint={this.requestEndpoint}
+            requestEndpoint={this.state.marxanServer.endpoint}
             SEND_CREDENTIALS={SEND_CREDENTIALS}
             checkForErrors={this.checkForErrors.bind(this)} 
           />
@@ -3409,7 +3406,7 @@ class App extends React.Component {
             filename={this.state.featureDatasetFilename}
             createNewFeature={this.createNewFeature.bind(this)}
             checkForErrors={this.checkForErrors.bind(this)} 
-            requestEndpoint={this.requestEndpoint}
+            requestEndpoint={this.state.marxanServer.endpoint}
             SEND_CREDENTIALS={SEND_CREDENTIALS}
             newFeatureSource={this.state.newFeatureSource}
           />
@@ -3481,7 +3478,7 @@ class App extends React.Component {
             open={this.state.importDialogOpen}
             onOk={this.closeImportDialog.bind(this)}
             loading={this.state.loading}
-            requestEndpoint={this.requestEndpoint}
+            requestEndpoint={this.state.marxanServer.endpoint}
             SEND_CREDENTIALS={SEND_CREDENTIALS}
             importProject={this.importProject.bind(this)}
             checkForErrors={this.checkForErrors.bind(this)} 

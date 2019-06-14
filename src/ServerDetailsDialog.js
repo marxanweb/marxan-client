@@ -20,7 +20,6 @@ class ServerDetailsDialog extends React.Component {
             <div className="serverDetails">Description: {this.props.marxanServer&&this.props.marxanServer.description}</div>
             <div className="serverDetails">System: {this.props.marxanServer&&this.props.marxanServer.system}</div>
             <div className="serverDetails">Marxan Server version: {this.props.marxanServer&&this.props.marxanServer.server_version}</div>
-            {(this.props.marxanServer&&this.props.marxanServer.client_version!=='Not installed') ? <div className="serverDetails">Marxan Client version: {this.props.marxanServer&&this.props.marxanServer.client_version}</div> : null}
           </div>
         }
       />
