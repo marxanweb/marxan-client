@@ -412,13 +412,13 @@ class App extends React.Component {
   
   //initialises the servers by requesting their capabilities and then filtering the list of available servers
   initialiseServers(marxanServers){
-    //add the current domain - this may be a local/local network install
-    let name = (window.location.hostname === "localhost") ? "localhost" : window.location.hostname;
-    marxanServers.push(({name: name, protocol: window.location.protocol, host: window.location.hostname, port: 8080, description:'Local machine', type:'local', }));
-    //get a list of server hosts
+    //get a list of server hosts from the marxan.js registry
     let hosts = marxanServers.map((server) => {
       return server.host;  
     });
+    //add the current domain - this may be a local/local network install
+    let name = (window.location.hostname === "localhost") ? "localhost" : window.location.hostname;
+    marxanServers.push(({name: name, protocol: window.location.protocol, host: window.location.hostname, port: 8080, description:'Local machine', type:'local', }));
     //get all the server capabilities - when all the servers have responded, finalise the marxanServer array
     this.getAllServerCapabilities(marxanServers).then((server) => {
       //remove the current domain if either the marxan server is not installed, or it is already in the list of servers from the marxan registry
