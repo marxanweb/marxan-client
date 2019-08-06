@@ -71,6 +71,9 @@ class FeaturesDialog extends React.Component {
   sortDate(a, b, desc) {
     return (Date.parse(a) > Date.parse(b)) ? 1 : -1;
   }
+	renderTitle(row){
+		return <div style={{width: '100%',height: '100%',backgroundColor: '#dadada',borderRadius: '2px'}} title={row.original.description}>{row.original.description}</div>;        
+	}
   render() {
     if (this.props.allFeatures) {
       return (
@@ -80,7 +83,7 @@ class FeaturesDialog extends React.Component {
                          {" " + this.props.allFeatures.length } features:</div>
                        <div id="projectsTable">
                          <ReactTable pageSize={ this.props.allFeatures.length } className={ 'projectsReactTable' } showPagination={ false } minRows={ 0 } data={ this.props.allFeatures }
-                           thisRef={ this } columns={ [{ Header: 'Name', accessor: 'alias', width: 170, headerStyle: { 'textAlign': 'left' } }, { Header: 'Description', accessor: 'description', width: 330, headerStyle: { 'textAlign': 'left' } }, { Header: 'Date', accessor: 'creation_date', width: 220, headerStyle: { 'textAlign': 'left' }, sortMethod: this.sortDate.bind(this) }] } getTrProps={ (state, rowInfo, column) => {
+                           thisRef={ this } columns={ [{ Header: 'Name', accessor: 'alias', width: 170, headerStyle: { 'textAlign': 'left' } }, { Header: 'Description', accessor: 'description', width: 330, headerStyle: { 'textAlign': 'left' }, Cell: this.renderTitle.bind(this) }, { Header: 'Date', accessor: 'creation_date', width: 220, headerStyle: { 'textAlign': 'left' }, sortMethod: this.sortDate.bind(this) }] } getTrProps={ (state, rowInfo, column) => {
                           return {
                             style: {
                               background: ((state.thisRef.props.addingRemovingFeatures && state.thisRef.props.selectedFeatureIds.includes(rowInfo.original.id)) || (!state.thisRef.props.addingRemovingFeatures && state.thisRef.state.selectedFeature && state.thisRef.state.selectedFeature.id === rowInfo.original.id)) ? "aliceblue" : ""

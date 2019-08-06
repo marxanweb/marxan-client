@@ -556,3 +556,8 @@ div.rt-tbody>div>div>div>div[contenteditable="true"] {
 .serverDetails{
   font-size: 12px;
 }
+
+#snackbar-message-id a{
+  color:rgb(255, 64, 129);
+  text-decoration:underline;
+}

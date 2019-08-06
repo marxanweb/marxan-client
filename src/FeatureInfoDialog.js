@@ -79,7 +79,7 @@ class FeatureInfoDialog extends React.Component {
 		render(){
 			if (this.props.feature){
 				let data =[];
-				//iterate through the feature properties and set the data to bind to the table
+				//iterate through the feature properties and set the data to bind to the table - if it is a feature from the old version of marxan then showForOld must be true for that property to be shown
 				this.props.FEATURE_PROPERTIES.forEach((item)=>{
 					if ((!this.props.feature.old_version) || (this.props.feature.old_version && item.showForOld)){
 						data.push({key: item.key, value: this.props.feature[item.name], hint: item.hint});

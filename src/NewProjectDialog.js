@@ -24,7 +24,7 @@ class NewProjectDialog extends React.Component {
 			};
 	}
 	componentDidUpdate(prevProps, prevState) {
-			if (prevProps.features.length !== this.props.features.length) { //coarse comparison at the moment
+			if (prevProps.features !== this.props.features) { //this is probably an unreliable check but it seems to work!
 					this.setState({ allFeatures: JSON.parse(JSON.stringify(this.props.features)) }); //a copy of all the features
 			}
 	}

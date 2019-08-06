@@ -97,8 +97,8 @@ let BACKUP_MAPBOX_BASEMAPS = [{name: 'Streets', description: 'A complete basemap
     {name: 'Satellite Streets', description: 'Global imagery enhanced with road and label hierarchy.', id:'mapbox/satellite-streets-v9', provider:'mapbox'}];
 //array of Marxan servers to use if the CDN that provides this array is unavailable
 let BACKUP_MARXAN_SERVERS = [{name: 'Joint Research Centre, Italy', host: 'https://marxan-server-blishten.c9users.io', description: ''}];
-//an array of feature property information that is used in the Feature Information dialog box
-let FEATURE_PROPERTIES = [{ name: 'id', key: 'ID',hint: 'The unique identifier for the feature', showForOld: false},
+//an array of feature property information that is used in the Feature Information dialog box - showForOld sets whether that property is shown for old versions of marxan
+let FEATURE_PROPERTIES = [{ name: 'id', key: 'ID',hint: 'The unique identifier for the feature', showForOld: true},
   { name: 'alias', key: 'Alias',hint: 'A human readable name for the feature', showForOld: true},
   { name: 'feature_class_name', key: 'Feature class name',hint: 'The internal name for the feature in the PostGIS database', showForOld: false},
   { name: 'description', key: 'Description',hint: 'Full description of the feature', showForOld: false},
