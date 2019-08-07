@@ -308,6 +308,7 @@ class App extends React.Component {
   //checks the reponse for errors
   checkForErrors(response, showSnackbar = true) {
     let networkError = this.responseIsTimeoutOrEmpty(response, showSnackbar);
+    //check the response from the server for an error property - if it has one then show it in the snackbar
     let serverError = this.isServerError(response, showSnackbar);
     let isError = (networkError || serverError);
     if (isError) {
@@ -331,7 +332,7 @@ class App extends React.Component {
   }
 
   //checks to see if the rest server raised an error and if it did then show in the snackbar
-  isServerError(response, showSnackbar = true) {
+  isServerError(response, showSnackbar) {
     //errors may come from the marxan server or from the rest server which have slightly different json responses
     if ((response && response.error) || (response && response.hasOwnProperty('metadata') && response.metadata.hasOwnProperty('error') && response.metadata.error != null)) {
       var err = (response.error) ? (response.error) : response.metadata.error;
@@ -3528,7 +3529,7 @@ class App extends React.Component {
               <MenuItemWithButton leftIcon={(this.state.currentFeature.feature_layer_loaded) ? <RemoveFromMap style={{margin: '1px'}}/> : <AddToMap style={{margin: '1px'}}/>} style={{display: (this.state.currentFeature.tilesetid) ? 'block' : 'none'}} onClick={this.toggleFeatureLayer.bind(this, this.state.currentFeature)}>{(this.state.currentFeature.feature_layer_loaded) ? "Remove from map" : "Add to map"}</MenuItemWithButton>
               <MenuItemWithButton leftIcon={(this.state.puvsprLayerText === HIDE_PUVSPR_LAYER_TEXT) ? <RemoveFromMap style={{margin: '1px'}}/> : <AddToMap style={{margin: '1px'}}/>} onClick={this.toggleFeaturePuvsprLayer.bind(this, this.state.currentFeature)} disabled={!(this.state.currentFeature.preprocessed && this.state.currentFeature.occurs_in_planning_grid)}>{this.state.puvsprLayerText}</MenuItemWithButton>
               <MenuItemWithButton leftIcon={<ZoomIn style={{margin: '1px'}}/>} style={{display: (this.state.currentFeature.extent) ? 'block' : 'none'}} onClick={this.zoomToFeature.bind(this, this.state.currentFeature)}>Zoom to feature extent</MenuItemWithButton>
-              <MenuItemWithButton leftIcon={<Preprocess style={{margin: '1px'}}/>} style={{display: ((this.state.currentFeature.old_version)||(this.state.userData.ROLE === "ReadOnly")) ? 'none' : 'block'}} onClick={this.preprocessSingleFeature.bind(this, this.state.currentFeature)} disabled={this.state.currentFeature.preprocessed}>Pre-process</MenuItemWithButton>
+              <MenuItemWithButton leftIcon={<Preprocess style={{margin: '1px'}}/>} style={{display: ((this.state.currentFeature.old_version)||(this.state.userData.ROLE === "ReadOnly")) ? 'none' : 'block'}} onClick={this.preprocessSingleFeature.bind(this, this.state.currentFeature)} disabled={this.state.currentFeature.preprocessed || this.state.preprocessing}>Pre-process</MenuItemWithButton>
             </Menu>
           </Popover>   
           <AppBar

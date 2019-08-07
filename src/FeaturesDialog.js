@@ -4,6 +4,7 @@ import { faPlusCircle } from '@fortawesome/free-solid-svg-icons';
 import { faCircle } from '@fortawesome/free-regular-svg-icons';
 import { faCheckCircle } from '@fortawesome/free-regular-svg-icons';
 import { faTrashAlt } from '@fortawesome/free-regular-svg-icons';
+import Import from 'material-ui/svg-icons/action/get-app';
 import ToolbarButton from './ToolbarButton';
 import MarxanDialog from './MarxanDialog';
 import ReactTable from "react-table";
@@ -100,14 +101,13 @@ class FeaturesDialog extends React.Component {
                          />
                          <Popover open={ this.props.featuresDialogPopupOpen } anchorEl={ this.state.anchorEl } anchorOrigin={ { horizontal: 'left', vertical: 'bottom' } } targetOrigin={ { horizontal: 'left', vertical: 'top' } } onRequestClose={ this.props.closePopover }>
                            <Menu desktop={ true }>
-                             <MenuItem primaryText="Import shapefile" title="Create a new feature by importing a zipped shapefile from the local machine" onClick={ this._newByImport.bind(this) } />
                              <MenuItem primaryText="Draw on screen" title="Create a new feature by digitising it on the screen" onClick={ this._newByDigitising.bind(this) } />
                              <MenuItem primaryText="Add from GBIF" disabled={ true } />
                              <MenuItem primaryText="Add from IUCN Red List" disabled={ true } />
                            </Menu>
                          </Popover>
-                         <ToolbarButton show={ (this.props.userRole === "Admin") && (!this.props.metadata.OLDVERSION) && (!this.props.addingRemovingFeatures) } icon={ <FontAwesomeIcon icon={ faTrashAlt } color='rgb(255, 64, 129)' /> } title="Delete feature" disabled={ this.state.selectedFeature === undefined || this.props.loading } onClick={ this._delete.bind(this) } label={ "Delete" }
-                         />
+                         <ToolbarButton show={ (!this.props.metadata.OLDVERSION) && (!this.props.addingRemovingFeatures) } icon={<Import style={{height:'20px',width:'20px'}}/>} title="Import an existing feature from the local machine" disabled={ this.props.loading } onClick={ this._newByImport.bind(this) } label={ "Import" }/>
+                         <ToolbarButton show={ (this.props.userRole === "Admin") && (!this.props.metadata.OLDVERSION) && (!this.props.addingRemovingFeatures) } icon={ <FontAwesomeIcon icon={ faTrashAlt } color='rgb(255, 64, 129)' /> } title="Delete feature" disabled={ this.state.selectedFeature === undefined || this.props.loading } onClick={ this._delete.bind(this) } label={ "Delete" }/>
                          <ToolbarButton show={ this.props.addingRemovingFeatures } icon={ <FontAwesomeIcon icon={ faCircle } /> } title="Clear all features" onClick={ this.props.clearAllFeatures } label={ "Clear all" } />
                          <ToolbarButton show={ this.props.addingRemovingFeatures } icon={ <FontAwesomeIcon icon={ faCheckCircle } /> } title="Select all features" onClick={ this.props.selectAllFeatures } label={ "Select all" } />
                        </div>
