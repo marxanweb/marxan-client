@@ -77,6 +77,9 @@ class InfoPanel extends React.Component {
 		let checkedString = (isInputChecked) ? "True" : "False";
 		this.props.toggleProjectPrivacy(checkedString);
 	}
+	toggleCosts(event, isInputChecked){
+		this.props.toggleCosts(isInputChecked);
+	}
 	stopMarxan(){
 		this.props.stopMarxan(this.props.pid);
 	}
@@ -103,7 +106,7 @@ class InfoPanel extends React.Component {
 											label="Private"
 											style={{fontSize:'12px'}}
 											checked={this.props.metadata.PRIVATE}
-											 onCheck={this.toggleProjectPrivacy.bind(this)}
+											onCheck={this.toggleProjectPrivacy.bind(this)}
 										/>
 									</div>
 								</div>
@@ -145,7 +148,7 @@ class InfoPanel extends React.Component {
 										})}
 									/> 
 									<div style={{display: (this.props.userRole === "ReadOnly") ? 'none' : 'block'}}>
-									<div className={'tabTitle'}>Manual edits</div>
+										<div className={'tabTitle'}>Status</div>
 										<FontAwesomeIcon icon={(this.props.puEditing) ? faUnlock : faLock} onClick={this.startStopPuEditSession.bind(this)} title={(this.props.puEditing) ? "Save" : "Click to edit"} style={{cursor:'pointer', marginRight: '10px', color: 'rgba(255, 64, 129, 0.7)'}}/>
 										<div className={'description'} style={{display: 'inline-block'}}>{(this.props.puEditing) ? "Click on the map to change the status" : "Click to edit"}</div>
 										<div style={{display: (this.props.puEditing) ? "block" : "none"}}>
@@ -159,6 +162,12 @@ class InfoPanel extends React.Component {
 											/>
 										</div>
 									</div>
+									<div className={'tabTitle'}>Costs</div>
+									<Checkbox
+										label="Show costs"
+										style={{fontSize:'12px'}}
+										onCheck={this.toggleCosts.bind(this)}
+									/>
 								</div>  
 							</Tab>
 						</Tabs>     

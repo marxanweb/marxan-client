@@ -73,8 +73,9 @@ let PLANNING_UNIT_STATUSES = [1, 2, 3];
 let PLANNING_UNIT_SOURCE_NAME = "planning_units_source";
 let PU_LAYER_NAME = "planning_units_layer";
 let PU_LAYER_OPACITY = 0.2;
-let EDIT_LAYER_NAME = "planning_units_layer_edit";
-let EDIT_LAYER_LINE_WIDTH = 1.5;
+let STATUS_LAYER_NAME = "planning_units_status_layer";
+let STATUS_LAYER_LINE_WIDTH = 1.5;
+let COSTS_LAYER_NAME = "costs_layer";
 let PUVSPR_LAYER_NAME = "planning_units_puvspr_layer";
 let PUVSPR_LAYER_LINE_WIDTH = 1.5;
 let PUVSPR_LAYER_OUTLINE_COLOR = 'rgba(255, 0, 0, 1)';
@@ -1569,8 +1570,47 @@ class App extends React.Component {
       expression = "rgba(150, 150, 150, 0)";
     }
     //set the render paint property
-    this.map.setPaintProperty(EDIT_LAYER_NAME, "line-color", expression);
-    this.map.setPaintProperty(EDIT_LAYER_NAME, "line-width", EDIT_LAYER_LINE_WIDTH);
+    this.map.setPaintProperty(STATUS_LAYER_NAME, "line-color", expression);
+    this.map.setPaintProperty(STATUS_LAYER_NAME, "line-width", STATUS_LAYER_LINE_WIDTH);
+  }
+
+  //renders the planning units cost layer according to the cost for each planning unit
+  renderPuCostLayer(cost_data) {
+    let expression;
+    if (cost_data.length > 0) {
+      //build an expression to get the matching puids with different costs
+      expression = ["match", ["get", "puid"]];
+      // the rest service sends the data grouped by the cost, e.g. [2000000,[23,34,36,43,98]],[4744616,[16,19]],[4932674,[21,233]]
+      cost_data.forEach((row, index) => {
+        var color;
+        //get the status
+        switch (row[0]) {
+          case 2000000: 
+            color = "rgba(63, 191, 63, 1)";
+            break;
+          case 4744616: 
+            color = "rgba(63, 63, 191, 1)";
+            break;
+          case 4932674: 
+            color = "rgba(191, 63, 63, 1)";
+            break;
+          default:
+            color = "rgba(191, 63, 63, 0)";
+            break;
+        }
+        //add the color to the expression 
+        expression.push(row[1], color);
+      });
+      // Last value is the default
+      expression.push("rgba(150, 150, 150, 0)");
+    }
+    else {
+      //there are no costs apart from the default 0 status so have a single renderer
+      expression = "rgba(150, 150, 150, 0.7)";
+    }
+    //set the render paint property
+    this.map.setPaintProperty(COSTS_LAYER_NAME, "fill-color", expression);
+    // this.map.setPaintProperty(COSTS_LAYER_NAME, "fill-outline-color", STATUS_LAYER_LINE_WIDTH);
   }
 
   mouseMove(e) {
@@ -1816,7 +1856,7 @@ class App extends React.Component {
     }, beforeLayer);
     //add the planning units manual edit layer - this layer shows which individual planning units have had their status changed
     this.map.addLayer({
-      'id': EDIT_LAYER_NAME,
+      'id': STATUS_LAYER_NAME,
       'type': "line",
       'source': PLANNING_UNIT_SOURCE_NAME,
       "layout": {
@@ -1825,7 +1865,21 @@ class App extends React.Component {
       'source-layer': tileset.name,
       'paint': {
         'line-color': "rgba(150, 150, 150, 0)",
-        'line-width': EDIT_LAYER_LINE_WIDTH
+        'line-width': STATUS_LAYER_LINE_WIDTH
+      }
+    }, beforeLayer);
+    //add the planning units costs layer
+    this.map.addLayer({
+      'id': COSTS_LAYER_NAME,
+      'type': "fill",
+      'source': PLANNING_UNIT_SOURCE_NAME,
+      "layout": {
+        "visibility": "none"
+      },
+      'source-layer': tileset.name,
+      'paint': {
+        'fill-color': "rgba(255, 0, 0, 0)",
+        'fill-outline-color': "rgba(150, 150, 150, 0)"
       }
     }, beforeLayer);
     //add the puvspr planning unit layer - this layer shows the planning unit distribution of a feature from the puvspr file
@@ -1906,6 +1960,18 @@ class App extends React.Component {
     this.map.fitBounds([minLng, minLat, maxLng, maxLat], { padding: { top: 10, bottom: 10, left: 10, right: 10 }, easing: (num) => { return 1; } });
   }
 
+  toggleCosts(show){
+    //show/hide the planning units cost layer 
+    if (show){
+      this.getPlanningUnitsCostData().then((cost_data)=>{
+        this.renderPuCostLayer(cost_data);
+        this.showLayer(COSTS_LAYER_NAME);
+      })
+    }else{
+      this.hideLayer(COSTS_LAYER_NAME);
+    }
+  }
+  
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   ///ACTIVATION/DEACTIVATION OF TABS
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1940,10 +2006,10 @@ class App extends React.Component {
     this.changeOpacity(RESULTS_LAYER_NAME, RESULTS_LAYER_FILL_OPACITY_INACTIVE);
     //store the values for the result layers opacities
     this.previousResultsOpacity = this.state.results_layer_opacity;
-    //show the planning units edit layer 
-    this.showLayer(EDIT_LAYER_NAME);
-    //render the planning_units_layer_edit layer
-    this.renderPuEditLayer(EDIT_LAYER_NAME);
+    //show the planning units status layer 
+    this.showLayer(STATUS_LAYER_NAME);
+    //render the planning units status layer_edit layer
+    this.renderPuEditLayer(STATUS_LAYER_NAME);
   }
 
   //fired whenever another tab is selected
@@ -1955,7 +2021,7 @@ class App extends React.Component {
     //hide the planning units layer 
     this.hideLayer(PU_LAYER_NAME);
     //hide the planning units edit layer 
-    this.hideLayer(EDIT_LAYER_NAME);
+    this.hideLayer(STATUS_LAYER_NAME);
   }
 
   //fired when the legend tab is selected
@@ -2162,6 +2228,19 @@ class App extends React.Component {
       if (new_array.length === 0) statuses.splice(position, 1);
     }
     return statuses;
+  }
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  //ROUTINES FOR WORKING WITH COSTS
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  
+  getPlanningUnitsCostData(){
+    return new Promise((resolve, reject) => {
+      this._get("getPlanningUnitsCostData?user=" + this.state.owner + "&project=" + this.state.project).then((response) => {
+        resolve(response.data)
+      }).catch((error) => {
+        //do something
+      });
+    });
   }
 
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3291,6 +3370,7 @@ class App extends React.Component {
             updateFeature={this.updateFeature.bind(this)}
             userRole={this.state.userData.ROLE}
             toggleProjectPrivacy={this.toggleProjectPrivacy.bind(this)}
+            toggleCosts={this.toggleCosts.bind(this)}
           />
           <ResultsPane
             open={this.state.resultsPanelOpen}
