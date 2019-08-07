@@ -20,7 +20,7 @@ class PopupFeatureList extends React.Component {
 						 Header: 'Feature',
 						 accessor: 'alias',
 						 width: 220,
-						 headerStyle: { 'textAlign': 'left' }
+						 headerStyle: { display:'none'}
 					}]}
 				/>
 			</div>

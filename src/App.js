@@ -2425,16 +2425,19 @@ class App extends React.Component {
         if (feature.id === this.puvsprLayerId) this.toggleFeaturePuvsprLayer(feature);
       }
     });
-    this.setFeaturesState(allFeatures);
-    //persist the changes to the server
-    if (this.state.userData.ROLE !== "ReadOnly") this.updateSpecFile(); 
-    //close the dialog
-    this.closeFeaturesDialog();
+    //when the project features have been saved to state, update the spec.dat file
+    this.setFeaturesState(allFeatures, ()=>{
+      //persist the changes to the server
+      if (this.state.userData.ROLE !== "ReadOnly") this.updateSpecFile(); 
+      //close the dialog
+      this.closeFeaturesDialog();
+    });
   }
 
-  setFeaturesState(newFeatures){
+  //the callback is optional and will be called when the state has updated
+  setFeaturesState(newFeatures, callback){
     //update allFeatures and projectFeatures with the new value
-    this.setState({ allFeatures: newFeatures, projectFeatures: newFeatures.filter((item) => { return item.selected }) });
+    this.setState({ allFeatures: newFeatures, projectFeatures: newFeatures.filter((item) => { return item.selected }) }, callback);
   }
   
   //unselects a single Conservation feature

@@ -98,7 +98,7 @@ class InfoPanel extends React.Component {
 									<div className={'tabTitle tabTitleTopMargin'}>Created</div>
 									<div className={'createDate'}>{this.props.metadata.CREATEDATE}</div>
 									<div className={'tabTitle tabTitleTopMargin'}>{(this.props.metadata.OLDVERSION) ? "Imported project" : ""}</div>
-									<div style={{position:'absolute', top:'380px', display: (this.props.userRole === "ReadOnly") ? 'none' : 'block'}}>
+									<div style={{position:'absolute', top:'413px', display: (this.props.userRole === "ReadOnly") ? 'none' : 'block'}}>
 										<Checkbox
 											label="Private"
 											style={{fontSize:'12px'}}

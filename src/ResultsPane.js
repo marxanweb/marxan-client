@@ -111,7 +111,7 @@ class ResultsPane extends React.Component {
 										icon={<Settings style={{height:'20px',width:'20px'}}/>} 
 										title="Legend Settings"
 										onClick={this.props.openClassificationDialog} 
-										style={{ top:'427px', position:'absolute', marginLeft:'-7px'}}
+										style={{ top:'447px', position:'absolute', marginLeft:'-7px'}}
 									/>
 								</div>
 							</Tab>
@@ -175,14 +175,14 @@ class ResultsPane extends React.Component {
 										title="Copy to clipboard"
 										onClick={this.copyLog.bind(this)} 
 										show={this.state.showClipboard}
-										style={{position:'absolute',top:'421px',right:'70px'}}
+										style={{position:'absolute',top:'442px',right:'66px'}}
 									/>
 									<ToolbarButton  
 										icon={<FontAwesomeIcon icon={faEraser} />} 
 										title="Clear log"
 										onClick={this.props.clearLog.bind(this)} 
 										show={this.state.showClipboard}
-										style={{position:'absolute',top:'421px',right:'30px'}}
+										style={{position:'absolute',top:'442px',right:'26px'}}
 									/>
 								</div>
 							</Tab>

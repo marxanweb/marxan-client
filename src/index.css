@@ -148,15 +148,15 @@ body {
 }
 
 .tabs {
-  height: 500px;
+  height: 520px;
 }
 
 .resultsTabs {
-  height: 541px;
+  height: 561px;
 }
 
 #log {
-  height: 455px;
+  height: 472px;
   width: 360px;
   font-size: 12px;
   overflow-x: hidden;
@@ -201,7 +201,7 @@ body {
 
 .solutions_infoTable {
   width: 360px;
-  max-height: 452px;
+  max-height: 472px;
   color: rgba(0, 0, 0, 0.6);
 }
 
