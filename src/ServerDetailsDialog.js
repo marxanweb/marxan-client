@@ -20,6 +20,8 @@ class ServerDetailsDialog extends React.Component {
             <div className="serverDetails">Description: {this.props.marxanServer&&this.props.marxanServer.description}</div>
             <div className="serverDetails">System: {this.props.marxanServer&&this.props.marxanServer.system}</div>
             <div className="serverDetails">Marxan Server version: {this.props.marxanServer&&this.props.marxanServer.server_version}</div>
+            <div className="serverDetails">WDPA version: {this.props.marxanServer&&this.props.marxanServer.wdpa_version}</div>
+            <div className="serverDetails" style={{display: (this.props.newWDPAVersion ? 'block' : 'none')}}>New version of the WDPA available: {window.WDPA_VERSION.version_date}</div>
           </div>
         }
       />
