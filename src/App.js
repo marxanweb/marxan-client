@@ -110,7 +110,7 @@ let FEATURE_PROPERTIES = [{ name: 'id', key: 'ID',hint: 'The unique identifier f
   { name: 'spf', key: 'Species Penalty Factor',hint: 'The species penalty factor is used to weight the likelihood of getting a species in the results', showForOld: true},
   { name: 'preprocessed', key: 'Preprocessed',hint: 'Whether or not the feature has been intersected with the planning units', showForOld: false},
   { name: 'pu_count', key: 'Planning unit count',hint: 'The number of planning units that intersect the feature (calculated during pre-processing)', showForOld: true},
-  { name: 'pu_area', key: 'Planning unit area',hint: 'The area of the feature within the planning grid in Km2 (calculated during pre-processing)', showForOld: true},
+  { name: 'pu_area', key: 'Planning grid area',hint: 'The area of the feature within the planning grid in Km2 (calculated during pre-processing)', showForOld: true},
   { name: 'target_area', key: 'Target area',hint: 'The total area that needs to be protected to achieve the target percentage in Km2 (calculated during a Marxan Run)', showForOld: true},
   { name: 'protected_area', key: 'Area protected',hint: 'The total area protected in the current solution in Km2 (calculated during a Marxan Run)', showForOld: true}];
 var mb_tk = "sk.eyJ1IjoiYmxpc2h0ZW4iLCJhIjoiY2piNm1tOGwxMG9lajMzcXBlZDR4aWVjdiJ9.Z1Jq4UAgGpXukvnUReLO1g";

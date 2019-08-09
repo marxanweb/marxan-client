@@ -16,7 +16,7 @@ class FeaturesList extends React.Component {
 	render() {
 		return (
 			<React.Fragment>
-				<div>Select the features</div>
+				<div className={'tabTitle'}>Select the features</div>
 				<List style={{padding:'0px !important', maxHeight: this.props.maxheight, overflow: 'auto'}}>
 					{this.props.features.map((item)=>{
 						//get the total area of the feature in the planning unit

@@ -59,11 +59,11 @@ class FeatureInfoDialog extends React.Component {
 			case 'Preprocessed':
 				html = (props.row.value) ? this.getHTML("Yes", "The feature has been intersected with the planning units") : this.getHTML("No", "The feature has not yet been intersected with the planning units");
 				break;
+			case 'Planning grid area':
+				html = (props.row.value === -1) ? this.getHTML("Not calculated", "Calculated during pre-processing") : this.getAreaHTML(props);
+				break;
 			case 'Planning unit count':
 				html = (props.row.value === -1) ? this.getHTML("Not calculated", "Calculated during pre-processing") : this.getHTML(props.row.value);
-				break;
-			case 'Planning unit area':
-				html = (props.row.value === -1) ? this.getHTML("Not calculated", "Calculated during pre-processing") : this.getAreaHTML(props);
 				break;
 			case 'Target area':
 				html = (props.row.value === -1) ? this.getHTML("Not calculated", "Calculated during a Marxan run") : this.getAreaHTML(props);

@@ -148,7 +148,7 @@ class InfoPanel extends React.Component {
 										})}
 									/> 
 									<div style={{display: (this.props.userRole === "ReadOnly") ? 'none' : 'block'}}>
-										<div className={'tabTitle'}>Status</div>
+										<div className={'tabTitle'}>Statuses</div>
 										<FontAwesomeIcon icon={(this.props.puEditing) ? faUnlock : faLock} onClick={this.startStopPuEditSession.bind(this)} title={(this.props.puEditing) ? "Save" : "Click to edit"} style={{cursor:'pointer', marginRight: '10px', color: 'rgba(255, 64, 129, 0.7)'}}/>
 										<div className={'description'} style={{display: 'inline-block'}}>{(this.props.puEditing) ? "Click on the map to change the status" : "Click to edit"}</div>
 										<div style={{display: (this.props.puEditing) ? "block" : "none"}}>
