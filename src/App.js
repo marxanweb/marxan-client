@@ -53,6 +53,7 @@ import ClumpingDialog from './ClumpingDialog';
 import ImportDialog from './ImportDialog';
 import RunLogDialog from './RunLogDialog';
 import ServerDetailsDialog from './ServerDetailsDialog';
+import AlertDialog from './AlertDialog';
 import ChangePasswordDialog from './ChangePasswordDialog';
 import Popup from './Popup';
 import PopupFeatureList from './PopupFeatureList';
@@ -123,6 +124,7 @@ class App extends React.Component {
       marxanServers: [],
       marxanServer: {},
       usersDialogOpen: false,
+      alertDialogOpen: false,
       featureMenuOpen: false,
       profileDialogOpen: false,
       aboutDialogOpen: false,
@@ -577,7 +579,7 @@ class App extends React.Component {
       //get all planning grids
       this.getPlanningUnitGrids();
       //see if there is a new version of the wdpa data - window.WDPA_VERSION comes from the Marxan Registry
-      ((this.state.marxanServer.wdpa_version !== window.WDPA_VERSION.version_date) && (this.state.userData.ROLE === 'Admin')) ? this.setState({newWDPAVersion: true}) : this.setState({newWDPAVersion: false});
+      ((this.state.marxanServer.wdpa_version !== window.WDPA_VERSION.version_date) && (this.state.userData.ROLE === 'Admin')) ? this.setState({newWDPAVersion: true, alertDialogOpen: true}) : this.setState({newWDPAVersion: false, alertDialogOpen: false});
     }).catch((error) => {
       //do something
     });
@@ -1826,7 +1828,7 @@ class App extends React.Component {
         "type": "vector",
         "tilejson": "2.2.0",
         "maxzoom": 12,
-        "tiles": ["https://storage.googleapis.com/geeimageserver.appspot.com/vectorTiles/wdpa/tilesets/{z}/{x}/{y}.pbf"] //TODO UPDATE TO THE NEW WDPA VECTOR TILES
+        "tiles": [window.WDPA_VERSION.tilesUrl + "{z}/{x}/{y}.pbf"] 
       }
     );
     //add the results layer
@@ -2869,7 +2871,9 @@ class App extends React.Component {
   closeUsersDialog() {
     this.setState({ usersDialogOpen: false });
   }
-
+  closeAlertDialog(){
+    this.setState({alertDialogOpen: false});
+  }
   hideResults() {
     this.setState({ resultsPanelOpen: false });
   }
@@ -3059,6 +3063,18 @@ class App extends React.Component {
     return this.protected_area_intersections.filter((item) => { return (iucn_categories.indexOf(item[0]) > -1); });
   }
 
+  //downloads and updates the WDPA on the server
+  updateWDPA(){
+    //start the logging
+    this.startLogging(true);
+    //call the webservice
+    this._ws("updateWDPA?downloadUrl=" + window.WDPA_VERSION.downloadUrl + "&wdpaVersion=" + window.WDPA_VERSION.version_date, this.wsMessageCallback.bind(this)).then((message) => {
+      //websocket has finished
+      let obj = Object.assign(this.state.marxanServer, {wdpa_version: window.WDPA_VERSION.version_date});
+      this.setState({newWDPAVersion: false, marxanServer: obj});
+    });
+  }
+  
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////// BOUNDARY LENGTH MODIFIER AND CLUMPING
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3590,6 +3606,7 @@ class App extends React.Component {
             onRequestClose={this.closeServerDetailsDialog.bind(this)}
             newWDPAVersion={this.state.newWDPAVersion}
             marxanServer={this.state.marxanServer}
+            updateWDPA={this.updateWDPA.bind(this)}
           />
           <ChangePasswordDialog  
             open={this.state.changePasswordDialogOpen}
@@ -3599,6 +3616,10 @@ class App extends React.Component {
             checkPassword={this.checkPassword.bind(this)}
             setSnackBar={this.setSnackBar.bind(this)}
             updateUser={this.updateUser.bind(this)}
+          />
+          <AlertDialog
+            open={this.state.alertDialogOpen}
+            onOk={this.closeAlertDialog.bind(this)}
           />
           <Snackbar
             open={this.state.snackbarOpen}
