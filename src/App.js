@@ -3068,11 +3068,16 @@ class App extends React.Component {
     //start the logging
     this.startLogging(true);
     //call the webservice
-    this._ws("updateWDPA?downloadUrl=" + window.WDPA_VERSION.downloadUrl + "&wdpaVersion=" + window.WDPA_VERSION.version_date, this.wsMessageCallback.bind(this)).then((message) => {
-      //websocket has finished
-      let obj = Object.assign(this.state.marxanServer, {wdpa_version: window.WDPA_VERSION.version_date});
-      this.setState({newWDPAVersion: false, marxanServer: obj});
-    });
+    return new Promise((resolve, reject) => {
+      this._ws("updateWDPA?downloadUrl=" + window.WDPA_VERSION.downloadUrl + "&wdpaVersion=" + window.WDPA_VERSION.version_date, this.wsMessageCallback.bind(this)).then((message) => {
+        //websocket has finished
+        let obj = Object.assign(this.state.marxanServer, {wdpa_version: window.WDPA_VERSION.version_date});
+        this.setState({newWDPAVersion: false, marxanServer: obj});
+        resolve(message);
+      }).catch((error) => {
+        reject(error);
+      });
+    }); //return
   }
   
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
