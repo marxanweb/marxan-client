@@ -87,7 +87,7 @@ let HIDE_PUVSPR_LAYER_TEXT = "Remove planning unit outlines";
 let SHOW_PUVSPR_LAYER_TEXT = "Outline planning units where the feature occurs";
 let WDPA_SOURCE_NAME = "wdpa_source";
 let WDPA_LAYER_NAME = "wdpa";
-let WDPA_FILL_LAYER_OPACITY = 0.9;
+let WDPA_FILL_LAYER_OPACITY = 0.2;
 let CLUMP_COUNT = 5;
 //array of mapbox styles to use if the CDN that provides this array is unavailable
 let BACKUP_MAPBOX_BASEMAPS = [{name: 'Streets', description: 'A complete basemap, perfect for incorporating your own data.', id:'mapbox/streets-v9', provider:'mapbox'},
@@ -283,6 +283,8 @@ class App extends React.Component {
             msgCallback(message);
           }
         }else{
+          //pass the message back to the callback
+          msgCallback(message);
           //reset state
           this.setState({preprocessing: false});
           reject(message.error);
@@ -1824,11 +1826,9 @@ class App extends React.Component {
     );
     //add the source for the wdpa
     this.map.addSource(WDPA_SOURCE_NAME,{
-        "attribution": "IUCN and UNEP-WCMC (2017), The World Database on Protected Areas (WDPA) August 2017, Cambridge, UK: UNEP-WCMC. Available at: <a href='http://www.protectedplanet.net'>www.protectedplanet.net</a>",
+        "attribution": window.WDPA_VERSION.attribution,
         "type": "vector",
-        "tilejson": "2.2.0",
-        "maxzoom": 12,
-        "tiles": [window.WDPA_VERSION.tilesUrl + "{z}/{x}/{y}.pbf"] 
+        "tiles": ["https://geospatial.jrc.ec.europa.eu/geoserver/gwc/service/wmts?layer=marxan:wdpa_aug_2019_polygons&tilematrixset=EPSG:900913&Service=WMTS&Request=GetTile&Version=1.0.0&Format=application/x-protobuf;type=mapbox-vector&TileMatrix=EPSG:900913:{z}&TileCol={x}&TileRow={y}"] 
       }
     );
     //add the results layer
@@ -1905,15 +1905,15 @@ class App extends React.Component {
       "id": WDPA_LAYER_NAME,
       "type": "fill",
       "source": WDPA_SOURCE_NAME,
-      "source-layer": "wdpa",
+      "source-layer": "wdpa_aug_2019_polygons",
       "layout": {
         "visibility": "visible"
       },
-      "filter": ["==", "WDPAID", -1],
+      "filter": ["==", "wdpaid", -1],
       "paint": {
         "fill-color": {
           "type": "categorical",
-          "property": "MARINE",
+          "property": "marine",
           "stops": [
             ["0", "rgba(99,148,69, " + this.state.wdpa_layer_opacity + ")"],
             ["1", "rgba(63,127,191, " + this.state.wdpa_layer_opacity + ")"],
@@ -1922,7 +1922,7 @@ class App extends React.Component {
         },
         "fill-outline-color": {
           "type": "categorical",
-          "property": "MARINE",
+          "property": "marine",
           "stops": [
             ["0", "rgba(99,148,69," + this.state.wdpa_layer_opacity + ")"],
             ["1", "rgba(63,127,191, " + this.state.wdpa_layer_opacity + ")"],
@@ -2931,7 +2931,8 @@ class App extends React.Component {
     let iucnCategories = this.getIndividualIucnCategories(iucnCategory);
     //TODO FILTER THE WDPA CLIENT SIDE BY INTERSECTING IT WITH THE PLANNING GRID
     //filter the vector tiles for those iucn categories - and if the planning unit name has an iso3 country code - then use that as well. e.g. pu_ton_marine_hexagon_50 (has iso3 code) or pu_a4402723a92444ff829e9411f07e7 (no iso3 code)
-    let filterExpr = (this.state.metadata.PLANNING_UNIT_NAME.match(/_/g).length> 1) ? ['all', ['in', 'IUCN_CAT'].concat(iucnCategories), ['==', 'PARENT_ISO', this.state.metadata.PLANNING_UNIT_NAME.substr(3, 3).toUpperCase()]] : ['all', ['in', 'IUCN_CAT'].concat(iucnCategories)];
+    //let filterExpr = (this.state.metadata.PLANNING_UNIT_NAME.match(/_/g).length> 1) ? ['all', ['in', 'IUCN_CAT'].concat(iucnCategories), ['==', 'PARENT_ISO', this.state.metadata.PLANNING_UNIT_NAME.substr(3, 3).toUpperCase()]] : ['all', ['in', 'IUCN_CAT'].concat(iucnCategories)];
+    let filterExpr = ['all', ['in', 'iucn_cat'].concat(iucnCategories)]; // no longer filter by ISO code
     this.map.setFilter(WDPA_LAYER_NAME, filterExpr);
     //turn on/off the protected areas legend
     (iucnCategory === "None") ? this.hidePALegend() : this.showPALegend();
