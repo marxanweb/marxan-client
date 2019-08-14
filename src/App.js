@@ -361,6 +361,7 @@ class App extends React.Component {
     var logMessage = "";
     switch (message.status) {
       case 'Started': //from both asynchronous queries and marxan runs
+      case "Updating WDPA": 
         //set the processing state when the websocket starts
         this.setState({preprocessing: true});
         logMessage = this.state.streamingLog + message.info + "\n";
@@ -493,13 +494,18 @@ class App extends React.Component {
     });
   }
   
+  //sets the layer name for the WDPA vector tiles based on the WDPA version
+  setWDPAVectorTilesLayerName(wdpa_version){
+    //get the short version of the wdpa_version, e.g. August 2019 to aug_2019
+    let version = wdpa_version.toLowerCase().substr(0,3) + "_" + wdpa_version.substr(-4);
+    //set the value of the vector_tile_layer based on which version of the wdpa the server has in the PostGIS database
+    wdpa_vector_tile_layer = "wdpa_" + version + "_polygons";
+  }
   //called when the user selects a server
   selectServer(value){
     this.setState({marxanServer: value});
-    //get the short version of the wdpa_version, e.g. August 2019 to aug_2019
-    let version = value.wdpa_version.toLowerCase().substr(0,3) + "_" + value.wdpa_version.substr(-4);
-    //set the value of the vector_tile_layer based on which version of the wdpa the server has in the PostGIS database
-    wdpa_vector_tile_layer = "wdpa_" + version + "_polygons";
+    //set the link to the WDPA vector tiles based on the version that is included in the server in the PostGIS database
+    this.setWDPAVectorTilesLayerName(value.wdpa_version);
     //if the server is ready only then change the user/password to the guest user
     if (!value.offline && !value.corsEnabled && value.guestUserEnabled){
       this.setState({user: "guest", password:"password"});
@@ -1837,17 +1843,8 @@ class App extends React.Component {
         'url': "mapbox://" + tileset.id
       }
     );
-    //add the source for the wdpa
-    let yr = this.state.marxanServer.wdpa_version.substr(-4); //get the year from the wdpa_version
-    let attribution = "IUCN and UNEP-WCMC (" + yr + "), The World Database on Protected Areas (WDPA) " + this.state.marxanServer.wdpa_version + ", Cambridge, UK: UNEP-WCMC. Available at: <a href='http://www.protectedplanet.net'>www.protectedplanet.net</a>";
-    let tiles = [window.WDPA.tilesUrl + "layer=marxan:" + wdpa_vector_tile_layer + "&tilematrixset=EPSG:900913&Service=WMTS&Request=GetTile&Version=1.0.0&Format=application/x-protobuf;type=mapbox-vector&TileMatrix=EPSG:900913:{z}&TileCol={x}&TileRow={y}"];
-    this.setState({wdpaAttribution: attribution});
-    this.map.addSource(WDPA_SOURCE_NAME,{
-        "attribution": attribution,
-        "type": "vector",
-        "tiles": tiles 
-      }
-    ); 
+    //add the source for the WDPA
+    this.addWDPASource();
     //add the results layer
     this.map.addLayer({
       'id': RESULTS_LAYER_NAME,
@@ -1918,6 +1915,26 @@ class App extends React.Component {
       }
     }, beforeLayer);
     //add the wdpa layer
+    this.addWDPALayer();
+  }
+
+  //adds the WDPA vector tile layer source - this is a separate function so that if the source vector tiles are updated, the layer can be re-added on its own
+  addWDPASource(){
+    //add the source for the wdpa
+    let yr = this.state.marxanServer.wdpa_version.substr(-4); //get the year from the wdpa_version
+    let attribution = "IUCN and UNEP-WCMC (" + yr + "), The World Database on Protected Areas (WDPA) " + this.state.marxanServer.wdpa_version + ", Cambridge, UK: UNEP-WCMC. Available at: <a href='http://www.protectedplanet.net'>www.protectedplanet.net</a>";
+    let tiles = [window.WDPA.tilesUrl + "layer=marxan:" + wdpa_vector_tile_layer + "&tilematrixset=EPSG:900913&Service=WMTS&Request=GetTile&Version=1.0.0&Format=application/x-protobuf;type=mapbox-vector&TileMatrix=EPSG:900913:{z}&TileCol={x}&TileRow={y}"];
+    this.setState({wdpaAttribution: attribution});
+    this.map.addSource(WDPA_SOURCE_NAME,{
+        "attribution": attribution,
+        "type": "vector",
+        "tiles": tiles 
+      }
+    ); 
+  }
+  
+  //adds the WDPA vector tile layer - this is a separate function so that if the source vector tiles are updated, the layer can be re-added on its own
+  addWDPALayer(){
     this.map.addLayer({
       "id": WDPA_LAYER_NAME,
       "type": "fill",
@@ -1947,11 +1964,17 @@ class App extends React.Component {
           ]
         }
       }
-    }, beforeLayer);
+    });
     //set the wdpa layer in app state so that we can control the opacity in it
     this.setState({wdpaLayer: this.map.getLayer(WDPA_LAYER_NAME)});
   }
-
+  
+  //removes the WDPA layer and source
+  removeWDPALayer(){
+    this.map.removeLayer(WDPA_LAYER_NAME);
+    if (this.map.getSource(WDPA_SOURCE_NAME) !== undefined) this.map.removeSource(WDPA_SOURCE_NAME);
+  }
+  
   showLayer(id) {
     if (this.map.getLayer(id)) this.map.setLayoutProperty(id, 'visibility', 'visible');
   }
@@ -3090,7 +3113,18 @@ class App extends React.Component {
       this._ws("updateWDPA?downloadUrl=" + window.WDPA.downloadUrl + "&wdpaVersion=" + window.WDPA.latest_version, this.wsMessageCallback.bind(this)).then((message) => {
         //websocket has finished - set the new version of the wdpa
         let obj = Object.assign(this.state.marxanServer, {wdpa_version: window.WDPA.latest_version});
-        this.setState({newWDPAVersion: false, marxanServer: obj});
+        //update the state and when it is finished, re-add the wdpa source and layer
+        this.setState({newWDPAVersion: false, marxanServer: obj}, ()=> {
+          //set the source for the WDPA layer to the new vector tiles
+          this.setWDPAVectorTilesLayerName(window.WDPA.latest_version);
+          //remove the existing vector tiles
+          this.removeWDPALayer();
+          //re-add the WDPA source and layer
+          this.addWDPASource();
+          this.addWDPALayer();
+          //trigger a repaint
+          this.filterWdpaByIucnCategory(this.state.metadata.IUCN_CATEGORY);
+        });
         resolve(message);
       }).catch((error) => {
         reject(error);
