@@ -115,6 +115,7 @@ let FEATURE_PROPERTIES = [{ name: 'id', key: 'ID',hint: 'The unique identifier f
   { name: 'target_area', key: 'Target area',hint: 'The total area that needs to be protected to achieve the target percentage in Km2 (calculated during a Marxan Run)', showForOld: true},
   { name: 'protected_area', key: 'Area protected',hint: 'The total area protected in the current solution in Km2 (calculated during a Marxan Run)', showForOld: true}];
 var mb_tk = "sk.eyJ1IjoiYmxpc2h0ZW4iLCJhIjoiY2piNm1tOGwxMG9lajMzcXBlZDR4aWVjdiJ9.Z1Jq4UAgGpXukvnUReLO1g";
+var wdpa_vector_tile_layer = ""; //the name of the WDPA vector tile layer that is set when a server is selected based on which version of the WDPA is in that servers PostGIS database
 
 class App extends React.Component {
 
@@ -493,6 +494,10 @@ class App extends React.Component {
   //called when the user selects a server
   selectServer(value){
     this.setState({marxanServer: value});
+    //get the short version of the wdpa_version, e.g. August 2019 to aug_2019
+    let version = value.wdpa_version.toLowerCase().substr(0,3) + "_" + value.wdpa_version.substr(-4);
+    //set the value of the vector_tile_layer based on which version of the wdpa the server has in the PostGIS database
+    wdpa_vector_tile_layer = "marxan:wdpa_" + version + "_polygons";
     //if the server is ready only then change the user/password to the guest user
     if (!value.offline && !value.corsEnabled && value.guestUserEnabled){
       this.setState({user: "guest", password:"password"});
@@ -580,8 +585,8 @@ class App extends React.Component {
       });
       //get all planning grids
       this.getPlanningUnitGrids();
-      //see if there is a new version of the wdpa data - window.WDPA_VERSION comes from the Marxan Registry
-      ((this.state.marxanServer.wdpa_version !== window.WDPA_VERSION.version_date) && (this.state.userData.ROLE === 'Admin')) ? this.setState({newWDPAVersion: true, alertDialogOpen: true}) : this.setState({newWDPAVersion: false, alertDialogOpen: false});
+      //see if there is a new version of the wdpa data - this comes from the Marxan Registry WDPA object - if there is then show the alert message to admin users
+      ((this.state.marxanServer.wdpa_version !== window.WDPA.latest_version) && (this.state.userData.ROLE === 'Admin')) ? this.setState({newWDPAVersion: true, alertDialogOpen: true}) : this.setState({newWDPAVersion: false, alertDialogOpen: false});
     }).catch((error) => {
       //do something
     });
@@ -1825,10 +1830,11 @@ class App extends React.Component {
       }
     );
     //add the source for the wdpa
+    let yr = this.serverData.wdpa_version.substr(-4); //get the year from the wdpa_version
     this.map.addSource(WDPA_SOURCE_NAME,{
-        "attribution": window.WDPA_VERSION.attribution,
+        "attribution": "IUCN and UNEP-WCMC (" + yr + "), The World Database on Protected Areas (WDPA) " + this.serverData.wdpa_version + ", Cambridge, UK: UNEP-WCMC. Available at: <a href='http://www.protectedplanet.net'>www.protectedplanet.net</a>",
         "type": "vector",
-        "tiles": ["https://geospatial.jrc.ec.europa.eu/geoserver/gwc/service/wmts?layer=marxan:wdpa_aug_2019_polygons&tilematrixset=EPSG:900913&Service=WMTS&Request=GetTile&Version=1.0.0&Format=application/x-protobuf;type=mapbox-vector&TileMatrix=EPSG:900913:{z}&TileCol={x}&TileRow={y}"] 
+        "tiles": ["https://geospatial.jrc.ec.europa.eu/geoserver/gwc/service/wmts?layer=" + wdpa_vector_tile_layer + "&tilematrixset=EPSG:900913&Service=WMTS&Request=GetTile&Version=1.0.0&Format=application/x-protobuf;type=mapbox-vector&TileMatrix=EPSG:900913:{z}&TileCol={x}&TileRow={y}"] 
       }
     );
     //add the results layer
@@ -1905,7 +1911,7 @@ class App extends React.Component {
       "id": WDPA_LAYER_NAME,
       "type": "fill",
       "source": WDPA_SOURCE_NAME,
-      "source-layer": "wdpa_aug_2019_polygons",
+      "source-layer": wdpa_vector_tile_layer,
       "layout": {
         "visibility": "visible"
       },
@@ -3070,9 +3076,9 @@ class App extends React.Component {
     this.startLogging(true);
     //call the webservice
     return new Promise((resolve, reject) => {
-      this._ws("updateWDPA?downloadUrl=" + window.WDPA_VERSION.downloadUrl + "&wdpaVersion=" + window.WDPA_VERSION.version_date, this.wsMessageCallback.bind(this)).then((message) => {
-        //websocket has finished
-        let obj = Object.assign(this.state.marxanServer, {wdpa_version: window.WDPA_VERSION.version_date});
+      this._ws("updateWDPA?downloadUrl=" + window.WDPA.downloadUrl + "&wdpaVersion=" + window.WDPA.latest_version, this.wsMessageCallback.bind(this)).then((message) => {
+        //websocket has finished - set the new version of the wdpa
+        let obj = Object.assign(this.state.marxanServer, {wdpa_version: window.WDPA.latest_version});
         this.setState({newWDPAVersion: false, marxanServer: obj});
         resolve(message);
       }).catch((error) => {
