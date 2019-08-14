@@ -64,6 +64,7 @@ mapboxgl.accessToken = 'pk.eyJ1IjoiYmxpc2h0ZW4iLCJhIjoiMEZrNzFqRSJ9.0QBRA2HxTb8Y
 //CONSTANTS
 let MARXAN_CLIENT_VERSION = packageJson.version; //TODO UPDATE PACKAGE.JSON WHEN THERE IS A NEW VERSION
 let MARXAN_REGISTRY_FILENAME = "https://andrewcottam.github.io/marxan-web/registry/marxan.js";
+let ERRORS_PAGE = "https://andrewcottam.github.io/marxan-web/documentation/docs_errors.html";
 let SEND_CREDENTIALS = true; //if true all post requests will send credentials
 let TORNADO_PATH = "/marxan-server/";
 let TIMEOUT = 0; //disable timeout setting
@@ -211,7 +212,8 @@ class App extends React.Component {
       mapCentre: {lng: 0, lat: 0},
       mapZoom: 12,
       runLogs:[],
-      puEditing: false
+      puEditing: false,
+      wdpaAttribution: ""
     };
   }
 
@@ -1709,11 +1711,17 @@ class App extends React.Component {
       case 'Not Found':
         message = "The tileset '" + e.source.url + "' was not found";
         break;
+      case "Bad Request":
+        message = "The tileset from source '" + e.sourceId + "' was not found. See <a href='" + ERRORS_PAGE + "#the-tileset-from-source-source-was-not-found' target='blank'>here</a>";
+        break;
       default:
         message = e.error.message;
         break;
     }
-    this.setSnackBar("MapError: " + message);
+    if (message!=="http status 200 returned without content."){
+      this.setSnackBar("MapError: " + message);
+      console.error(message);
+    }  
   }
   
   //
@@ -1831,10 +1839,13 @@ class App extends React.Component {
     );
     //add the source for the wdpa
     let yr = this.state.marxanServer.wdpa_version.substr(-4); //get the year from the wdpa_version
+    let attribution = "IUCN and UNEP-WCMC (" + yr + "), The World Database on Protected Areas (WDPA) " + this.state.marxanServer.wdpa_version + ", Cambridge, UK: UNEP-WCMC. Available at: <a href='http://www.protectedplanet.net'>www.protectedplanet.net</a>";
+    let tiles = [window.WDPA.tilesUrl + "layer=marxan:" + wdpa_vector_tile_layer + "&tilematrixset=EPSG:900913&Service=WMTS&Request=GetTile&Version=1.0.0&Format=application/x-protobuf;type=mapbox-vector&TileMatrix=EPSG:900913:{z}&TileCol={x}&TileRow={y}"];
+    this.setState({wdpaAttribution: attribution});
     this.map.addSource(WDPA_SOURCE_NAME,{
-        "attribution": "IUCN and UNEP-WCMC (" + yr + "), The World Database on Protected Areas (WDPA) " + this.state.marxanServer.wdpa_version + ", Cambridge, UK: UNEP-WCMC. Available at: <a href='http://www.protectedplanet.net'>www.protectedplanet.net</a>",
+        "attribution": attribution,
         "type": "vector",
-        "tiles": ["https://geospatial.jrc.ec.europa.eu/geoserver/gwc/service/wmts?layer=marxan:" + wdpa_vector_tile_layer + "&tilematrixset=EPSG:900913&Service=WMTS&Request=GetTile&Version=1.0.0&Format=application/x-protobuf;type=mapbox-vector&TileMatrix=EPSG:900913:{z}&TileCol={x}&TileRow={y}"] 
+        "tiles": tiles 
       }
     ); 
     //add the results layer
@@ -3369,6 +3380,7 @@ class App extends React.Component {
             open={this.state.aboutDialogOpen}
             onOk={this.closeAboutDialog.bind(this)}
             marxanClientReleaseVersion={MARXAN_CLIENT_VERSION}
+            wdpaAttribution={this.state.wdpaAttribution}
           />
           <InfoPanel
             open={this.state.infoPanelOpen}

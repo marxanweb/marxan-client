@@ -27,9 +27,7 @@ class AboutDialog extends React.Component {
               Marxan 2.4.3 - Ian Ball, Matthew Watts &amp; Hugh Possingham
             </div>
             <div className={"aboutTitle"}>Data providers</div>
-            <div className={"aboutText"} style={{marginTop:'10px'}}>
-              Uses data from the World Database of Protected Areas. IUCN and UNEP-WCMC (2017), The World Database on Protected Areas (WDPA) August 2017, Cambridge, UK: UNEP-WCMC. Available at: <a href='http://www.protectedplanet.net'>www.protectedplanet.net</a>
-            </div>
+            <div className={"aboutText"} style={{marginTop:'10px'}} dangerouslySetInnerHTML={{__html: this.props.wdpaAttribution}} ></div>
             <div className={"aboutTitle"}>Funding and in-kind contributions</div>
             <div className={"aboutText"} style={{marginTop:'10px'}}>
               Marxan Web funded by the BIOPAMA project of the European Commission. With in-kind contributions from Mapbox. 
