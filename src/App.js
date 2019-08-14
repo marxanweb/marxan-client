@@ -497,7 +497,7 @@ class App extends React.Component {
     //get the short version of the wdpa_version, e.g. August 2019 to aug_2019
     let version = value.wdpa_version.toLowerCase().substr(0,3) + "_" + value.wdpa_version.substr(-4);
     //set the value of the vector_tile_layer based on which version of the wdpa the server has in the PostGIS database
-    wdpa_vector_tile_layer = "marxan:wdpa_" + version + "_polygons";
+    wdpa_vector_tile_layer = "wdpa_" + version + "_polygons";
     //if the server is ready only then change the user/password to the guest user
     if (!value.offline && !value.corsEnabled && value.guestUserEnabled){
       this.setState({user: "guest", password:"password"});
@@ -1830,13 +1830,13 @@ class App extends React.Component {
       }
     );
     //add the source for the wdpa
-    let yr = this.serverData.wdpa_version.substr(-4); //get the year from the wdpa_version
+    let yr = this.state.marxanServer.wdpa_version.substr(-4); //get the year from the wdpa_version
     this.map.addSource(WDPA_SOURCE_NAME,{
-        "attribution": "IUCN and UNEP-WCMC (" + yr + "), The World Database on Protected Areas (WDPA) " + this.serverData.wdpa_version + ", Cambridge, UK: UNEP-WCMC. Available at: <a href='http://www.protectedplanet.net'>www.protectedplanet.net</a>",
+        "attribution": "IUCN and UNEP-WCMC (" + yr + "), The World Database on Protected Areas (WDPA) " + this.state.marxanServer.wdpa_version + ", Cambridge, UK: UNEP-WCMC. Available at: <a href='http://www.protectedplanet.net'>www.protectedplanet.net</a>",
         "type": "vector",
-        "tiles": ["https://geospatial.jrc.ec.europa.eu/geoserver/gwc/service/wmts?layer=" + wdpa_vector_tile_layer + "&tilematrixset=EPSG:900913&Service=WMTS&Request=GetTile&Version=1.0.0&Format=application/x-protobuf;type=mapbox-vector&TileMatrix=EPSG:900913:{z}&TileCol={x}&TileRow={y}"] 
+        "tiles": ["https://geospatial.jrc.ec.europa.eu/geoserver/gwc/service/wmts?layer=marxan:" + wdpa_vector_tile_layer + "&tilematrixset=EPSG:900913&Service=WMTS&Request=GetTile&Version=1.0.0&Format=application/x-protobuf;type=mapbox-vector&TileMatrix=EPSG:900913:{z}&TileCol={x}&TileRow={y}"] 
       }
-    );
+    ); 
     //add the results layer
     this.map.addLayer({
       'id': RESULTS_LAYER_NAME,
