@@ -3665,6 +3665,7 @@ class App extends React.Component {
             newWDPAVersion={this.state.newWDPAVersion}
             marxanServer={this.state.marxanServer}
             updateWDPA={this.updateWDPA.bind(this)}
+            loading={this.state.preprocessing}
           />
           <ChangePasswordDialog  
             open={this.state.changePasswordDialogOpen}
