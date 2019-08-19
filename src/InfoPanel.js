@@ -162,10 +162,10 @@ class InfoPanel extends React.Component {
 											/>
 										</div>
 									</div>
-									<div className={'tabTitle'}>Costs</div>
+									<div className={'tabTitle'} style={{display:'none'}}>Costs</div>
 									<Checkbox
 										label="Show costs"
-										style={{fontSize:'12px'}}
+										style={{fontSize:'12px',display:'none'}}
 										onCheck={this.toggleCosts.bind(this)}
 									/>
 								</div>  

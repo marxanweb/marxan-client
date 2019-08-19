@@ -1638,8 +1638,8 @@ class App extends React.Component {
     //error check
     if (!this.state.userData.SHOWPOPUP) return;
     //get the features under the mouse
-    var features = this.map.queryRenderedFeatures(e.point, { layers: [RESULTS_LAYER_NAME] });
-    //see if there are any planning unit features under the mouse
+    var features = this.map.queryRenderedFeatures(e.point, { layers: [RESULTS_LAYER_NAME, WDPA_LAYER_NAME] });
+    //see if there are any features under the mouse
     if (features.length) {
       //set the location for the popup
       if (!this.state.active_pu || (this.state.active_pu && this.state.active_pu.puid !== features[0].properties.puid)) this.setState({ popup_point: e.point });
