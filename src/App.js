@@ -41,6 +41,7 @@ import ResultsPane from './ResultsPane';
 import FeatureInfoDialog from './FeatureInfoDialog';
 import ProjectsDialog from './ProjectsDialog';
 import NewProjectDialog from './NewProjectDialog';
+import FailedToDeleteFeatureDialog from './FailedToDeleteFeatureDialog';
 import PlanningGridsDialog from './PlanningGridsDialog';
 import NewPlanningGridDialog from './NewPlanningGridDialog';
 import UploadPlanningGridDialog from './UploadPlanningGridDialog';
@@ -144,6 +145,7 @@ class App extends React.Component {
       resendPasswordDialogOpen: false,
       NewPlanningGridDialogOpen: false, 
       importPlanningGridDialogOpen: false,
+      failedToDeleteFeatureDialogOpen: false,
       changePasswordDialogOpen: false,
       serverDetailsDialogOpen: false,
       planningGridsDialogOpen: false,
@@ -157,6 +159,7 @@ class App extends React.Component {
       user: DISABLE_LOGIN ? 'andrew' : '', //TODO REMOVE DISABLE_LOGIN
       password: DISABLE_LOGIN ? 'asd' : '',
       project: DISABLE_LOGIN ? 'Tonga marine' : '',
+      failedToDeleteProjects: [],
       owner: '', // the owner of the project - may be different to the user, e.g. if logged on as guest (user) and accessing someone elses project (owner)
       loggedIn: false,
       userData: {},
@@ -236,14 +239,17 @@ class App extends React.Component {
       //set the global loading flag
       this.setState({loading: true});
       jsonp(this.state.marxanServer.endpoint + params, { timeout: timeout }).promise.then((response) => {
+        this.setState({loading: false});
         if (!this.checkForErrors(response)) {
-          this.setState({loading: false});
           resolve(response);
         }
         else {
-          this.setState({loading: false});
           reject(response.error);
         }
+      }, (err) => {
+        this.setState({loading: false});
+        this.setSnackBar("There was a Timeout in the request");
+        reject(err);
       });
     });
   }
@@ -361,7 +367,8 @@ class App extends React.Component {
     var logMessage = "";
     switch (message.status) {
       case 'Started': //from both asynchronous queries and marxan runs
-      case "Updating WDPA": 
+      case "Updating WDPA":
+      case "Importing feature": 
         //set the processing state when the websocket starts
         this.setState({preprocessing: true});
         logMessage = this.state.streamingLog + message.info + "\n";
@@ -2588,17 +2595,23 @@ class App extends React.Component {
 
   //create the new feature from the already uploaded zipped shapefile
   createNewFeatureFromImport(){
-    this._get("importFeature?filename=" + this.state.featureDatasetFilename + "&name=" + this.state.featureDatasetName + "&description=" + this.state.featureDatasetDescription).then((response) => {
-      if (response.id){
-        this.setSnackBar("Feature imported. Uploading to Mapbox"); 
-        //start polling to see when the upload is done
-        this.pollMapbox(response.uploadId).then(() => {
-          this.newFeatureCreated(response);
-        });
-      }
-    }).catch((error) => {
-      //do something
-    });
+    //start the logging
+    this.startLogging(true);
+    return new Promise((resolve, reject) => {
+      this._ws("importFeature?filename=" + this.state.featureDatasetFilename + "&name=" + this.state.featureDatasetName + "&description=" + this.state.featureDatasetDescription, this.wsMessageCallback.bind(this)).then((message) => {
+        if (message.id){
+          this.setSnackBar("Feature imported. Uploading to Mapbox"); 
+          //start polling to see when the upload is done
+          this.pollMapbox(message.uploadId).then(() => {
+            this.newFeatureCreated(message);
+          });
+        }
+        //websocket has finished 
+        resolve(message);
+      }).catch((error) => {
+        reject(error);
+      });
+    }); //return
   }
   
   //create the new feature from the feature that has been digitised on the map
@@ -2654,7 +2667,21 @@ class App extends React.Component {
     this.setState({allFeatures: featuresCopy});
   }
   
+  //attempts to delete a feature - if the feature is in use in a project then it will not be deleted and the list of projects will be shown
   deleteFeature(feature) {
+    this._get("listProjectsForFeature?feature_class_id=" + feature.id).then((response) => {
+      if (response.projects.length === 0){
+        this._deleteFeature(feature);
+      }else{
+        this.setState({failedToDeleteProjects: response.projects}, ()=> {
+          this.openFailedToDeleteFeatureDialog();
+        });
+      }
+    });
+  }
+
+  //deletes a feature
+  _deleteFeature(feature){
     this._get("deleteFeature?feature_name=" + feature.feature_class_name).then((response) => {
       this.setSnackBar("Feature deleted");
       //remove it from the current project if necessary
@@ -2666,6 +2693,11 @@ class App extends React.Component {
     });
   }
 
+  //shows the failed to delete feature dialog
+  showFailedToDeleteDialog(feature, projects){
+    console.log(projects)  ;
+  }
+  
   //removes a feature from the allFeatures array
   removeFeatureFromAllFeatures(feature){
     let featuresCopy = this.state.allFeatures;
@@ -2949,6 +2981,14 @@ class App extends React.Component {
   closeChangePasswordDialog(){
     this.setState({changePasswordDialogOpen: false});
   }
+  
+  openFailedToDeleteFeatureDialog(){
+    this.setState({failedToDeleteFeatureDialogOpen: true});
+  }
+  closeFailedToDeleteFeatureDialog(){
+    this.setState({failedToDeleteFeatureDialogOpen: false});
+  }
+
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////// PROTECTED AREAS LAYERS STUFF
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3569,6 +3609,12 @@ class App extends React.Component {
             requestEndpoint={this.state.marxanServer.endpoint}
             SEND_CREDENTIALS={SEND_CREDENTIALS}
             newFeatureSource={this.state.newFeatureSource}
+          />
+          <FailedToDeleteFeatureDialog
+            open={this.state.failedToDeleteFeatureDialogOpen} 
+            projects={this.state.failedToDeleteProjects}
+            userRole={this.state.userData.ROLE}
+            onOk={this.closeFailedToDeleteFeatureDialog.bind(this)}
           />
           <PlanningGridsDialog
             open={this.state.planningGridsDialogOpen}

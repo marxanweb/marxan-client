@@ -227,7 +227,9 @@ body {
 #projectsTable {
   height: 340px;
 }
-
+#failedProjectsTable {
+  height: 154px;
+}
 #usersTable {
   height: 340px;
 }
