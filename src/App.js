@@ -1739,7 +1739,7 @@ class App extends React.Component {
   
   //
   mapClick(e){
-    if (!this.state.puEditing){ //if the user is not editing planning units then show what features were in the planning unit for the clicked point
+    if ((!this.state.puEditing)&&(!this.map.getSource('mapbox-gl-draw-cold'))){ //if the user is not editing planning units or creating a new feature then show what features were in the planning unit for the clicked point
       var features = this.map.queryRenderedFeatures(e.point, { layers: [RESULTS_LAYER_NAME] });
       //set the popup point
       this.setState({ popup_point: e.point });
