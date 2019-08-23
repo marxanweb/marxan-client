@@ -1,6 +1,6 @@
 {
   "name": "marxan_web",
-  "version": "0.8.52",
+  "version": "0.8.53",
   "private": true,
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^1.2.12",
@@ -27,7 +27,7 @@
     "wellknown": "^0.5.0"
   },
   "scripts": {
-    "start": "PORT=8081 react-scripts start",
+    "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject"
