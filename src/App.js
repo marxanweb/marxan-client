@@ -119,6 +119,10 @@ let FEATURE_PROPERTIES = [{ name: 'id', key: 'ID',hint: 'The unique identifier f
   { name: 'protected_area', key: 'Area protected',hint: 'The total area protected in the current solution in Km2 (calculated during a Marxan Run)', showForOld: true}];
 var mb_tk = "sk.eyJ1IjoiYmxpc2h0ZW4iLCJhIjoiY2piNm1tOGwxMG9lajMzcXBlZDR4aWVjdiJ9.Z1Jq4UAgGpXukvnUReLO1g";
 var wdpa_vector_tile_layer = ""; //the name of the WDPA vector tile layer that is set when a server is selected based on which version of the WDPA is in that servers PostGIS database
+var wdpaPopup = new mapboxgl.Popup({
+  closeButton: false,
+  closeOnClick: false
+});
 
 class App extends React.Component {
 
@@ -364,7 +368,7 @@ class App extends React.Component {
     }
   }
 
-  //called when a websocket message is received
+  //called when any websocket message is received
   wsMessageCallback(message){
     var logMessage = "";
     switch (message.status) {
@@ -1654,8 +1658,6 @@ class App extends React.Component {
     var features = this.map.queryRenderedFeatures(e.point, { layers: [RESULTS_LAYER_NAME, WDPA_LAYER_NAME] });
     //see if there are any features under the mouse
     if (features.length) {
-      //show the protected area features
-      this.showProtectedAreasPopup(features, e);
       //set the location for the popup
       if (!this.state.active_pu || (this.state.active_pu && this.state.active_pu.puid !== features[0].properties.puid)) this.setState({ popup_point: e.point });
       //get the properties from the vector tile
@@ -1685,8 +1687,15 @@ class App extends React.Component {
 
   showProtectedAreasPopup(features, e){
     let paFeatures =[];
+    let wdpaIds = [];
     features.forEach((feature) => {
-      if (feature.layer.id === WDPA_LAYER_NAME) paFeatures.push(feature.properties);
+      if (feature.layer.id === WDPA_LAYER_NAME){
+        //to get unique protected areas
+        if (wdpaIds.indexOf(feature.properties.wdpaid) < 0){
+           paFeatures.push(feature.properties);
+           wdpaIds.push(feature.properties.wdpaid);
+        }
+      }
     });  
     this.setState({paFeatures: paFeatures, popup_point: e.point});
   }
@@ -1707,6 +1716,22 @@ class App extends React.Component {
     this.map.on("load", this.mapLoaded.bind(this));
     this.map.on("error", this.mapError.bind(this));
     this.map.on("click", this.mapClick.bind(this));
+    this.map.on('mouseenter', WDPA_LAYER_NAME, this.mouseEnterPA);
+    this.map.on('mouseleave', WDPA_LAYER_NAME, this.mouseLeavePA);
+  }
+  mouseEnterPA(e) {
+    this.getCanvas().style.cursor = 'pointer';
+    var coordinates = e.lngLat;
+    var description = e.features[0].properties.name;
+    while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+      coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+    }
+    wdpaPopup.setLngLat(coordinates).setHTML(description).addTo(this);
+  }
+
+  mouseLeavePA(e) {
+    this.getCanvas().style.cursor = '';
+    wdpaPopup.remove();
   }
 
   mapLoaded(e) {

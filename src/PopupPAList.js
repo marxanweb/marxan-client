@@ -19,11 +19,11 @@ class PopupPAList extends React.Component {
 					columns={[{
 						 Header: 'Name',
 						 accessor: 'name',
-						 width: 220,
+						 width: 320,
 					},{
-						 Header: 'IUCN Category',
+						 Header: 'Category',
 						 accessor: 'iucn_cat',
-						 width: 220,
+						 width: 60,
 					}]}
 				/>
 			</div>
