@@ -58,6 +58,7 @@ import AlertDialog from './AlertDialog';
 import ChangePasswordDialog from './ChangePasswordDialog';
 import Popup from './Popup';
 import PopupFeatureList from './PopupFeatureList';
+import PopupPAList from './PopupPAList';
 
 //GLOBAL VARIABLE IN MAPBOX CLIENT
 mapboxgl.accessToken = 'pk.eyJ1IjoiYmxpc2h0ZW4iLCJhIjoiMEZrNzFqRSJ9.0QBRA2HxTb8YHErUFRMPZg'; //this is my public access token for using in the Mapbox GL client - TODO change this to the logged in users public access token
@@ -175,6 +176,7 @@ class App extends React.Component {
       snackbarMessage: '',
       tilesets: [],
       puFeatures: [],
+      paFeatures: [],
       userMenuOpen: false,
       helpMenuOpen: false,
       preprocessing: false,
@@ -311,7 +313,7 @@ class App extends React.Component {
         //reset state
         this.setState({preprocessing: false});
         if (!evt.wasClean) {
-          reject("The WebSocket connection closed unexpectedly");
+          msgCallback({status:'SocketClosed'});
         }else{
           reject(evt);
         }
@@ -385,6 +387,10 @@ class App extends React.Component {
         break;
       case 'Finished': //from both asynchronous queries and marxan runs
         logMessage = this.state.streamingLog + message.info + " (Total time: " + message.elapsedtime + ")\n\n";
+        break;
+      case 'SocketClosed': //server closed WebSocket unexpectedly - either server crash or WebSocket timeout
+        this.setSnackBar("The WebSocket connection closed unexpectedly");
+        logMessage = this.state.streamingLog + "The WebSocket connection closed unexpectedly. (Total time: " + message.elapsedtime + ")\n\n";
         break;
       default:
         break;
@@ -1648,6 +1654,8 @@ class App extends React.Component {
     var features = this.map.queryRenderedFeatures(e.point, { layers: [RESULTS_LAYER_NAME, WDPA_LAYER_NAME] });
     //see if there are any features under the mouse
     if (features.length) {
+      //show the protected area features
+      this.showProtectedAreasPopup(features, e);
       //set the location for the popup
       if (!this.state.active_pu || (this.state.active_pu && this.state.active_pu.puid !== features[0].properties.puid)) this.setState({ popup_point: e.point });
       //get the properties from the vector tile
@@ -1675,6 +1683,14 @@ class App extends React.Component {
     this.setState({ active_pu: undefined });
   }
 
+  showProtectedAreasPopup(features, e){
+    let paFeatures =[];
+    features.forEach((feature) => {
+      if (feature.layer.id === WDPA_LAYER_NAME) paFeatures.push(feature.properties);
+    });  
+    this.setState({paFeatures: paFeatures, popup_point: e.point});
+  }
+  
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   ///MAP INSTANTIATION, LAYERS ADDING/REMOVING AND INTERACTION
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3527,6 +3543,11 @@ class App extends React.Component {
           <PopupFeatureList
             xy={this.state.popup_point}
             features={this.state.puFeatures}
+            loading={this.state.loading}
+          />
+          <PopupPAList
+            xy={this.state.popup_point}
+            features={this.state.paFeatures}
             loading={this.state.loading}
           />
           <ProjectsDialog 
