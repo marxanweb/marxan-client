@@ -1810,9 +1810,9 @@ class App extends React.Component {
   //loads the style JSON 
   loadStyle(basemap){
     return new Promise((resolve, reject) => {
-      if (basemap.provider === 'mapbox'){ // the style is a url
+      if (basemap.provider !== 'esri'){ // the style is a url
         resolve(MAPBOX_STYLE_PREFIX + basemap.id);
-      }else{ //the style json will be loaded dynamically
+      }else{ //the style json will be loaded dynamically from an esri endpoint
         this.getESRIStyle(basemap.id).then((styleJson)=>{
           resolve(styleJson);
         });  
@@ -2060,7 +2060,7 @@ class App extends React.Component {
   
   //changes the layers opacity
   changeOpacity(layerId, opacity){
-    if (this.map.getLayer(layerId)){
+    if (this.map&&this.map.getLayer(layerId)){
       this.map.setPaintProperty(layerId, 'fill-opacity', opacity);
       //set the state
       if (layerId === RESULTS_LAYER_NAME) this.setState({results_layer_opacity: opacity});
