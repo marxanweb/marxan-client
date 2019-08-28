@@ -36,7 +36,7 @@ class OptionsDialog extends React.Component {
 								children={
 										<div key="k14">
 												<SelectField 
-														floatingLabelText={'Mapbox basemap style'} 
+														floatingLabelText={'Basemap style'} 
 														floatingLabelFixed={true} 
 														underlineShow={false}
 														menuItemStyle={{fontSize:'12px'}}
@@ -48,7 +48,7 @@ class OptionsDialog extends React.Component {
 																return  <MenuItem 
 																		value={item.name} 
 																		key={item.name} 
-																		primaryText={item.name}
+																		primaryText={item.alias}
 																		style={{fontSize:'12px'}}
 																		title={item.description}
 																/>;

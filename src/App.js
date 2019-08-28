@@ -65,7 +65,6 @@ mapboxgl.accessToken = 'pk.eyJ1IjoiYmxpc2h0ZW4iLCJhIjoiMEZrNzFqRSJ9.0QBRA2HxTb8Y
 
 //CONSTANTS
 let MARXAN_CLIENT_VERSION = packageJson.version; //TODO UPDATE PACKAGE.JSON WHEN THERE IS A NEW VERSION
-let MARXAN_REGISTRY_FILENAME = "https://andrewcottam.github.io/marxan-web/registry/marxan.js";
 let ERRORS_PAGE = "https://andrewcottam.github.io/marxan-web/documentation/docs_errors.html";
 let SEND_CREDENTIALS = true; //if true all post requests will send credentials
 let TORNADO_PATH = "/marxan-server/";
@@ -92,16 +91,6 @@ let WDPA_SOURCE_NAME = "wdpa_source";
 let WDPA_LAYER_NAME = "wdpa";
 let WDPA_FILL_LAYER_OPACITY = 0.2;
 let CLUMP_COUNT = 5;
-//array of mapbox styles to use if the CDN that provides this array is unavailable
-let BACKUP_MAPBOX_BASEMAPS = [{name: 'Streets', description: 'A complete basemap, perfect for incorporating your own data.', id:'mapbox/streets-v9', provider:'mapbox'},
-    {name: 'Outdoors', description: 'General basemap tailored to hiking, biking, and sport.', id:'mapbox/outdoors-v9', provider:'mapbox'},
-    {name: 'Dark', description: 'Subtle dark backdrop for data visualizations.', id:'mapbox/dark-v9', provider:'mapbox'},
-    {name: 'Light', description: 'Subtle light backdrop for data visualizations.', id:'mapbox/light-v9', provider:'mapbox'},
-    {name: 'North Star', description: 'Slightly modified North Star with no Bathymetry.', id:'blishten/cjg6jk8vg3tir2spd2eatu5fd', provider:'Joint Research Centre'},
-    {name: 'Satellite', description: 'A beautiful global satellite and aerial imagery layer.', id:'mapbox/satellite-v9', provider:'mapbox'},
-    {name: 'Satellite Streets', description: 'Global imagery enhanced with road and label hierarchy.', id:'mapbox/satellite-streets-v9', provider:'mapbox'}];
-//array of Marxan servers to use if the CDN that provides this array is unavailable
-let BACKUP_MARXAN_SERVERS = [{name: 'Joint Research Centre, Italy', host: 'https://marxan-server-blishten.c9users.io', description: ''}];
 //an array of feature property information that is used in the Feature Information dialog box - showForOld sets whether that property is shown for old versions of marxan
 let FEATURE_PROPERTIES = [{ name: 'id', key: 'ID',hint: 'The unique identifier for the feature', showForOld: true},
   { name: 'alias', key: 'Alias',hint: 'A human readable name for the feature', showForOld: true},
@@ -390,7 +379,8 @@ class App extends React.Component {
         logMessage = this.state.streamingLog + message.info + " (elapsed time: " + message.elapsedtime + ")\n";
         break;
       case 'Finished': //from both asynchronous queries and marxan runs
-        logMessage = this.state.streamingLog + message.info + " (Total time: " + message.elapsedtime + ")\n\n";
+        let msg = (message.hasOwnProperty("error")) ? message.error + "\n" + message.info : message.info; //if it has finished as the result of an error, then show the error message as well
+        logMessage = this.state.streamingLog + msg + " (Total time: " + message.elapsedtime + ")\n\n";
         break;
       case 'SocketClosed': //server closed WebSocket unexpectedly - either server crash or WebSocket timeout
         this.setSnackBar("The WebSocket connection closed unexpectedly");
@@ -414,27 +404,10 @@ class App extends React.Component {
 
   //gets various global variables from the marxan registry
   getGlobalVariables(){
-    var basemaps = [], marxanServers = [];
-    //get the mapbox basemaps
-    if (window.MAPBOX_BASEMAPS){
-      console.log("Loading Mapbox basemaps from " + MARXAN_REGISTRY_FILENAME);
-      basemaps = window.MAPBOX_BASEMAPS;
-    }else{
-      console.warn("Unable to load Mapbox basemaps from " + MARXAN_REGISTRY_FILENAME + ". Using local copy.");
-      basemaps = BACKUP_MAPBOX_BASEMAPS;
-    }
     //initialise the basemaps
-    this.setState({basemaps: basemaps});
-    //get the list of marxan servers from the marxan registry
-    if (window.MARXAN_SERVERS){
-      console.log("Loading Marxan Servers from " + MARXAN_REGISTRY_FILENAME);
-      marxanServers = window.MARXAN_SERVERS;
-    }else{
-      console.warn("Unable to load Marxan Servers from " + MARXAN_REGISTRY_FILENAME + ". Using a local copy.");
-      marxanServers = BACKUP_MARXAN_SERVERS;
-    }
+    this.setState({basemaps: window.MAPBOX_BASEMAPS});
     //get all the information for the marxan servers by polling them
-    this.initialiseServers(marxanServers);
+    this.initialiseServers(window.MARXAN_SERVERS);
   }
   
   //initialises the servers by requesting their capabilities and then filtering the list of available servers
@@ -1798,29 +1771,80 @@ class App extends React.Component {
     });
   }
   
+  //gets a Mapbox Style Specification JSON object from the passed ESRI style endpoint
+  getESRIStyle(styleUrl){
+    return new Promise((resolve, reject) => {
+      fetch(styleUrl) //fetch the style json
+        .then(response => {
+          return response.json()
+            .then(style => {
+              // next fetch metadata for the raw tiles
+              const TileJSON = style.sources.esri.url;
+              fetch(TileJSON)
+                .then(response => {
+                    return response.json()
+                    .then(metadata => {
+                      let tilesurl = (metadata.tiles[0].substr(0,1) === "/") ? TileJSON + metadata.tiles[0] : TileJSON + '/' + metadata.tiles[0];
+                      style.sources.esri = {
+                        type: 'vector',
+                        scheme: 'xyz',
+                        tilejson: metadata.tilejson || '2.0.0',
+                        format: (metadata.tileInfo && metadata.tileInfo.format) || 'pbf',
+                        /* mapbox-gl-js does not respect the indexing of esri tiles because we cache to different zoom levels depending on feature density, in rural areas 404s will still be encountered. more info: https://github.com/mapbox/mapbox-gl-js/pull/1377*/
+                        // index: metadata.tileMap ? style.sources.esri.url + '/' + metadata.tileMap : null,
+                        maxzoom: 15,  
+                        tiles: [
+                          tilesurl
+                        ],
+                        description: metadata.description,
+                        name: metadata.name
+                      };
+                      resolve(style);
+                    });
+                });
+            });
+        });
+    });
+  }
+
+  //loads the style JSON 
+  loadStyle(basemap){
+    return new Promise((resolve, reject) => {
+      if (basemap.provider === 'mapbox'){ // the style is a url
+        resolve(MAPBOX_STYLE_PREFIX + basemap.id);
+      }else{ //the style json will be loaded dynamically
+        this.getESRIStyle(basemap.id).then((styleJson)=>{
+          resolve(styleJson);
+        });  
+      }
+    });
+  }
+  
   //changes the default basemap for the user
   changeBasemap(basemap, getResults = true){
     //change the state
     this.setState({basemap: basemap.name});
-    //change the map style
-    this.changeMapStyle(MAPBOX_STYLE_PREFIX + basemap.id).then((evt) => {
-      //add the marxan spatial layers - if this is the initial load the tileset will be undefined
-      if (this.state.tileset) {
-        this.addSpatialLayers(this.state.tileset);
-        //poll the server to see if results are available for this project - if there are these will be loaded
-        if (getResults) this.getResults(this.state.owner, this.state.project);
-      }
+    //load the map style
+    this.loadStyle(basemap).then((style)=>{
+      this.changeMapStyle(style).then((evt) => {
+        //add the marxan spatial layers - if this is the initial load the tileset will be undefined
+        if (this.state.tileset) {
+          this.addSpatialLayers(this.state.tileset);
+          //poll the server to see if results are available for this project - if there are these will be loaded
+          if (getResults) this.getResults(this.state.owner, this.state.project);
+        }
+      });
     });
   }
 
-  //changes the maps style
-  changeMapStyle(url){
+  //changes the maps style using either a url to a Mapbox Style Specification file or a JSON object
+  changeMapStyle(style){
     return new Promise((resolve, reject) => {
       if (!this.map) {
-        this.createMap(url);
+        this.createMap(style);
       }else{
         //request the style
-        this.map.setStyle(url);
+        this.map.setStyle(style, {diff:false});
       }
       this.map.on('style.load', (evt) => {
         resolve("Map style loaded");
@@ -2020,18 +2044,18 @@ class App extends React.Component {
   //removes the WDPA layer and source
   removeWDPALayer(){
     this.map.removeLayer(WDPA_LAYER_NAME);
-    if (this.map.getSource(WDPA_SOURCE_NAME) !== undefined) this.map.removeSource(WDPA_SOURCE_NAME);
+    if (this.map&&this.map.getSource(WDPA_SOURCE_NAME) !== undefined) this.map.removeSource(WDPA_SOURCE_NAME);
   }
   
   showLayer(id) {
-    if (this.map.getLayer(id)) this.map.setLayoutProperty(id, 'visibility', 'visible');
+    if (this.map&&this.map.getLayer(id)) this.map.setLayoutProperty(id, 'visibility', 'visible');
   }
   hideLayer(id) {
-    if (this.map.getLayer(id)) this.map.setLayoutProperty(id, 'visibility', 'none');
+    if (this.map&&this.map.getLayer(id)) this.map.setLayoutProperty(id, 'visibility', 'none');
   }
 
   isLayerVisible(layername){
-    return (this.map.getLayoutProperty(layername, 'visibility') === 'visible');
+    return (this.map&&this.map.getLayoutProperty(layername, 'visibility') === 'visible');
   }
   
   //changes the layers opacity
