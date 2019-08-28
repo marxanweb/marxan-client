@@ -106,7 +106,7 @@ class FeaturesDialog extends React.Component {
                              <MenuItem primaryText="Add from IUCN Red List" disabled={ true } />
                            </Menu>
                          </Popover>
-                         <ToolbarButton show={ (!this.props.metadata.OLDVERSION) && (!this.props.addingRemovingFeatures) } icon={<Import style={{height:'20px',width:'20px'}}/>} title="Import an existing feature from the local machine" disabled={ this.props.loading } onClick={ this._newByImport.bind(this) } label={ "Import" }/>
+                         <ToolbarButton show={ (!this.props.metadata.OLDVERSION) && (!this.props.addingRemovingFeatures) && (!this.props.userRole === "ReadOnly") } icon={<Import style={{height:'20px',width:'20px'}}/>} title="Import an existing feature from the local machine" disabled={ this.props.loading } onClick={ this._newByImport.bind(this) } label={ "Import" }/>
                          <ToolbarButton show={ (this.props.userRole === "Admin") && (!this.props.metadata.OLDVERSION) && (!this.props.addingRemovingFeatures) } icon={ <FontAwesomeIcon icon={ faTrashAlt } color='rgb(255, 64, 129)' /> } title="Delete feature" disabled={ this.state.selectedFeature === undefined || this.props.loading } onClick={ this._delete.bind(this) } label={ "Delete" }/>
                          <ToolbarButton show={ this.props.addingRemovingFeatures } icon={ <FontAwesomeIcon icon={ faCircle } /> } title="Clear all features" onClick={ this.props.clearAllFeatures } label={ "Clear all" } />
                          <ToolbarButton show={ this.props.addingRemovingFeatures } icon={ <FontAwesomeIcon icon={ faCheckCircle } /> } title="Select all features" onClick={ this.props.selectAllFeatures } label={ "Select all" } />
