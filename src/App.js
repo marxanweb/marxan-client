@@ -597,7 +597,8 @@ class App extends React.Component {
   //log out and reset some state 
   logout() {
     this.hideUserMenu();
-    this.setState({ loggedIn: false, user: '', password: '', project: '', infoPanelOpen: false, resultsPanelOpen: false });
+    this.setState({ loggedIn: false, user: '', password: '', project: '',owner: '', runParams: [], files: {}, metadata: {}, renderer: {}, planning_units: [], projectFeatures:[], infoPanelOpen: false, resultsPanelOpen: false, brew: new classyBrew()  });
+    this.resetResults();
     //clear the currently set cookies
     this._get("logout").then((response) => {
         //do something
@@ -1830,8 +1831,10 @@ class App extends React.Component {
             this.getResults(this.state.owner, this.state.project);
             //filter the wdpa vector tiles
             this.filterWdpaByIucnCategory(this.state.metadata.IUCN_CATEGORY);
+            resolve();
+          }else{
+            resolve();
           }
-          resolve("Basemap set");
         });
       });
     });
@@ -2055,12 +2058,12 @@ class App extends React.Component {
   }
 
   isLayerVisible(layername){
-    return (this.map&&this.map.getLayoutProperty(layername, 'visibility') === 'visible');
+    return (this.map && this.map.getLayer(layername) && this.map.getLayoutProperty(layername, 'visibility') === 'visible');
   }
   
   //changes the layers opacity
   changeOpacity(layerId, opacity){
-    if (this.map&&this.map.getLayer(layerId)){
+    if (this.map && this.map.getLayer(layerId)){
       this.map.setPaintProperty(layerId, 'fill-opacity', opacity);
       //set the state
       if (layerId === RESULTS_LAYER_NAME) this.setState({results_layer_opacity: opacity});
