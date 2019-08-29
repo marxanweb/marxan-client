@@ -73,23 +73,26 @@ let DISABLE_LOGIN = false; //to not show the login form, set loggedIn to true
 let MAPBOX_USER = "blishten";
 let MAPBOX_STYLE_PREFIX = 'mapbox://styles/';
 let PLANNING_UNIT_STATUSES = [1, 2, 3];
+//layer source names
 let PLANNING_UNIT_SOURCE_NAME = "planning_units_source";
-let PU_LAYER_NAME = "planning_units_layer";
+let WDPA_SOURCE_NAME = "wdpa_source";
+//layer names
+let PU_LAYER_NAME = "planning_units_layer"; //layer showing the planning units
+let STATUS_LAYER_NAME = "planning_units_status_layer"; //layer showing the status of planning units 
+let COSTS_LAYER_NAME = "costs_layer"; //layer showing the cost of planning units
+let PUVSPR_LAYER_NAME = "planning_units_puvspr_layer"; //layer showing the planning units for a particular feature
+let RESULTS_LAYER_NAME = "results_layer"; //layer for either the sum of solutions or the individual solutions
+let WDPA_LAYER_NAME = "wdpa"; //layer showing the protected areas from the WDPA
+//layer default styles
 let PU_LAYER_OPACITY = 0.2;
-let STATUS_LAYER_NAME = "planning_units_status_layer";
 let STATUS_LAYER_LINE_WIDTH = 1.5;
-let COSTS_LAYER_NAME = "costs_layer";
-let PUVSPR_LAYER_NAME = "planning_units_puvspr_layer";
 let PUVSPR_LAYER_LINE_WIDTH = 1.5;
 let PUVSPR_LAYER_OUTLINE_COLOR = 'rgba(255, 0, 0, 1)';
-let RESULTS_LAYER_NAME = "results_layer";
 let RESULTS_LAYER_FILL_OPACITY_ACTIVE = 0.9;
 let RESULTS_LAYER_FILL_OPACITY_INACTIVE = 0.3;
+let WDPA_FILL_LAYER_OPACITY = 0.2;
 let HIDE_PUVSPR_LAYER_TEXT = "Remove planning unit outlines";
 let SHOW_PUVSPR_LAYER_TEXT = "Outline planning units where the feature occurs";
-let WDPA_SOURCE_NAME = "wdpa_source";
-let WDPA_LAYER_NAME = "wdpa";
-let WDPA_FILL_LAYER_OPACITY = 0.2;
 let CLUMP_COUNT = 5;
 //an array of feature property information that is used in the Feature Information dialog box - showForOld sets whether that property is shown for old versions of marxan
 let FEATURE_PROPERTIES = [{ name: 'id', key: 'ID',hint: 'The unique identifier for the feature', showForOld: true},
@@ -575,16 +578,17 @@ class App extends React.Component {
       this.setState({userData: response.userData, unauthorisedMethods: response.unauthorisedMethods, project: response.userData.LASTPROJECT});
       //set the basemap
       var basemap = this.state.basemaps.filter((item) => {return (item.name === response.userData.BASEMAP);})[0];
-      this.changeBasemap(basemap, false);
-      //get all features
-      this.getAllFeatures().then(() => {
-        //get the users last project and load it 
-        this.loadProject(response.userData.LASTPROJECT, this.state.user);
+      this.setBasemap(basemap).then(() => {
+        //get all features
+        this.getAllFeatures().then(() => {
+          //get the users last project and load it 
+          this.loadProject(response.userData.LASTPROJECT, this.state.user);
+        });
+        //get all planning grids
+        this.getPlanningUnitGrids();
+        //see if there is a new version of the wdpa data - this comes from the Marxan Registry WDPA object - if there is then show the alert message to admin users
+        ((this.state.marxanServer.wdpa_version !== window.WDPA.latest_version) && (this.state.userData.ROLE === 'Admin')) ? this.setState({newWDPAVersion: true, alertDialogOpen: true}) : this.setState({newWDPAVersion: false, alertDialogOpen: false});
       });
-      //get all planning grids
-      this.getPlanningUnitGrids();
-      //see if there is a new version of the wdpa data - this comes from the Marxan Registry WDPA object - if there is then show the alert message to admin users
-      ((this.state.marxanServer.wdpa_version !== window.WDPA.latest_version) && (this.state.userData.ROLE === 'Admin')) ? this.setState({newWDPAVersion: true, alertDialogOpen: true}) : this.setState({newWDPAVersion: false, alertDialogOpen: false});
     }).catch((error) => {
       //do something
     });
@@ -805,8 +809,8 @@ class App extends React.Component {
     this._get("getProject?user=" + user + "&project=" + project).then((response) => {
       //set the state for the app based on the data that is returned from the server
       this.setState({ loggedIn: true, project: response.project, owner: user, runParams: response.runParameters, files: Object.assign(response.files), metadata: response.metadata, renderer: response.renderer, planning_units: response.planning_units, infoPanelOpen: true, resultsPanelOpen: true  });
-      //if there is a PLANNING_UNIT_NAME passed then programmatically change the select box to this map 
-      if (response.metadata.PLANNING_UNIT_NAME) this.changeTileset(MAPBOX_USER + "." + response.metadata.PLANNING_UNIT_NAME);
+      //if there is a PLANNING_UNIT_NAME passed then change to this planning grid
+      if (response.metadata.PLANNING_UNIT_NAME) this.changePlanningGrid(MAPBOX_USER + "." + response.metadata.PLANNING_UNIT_NAME);
       //set a local variable for the feature preprocessing - this is because we dont need to track state with these variables as they are not bound to anything
       this.feature_preprocessing = response.feature_preprocessing;
       //set a local variable for the protected area intersections - this is because we dont need to track state with these variables as they are not bound to anything
@@ -1807,12 +1811,38 @@ class App extends React.Component {
     });
   }
 
-  //loads the style JSON 
-  loadStyle(basemap){
+  //sets the basemap
+  setBasemap(basemap){
     return new Promise((resolve, reject) => {
-      if (basemap.provider !== 'esri'){ // the style is a url
+      //change the state
+      this.setState({basemap: basemap.name});
+      //get a valid map style
+      this.getValidStyle(basemap).then((style)=>{
+        //load the style
+        this.loadMapStyle(style).then((evt) => {
+          //add the WDPA layer 
+          this.addWDPASource();
+          this.addWDPALayer();
+          //add the planning unit layers (if a project has already been loaded)
+          if (this.state.tileset) {
+            this.addPlanningGridLayers(this.state.tileset);
+            //get the results, if any
+            this.getResults(this.state.owner, this.state.project);
+            //filter the wdpa vector tiles
+            this.filterWdpaByIucnCategory(this.state.metadata.IUCN_CATEGORY);
+          }
+          resolve("Basemap set");
+        });
+      });
+    });
+  }
+
+  //gets the style JSON either as a valid TileJSON object or as a url to a valid TileJSON object
+  getValidStyle(basemap){
+    return new Promise((resolve, reject) => {
+      if (basemap.provider !== 'esri'){ // the style is a url - just return the url
         resolve(MAPBOX_STYLE_PREFIX + basemap.id);
-      }else{ //the style json will be loaded dynamically from an esri endpoint
+      }else{ //the style json will be loaded dynamically from an esri endpoint and parsed to produce a valid TileJSON object
         this.getESRIStyle(basemap.id).then((styleJson)=>{
           resolve(styleJson);
         });  
@@ -1820,25 +1850,8 @@ class App extends React.Component {
     });
   }
   
-  //changes the default basemap for the user
-  changeBasemap(basemap, getResults = true){
-    //change the state
-    this.setState({basemap: basemap.name});
-    //load the map style
-    this.loadStyle(basemap).then((style)=>{
-      this.changeMapStyle(style).then((evt) => {
-        //add the marxan spatial layers - if this is the initial load the tileset will be undefined
-        if (this.state.tileset) {
-          this.addSpatialLayers(this.state.tileset);
-          //poll the server to see if results are available for this project - if there are these will be loaded
-          if (getResults) this.getResults(this.state.owner, this.state.project);
-        }
-      });
-    });
-  }
-
-  //changes the maps style using either a url to a Mapbox Style Specification file or a JSON object
-  changeMapStyle(style){
+  //loads the maps style using either a url to a Mapbox Style Specification file or a JSON object
+  loadMapStyle(style){
     return new Promise((resolve, reject) => {
       if (!this.map) {
         this.createMap(style);
@@ -1852,10 +1865,20 @@ class App extends React.Component {
     });
   }
   
-  //called when the planning unit layer has changed, i.e. the project has changed
-  changeTileset(tilesetid) {
-    this.getMetadata(tilesetid).then((response) => {
-      this.spatialLayerChanged(response, true);
+  //called when the planning grid layer has changed, i.e. the project has changed
+  changePlanningGrid(tilesetid) {
+    //get the tileset metadata
+    this.getMetadata(tilesetid).then((tileset) => {
+      //remove the results layer, planning unit layer etc.
+      this.removePlanningGridLayers();
+      //add the results layer, planning unit layer etc.
+      this.addPlanningGridLayers(tileset);
+      //zoom to the layers extent
+      if (tileset.bounds != null) this.zoomToBounds(tileset.bounds);
+      //set the state
+      this.setState({ tileset: tileset });
+      //filter the wdpa vector tiles as the map doesn't respond to state changes
+      this.filterWdpaByIucnCategory(this.state.metadata.IUCN_CATEGORY);
     }).catch((error) => {
       this.setSnackBar(error);
     });
@@ -1879,35 +1902,8 @@ class App extends React.Component {
     });
   }
 
-  spatialLayerChanged(tileset, zoomToBounds) {
-    //remove the results layer, planning unit layer and wdpa layers
-    this.removeSpatialLayers();
-    //add the results layer, planning unit layer and wdpa layers
-    this.addSpatialLayers(tileset);
-    //zoom to the layers extent
-    if (tileset.bounds != null) this.zoomToBounds(tileset.bounds);
-    //set the state
-    this.setState({ tileset: tileset });
-    //filter the wdpa vector tiles as the map doesn't respond to state changes
-    this.filterWdpaByIucnCategory(this.state.metadata.IUCN_CATEGORY);
-  }
-
-  removeSpatialLayers() {
-    let layers = this.map.getStyle().layers;
-    //get the dynamically added layers
-    let dynamicLayers = layers.filter((item) => {
-      return ((item.source === PLANNING_UNIT_SOURCE_NAME)||(item.source === WDPA_SOURCE_NAME));
-    });
-    //remove them from the map
-    dynamicLayers.forEach((item) => {
-      this.map.removeLayer(item.id);
-    });
-    //remove the sources if present
-    if (this.map.getSource(PLANNING_UNIT_SOURCE_NAME) !== undefined) this.map.removeSource(PLANNING_UNIT_SOURCE_NAME);
-    if (this.map.getSource(WDPA_SOURCE_NAME) !== undefined) this.map.removeSource(WDPA_SOURCE_NAME);
-  }
-  //adds the results, planning unit, planning unit edit and wdpa layers to the map
-  addSpatialLayers(tileset) {
+  //adds the results, planning unit, planning unit edit etc layers to the map
+  addPlanningGridLayers(tileset) {
     var beforeLayer = (this.state.basemap === "North Star" ? "" : "");
     //add the source for the planning unit layers
     this.map.addSource(PLANNING_UNIT_SOURCE_NAME,{
@@ -1915,8 +1911,6 @@ class App extends React.Component {
         'url': "mapbox://" + tileset.id
       }
     );
-    //add the source for the WDPA
-    this.addWDPASource();
     //add the results layer
     this.map.addLayer({
       'id': RESULTS_LAYER_NAME,
@@ -1986,10 +1980,22 @@ class App extends React.Component {
         'line-width': PUVSPR_LAYER_LINE_WIDTH
       }
     }, beforeLayer);
-    //add the wdpa layer
-    this.addWDPALayer();
   }
 
+  removePlanningGridLayers() {
+    let layers = this.map.getStyle().layers;
+    //get the dynamically added layers
+    let dynamicLayers = layers.filter((item) => {
+      return (item.source === PLANNING_UNIT_SOURCE_NAME);
+    });
+    //remove them from the map
+    dynamicLayers.forEach((item) => {
+      this.map.removeLayer(item.id);
+    });
+    //remove the sources if present
+    if (this.map.getSource(PLANNING_UNIT_SOURCE_NAME) !== undefined) this.map.removeSource(PLANNING_UNIT_SOURCE_NAME);
+  }
+  
   //adds the WDPA vector tile layer source - this is a separate function so that if the source vector tiles are updated, the layer can be re-added on its own
   addWDPASource(){
     //add the source for the wdpa
@@ -2039,12 +2045,6 @@ class App extends React.Component {
     });
     //set the wdpa layer in app state so that we can control the opacity in it
     this.setState({wdpaLayer: this.map.getLayer(WDPA_LAYER_NAME)});
-  }
-  
-  //removes the WDPA layer and source
-  removeWDPALayer(){
-    this.map.removeLayer(WDPA_LAYER_NAME);
-    if (this.map&&this.map.getSource(WDPA_SOURCE_NAME) !== undefined) this.map.removeSource(WDPA_SOURCE_NAME);
   }
   
   showLayer(id) {
@@ -3222,8 +3222,9 @@ class App extends React.Component {
         this.setState({newWDPAVersion: false, marxanServer: obj}, ()=> {
           //set the source for the WDPA layer to the new vector tiles
           this.setWDPAVectorTilesLayerName(window.WDPA.latest_version);
-          //remove the existing vector tiles
-          this.removeWDPALayer();
+          //remove the existing WDPA layer and source
+          this.map.removeLayer(WDPA_LAYER_NAME);
+          if (this.map && this.map.getSource(WDPA_SOURCE_NAME) !== undefined) this.map.removeSource(WDPA_SOURCE_NAME);
           //re-add the WDPA source and layer
           this.addWDPASource();
           this.addWDPALayer();
@@ -3491,7 +3492,7 @@ class App extends React.Component {
             loading={this.state.loading} 
             userData={this.state.userData}
             saveOptions={this.saveOptions.bind(this)}
-            changeBasemap={this.changeBasemap.bind(this)}
+            changeBasemap={this.setBasemap.bind(this)}
             basemaps={this.state.basemaps}
             basemap={this.state.basemap}
           />
