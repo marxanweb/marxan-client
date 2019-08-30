@@ -9,11 +9,10 @@ class PlanningGridDialog extends React.Component {
 				{...this.props}
 				onRequestClose={this.props.onCancel}
 				showCancelButton={false}
-				title="Planning grid"
+				title={this.props.planning_grid_metadata.alias}
 				contentWidth={400}
 				children={
 					<React.Fragment key="k26">
-						<div style={{marginBottom:'10px'}}>{this.props.planning_grid_metadata.alias}</div>
 						<MapContainer2
 							planning_grid_metadata={this.props.planning_grid_metadata}
 							getTilesetMetadata={this.props.getTilesetMetadata}

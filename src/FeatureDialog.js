@@ -9,11 +9,10 @@ class FeatureDialog extends React.Component {
 				{...this.props}
 				onRequestClose={this.props.onCancel}
 				showCancelButton={false}
-				title="Feature"
+				title={this.props.feature_metadata.alias}
 				contentWidth={400}
 				children={
 					<React.Fragment key="k26">
-						<div style={{marginBottom:'10px'}}>{this.props.feature_metadata.alias}</div>
 						<MapContainer2
 							planning_grid_metadata={this.props.feature_metadata}
 							getTilesetMetadata={this.props.getTilesetMetadata}
