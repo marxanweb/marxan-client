@@ -93,7 +93,7 @@ class InfoPanel extends React.Component {
 							{(this.props.userRole === "ReadOnly") ? null : <input id="projectName" style={{position:'absolute', 'display': (this.props.editingProjectName) ? 'block' : 'none',left:'39px',top:'32px',width:'365px', border:'1px lightgray solid'}} className={'projectNameEditBox'} onKeyPress={this.onKeyPress.bind(this)} onBlur={this.onBlur.bind(this)}/>}
 						</Paper>
 						<Tabs contentContainerStyle={{'margin':'20px'}} className={'tabs'} value={this.props.activeTab}>
-							<Tab label="Project" onActive={this.props.project_tab_active} value="project">
+							<Tab label="Project" onActive={this.props.project_tab_active} value="project" disabled={(this.props.puEditing) ? true : false}>
 								<div>
 									<div className={'tabTitle'}>Description</div>
 									{(this.props.userRole === "ReadOnly") ? null : <input id="descriptionEdit" style={{'display': (this.props.editingDescription) ? 'block' : 'none'}} className={'descriptionEditBox'} onKeyPress={this.onKeyPress.bind(this)} onBlur={this.onBlur.bind(this)}/>}
@@ -111,7 +111,7 @@ class InfoPanel extends React.Component {
 									</div>
 								</div>
 							</Tab>
-							<Tab label="Features" onActive={this.props.features_tab_active} value="features">
+							<Tab label="Features" onActive={this.props.features_tab_active} value="features" disabled={(this.props.puEditing) ? true : false}>
 								<SelectFeatures
 									features={this.props.features}
 									openFeatureMenu={this.props.openFeatureMenu}
