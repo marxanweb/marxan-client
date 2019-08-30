@@ -15,7 +15,13 @@ class NewPlanningGridDialog extends React.Component {
 		this.state = {iso3: '', domain:'', shape:'', areakm2: undefined};
 	}
 	changeIso3(evt, value) {
-		this.setState({iso3: this.props.countries[value].iso3});
+		let iso3 = this.props.countries[value].iso3;
+		if (['FJI','KIR','NZL','RUS','TUV','USA','WLF'].includes(iso3)){ //no support currently for countries that span the meridian
+			this.setState({iso3: undefined});
+			this.props.setSnackBar("Countries that span the meridian are currently not supported. See <a href='" + this.props.ERRORS_PAGE + "#planning-grids-cannot-be-created-for-countries-that-span-the-meridian' target='blank'>here</a>");
+		}else{
+			this.setState({iso3: this.props.countries[value].iso3});
+		}
 	}
 	changeDomain(evt, value) {
 		this.setState({domain: domains[value]});

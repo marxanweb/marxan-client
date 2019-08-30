@@ -3637,6 +3637,8 @@ class App extends React.Component {
             loading={this.state.loading}
             createNewPlanningUnitGrid={this.createNewPlanningUnitGrid.bind(this)}
             countries={this.state.countries}
+            setSnackBar={this.setSnackBar.bind(this)}
+            ERRORS_PAGE={ERRORS_PAGE}
           />
           <UploadPlanningGridDialog
             open={this.state.importPlanningGridDialogOpen} 
