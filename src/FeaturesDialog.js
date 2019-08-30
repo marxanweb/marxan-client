@@ -72,8 +72,14 @@ class FeaturesDialog extends React.Component {
   sortDate(a, b, desc) {
     return (Date.parse(a) > Date.parse(b)) ? 1 : -1;
   }
+	preview(feature_metadata){
+		this.props.previewFeature(feature_metadata);
+	}
 	renderTitle(row){
 		return <div style={{width: '100%',height: '100%',backgroundColor: '#dadada',borderRadius: '2px'}} title={row.original.description}>{row.original.description}</div>;        
+	}
+	renderPreview(row){
+		return <div style={{width: '100%',height: '100%',backgroundColor: '#dadada',borderRadius: '2px'}} title='Click to preview'>..</div>;        
 	}
   render() {
     if (this.props.allFeatures) {
@@ -84,7 +90,10 @@ class FeaturesDialog extends React.Component {
                          {" " + this.props.allFeatures.length } features:</div>
                        <div id="projectsTable">
                          <ReactTable pageSize={ this.props.allFeatures.length } className={ 'projectsReactTable' } showPagination={ false } minRows={ 0 } data={ this.props.allFeatures }
-                           thisRef={ this } columns={ [{ Header: 'Name', accessor: 'alias', width: 170, headerStyle: { 'textAlign': 'left' } }, { Header: 'Description', accessor: 'description', width: 330, headerStyle: { 'textAlign': 'left' }, Cell: this.renderTitle.bind(this) }, { Header: 'Date', accessor: 'creation_date', width: 220, headerStyle: { 'textAlign': 'left' }, sortMethod: this.sortDate.bind(this) }] } getTrProps={ (state, rowInfo, column) => {
+                           thisRef={ this } columns={ [{ Header: 'Name', accessor: 'alias', width: 170, headerStyle: { 'textAlign': 'left' } }, 
+                           { Header: 'Description', accessor: 'description', width: 310, headerStyle: { 'textAlign': 'left' }, Cell: this.renderTitle.bind(this) }, 
+                           { Header: 'Date', accessor: 'creation_date', width: 205, headerStyle: { 'textAlign': 'left' }, sortMethod: this.sortDate.bind(this) },
+                           { Header: '', width: 8, headerStyle: { 'textAlign': 'center' }, Cell: this.renderPreview.bind(this) }] } getTrProps={ (state, rowInfo, column) => {
                           return {
                             style: {
                               background: ((state.thisRef.props.addingRemovingFeatures && state.thisRef.props.selectedFeatureIds.includes(rowInfo.original.id)) || (!state.thisRef.props.addingRemovingFeatures && state.thisRef.state.selectedFeature && state.thisRef.state.selectedFeature.id === rowInfo.original.id)) ? "aliceblue" : ""
@@ -93,7 +102,15 @@ class FeaturesDialog extends React.Component {
                               state.thisRef.clickFeature(e, rowInfo.original);
                             }
                           };
-                        } } />
+                        } }
+                        getTdProps={(state, rowInfo,column) => {
+      										return {
+      											onClick: (e) => {
+      												if (column.Header === "") this.preview(rowInfo.original);
+      											}
+      										};
+      									}}
+									    />
                      </div>
                        <div id="projectsToolbar">
                          <div style={ { display: (this.props.metadata.OLDVERSION) ? "block" : "none" } } className={ 'tabTitle' }>This is an imported project. Only features from this project are shown.</div>

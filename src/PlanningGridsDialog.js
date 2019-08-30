@@ -32,6 +32,9 @@ class PlanningGridsDialog extends React.Component {
 		this.setState({ selectedPlanningGrid: undefined });
 		this.props.onOk(); 
 	}
+	preview(planning_grid_metadata){
+		this.props.previewPlanningGrid(planning_grid_metadata);
+	}
 	renderName(row){
 		return <div style={{width: '100%',height: '100%',backgroundColor: '#dadada',borderRadius: '2px'}} title={row.original.alias + " (" + row.original.feature_class_name + ")"}>{row.original.alias}</div>;        
 	}
@@ -44,14 +47,18 @@ class PlanningGridsDialog extends React.Component {
 	renderArea(row){
 		return <div style={{width: '100%',height: '100%',backgroundColor: '#dadada',borderRadius: '2px'}}>{(isNaN(row.original._area)) ? '' : row.original._area}</div>;        
 	}
+	renderPreview(row){
+		return <div style={{width: '100%',height: '100%',backgroundColor: '#dadada',borderRadius: '2px'}} title='Click to preview'>..</div>;        
+	}
 	render() {
 		let tableColumns = [];
 		tableColumns = [
-			{ Header: 'Name', accessor: 'alias', width: 220, headerStyle: { 'textAlign': 'left' }, Cell: this.renderName.bind(this) }, 
-			{ Header: 'Description', accessor: 'description', width: 284, headerStyle: { 'textAlign': 'left' }, Cell: this.renderTitle.bind(this) }, 
+			{ Header: 'Name', accessor: 'alias', width: 215, headerStyle: { 'textAlign': 'left' }, Cell: this.renderName.bind(this) }, 
+			{ Header: 'Description', accessor: 'description', width: 273, headerStyle: { 'textAlign': 'left' }, Cell: this.renderTitle.bind(this) }, 
 			{ Header: 'Country', accessor: 'country', width: 70, headerStyle: { 'textAlign': 'left' }, Cell: this.renderCountry.bind(this)}, 
 			{ Header: 'Domain', accessor: 'domain', width: 70, headerStyle: { 'textAlign': 'left' }}, 
-			{ Header: 'Area (Km2)', accessor: '_area', width: 76, headerStyle: { 'textAlign': 'left' }, Cell: this.renderArea.bind(this) }
+			{ Header: 'Area (Km2)', accessor: '_area', width: 75, headerStyle: { 'textAlign': 'left' }, Cell: this.renderArea.bind(this) },
+			{ Header: '', width: 8, headerStyle: { 'textAlign': 'center' }, Cell: this.renderPreview.bind(this) }
 		];
 		return (
 			<MarxanDialog 
@@ -75,13 +82,20 @@ class PlanningGridsDialog extends React.Component {
 									data={this.props.planningGrids}
 									thisRef={this} 
 									columns={tableColumns}
-									getTrProps={(state, rowInfo, column) => {
+									getTrProps={(state, rowInfo) => {
 										return {
 											style: {
 												background: (rowInfo.original.alias === (state.thisRef.state.selectedPlanningGrid && state.thisRef.state.selectedPlanningGrid.alias)) ? "aliceblue" : ""
 											},
 											onClick: (e) => {
 												state.thisRef.changePlanningGrid(e, rowInfo.original);
+											}
+										};
+									}}
+									getTdProps={(state, rowInfo,column) => {
+										return {
+											onClick: (e) => {
+												if (column.Header === "") this.preview(rowInfo.original);
 											}
 										};
 									}}

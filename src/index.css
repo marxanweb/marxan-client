@@ -333,7 +333,6 @@ div.rt-tbody>div>div>div>div {
   margin-left: 73px;
   width: 500px !important;
   padding-top: 0px !important;
-
 }
 
 .renderer {
@@ -350,6 +349,9 @@ input:-webkit-autofill {
   /*margin-left: 80px;*/
 }
 
+.mapContainer2{
+  height:300px;
+}
 .linearGauge {
   margin-top: 5px;
   display: inline-flex;

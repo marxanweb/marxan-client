@@ -42,9 +42,11 @@ import FeatureInfoDialog from './FeatureInfoDialog';
 import ProjectsDialog from './ProjectsDialog';
 import NewProjectDialog from './NewProjectDialog';
 import FailedToDeleteFeatureDialog from './FailedToDeleteFeatureDialog';
+import PlanningGridDialog from './PlanningGridDialog';
 import PlanningGridsDialog from './PlanningGridsDialog';
 import NewPlanningGridDialog from './NewPlanningGridDialog';
 import UploadPlanningGridDialog from './UploadPlanningGridDialog';
+import FeatureDialog from './FeatureDialog';
 import FeaturesDialog from './FeaturesDialog';
 import NewFeatureDialog from './NewFeatureDialog';
 import CostsDialog from './CostsDialog';
@@ -146,8 +148,10 @@ class App extends React.Component {
       changePasswordDialogOpen: false,
       serverDetailsDialogOpen: false,
       planningGridsDialogOpen: false,
+      planningGridDialogOpen: false,
       NewFeatureDialogOpen: false,
       featuresDialogOpen: false,
+      featureDialogOpen: false,
       runLogDialogOpen: false,
       infoPanelOpen: false,
       resultsPanelOpen: false,
@@ -195,6 +199,8 @@ class App extends React.Component {
       countries: [],
       planning_units: [],
       planning_unit_grids: [],
+      planning_grid_metadata:{},
+      feature_metadata:{},
       activeTab: "project",
       activeResultsTab: "legend",
       streamingLog: "",
@@ -1877,7 +1883,7 @@ class App extends React.Component {
       //add the results layer, planning unit layer etc.
       this.addPlanningGridLayers(tileset);
       //zoom to the layers extent
-      if (tileset.bounds != null) this.zoomToBounds(tileset.bounds);
+      if (tileset.bounds != null) this.zoomToBounds(this.map, tileset.bounds);
       //set the state
       this.setState({ tileset: tileset });
       //filter the wdpa vector tiles as the map doesn't respond to state changes
@@ -2072,12 +2078,12 @@ class App extends React.Component {
     }
   }
 
-  zoomToBounds(bounds) {
+  zoomToBounds(_map, bounds) {
     let minLng = (bounds[0] < -180) ? -180 : bounds[0];
     let minLat = (bounds[1] < -90) ? -90 : bounds[1];
     let maxLng = (bounds[2] > 180) ? 180 : bounds[2];
     let maxLat = (bounds[3] > 90) ? 90 : bounds[3];
-    this.map.fitBounds([minLng, minLat, maxLng, maxLat], { padding: { top: 10, bottom: 10, left: 10, right: 10 }, easing: (num) => { return 1; } });
+    _map.fitBounds([minLng, minLat, maxLng, maxLat], { padding: { top: 10, bottom: 10, left: 10, right: 10 }, easing: (num) => { return 1; } });
   }
 
   toggleCosts(show){
@@ -2367,6 +2373,12 @@ class App extends React.Component {
   //ROUTINES FOR CREATING A NEW PROJECT AND PLANNING UNIT GRIDS
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+  //previews the planning grid
+  previewPlanningGrid(planning_grid_metadata){
+    this.setState({planning_grid_metadata:planning_grid_metadata});
+    this.openPlanningGridDialog()
+  }
+  
   //creates a new planning grid unit on the server using the passed parameters
   createNewPlanningUnitGrid(iso3, domain, areakm2, shape) {
     return new Promise((resolve, reject) => {
@@ -2487,6 +2499,18 @@ class App extends React.Component {
   }
   closePlanningGridsDialog(){
     this.setState({planningGridsDialogOpen: false});
+  }
+  openPlanningGridDialog(){
+    this.setState({planningGridDialogOpen: true});
+  }
+  closePlanningGridDialog(){
+    this.setState({planningGridDialogOpen: false});
+  }
+  openFeatureDialog(){
+    this.setState({featureDialogOpen: true});
+  }
+  closeFeatureDialog(){
+    this.setState({featureDialogOpen: false});
   }
   showNewFeaturesDialogPopover(){
     this.setState({ featuresDialogPopupOpen: true });
@@ -2646,6 +2670,12 @@ class App extends React.Component {
       //refresh the selected features
       this.updateSelectedFeatures();
     });
+  }
+
+  //previews the feature
+  previewFeature(feature_metadata){
+    this.setState({feature_metadata:feature_metadata});
+    this.openFeatureDialog();
   }
 
   createNewFeature() {
@@ -3643,7 +3673,7 @@ class App extends React.Component {
           />
           <UploadPlanningGridDialog
             open={this.state.importPlanningGridDialogOpen} 
-            onOk={this.importPlanningUnitGrid.bind(this)}
+            onOk={this.closeImportPlanningGridDialog.bind(this)}
             onCancel={this.closeImportPlanningGridDialog.bind(this)}
             loading={this.state.loading}
             requestEndpoint={this.state.marxanServer.endpoint}
@@ -3669,6 +3699,16 @@ class App extends React.Component {
             featuresDialogPopupOpen={this.state.featuresDialogPopupOpen}
             closePopover={this.closePopover.bind(this)}
             showNewFeaturesDialogPopover={this.showNewFeaturesDialogPopover.bind(this)}
+            previewFeature={this.previewFeature.bind(this)}
+          />
+          <FeatureDialog
+            open={this.state.featureDialogOpen}
+            onOk={this.closeFeatureDialog.bind(this)}
+            onCancel={this.closeFeatureDialog.bind(this)}
+            loading={this.state.loading}
+            feature_metadata={this.state.feature_metadata}
+            getTilesetMetadata={this.getMetadata.bind(this)}
+            zoomToBounds={this.zoomToBounds.bind(this)}
           />
           <NewFeatureDialog
             open={this.state.NewFeatureDialogOpen} 
@@ -3704,6 +3744,16 @@ class App extends React.Component {
             openNewPlanningGridDialog={this.openNewPlanningGridDialog.bind(this)}
             openImportPlanningGridDialog={this.openImportPlanningGridDialog.bind(this)}
             deletePlanningGrid={this.deletePlanningUnitGrid.bind(this)}
+            previewPlanningGrid={this.previewPlanningGrid.bind(this)}
+          />
+          <PlanningGridDialog
+            open={this.state.planningGridDialogOpen}
+            onOk={this.closePlanningGridDialog.bind(this)}
+            onCancel={this.closePlanningGridDialog.bind(this)}
+            loading={this.state.loading}
+            planning_grid_metadata={this.state.planning_grid_metadata}
+            getTilesetMetadata={this.getMetadata.bind(this)}
+            zoomToBounds={this.zoomToBounds.bind(this)}
           />
           <CostsDialog
             open={this.state.CostsDialogOpen}
