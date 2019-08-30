@@ -1925,7 +1925,7 @@ class App extends React.Component {
         'fill-outline-color': "rgba(0, 0, 0, 0)"
       }
     }, beforeLayer);
-    //set the result layer in app state so that we can control the opacity in it
+    //set the result layer in app state so that it can update the Legend component and its opacity control
     this.setState({resultsLayer: this.map.getLayer(RESULTS_LAYER_NAME)});
     //add the planning unit layer 
     this.map.addLayer({
@@ -2030,23 +2030,24 @@ class App extends React.Component {
           "type": "categorical",
           "property": "marine",
           "stops": [
-            ["0", "rgba(99,148,69, " + this.state.wdpa_layer_opacity + ")"],
-            ["1", "rgba(63,127,191, " + this.state.wdpa_layer_opacity + ")"],
-            ["2", "rgba(63,127,191, " + this.state.wdpa_layer_opacity + ")"]
+            ["0", "rgb(99,148,69)"],
+            ["1", "rgb(63,127,191)"],
+            ["2", "rgb(63,127,191)"]
           ]
         },
         "fill-outline-color": {
           "type": "categorical",
           "property": "marine",
           "stops": [
-            ["0", "rgba(99,148,69," + this.state.wdpa_layer_opacity + ")"],
-            ["1", "rgba(63,127,191, " + this.state.wdpa_layer_opacity + ")"],
-            ["2", "rgba(63,127,191, " + this.state.wdpa_layer_opacity + ")"]
+            ["0", "rgb(99,148,69)"],
+            ["1", "rgb(63,127,191)"],
+            ["2", "rgb(63,127,191)"]
           ]
-        }
+        },
+        "fill-opacity": this.state.wdpa_layer_opacity
       }
     });
-    //set the wdpa layer in app state so that we can control the opacity in it
+    //set the wdpa layer in app state so that it can update the Legend component and its opacity control
     this.setState({wdpaLayer: this.map.getLayer(WDPA_LAYER_NAME)});
   }
   
