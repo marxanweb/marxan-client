@@ -24,7 +24,8 @@ class ServerDetailsDialog extends React.Component {
             <div className="tabTitle">WDPA version:</div><div className="serverDetails">{this.props.marxanServer&&this.props.marxanServer.wdpa_version}</div>
             <div style={{display: (this.props.newWDPAVersion ? 'block' : 'none')}}>
               <br/>
-              <div className="tabTitle">A new version of the WDPA is available: {window.WDPA.latest_version}</div>
+              <div className="tabTitle" dangerouslySetInnerHTML={{ __html: window.WDPA.latest_version + " is available. Details <a href='" + window.WDPA.metadataUrl + "' target='_blank'>here</a>. Click below to update. "}}/>
+							<br/>
 							<ToolbarButton title="Update WDPA" onClick={this.props.updateWDPA} label="Update" disabled={this.props.loading}/>
             </div>
           </div>

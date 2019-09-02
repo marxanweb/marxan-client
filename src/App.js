@@ -91,7 +91,7 @@ let STATUS_LAYER_LINE_WIDTH = 1.5;
 let PUVSPR_LAYER_LINE_WIDTH = 1.5;
 let PUVSPR_LAYER_OUTLINE_COLOR = 'rgba(255, 0, 0, 1)';
 let RESULTS_LAYER_FILL_OPACITY_ACTIVE = 0.9;
-let RESULTS_LAYER_FILL_OPACITY_INACTIVE = 0.3;
+let RESULTS_LAYER_FILL_OPACITY_INACTIVE = 0;
 let WDPA_FILL_LAYER_OPACITY = 0.2;
 let HIDE_PUVSPR_LAYER_TEXT = "Remove planning unit outlines";
 let SHOW_PUVSPR_LAYER_TEXT = "Outline planning units where the feature occurs";
@@ -113,10 +113,7 @@ let FEATURE_PROPERTIES = [{ name: 'id', key: 'ID',hint: 'The unique identifier f
   { name: 'protected_area', key: 'Area protected',hint: 'The total area protected in the current solution in Km2 (calculated during a Marxan Run)', showForOld: true}];
 var mb_tk = "sk.eyJ1IjoiYmxpc2h0ZW4iLCJhIjoiY2piNm1tOGwxMG9lajMzcXBlZDR4aWVjdiJ9.Z1Jq4UAgGpXukvnUReLO1g";
 var wdpa_vector_tile_layer = ""; //the name of the WDPA vector tile layer that is set when a server is selected based on which version of the WDPA is in that servers PostGIS database
-var wdpaPopup = new mapboxgl.Popup({
-  closeButton: false,
-  closeOnClick: false
-});
+var wdpaPopup = new mapboxgl.Popup();
 
 class App extends React.Component {
 
@@ -1706,16 +1703,20 @@ class App extends React.Component {
   mouseEnterPA(e) {
     this.getCanvas().style.cursor = 'pointer';
     var coordinates = e.lngLat;
-    var description = e.features[0].properties.name;
     while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
       coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
     }
-    wdpaPopup.setLngLat(coordinates).setHTML(description).addTo(this);
+    //TODO: Need to report all protected areas where they overlap
+    wdpaPopup.setLngLat(coordinates).setLngLat(coordinates)
+      .setHTML("<div><a href='https://www.protectedplanet.net/" + e.features[0].properties.wdpaid + "' target='_blank'>" + e.features[0].properties.name + " (" + e.features[0].properties.iucn_cat + ")</a></div>")
+      .addTo(this);
   }
 
   mouseLeavePA(e) {
-    this.getCanvas().style.cursor = '';
-    wdpaPopup.remove();
+    setTimeout(()=>{
+      this.getCanvas().style.cursor = '';
+      wdpaPopup.remove();
+    }, 2800);            
   }
 
   mapLoaded(e) {
@@ -2128,7 +2129,7 @@ class App extends React.Component {
     this.hideLayer(PUVSPR_LAYER_NAME);
     //show the planning units layer 
     this.showLayer(PU_LAYER_NAME);
-    //change the opacity on the results layer to make it more transparent
+    //hide the results layer
     this.changeOpacity(RESULTS_LAYER_NAME, RESULTS_LAYER_FILL_OPACITY_INACTIVE);
     //store the values for the result layers opacities
     this.previousResultsOpacity = this.state.results_layer_opacity;
@@ -3134,6 +3135,9 @@ class App extends React.Component {
         break;
       case 'IUCN I-VI':
         retValue = ['Ia', 'Ib', 'II', 'III', 'IV', 'V', 'VI'];
+        break;
+      case 'All':
+        retValue = ['Ia', 'Ib', 'II', 'III', 'IV', 'V', 'VI','Not Reported'];
         break;
       default:
     }

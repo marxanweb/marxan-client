@@ -565,3 +565,20 @@ div.rt-tbody>div>div>div>div[contenteditable="true"] {
   color:rgb(255, 64, 129);
   text-decoration:underline;
 }
+
+.mapboxgl-popup-anchor-bottom .mapboxgl-popup-tip {
+    display: none;
+}
+
+.mapboxgl-popup-content {
+    padding: 8px !important;
+    color: #666666;
+    font-family: 'MuseoSans';
+    font-weight: 500;
+    font-size: 1rem;
+    text-decoration: none;
+}
+.mapboxgl-popup-content a{
+    text-decoration: none;
+    color: #666666;
+}

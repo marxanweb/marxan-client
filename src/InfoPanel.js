@@ -17,7 +17,7 @@ class InfoPanel extends React.Component {
 	constructor(props) {
 		super(props);
 		//local variable 
-		this.iucnCategories = ['None','IUCN I-II','IUCN I-IV','IUCN I-V','IUCN I-VI'];
+		this.iucnCategories = ['None','IUCN I-II','IUCN I-IV','IUCN I-V','IUCN I-VI','All'];
 	}
 	componentDidUpdate(prevProps, prevState, snapshot) {
 		//if the input box for renaming the project has been made visible and it has no value, then initialise it with the project name and focus it
