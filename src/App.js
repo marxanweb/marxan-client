@@ -41,7 +41,7 @@ import ResultsPane from './ResultsPane';
 import FeatureInfoDialog from './FeatureInfoDialog';
 import ProjectsDialog from './ProjectsDialog';
 import NewProjectDialog from './NewProjectDialog';
-import FailedToDeleteFeatureDialog from './FailedToDeleteFeatureDialog';
+import FailedToDeleteDialog from './FailedToDeleteDialog';
 import PlanningGridDialog from './PlanningGridDialog';
 import PlanningGridsDialog from './PlanningGridsDialog';
 import NewPlanningGridDialog from './NewPlanningGridDialog';
@@ -141,7 +141,7 @@ class App extends React.Component {
       resendPasswordDialogOpen: false,
       NewPlanningGridDialogOpen: false, 
       importPlanningGridDialogOpen: false,
-      failedToDeleteFeatureDialogOpen: false,
+      FailedToDeleteDialogOpen: false,
       changePasswordDialogOpen: false,
       serverDetailsDialogOpen: false,
       planningGridsDialogOpen: false,
@@ -210,6 +210,7 @@ class App extends React.Component {
       blmMin: 0.001,
       blmMax: 10, 
       clumpingRunning: false,
+      deleteWhat:'',
       pid: 0,
       basemaps: [],
       basemap: 'North Star',
@@ -2409,6 +2410,7 @@ class App extends React.Component {
         });
       }).catch((error) => { //importZippedShapefileAsPu error
         this.deletePlanningUnitGrid(alias, true);
+        this.setState({streamingLog: this.state.streamingLog + error + "Finished\n"});
         reject(error);
       });
     });
@@ -2430,13 +2432,33 @@ class App extends React.Component {
 
   //deletes a planning unit grid
   deletePlanningUnitGrid(feature_class_name, silent = false){
-    this._get("deletePlanningUnitGrid?planning_grid_name=" + feature_class_name).then((response) => {
-      //update the planning unit grids
-      this.getPlanningUnitGrids();
-      this.setSnackBar(response.info, silent);  
-    }).catch((error) => {
-      //do something
-    });
+    if (silent){ //used to roll back failed imports of planning grids
+      this.deletePlanningGrid(feature_class_name, true);
+    }else{
+      //get a list of the projects for the planning grid
+      this._get("listProjectsForPlanningGrid?feature_class_name=" + feature_class_name).then((response)=>{
+        //if the planning grid is not being used then delete it
+        if (response.projects.length === 0){
+          this.deletePlanningGrid(feature_class_name, false);
+        }else{
+          //show the failed to delete dialog
+          this.setState({failedToDeleteProjects: response.projects, deleteWhat: 'planning grid'}, ()=> {
+            this.openFailedToDeleteDialog();
+          });
+        }
+      });
+    }
+  }
+  
+  //deletes a planning grid
+  deletePlanningGrid(feature_class_name, silent){
+      this._get("deletePlanningUnitGrid?planning_grid_name=" + feature_class_name).then((response) => {
+        //update the planning unit grids
+        this.getPlanningUnitGrids();
+        this.setSnackBar(response.info, silent);  
+      }).catch((error) => {
+        //additional stuff
+      });
   }
   
   getCountries() {
@@ -2786,8 +2808,8 @@ class App extends React.Component {
       if (response.projects.length === 0){
         this._deleteFeature(feature);
       }else{
-        this.setState({failedToDeleteProjects: response.projects}, ()=> {
-          this.openFailedToDeleteFeatureDialog();
+        this.setState({failedToDeleteProjects: response.projects, deleteWhat: 'feature'}, ()=> {
+          this.openFailedToDeleteDialog();
         });
       }
     });
@@ -3095,11 +3117,11 @@ class App extends React.Component {
     this.setState({changePasswordDialogOpen: false});
   }
   
-  openFailedToDeleteFeatureDialog(){
-    this.setState({failedToDeleteFeatureDialogOpen: true});
+  openFailedToDeleteDialog(){
+    this.setState({FailedToDeleteDialogOpen: true});
   }
-  closeFailedToDeleteFeatureDialog(){
-    this.setState({failedToDeleteFeatureDialogOpen: false});
+  closeFailedToDeleteDialog(){
+    this.setState({FailedToDeleteDialogOpen: false});
   }
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3744,12 +3766,6 @@ class App extends React.Component {
             SEND_CREDENTIALS={SEND_CREDENTIALS}
             newFeatureSource={this.state.newFeatureSource}
           />
-          <FailedToDeleteFeatureDialog
-            open={this.state.failedToDeleteFeatureDialogOpen} 
-            projects={this.state.failedToDeleteProjects}
-            userRole={this.state.userData.ROLE}
-            onOk={this.closeFailedToDeleteFeatureDialog.bind(this)}
-          />
           <PlanningGridsDialog
             open={this.state.planningGridsDialogOpen}
             onOk={this.closePlanningGridsDialog.bind(this)}
@@ -3762,6 +3778,13 @@ class App extends React.Component {
             openImportPlanningGridDialog={this.openImportPlanningGridDialog.bind(this)}
             deletePlanningGrid={this.deletePlanningUnitGrid.bind(this)}
             previewPlanningGrid={this.previewPlanningGrid.bind(this)}
+          />
+          <FailedToDeleteDialog
+            open={this.state.FailedToDeleteDialogOpen} 
+            projects={this.state.failedToDeleteProjects}
+            userRole={this.state.userData.ROLE}
+            onOk={this.closeFailedToDeleteDialog.bind(this)}
+            deleteWhat={this.state.deleteWhat}
           />
           <PlanningGridDialog
             open={this.state.planningGridDialogOpen}

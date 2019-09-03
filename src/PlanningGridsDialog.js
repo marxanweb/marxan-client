@@ -120,7 +120,7 @@ class PlanningGridsDialog extends React.Component {
 								show={!this.props.unauthorisedMethods.includes("deletePlanningUnitGrid")}
 								icon={<FontAwesomeIcon icon={faTrashAlt}  color='rgb(255, 64, 129)'/>} 
 								title="Delete planning grid" 
-								disabled={!this.state.selectedPlanningGrid || this.props.loading}
+								disabled={!this.state.selectedPlanningGrid || this.props.loading || (this.state.selectedPlanningGrid && this.state.selectedPlanningGrid.created_by === 'global admin')}
 								onClick={this._delete.bind(this)} 
 								label={"Delete"}
 							/>
