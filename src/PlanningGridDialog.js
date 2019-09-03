@@ -17,6 +17,7 @@ class PlanningGridDialog extends React.Component {
 							planning_grid_metadata={this.props.planning_grid_metadata}
 							getTilesetMetadata={this.props.getTilesetMetadata}
 							zoomToBounds={this.props.zoomToBounds}
+							setSnackBar={this.props.setSnackBar}
 						/>
 					</React.Fragment>
 				}

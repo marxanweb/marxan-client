@@ -27,6 +27,8 @@ class MapContainer2 extends React.Component {
         });
         this.props.getTilesetMetadata("blishten." + this.props.planning_grid_metadata.feature_class_name).then((tileset)=>{
             if (tileset.bounds != null) this.props.zoomToBounds(this.map, tileset.bounds);
+        }).catch((error) => {
+            this.props.setSnackBar(error);
         });
 	}
 	

@@ -385,8 +385,10 @@ class App extends React.Component {
         logMessage = this.state.streamingLog + message.info + " (elapsed time: " + message.elapsedtime + ")\n";
         break;
       case 'Finished': //from both asynchronous queries and marxan runs
-        let msg = (message.hasOwnProperty("error")) ? message.error + "\n" + message.info : message.info; //if it has finished as the result of an error, then show the error message as well
-        logMessage = this.state.streamingLog + msg + " (Total time: " + message.elapsedtime + ")\n\n";
+        if (message.hasOwnProperty("info")){ 
+          let msg = (message.hasOwnProperty("error")) ? message.error + "\n" + message.info : message.info; //if it has finished as the result of an error, then show the error message as well
+          logMessage = this.state.streamingLog + msg + " (Total time: " + message.elapsedtime + ")\n\n";
+        }
         break;
       case 'SocketClosed': //server closed WebSocket unexpectedly - either server crash or WebSocket timeout
         this.setSnackBar("The WebSocket connection closed unexpectedly");
@@ -2363,7 +2365,7 @@ class App extends React.Component {
   getPlanningUnitsCostData(){
     return new Promise((resolve, reject) => {
       this._get("getPlanningUnitsCostData?user=" + this.state.owner + "&project=" + this.state.project).then((response) => {
-        resolve(response.data)
+        resolve(response.data);
       }).catch((error) => {
         //do something
       });
@@ -2377,24 +2379,51 @@ class App extends React.Component {
   //previews the planning grid
   previewPlanningGrid(planning_grid_metadata){
     this.setState({planning_grid_metadata:planning_grid_metadata});
-    this.openPlanningGridDialog()
+    this.openPlanningGridDialog();
   }
   
-  //creates a new planning grid unit on the server using the passed parameters
+  //creates a new planning grid unit 
   createNewPlanningUnitGrid(iso3, domain, areakm2, shape) {
     return new Promise((resolve, reject) => {
+      this.startLogging(true);
+      this.setState({streamingLog: "Creating planning grid..\n"});
       this._get("createPlanningUnitGrid?iso3=" + iso3 + "&domain=" + domain + "&areakm2=" + areakm2 + "&shape=" + shape).then((response) => {
-        //feedback
-        this.setSnackBar("Planning grid: '" + response.planning_unit_grid.split(",")[1].replace(/"/gm, '').replace(")", "") + "' created"); //response is (pu_cok_terrestrial_hexagon_10,"Cook Islands Terrestrial 10Km2 hexagon grid")
-        //upload this data to mapbox for visualisation
-        this.uploadToMapBox(response.planning_unit_grid.split(",")[0].replace(/"/gm, '').replace("(", ""), "planningunits").then((response) => {
-          resolve("New planning grid created");
+        this.newPlanningGridCreated(response, "Created").then(()=>{
+          this.closeNewPlanningGridDialog();
         });
-        //update the planning unit items
-        this.getPlanningUnitGrids();
       }).catch((error) => {
         //do something
         reject(error);
+      });
+    });
+  }
+
+  //imports a zipped shapefile as a new planning grid
+  importPlanningUnitGrid(zipFilename, alias, description){
+    return new Promise((resolve, reject) => {
+      this.startLogging(true);
+      this.setState({streamingLog: "Importing planning grid..\n"});
+      this.importZippedShapefileAsPu(zipFilename, alias, description).then((response) => {
+        this.newPlanningGridCreated(response, "Imported").then(()=> {
+          this.closeImportPlanningGridDialog();
+        });
+      }).catch((error) => { //importZippedShapefileAsPu error
+        this.deletePlanningUnitGrid(alias, true);
+        reject(error);
+      });
+    });
+  }
+  
+  //called when a new planning grid has been created
+  newPlanningGridCreated(response, method){
+    return new Promise((resolve, reject) => {
+      this.setState({streamingLog: this.state.streamingLog + method + "\nUploading to Mapbox..\n"});
+      //start polling to see when the upload is done
+      this.pollMapbox(response.uploadId).then(() => {
+        this.setState({streamingLog: this.state.streamingLog + "Uploaded\nPlanning grid: '" + response.alias + "' created"});
+        //update the planning unit items
+        this.getPlanningUnitGrids();
+        resolve("Planning grid created");
       });
     });
   }
@@ -2410,26 +2439,6 @@ class App extends React.Component {
     });
   }
   
-  //imports a zipped shapefile as a new planning grid
-  importPlanningUnitGrid(zipFilename, alias, description){
-    return new Promise((resolve, reject) => {
-      this.importZippedShapefileAsPu(zipFilename, alias, description).then((response) => {
-        this.setSnackBar("Planning grid imported. Uploading to Mapbox"); 
-        //start polling to see when the upload is done
-        this.pollMapbox(response.uploadId).then((response) => {
-          // close the dialog
-          this.closeImportPlanningGridDialog();
-          //update the planning unit items
-          this.getPlanningUnitGrids();
-          resolve("Planning grid imported");
-        });
-      }).catch((error) => { //importZippedShapefileAsPu error
-        this.deletePlanningUnitGrid(alias, true);
-        reject(error);
-      });
-    });
-  }
-  
   getCountries() {
     this._get("getCountries").then((response) => {
       this.setState({ countries: response.records });
@@ -2442,7 +2451,6 @@ class App extends React.Component {
   uploadToMapBox(feature_class_name, mapbox_layer_name) {
     return new Promise((resolve, reject) => {
       this._get("uploadTilesetToMapBox?feature_class_name=" + feature_class_name + "&mapbox_layer_name=" + mapbox_layer_name, 300000).then((response) => {
-        this.setSnackBar("Uploading to MapBox");
         this.setState({loading: true});
         //poll mapbox to see when the upload has finished
         this.pollMapbox(response.uploadid).then((response2) => {
@@ -2467,7 +2475,6 @@ class App extends React.Component {
               clearInterval(this.timer);
               this.timer = null;
               //reset state
-              this.setSnackBar("Uploaded to MapBox");
               this.setState({loading: false });
               resolve("Uploaded to Mapbox");
             }
@@ -2700,7 +2707,6 @@ class App extends React.Component {
     return new Promise((resolve, reject) => {
       this._ws("importFeature?filename=" + this.state.featureDatasetFilename + "&name=" + this.state.featureDatasetName + "&description=" + this.state.featureDatasetDescription, this.wsMessageCallback.bind(this)).then((message) => {
         if (message.id){
-          this.setSnackBar("Feature imported. Uploading to Mapbox"); 
           //start polling to see when the upload is done
           this.pollMapbox(message.uploadId).then(() => {
             this.newFeatureCreated(message);
@@ -2716,6 +2722,9 @@ class App extends React.Component {
   
   //create the new feature from the feature that has been digitised on the map
   createNewFeatureFromDigitising(){
+    //start the logging
+    this.startLogging(true);
+    this.setState({streamingLog: "Creating feature...\n"});
     //post the geometry to the server with the metadata
     let formData = new FormData();
     formData.append('name', this.state.featureDatasetName);
@@ -2726,7 +2735,11 @@ class App extends React.Component {
     }).join(",");
     formData.append('linestring', "Linestring(" + coords + ")");
     this._post("createFeatureFromLinestring", formData).then((response) => {
-      if (response.id) this.newFeatureCreated(response);
+        this.setState({streamingLog: this.state.streamingLog + "Uploading to Mapbox...\n"});
+        //start polling to see when the upload is done
+        this.pollMapbox(response.uploadId).then(() => {
+          this.newFeatureCreated(response);
+        });
     }).catch((error) => {
       //do something
     });
@@ -2736,7 +2749,7 @@ class App extends React.Component {
   newFeatureCreated(response){
     this.getInterestFeature(response.id);
     //ui response
-    this.setSnackBar(response.info);
+    this.setState({streamingLog: this.state.streamingLog + "Uploaded\nFeature '" + this.state.featureDatasetName + "' created"});
     //close the dialog
     this.closeNewFeatureDialog();
     //reset the state
@@ -3677,7 +3690,7 @@ class App extends React.Component {
           />
           <UploadPlanningGridDialog
             open={this.state.importPlanningGridDialogOpen} 
-            onOk={this.closeImportPlanningGridDialog.bind(this)}
+            onOk={this.importPlanningUnitGrid.bind(this)}
             onCancel={this.closeImportPlanningGridDialog.bind(this)}
             loading={this.state.loading}
             requestEndpoint={this.state.marxanServer.endpoint}
@@ -3758,6 +3771,7 @@ class App extends React.Component {
             planning_grid_metadata={this.state.planning_grid_metadata}
             getTilesetMetadata={this.getMetadata.bind(this)}
             zoomToBounds={this.zoomToBounds.bind(this)}
+            setSnackBar={this.setSnackBar.bind(this)}
           />
           <CostsDialog
             open={this.state.CostsDialogOpen}
