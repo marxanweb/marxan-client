@@ -3744,7 +3744,7 @@ class App extends React.Component {
             featuresDialogPopupOpen={this.state.featuresDialogPopupOpen}
             closePopover={this.closePopover.bind(this)}
             showNewFeaturesDialogPopover={this.showNewFeaturesDialogPopover.bind(this)}
-            previewFeature={this.previewFeature.bind(this)}
+            previewFeature={this.previewFeature.bind(this)} 
           />
           <FeatureDialog
             open={this.state.featureDialogOpen}
