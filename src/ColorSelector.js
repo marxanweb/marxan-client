@@ -33,8 +33,8 @@ class ColorSelector extends React.Component {
 		let primaryText;
 		let c = this.props.values.map(function(colorCode) {
 			(colorCode !== 'opacity') ? primaryText = '': primaryText = "Opacity";
-			if (colorCode !== 'opacity') c = this.getSwatch(colorCode, false);
-			return <MenuItem value={colorCode} primaryText={primaryText} key={colorCode} children={c}/>;
+			let _c = (colorCode !== 'opacity') ? this.getSwatch(colorCode, false) : null;
+			return <MenuItem value={colorCode} primaryText={primaryText} key={colorCode} children={_c} title={colorCode}/>;
 		}, this);
 		return (
 			<SelectField selectionRenderer={this.selectionRenderer.bind(this)} menuItemStyle={{fontSize:'12px'}} labelStyle={{fontSize:'12px'}} listStyle={{fontSize:'12px'}} style={{width:'150px', margin: '0px 10px'}} autoWidth={true} floatingLabelText={this.props.floatingLabelText} floatingLabelFixed={true} children={c} onChange={this.handleChange.bind(this)} value={this.props.property}/>

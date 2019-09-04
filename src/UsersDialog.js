@@ -36,7 +36,7 @@ class UsersDialog extends React.Component {
 							{...this.props} 
 							onOk={this.closeDialog.bind(this)}
 							onRequestClose={this.closeDialog.bind(this)}
-							showCancelButton={true}
+							showCancelButton={false}
 							autoDetectWindowHeight={false}
 							bodyStyle={{ padding:'0px 24px 0px 24px'}}
 							title="Users"   

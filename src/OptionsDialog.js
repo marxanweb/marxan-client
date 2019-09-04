@@ -30,7 +30,7 @@ class OptionsDialog extends React.Component {
                                 {...this.props} 
                                 contentWidth={370}
                                 offsetY={80}
-                                showCancelButton={true}
+                                showCancelButton={false}
                                 onOk={this.updateOptions.bind(this)}
                                 title="Settings" 
                                 children={

@@ -94,7 +94,7 @@ class RunLogDialog extends React.Component {
 				// titleBarIcon={faBookOpen}
 				onOk={this.closeDialog.bind(this)}
 				onCancel={this.closeDialog.bind(this)}
-				showCancelButton={true}
+				showCancelButton={false}
 				autoDetectWindowHeight={false}
 				bodyStyle={{ padding:'0px 24px 0px 24px'}}
 				title="Runs"  

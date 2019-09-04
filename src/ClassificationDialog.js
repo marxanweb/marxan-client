@@ -23,7 +23,7 @@ class ClassificationDialog extends React.Component {
 				contentWidth={390}
 				rightX={0}
 				offsetY={80}
-				showCancelButton={true}
+				showCancelButton={false}
 				title="Classification" 
 				children={
 					<div style={{height:'275px'}} key="k6">
