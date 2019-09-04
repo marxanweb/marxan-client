@@ -1,7 +1,6 @@
 import React from 'react';
 import MarxanDialog from './MarxanDialog';
 import TextField from 'material-ui/TextField';
-import FontAwesome from 'react-fontawesome';
 import MapboxClient from 'mapbox';
 
 class RegisterDialog extends React.Component {
@@ -74,9 +73,9 @@ class RegisterDialog extends React.Component {
 					<TextField floatingLabelText="Full name" floatingLabelFixed={true} onChange = {(event,newValue) => this.setState({name:newValue})}/>
 					<TextField floatingLabelText="Email address" floatingLabelFixed={true} errorText={this.state.validEmail ?  '' : "Invalid email address"} onChange = {(event,newValue) => this.setState({email:newValue})}/>
 					<span>
-					<TextField floatingLabelText="Mapbox Access Token" floatingLabelFixed={true} type="password" errorText={this.state.mb_tk_err} onChange = {(event,newValue) => this.setState({mb_tk:newValue})} value="jdjdsdmV6In0.lzQobKMCqES6j7x0bpif6w"/>
+					{/*<TextField floatingLabelText="Mapbox Access Token" floatingLabelFixed={true} type="password" errorText={this.state.mb_tk_err} onChange = {(event,newValue) => this.setState({mb_tk:newValue})} value="jdjdsdmV6In0.lzQobKMCqES6j7x0bpif6w"/>*/}
 					</span><span>
-					<FontAwesome name='question-circle' className="mapboxHelp" title="If you have a Mapbox account you can enter an access token here to be able to access your own tilesets. Otherwise, leave it as it is."/>
+					{/*<FontAwesome name='question-circle' className="mapboxHelp" title="If you have a Mapbox account you can enter an access token here to be able to access your own tilesets. Otherwise, leave it as it is."/>*/}
 					</span>
 				</div>]
 		return (

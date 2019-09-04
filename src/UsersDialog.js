@@ -47,7 +47,7 @@ class UsersDialog extends React.Component {
 														{(this.props.users&&this.props.users.length>0) ? 
 															<ReactTable 
 																	pageSize={this.props.users.length}
-																	className={'projectsReactTable'}
+																	className={'projectsReactTable noselect'}
 																	showPagination={false} 
 																	minRows={0}
 																	noDataText=''

@@ -104,7 +104,7 @@ class RunLogDialog extends React.Component {
 							<div id="projectsTable">
 								<ReactTable 
 								  pageSize={ this.props.runLogs.length }
-									className={'projectsReactTable'}
+									className={'projectsReactTable noselect'}
 									showPagination={false} 
 									minRows={0}
 									noDataText=''

@@ -73,7 +73,7 @@ class LoginDialog extends React.Component {
 								disabled = {this.props.loading||(this.props.marxanServer&&!this.props.marxanServer.corsEnabled) ? true : false} 
 								onKeyPress={this.handleKeyPress.bind(this)}
 							/></span>
-							<span onClick={this.props.openResendPasswordDialog.bind(this)} className="forgotLink" title="Click to resend password">Forgot</span>
+							{/*<span onClick={this.props.openResendPasswordDialog.bind(this)} className="forgotLink" title="Click to resend password">Forgot</span>*/}
 						</div>
 					</div>
 					]} 

@@ -1904,7 +1904,7 @@ class App extends React.Component {
       .then(response => response.json())
       .then((response2) => {
         if ((response2.message != null) && (response2.message.indexOf('does not exist') > 0)){
-          reject("The tileset '" + tilesetId + "' does not exist on Mapbox.");
+          reject("The tileset '" + tilesetId + "' was not found. See <a href='" + ERRORS_PAGE + "#the-tileset-from-source-source-was-not-found' target='blank'>here</a>");
         }else{
           resolve(response2);
         }
@@ -2601,7 +2601,7 @@ class App extends React.Component {
       //remove the feature if it is already selected
       this.removeFeature(feature);
     }else{
-      //add the feautre to the selected feature array
+      //add the feature to the selected feature array
       this.addFeature(feature);
     }
   }
@@ -2651,12 +2651,17 @@ class App extends React.Component {
     this.state.allFeatures.forEach((feature) => {
       ids.push(feature.id);
     });
-    this.setState({selectedFeatureIds: ids});
+    this.selectFeatures(ids);
   }
 
   //clears all the Conservation features
   clearAllFeatures() {
     this.setState({selectedFeatureIds: []});
+  }
+
+  //selects features 
+  selectFeatures(ids) {
+    this.setState({selectedFeatureIds: ids});
   }
 
   //updates the allFeatures to set the various properties based on which features have been selected in the FeaturesDialog
@@ -3730,6 +3735,7 @@ class App extends React.Component {
             openNewFeatureDialog={this.openNewFeatureDialog.bind(this)}
             selectAllFeatures={this.selectAllFeatures.bind(this)}
             clearAllFeatures={this.clearAllFeatures.bind(this)}
+            selectFeatures={this.selectFeatures.bind(this)}
             userRole={this.state.userData.ROLE}
             clickFeature={this.clickFeature.bind(this)}
             addingRemovingFeatures={this.state.addingRemovingFeatures}

@@ -20,19 +20,16 @@ class FeaturesDialog extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      selectedFeature: undefined
+      selectedFeature: undefined,
+      previousRow: undefined
     };
   }
   _delete() {
     this.props.deleteFeature(this.state.selectedFeature);
-    this.setState({
-      selectedFeature: undefined
-    });
+    this.setState({selectedFeature: undefined});
   }
   _new(event) {
-    this.setState({
-      anchorEl: event.currentTarget
-    });
+    this.setState({anchorEl: event.currentTarget});
     this.props.showNewFeaturesDialogPopover();
   }
   _newByImport() {
@@ -47,14 +44,40 @@ class FeaturesDialog extends React.Component {
     //show the drawing controls
     this.props.initialiseDigitising();
   }
-  clickFeature(event, feature) {
+  clickFeature(event, rowInfo) {
+    //if adding or removing features from a project
     if (this.props.addingRemovingFeatures) {
-      this.props.clickFeature(feature);
+      //if the shift key is pressed then select/deselect the features in between
+      if (event.shiftKey){
+        //get the selected feature ids
+        let selectedIds = this.getFeaturesBetweenRows(this.state.previousRow, rowInfo);
+        //update the selected ids
+        this.props.selectFeatures(selectedIds);
+      }else{ //single feature has been clicked
+        this.props.clickFeature(rowInfo.original, event.shiftKey, this.state.previousRow);
+      }
+      this.setState({previousRow: rowInfo});
     } else {
-      this.setState({
-        selectedFeature: feature
-      });
+      this.setState({selectedFeature: rowInfo.original});
     }
+  }
+  
+  //gets the features ids between the two passed rows and toggles their selection state
+  getFeaturesBetweenRows(previousRow, thisRow){
+    let selectedIds = this.props.selectedFeatureIds;
+    let idx1 = (previousRow.index < thisRow.index) ? previousRow.index + 1 : thisRow.index;
+    let idx2 = (previousRow.index < thisRow.index) ? thisRow.index + 1 : previousRow.index;
+    //get the features between the two indices
+    let spannedFeatures = this.props.allFeatures.slice(idx1, idx2); 
+    //iterate through the spanned features and toggle their selected state
+    spannedFeatures.forEach((feature) => {
+      if (selectedIds.includes(feature.id)){
+        selectedIds.splice(selectedIds.indexOf(feature.id),1);
+      }else{
+        selectedIds.push(feature.id);
+      }
+    });
+    return selectedIds;   
   }
   onOk(evt) {
     if (this.props.addingRemovingFeatures) {
@@ -89,7 +112,7 @@ class FeaturesDialog extends React.Component {
                        <div style={ { marginBottom: '5px' } }>There are a total of 
                          {" " + this.props.allFeatures.length } features:</div>
                        <div id="projectsTable">
-                         <ReactTable pageSize={ this.props.allFeatures.length } className={ 'projectsReactTable' } showPagination={ false } minRows={ 0 } data={ this.props.allFeatures }
+                         <ReactTable pageSize={ this.props.allFeatures.length } className={ 'projectsReactTable noselect' } showPagination={ false } minRows={ 0 } data={ this.props.allFeatures }
                            thisRef={ this } columns={ [{ Header: 'Name', accessor: 'alias', width: 170, headerStyle: { 'textAlign': 'left' } }, 
                            { Header: 'Description', accessor: 'description', width: 310, headerStyle: { 'textAlign': 'left' }, Cell: this.renderTitle.bind(this) }, 
                            { Header: 'Date', accessor: 'creation_date', width: 205, headerStyle: { 'textAlign': 'left' }, sortMethod: this.sortDate.bind(this) },
@@ -99,7 +122,7 @@ class FeaturesDialog extends React.Component {
                               background: ((state.thisRef.props.addingRemovingFeatures && state.thisRef.props.selectedFeatureIds.includes(rowInfo.original.id)) || (!state.thisRef.props.addingRemovingFeatures && state.thisRef.state.selectedFeature && state.thisRef.state.selectedFeature.id === rowInfo.original.id)) ? "aliceblue" : ""
                             },
                             onClick: (e) => {
-                              state.thisRef.clickFeature(e, rowInfo.original);
+                              state.thisRef.clickFeature(e, rowInfo);
                             }
                           };
                         } }

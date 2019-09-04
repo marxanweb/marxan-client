@@ -91,7 +91,7 @@ class ProjectsDialog extends React.Component {
 								<div id="projectsTable">
 									<ReactTable 
 									  pageSize={ this.props.projects.length }
-										className={'projectsReactTable'}
+										className={'projectsReactTable noselect'}
 										showPagination={false} 
 										minRows={0}
 										noDataText=''
