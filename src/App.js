@@ -67,7 +67,9 @@ mapboxgl.accessToken = 'pk.eyJ1IjoiYmxpc2h0ZW4iLCJhIjoiMEZrNzFqRSJ9.0QBRA2HxTb8Y
 
 //CONSTANTS
 let MARXAN_CLIENT_VERSION = packageJson.version; //TODO UPDATE PACKAGE.JSON WHEN THERE IS A NEW VERSION
-let ERRORS_PAGE = "https://andrewcottam.github.io/marxan-web/documentation/docs_errors.html";
+let DOCS_ROOT = "https://andrewcottam.github.io/marxan-web/documentation/";
+let DOCS_HOME = DOCS_ROOT + "docs_overview.html";
+let ERRORS_PAGE = DOCS_ROOT + "docs_errors.html";
 let SEND_CREDENTIALS = true; //if true all post requests will send credentials
 let TORNADO_PATH = "/marxan-server/";
 let TIMEOUT = 0; //disable timeout setting
@@ -3510,6 +3512,10 @@ class App extends React.Component {
     });
   }
   
+	openDocumentation(){
+		window.open(DOCS_HOME);
+	}
+
   render() {
     const message = (<span id="snackbar-message-id" dangerouslySetInnerHTML={{ __html: this.state.snackbarMessage }} />);    
     return (
@@ -3529,6 +3535,7 @@ class App extends React.Component {
             marxanServers={this.state.marxanServers}
             selectServer={this.selectServer.bind(this)}
             marxanServer={this.state.marxanServer}
+            openDocumentation={this.openDocumentation.bind(this)}
           />
           <RegisterDialog 
             open={this.state.registerDialogOpen} 
@@ -3562,6 +3569,7 @@ class App extends React.Component {
             hideHelpMenu={this.hideHelpMenu.bind(this)} 
             openAboutDialog={this.openAboutDialog.bind(this)}
             openServerDetailsDialog={this.openServerDetailsDialog.bind(this)}
+            openDocumentation={this.openDocumentation.bind(this)}
           />
           <OptionsDialog 
             open={this.state.optionsDialogOpen}
