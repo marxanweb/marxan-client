@@ -377,7 +377,7 @@ class App extends React.Component {
         this.setState({preprocessing: true});
         logMessage = this.state.streamingLog + message.info + "\n";
         break;
-      case 'pid': //from marxan runs
+      case 'pid': //from marxan runs - the pid is an identifer and the pid, e.g. m1234 is a marxan run process with a pid of 1234
         this.setState({pid: message.pid});
         break;
       case 'RunningMarxan': //from marxan runs
@@ -1078,9 +1078,9 @@ class App extends React.Component {
     });
   }
 
-  //stops marxan running on the server
-  stopMarxan(pid) {
-    this._get("stopMarxan?pid=" + pid, 10000).catch((error) => {
+  //stops a process running on the server
+  stopProcess(pid) {
+    this._get("stopProcess?pid=" + pid, 10000).catch((error) => {
       //if the pid no longer exists then the state needs to be reset anyway
       this.getRunLogs();
     });
@@ -3614,7 +3614,7 @@ class App extends React.Component {
             project={this.state.project}
             metadata={this.state.metadata}
             runMarxan={this.runMarxan.bind(this)} 
-            stopMarxan={this.stopMarxan.bind(this)}
+            stopProcess={this.stopProcess.bind(this)}
             pid={this.state.pid}
             renameProject={this.renameProject.bind(this)}
             renameDescription={this.renameDescription.bind(this)}
@@ -3884,7 +3884,7 @@ class App extends React.Component {
             getRunLogs={this.getRunLogs.bind(this)}
             runLogs={this.state.runLogs}
             clearRunLogs={this.clearRunLogs.bind(this)}
-            stopMarxan={this.stopMarxan.bind(this)}
+            stopMarxan={this.stopProcess.bind(this)}
           />
           <ServerDetailsDialog  
             open={this.state.serverDetailsDialogOpen}

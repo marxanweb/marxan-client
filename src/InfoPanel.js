@@ -80,8 +80,8 @@ class InfoPanel extends React.Component {
 	toggleCosts(event, isInputChecked){
 		this.props.toggleCosts(isInputChecked);
 	}
-	stopMarxan(){
-		this.props.stopMarxan(this.props.pid);
+	stopProcess(){
+		this.props.stopProcess(this.props.pid);
 	}
 	render() {
 		return (
@@ -182,7 +182,7 @@ class InfoPanel extends React.Component {
 									title="Click to stop the current run"  
 									show={this.props.userRole !== "ReadOnly"}
 									style={{marginLeft: '194px'}}
-									onClick={this.stopMarxan.bind(this)} 
+									onClick={this.stopProcess.bind(this)} 
 									disabled={this.props.pid===0}  
 									secondary={true} 
 								/>  
