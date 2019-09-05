@@ -96,12 +96,16 @@ class NewProjectDialog extends React.Component {
 			this.state.allFeatures.forEach((feature) => {
 					ids.push(feature.id);
 			});
-			this.setState({ selectedFeatureIds: ids });
+			this.selectFeatures(ids);
 	}
 
 	//clears all the Conservation features
 	clearAllFeatures() {
 			this.setState({ selectedFeatureIds: [] });
+	}
+
+	selectFeatures(ids){
+		this.setState({ selectedFeatureIds: ids });
 	}
 
 	//removes a feature from the selectedFeatureIds array
@@ -193,6 +197,7 @@ class NewProjectDialog extends React.Component {
 							allFeatures={this.state.allFeatures}
 							selectAllFeatures={this.selectAllFeatures.bind(this)}
 							clearAllFeatures={this.clearAllFeatures.bind(this)}
+							selectFeatures={this.selectFeatures.bind(this)}
 							clickFeature={this.clickFeature.bind(this)}
 							addingRemovingFeatures={true}
 							selectedFeatureIds={this.state.selectedFeatureIds}
