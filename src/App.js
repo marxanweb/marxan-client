@@ -1163,8 +1163,10 @@ class App extends React.Component {
       this._ws("preprocessFeature?user=" + this.state.owner + "&project=" + this.state.project + "&planning_grid_name=" + this.state.metadata.PLANNING_UNIT_NAME + "&feature_class_name=" + feature.feature_class_name + "&alias=" + feature.alias + "&id=" + feature.id, this.wsMessageCallback.bind(this)).then((message) => {
         //websocket has finished
         this.updateFeature(feature, {preprocessed: true, pu_count: Number(message.pu_count), pu_area: Number(message.pu_area), occurs_in_planning_grid: (Number(message.pu_count) >0)});
+        this.setState({pid: 0});
         resolve(message);
       }).catch((error) => {
+        this.setState({pid: 0});
         reject(error);
       });
     });
