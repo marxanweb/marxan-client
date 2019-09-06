@@ -10,10 +10,12 @@ import Settings from 'material-ui/svg-icons/action/settings';
 import Clipboard from 'material-ui/svg-icons/action/assignment';
 import Sync from 'material-ui/svg-icons/notification/sync';
 
+let runtime=0;
+
 class ResultsPane extends React.Component {
 	constructor(props) {
 		super(props);
-		this.state = { showClipboard: false, selectedSolution: undefined, runtime: 0 };
+		this.state = { showClipboard: false, selectedSolution: undefined,runtimeStr:'00:00s' };
 	}
 	componentDidUpdate(prevProps, prevState) {
 		//if the streaming log has changed then scroll to the bottom of the div
@@ -30,11 +32,18 @@ class ResultsPane extends React.Component {
 		if (this.props && this.props.preprocessing && prevProps && !prevProps.preprocessing) this.startTimer();
 		if (prevProps && prevProps.preprocessing && this.props && !this.props.preprocessing) this.stopTimer();
 	}
+	str_pad_left(string,pad,length) {
+	    return (new Array(length+1).join(pad)+string).slice(-length);
+	}
 	startTimer(){
-		this.setState({runtime: 0});
-    this.timer = setInterval(() => {
-			this.setState({runtime: this.state.runtime + 1 });
-    }, 1000);
+		runtime = 0;
+	    this.timer = setInterval(() => {
+	    	var minutes = Math.floor(runtime / 60);
+	    	var seconds = runtime - (minutes * 60);
+			var finalTime = this.str_pad_left(minutes,'0',2)+':'+this.str_pad_left(seconds,'0',2);
+			this.setState({runtimeStr: finalTime });
+			runtime = runtime + 1;
+	    }, 1000);
 	}
 	stopTimer(){
     //clear the timer
@@ -50,7 +59,7 @@ class ResultsPane extends React.Component {
 	}
 
 	mouseLeave(event) {
-		this.setState({ showClipboard: false });
+		if (event.relatedTarget.id !== 'buttonsDiv') this.setState({ showClipboard: false });
 	}
 
 	selectText(node) {
@@ -168,21 +177,20 @@ class ResultsPane extends React.Component {
 								</div>
 							</Tab>
 							<Tab label="Log" value="log" onActive={this.props.log_tab_active} >
-								<div id="log" onMouseEnter={this.mouseEnter.bind(this)} onMouseLeave={this.mouseLeave.bind(this)}>{this.props.log}
-									<div className={"runtime"} style={{'display': (this.props.preprocessing ? 'block' : 'none')}}>Runtime: {this.state.runtime}s</div>
+								<div id="log" onMouseEnter={this.mouseEnter.bind(this)} onMouseLeave={this.mouseLeave.bind(this)}>{this.props.log}</div>
+								<div className={"runtime"} style={{'display': (this.props.preprocessing ? 'block' : 'none')}}>Runtime: {this.state.runtimeStr}s</div>
+								<div id='buttonsDiv' style={{position:'absolute',top:'430px',right:'16px',padding:'10px'}}>
 									<ToolbarButton  
 										icon={<Clipboard style={{height:'20px',width:'20px'}}/>} 
 										title="Copy to clipboard"
 										onClick={this.copyLog.bind(this)} 
 										show={this.state.showClipboard}
-										style={{position:'absolute',top:'442px',right:'66px'}}
 									/>
 									<ToolbarButton  
 										icon={<FontAwesomeIcon icon={faEraser} />} 
 										title="Clear log"
 										onClick={this.props.clearLog.bind(this)} 
 										show={this.state.showClipboard}
-										style={{position:'absolute',top:'442px',right:'26px'}}
 									/>
 								</div>
 							</Tab>

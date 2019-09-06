@@ -384,6 +384,7 @@ class App extends React.Component {
         logMessage = this.state.streamingLog + message.info.replace(/(\n\n {2}Init)/gm,"\n  Init").replace(/(\n\n {2}ThermalAnnealing)/gm,"\n  ThermalAnnealing").replace(/(\n\n {2}Iterative)/gm,"\n  Iterative").replace(/(\n\n {2}Best)/gm,"\n  Best");
         break;
       case 'RunningQuery': //from asynchronous queries
+        break;
       case 'FinishedQuery': //from asynchronous queries
         logMessage = this.state.streamingLog + message.info + " (elapsed time: " + message.elapsedtime + ")\n";
         break;

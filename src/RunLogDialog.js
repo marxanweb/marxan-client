@@ -29,7 +29,7 @@ class RunLogDialog extends React.Component {
 	}
 	stopRun(evt){
 		//stop the run
-		this.props.stopMarxan(this.state.selectedRun.pid);
+		this.props.stopMarxan("m" + this.state.selectedRun.pid);
 		//refresh the run log - this may be done when the process stops on the server and it sends the results back in the websocket - but in case the client is not connected to the server explicitly request it
 		this.refreshRunLogs();
 	}
