@@ -114,7 +114,7 @@ let FEATURE_PROPERTIES = [{ name: 'id', key: 'ID',hint: 'The unique identifier f
   { name: 'protected_area', key: 'Area protected',hint: 'The total area protected in the current solution in Km2 (calculated during a Marxan Run)', showForOld: true}];
 var mb_tk = "sk.eyJ1IjoiYmxpc2h0ZW4iLCJhIjoiY2piNm1tOGwxMG9lajMzcXBlZDR4aWVjdiJ9.Z1Jq4UAgGpXukvnUReLO1g";
 var wdpa_vector_tile_layer = ""; //the name of the WDPA vector tile layer that is set when a server is selected based on which version of the WDPA is in that servers PostGIS database
-var wdpaPopup = new mapboxgl.Popup();
+var wdpaPopup = new mapboxgl.Popup({closeButton:false});
 
 class App extends React.Component {
 

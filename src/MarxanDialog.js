@@ -4,7 +4,7 @@ import ToolbarButton from './ToolbarButton';
 import Sync from 'material-ui/svg-icons/notification/sync'; 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {faQuestionCircle} from '@fortawesome/free-regular-svg-icons';
-
+ 
 //properties can be:
 //contentWidth - the width of the content area
 //offsetX - the distance from the left edge (mutually exclusive with rightX)
