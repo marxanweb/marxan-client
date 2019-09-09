@@ -45,6 +45,7 @@ class UploadPlanningGridDialog extends React.Component {
 				onOk={this.onOk.bind(this)}
 				okDisabled={this.props.loading}
 				onRequestClose={this.props.onCancel.bind(this)} 
+				helpLink={"docs_user.html#importing-existing-planning-grids"}
 			/>
 		);
 	}

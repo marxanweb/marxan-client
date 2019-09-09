@@ -47,6 +47,7 @@ class ProfileDialog extends React.Component {
 				onCancel={this.closeProfileDialog.bind(this)}
 				showCancelButton={true}
 				onOk={this.updateUser.bind(this)}
+				helpLink={"docs_user.html#profile"}
 				title="Profile" 
 				children={
 					<div key="k15">

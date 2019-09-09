@@ -36,6 +36,7 @@ class ClumpingDialog extends React.Component {
 				onOk={this.onRequestClose.bind(this)}
 				okDisabled={this.props.clumpingRunning}
 				showCancelButton={true}
+				helpLink={"docs_user.html#clumping-window"}
 				actions={[
 					<ToolbarButton 
 						label="Refresh" 

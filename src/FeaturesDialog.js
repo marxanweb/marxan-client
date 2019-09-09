@@ -107,7 +107,7 @@ class FeaturesDialog extends React.Component {
   render() {
     if (this.props.allFeatures) {
       return (
-        <MarxanDialog {...this.props} autoDetectWindowHeight={ false } bodyStyle={ { padding: '0px 24px 0px 24px' } } title="Features" onOk={ this.onOk.bind(this) } showCancelButton={this.props.addingRemovingFeatures}
+        <MarxanDialog {...this.props} autoDetectWindowHeight={ false } bodyStyle={ { padding: '0px 24px 0px 24px' } } title="Features" onOk={ this.onOk.bind(this) } showCancelButton={this.props.addingRemovingFeatures} helpLink={"docs_user.html#the-features-window"}
           children={ <React.Fragment key="k10">
                        <div style={ { marginBottom: '5px' } }>There are a total of 
                          {" " + this.props.allFeatures.length } features:</div>

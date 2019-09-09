@@ -26,9 +26,10 @@ class NewFeatureDialog extends React.Component {
 				okDisabled={!(this.props.name!=='' && this.props.description!=='' && ((this.props.filename!=='' && this.props.newFeatureSource === "import")||(this.props.filename==='' && this.props.newFeatureSource === "digitising")) && (this.props.loading===false))}
 				showCancelButton={true}
 				contentWidth={420}
-				title="New feature" 
+				title="Import existing feature" 
 				children={c} 
 				onRequestClose={this.props.onOk} 
+				helpLink={"docs_user.html#importing-existing-features"}
 			/>
 		);
 	}

@@ -6,7 +6,6 @@ import MarxanDialog from './MarxanDialog';
 import TextField from 'material-ui/TextField';
 import SelectField from 'material-ui/SelectField';
 import MenuItem from 'material-ui/MenuItem';
-import {faQuestionCircle} from '@fortawesome/free-regular-svg-icons';
 
 class LoginDialog extends React.Component {
 	handleKeyPress(e) {
@@ -26,6 +25,7 @@ class LoginDialog extends React.Component {
 					showCancelButton={true}
 					cancelLabel={"Register"}
 					cancelDisabled={((this.props.marxanServer===undefined) || this.props.loading || (this.props.marxanServer&&this.props.marxanServer.offline) || (this.props.marxanServer&&!this.props.marxanServer.corsEnabled)) ? true : false} 
+					helpLink={"docs_user.html#log-in-window"}
 					contentWidth={358}
 					offsetY={200}
 					children={[
@@ -53,7 +53,6 @@ class LoginDialog extends React.Component {
 								/>;
 							})}
 						/>
-						<FontAwesomeIcon icon={faQuestionCircle} onClick={this.props.openDocumentation} title={"Help and support"} className={'appBarIcon docs'} style={{fontSize: '20px'}}/>
 						<div style={{height:'124px'}} id="logindiv" key="logindiv">
 							<TextField 
 								floatingLabelText="Username" 

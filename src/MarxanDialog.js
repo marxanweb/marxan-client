@@ -3,6 +3,7 @@ import Dialog from 'material-ui/Dialog';
 import ToolbarButton from './ToolbarButton';
 import Sync from 'material-ui/svg-icons/notification/sync'; 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {faQuestionCircle} from '@fortawesome/free-regular-svg-icons';
 
 //properties can be:
 //contentWidth - the width of the content area
@@ -13,8 +14,14 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 //onCancel - fired when the Cancel button is clicked or when the dialog needs to be closed
 //showCancelButton - set to true to show the cancel button
 //actions - an array of components to add to the actions array in the dialog
+//helpLink - a relative url to the bookmark in the user documentation that describes the particular dialog box
+let DOCS_ROOT = "https://andrewcottam.github.io/marxan-web/documentation/";
 
 class MarxanDialog extends React.Component {
+	openDocumentation(){
+		window.open(DOCS_ROOT + this.props.helpLink);
+	}
+
 	render() {
 		//if the offsetX or rightX is set, then make this into a style
 		let offsetX = (this.props.offsetX) ? {marginLeft: this.props.offsetX + 'px', width: '400px'} : (this.props.rightX) ? {right: this.props.rightX + 'px', width: '400px', left:null} : {};
@@ -44,7 +51,8 @@ class MarxanDialog extends React.Component {
 				]} 
 				children={[
 					(this.props.titleBarIcon) ? <FontAwesomeIcon icon={this.props.titleBarIcon} style={{position: 'absolute', top: '18px', left: '24px'}} key="k1"/> : null,
-					<Sync className='spin' style={{display: (this.props.loading || this.props.showSpinner) ? "inline-block" : "none", color: 'rgb(255, 64, 129)', position: 'absolute', top: '13px', right: '14px'}} key={"spinner"}/>, this.props.children
+					<Sync className='spin' style={{display: (this.props.loading || this.props.showSpinner) ? "inline-block" : "none", color: 'rgb(255, 64, 129)', position: 'absolute', top: '13px', right: '14px'}} key={"spinner"}/>, this.props.children,
+					(this.props.helpLink) ? <FontAwesomeIcon icon={faQuestionCircle} onClick={this.openDocumentation.bind(this)} title={"Help and support"} className={'appBarIcon docs'} style={{fontSize: '20px'}}/> : null
 				]}
 			/>
 		);

@@ -92,6 +92,7 @@ class ImportDialog extends React.Component {
 				actions={actions} 
 				onOk={this.onOk.bind(this)}
 				onRequestClose={this.onOk.bind(this)} 
+				helpLink={"docs_user.html#importing-existing-marxan-projects"}
 			/>
 		);
 	}

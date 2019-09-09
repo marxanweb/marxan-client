@@ -86,6 +86,7 @@ class RegisterDialog extends React.Component {
 				okDisabled={!(this.state.user && this.state.password && this.state.name && this.state.email && this.state.mb_tk) || this.props.loading} 
 				showCancelButton={true}
 				cancelDisabled={this.props.loading} 
+				helpLink={"docs_user.html#new-user-registration"}
 				title="Register" 
 				children={c} 
 				onRequestClose={this.props.onCancel} 
