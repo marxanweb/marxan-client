@@ -3566,6 +3566,7 @@ class App extends React.Component {
             hideHelpMenu={this.hideHelpMenu.bind(this)} 
             openAboutDialog={this.openAboutDialog.bind(this)}
             openServerDetailsDialog={this.openServerDetailsDialog.bind(this)}
+            DOCS_ROOT={DOCS_ROOT}
           />
           <OptionsDialog 
             open={this.state.optionsDialogOpen}
@@ -3758,6 +3759,7 @@ class App extends React.Component {
             feature_metadata={this.state.feature_metadata}
             getTilesetMetadata={this.getMetadata.bind(this)}
             zoomToBounds={this.zoomToBounds.bind(this)}
+            setSnackBar={this.setSnackBar.bind(this)}
           />
           <NewFeatureDialog
             open={this.state.NewFeatureDialogOpen} 

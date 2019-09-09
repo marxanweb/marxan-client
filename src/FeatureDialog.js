@@ -17,6 +17,7 @@ class FeatureDialog extends React.Component {
 							planning_grid_metadata={this.props.feature_metadata}
 							getTilesetMetadata={this.props.getTilesetMetadata}
 							zoomToBounds={this.props.zoomToBounds}
+							setSnackBar={this.props.setSnackBar}
 						/>
 					</React.Fragment>
 				}
