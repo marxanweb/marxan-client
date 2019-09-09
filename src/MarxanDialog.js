@@ -51,8 +51,8 @@ class MarxanDialog extends React.Component {
 				]} 
 				children={[
 					(this.props.titleBarIcon) ? <FontAwesomeIcon icon={this.props.titleBarIcon} style={{position: 'absolute', top: '18px', left: '24px'}} key="k1"/> : null,
-					<Sync className='spin' style={{display: (this.props.loading || this.props.showSpinner) ? "inline-block" : "none", color: 'rgb(255, 64, 129)', position: 'absolute', top: '13px', right: '14px'}} key={"spinner"}/>, this.props.children,
-					(this.props.helpLink) ? <FontAwesomeIcon icon={faQuestionCircle} onClick={this.openDocumentation.bind(this)} title={"Open documentation for this window"} className={'appBarIcon docs'} style={{fontSize: '20px'}} key="helpLink"/> : null
+					<Sync className='spin' style={{display: (this.props.loading || this.props.showSpinner) ? "inline-block" : "none", color: 'rgb(255, 64, 129)', position: 'absolute', top: '13px', right: '45px'}} key={"spinner"}/>, this.props.children,
+					(this.props.helpLink) ? <FontAwesomeIcon icon={faQuestionCircle} onClick={this.openDocumentation.bind(this)} title={"Open documentation for this window"} className={'appBarIcon docs'} style={{fontSize: '18px'}} key="helpLink"/> : null
 				]}
 			/>
 		);

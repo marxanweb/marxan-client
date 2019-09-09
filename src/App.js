@@ -87,7 +87,7 @@ let PUVSPR_LAYER_NAME = "planning_units_puvspr_layer"; //layer showing the plann
 let RESULTS_LAYER_NAME = "results_layer"; //layer for either the sum of solutions or the individual solutions
 let WDPA_LAYER_NAME = "wdpa"; //layer showing the protected areas from the WDPA
 //layer default styles
-let PU_LAYER_OPACITY = 0.2;
+let PU_LAYER_OPACITY = 0.4;
 let STATUS_LAYER_LINE_WIDTH = 1.5;
 let PUVSPR_LAYER_LINE_WIDTH = 1.5;
 let PUVSPR_LAYER_OUTLINE_COLOR = 'rgba(255, 0, 0, 1)';
@@ -1191,6 +1191,7 @@ class App extends React.Component {
   //gets the results for a project
   getResults(user, project){
     this._get("getResults?user=" + user + "&project=" + project).then((response) => {
+      console.debug("get results");
       this.runCompleted(response);
     }).catch((error) => {
       //do something
@@ -1502,6 +1503,7 @@ class App extends React.Component {
     if (!data) return;
     var paintProperties = this.getPaintProperties(data, sum, true);
     //set the render paint property
+    console.debug("renderSolution")
     this.map.setPaintProperty(RESULTS_LAYER_NAME, "fill-color", paintProperties.fillColor);
     this.map.setPaintProperty(RESULTS_LAYER_NAME, "fill-outline-color", paintProperties.oulineColor);
     this.map.setPaintProperty(RESULTS_LAYER_NAME, "fill-opacity", this.state.results_layer_opacity);
@@ -1833,18 +1835,24 @@ class App extends React.Component {
       this.setState({basemap: basemap.name});
       //get a valid map style
       this.getValidStyle(basemap).then((style)=>{
+        console.debug("loadingStyle");
         //load the style
         this.loadMapStyle(style).then((evt) => {
+          console.debug("style loaded");
           //add the WDPA layer 
           this.addWDPASource();
           this.addWDPALayer();
           //add the planning unit layers (if a project has already been loaded)
           if (this.state.tileset) {
+            console.debug("addPlanningGridLayers");
             this.addPlanningGridLayers(this.state.tileset);
             //get the results, if any
+            console.debug("getResults");
             this.getResults(this.state.owner, this.state.project);
             //filter the wdpa vector tiles
             this.filterWdpaByIucnCategory(this.state.metadata.IUCN_CATEGORY);
+            //turn on/off layers depending on which tab is selected
+            if (this.state.activeTab === "planning_units") this.pu_tab_active();
             resolve();
           }else{
             resolve();
@@ -1929,6 +1937,7 @@ class App extends React.Component {
       }
     );
     //add the results layer
+    console.debug("adding results layer");
     this.map.addLayer({
       'id': RESULTS_LAYER_NAME,
       'type': "fill",
