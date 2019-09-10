@@ -251,7 +251,7 @@ class App extends React.Component {
         }
       }, (err) => {
         this.setState({loading: false});
-        this.setSnackBar("There was a Timeout in the request");
+        this.setSnackBar("Request timeout - the server may not be running");
         reject(err);
       });
     });
@@ -818,8 +818,13 @@ class App extends React.Component {
     this._get("getProject?user=" + user + "&project=" + project).then((response) => {
       //set the state for the app based on the data that is returned from the server
       this.setState({ loggedIn: true, project: response.project, owner: user, runParams: response.runParameters, files: Object.assign(response.files), metadata: response.metadata, renderer: response.renderer, planning_units: response.planning_units, infoPanelOpen: true, resultsPanelOpen: true  });
-      //if there is a PLANNING_UNIT_NAME passed then change to this planning grid
-      if (response.metadata.PLANNING_UNIT_NAME) this.changePlanningGrid(MAPBOX_USER + "." + response.metadata.PLANNING_UNIT_NAME);
+      //if there is a PLANNING_UNIT_NAME passed then change to this planning grid and load the results if there are any available
+      if (response.metadata.PLANNING_UNIT_NAME) {
+        this.changePlanningGrid(MAPBOX_USER + "." + response.metadata.PLANNING_UNIT_NAME).then(()=>{
+          //poll the server to see if results are available for this project - if there are these will be loaded
+          this.getResults(user, response.project);
+        });
+      }
       //set a local variable for the feature preprocessing - this is because we dont need to track state with these variables as they are not bound to anything
       this.feature_preprocessing = response.feature_preprocessing;
       //set a local variable for the protected area intersections - this is because we dont need to track state with these variables as they are not bound to anything
@@ -828,8 +833,6 @@ class App extends React.Component {
       this.previousIucnCategory = response.metadata.IUCN_CATEGORY;
       //initialise all the interest features with the interest features for this project
       this.initialiseInterestFeatures(response.metadata.OLDVERSION, response.features);
-      //poll the server to see if results are available for this project - if there are these will be loaded
-      this.getResults(user, response.project);
     }).catch((error) => {
         if (error.indexOf('Logged on as read-only guest user')>-1){
           this.setState({loggedIn: true});
@@ -1717,7 +1720,7 @@ class App extends React.Component {
     }
     //TODO: Need to report all protected areas where they overlap
     wdpaPopup.setLngLat(coordinates).setLngLat(coordinates)
-      .setHTML("<div><a href='https://www.protectedplanet.net/" + e.features[0].properties.wdpaid + "' target='_blank'>" + e.features[0].properties.name + " (" + e.features[0].properties.iucn_cat + ")</a></div>")
+      .setHTML("<div class='noselect'><a href='https://www.protectedplanet.net/" + e.features[0].properties.wdpaid + "' target='_blank'>" + e.features[0].properties.name + " (" + e.features[0].properties.iucn_cat + ")</a></div>")
       .addTo(this);
   }
 
@@ -1892,20 +1895,24 @@ class App extends React.Component {
   
   //called when the planning grid layer has changed, i.e. the project has changed
   changePlanningGrid(tilesetid) {
-    //get the tileset metadata
-    this.getMetadata(tilesetid).then((tileset) => {
-      //remove the results layer, planning unit layer etc.
-      this.removePlanningGridLayers();
-      //add the results layer, planning unit layer etc.
-      this.addPlanningGridLayers(tileset);
-      //zoom to the layers extent
-      if (tileset.bounds != null) this.zoomToBounds(this.map, tileset.bounds);
-      //set the state
-      this.setState({ tileset: tileset });
-      //filter the wdpa vector tiles as the map doesn't respond to state changes
-      this.filterWdpaByIucnCategory(this.state.metadata.IUCN_CATEGORY);
-    }).catch((error) => {
-      this.setSnackBar(error);
+    return new Promise((resolve, reject) => {
+      //get the tileset metadata
+      this.getMetadata(tilesetid).then((tileset) => {
+        //remove the results layer, planning unit layer etc.
+        this.removePlanningGridLayers();
+        //add the results layer, planning unit layer etc.
+        this.addPlanningGridLayers(tileset);
+        //zoom to the layers extent
+        if (tileset.bounds != null) this.zoomToBounds(this.map, tileset.bounds);
+        //set the state
+        this.setState({ tileset: tileset });
+        //filter the wdpa vector tiles as the map doesn't respond to state changes
+        this.filterWdpaByIucnCategory(this.state.metadata.IUCN_CATEGORY);
+        resolve();
+      }).catch((error) => {
+        this.setSnackBar(error);
+        reject(error);
+      });
     });
   }
 
