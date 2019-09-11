@@ -3238,7 +3238,7 @@ class App extends React.Component {
       if (clashingPuids.length > 0){
         //remove them from the puids
         puids = puids.filter((item) => !clashingPuids.includes(item));
-        this.setSnackBar("Not all protected area cells were added to the map as they would overlap some manual edits.");
+        this.setSnackBar("Not all planning units have been added. See <a href='" + ERRORS_PAGE + "#not-all-planning-units-have-been-added' target='blank'>here</a>");
       }
       //get all the puids for the existing iucn category - these will come from the previousPuids rather than getPuidsFromIucnCategory as there may have been some clashes and not all of the puids from getPuidsFromIucnCategory may actually be renderered
       //if the previousPuids are undefined then get them from the projects previousIucnCategory
