@@ -61,6 +61,7 @@ import ChangePasswordDialog from './ChangePasswordDialog';
 import Popup from './Popup';
 import PopupFeatureList from './PopupFeatureList';
 import PopupPAList from './PopupPAList';
+import TargetPopup from './TargetPopup';
 
 //GLOBAL VARIABLE IN MAPBOX CLIENT
 mapboxgl.accessToken = 'pk.eyJ1IjoiYmxpc2h0ZW4iLCJhIjoiMEZrNzFqRSJ9.0QBRA2HxTb8YHErUFRMPZg'; //this is my public access token for using in the Mapbox GL client - TODO change this to the logged in users public access token
@@ -153,6 +154,7 @@ class App extends React.Component {
       runLogDialogOpen: false,
       infoPanelOpen: false,
       resultsPanelOpen: false,
+      targetPopupOpen: false,
       guestUserEnabled: true,
       users: [],
       user: DISABLE_LOGIN ? 'andrew' : '', //TODO REMOVE DISABLE_LOGIN
@@ -1194,7 +1196,6 @@ class App extends React.Component {
   //gets the results for a project
   getResults(user, project){
     this._get("getResults?user=" + user + "&project=" + project).then((response) => {
-      console.debug("get results");
       this.runCompleted(response);
     }).catch((error) => {
       //do something
@@ -1506,7 +1507,6 @@ class App extends React.Component {
     if (!data) return;
     var paintProperties = this.getPaintProperties(data, sum, true);
     //set the render paint property
-    console.debug("renderSolution")
     this.map.setPaintProperty(RESULTS_LAYER_NAME, "fill-color", paintProperties.fillColor);
     this.map.setPaintProperty(RESULTS_LAYER_NAME, "fill-outline-color", paintProperties.oulineColor);
     this.map.setPaintProperty(RESULTS_LAYER_NAME, "fill-opacity", this.state.results_layer_opacity);
@@ -1838,19 +1838,15 @@ class App extends React.Component {
       this.setState({basemap: basemap.name});
       //get a valid map style
       this.getValidStyle(basemap).then((style)=>{
-        console.debug("loadingStyle");
         //load the style
         this.loadMapStyle(style).then((evt) => {
-          console.debug("style loaded");
           //add the WDPA layer 
           this.addWDPASource();
           this.addWDPALayer();
           //add the planning unit layers (if a project has already been loaded)
           if (this.state.tileset) {
-            console.debug("addPlanningGridLayers");
             this.addPlanningGridLayers(this.state.tileset);
             //get the results, if any
-            console.debug("getResults");
             this.getResults(this.state.owner, this.state.project);
             //filter the wdpa vector tiles
             this.filterWdpaByIucnCategory(this.state.metadata.IUCN_CATEGORY);
@@ -1944,7 +1940,6 @@ class App extends React.Component {
       }
     );
     //add the results layer
-    console.debug("adding results layer");
     this.map.addLayer({
       'id': RESULTS_LAYER_NAME,
       'type': "fill",
@@ -2712,6 +2707,20 @@ class App extends React.Component {
     });
   }
 
+  //updates the target values for all features in the project to the passed value
+  updateTargetValueForFeatures(target_value){
+    let allFeatures = this.state.allFeatures;
+    //iterate through all features
+    allFeatures.forEach((feature) => {
+      Object.assign(feature, {target_value: target_value});
+    });
+    //set the features in app state
+    this.setFeaturesState(allFeatures, ()=> {
+      //persist the changes to the server
+      if (this.state.userData.ROLE !== "ReadOnly") this.updateSpecFile(); 
+    });
+  }
+  
   //the callback is optional and will be called when the state has updated
   setFeaturesState(newFeatures, callback){
     //update allFeatures and projectFeatures with the new value
@@ -3147,6 +3156,12 @@ class App extends React.Component {
   }
   closeFailedToDeleteDialog(){
     this.setState({FailedToDeleteDialogOpen: false});
+  }
+  openTargetPopup(){
+    this.setState({targetPopupOpen:true});
+  }
+  closeTargetPopup(){
+    this.setState({targetPopupOpen:false});
   }
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3652,6 +3667,7 @@ class App extends React.Component {
             userRole={this.state.userData.ROLE}
             toggleProjectPrivacy={this.toggleProjectPrivacy.bind(this)}
             toggleCosts={this.toggleCosts.bind(this)}
+            openTargetPopup={this.openTargetPopup.bind(this)}
           />
           <ResultsPane
             open={this.state.resultsPanelOpen}
@@ -3940,6 +3956,13 @@ class App extends React.Component {
               <MenuItemWithButton leftIcon={<Preprocess style={{margin: '1px'}}/>} style={{display: ((this.state.currentFeature.old_version)||(this.state.userData.ROLE === "ReadOnly")) ? 'none' : 'block'}} onClick={this.preprocessSingleFeature.bind(this, this.state.currentFeature)} disabled={this.state.currentFeature.preprocessed || this.state.preprocessing}>Pre-process</MenuItemWithButton>
             </Menu>
           </Popover>   
+          <TargetPopup 
+            open={this.state.targetPopupOpen}
+            onOk={this.closeTargetPopup.bind(this)}
+            showCancelButton={true}
+            onCancel={this.closeTargetPopup.bind(this)}
+            updateTargetValueForFeatures={this.updateTargetValueForFeatures.bind(this)}
+          />
           <AppBar
             open={this.state.loggedIn}
             user={this.state.user}

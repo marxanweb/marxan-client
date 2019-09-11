@@ -120,6 +120,8 @@ class InfoPanel extends React.Component {
 									updateFeature={this.props.updateFeature}
 									leftmargin={'10px'}
 									simple={false}
+									showTargetButton={true}
+									openTargetPopup={this.props.openTargetPopup}
 									userRole={this.props.userRole}
 								/>
 							</Tab>

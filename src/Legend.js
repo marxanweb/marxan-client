@@ -39,7 +39,7 @@ class Legend extends React.Component {
 				<div style={ { backgroundColor: 'rgba(255, 0, 136,1)', width: '12px', height: '16px', border: '1px lightgray solid', margin: '3px', display: 'inline-flex', verticalAlign: 'top' } }>
 				</div>
 				<div style={ { display: 'inline-flex', verticalAlign: 'top', marginLeft: '3px', fontSize: '12px' } }>
-					Proposed protected area
+					Proposed addition to network
 				</div>
 			</div>;
 		}

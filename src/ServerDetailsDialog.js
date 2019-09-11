@@ -14,6 +14,7 @@ class ServerDetailsDialog extends React.Component {
         contentWidth={500}
         offsetY={80}
         title="Server Details"
+        helpLink={"docs_user.html#server-details"}
         children={
           <div key="k5">
             <div className="tabTitle">Name:</div><div className="serverDetails">{this.props.marxanServer&&this.props.marxanServer.name}</div>

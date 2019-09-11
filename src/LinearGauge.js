@@ -17,6 +17,9 @@ class LinearGauge extends React.Component {
 		let targetPxOffset = (this.props.target_value * scaleFactor);
 		//the number of pixels from the left hand side to the protected line
 		protectedWidth = Math.round((this.props.protected_percent === -1) ? 0 : (this.props.protected_percent * scaleFactor));
+		//protected percent text - if protected_percent < target_value then if the rounded protected_percent is the same as the rounded target_value, show the protected_percent to 1dp
+		let protNum = this.props.protected_percent;
+		let percentageProtectedText = (protNum < this.props.target_value) ? (Math.round(protNum)===this.props.target_value) ? (protNum.toFixed(2).slice(0, (protNum.toFixed(2).indexOf("."))+2)) : Math.round(protNum) : Math.round(protNum);
 		//get whether or not the % protected should be visible or hidden
 		protectedHidden = (protectedWidth < 26 && !(this.state.alwaysShowPercent));
 		//get the width of the target shortfall
@@ -25,7 +28,7 @@ class LinearGauge extends React.Component {
 		let unprotectedWidth = (100 * scaleFactor) - protectedWidth - targetShortfallWidth;
 		return (
 			<div className={(this.props.visible) ? 'linearGauge' : 'linearGaugeNoBorder'} style={{opacity: (this.props.protected_percent === -1) ? '0.3' : 1}}>
-				<div title={Math.round(this.props.protected_percent) + '% protected'} className={'percentBar protectedPercentBar'} style={{width: protectedWidth + 'px'}}>{protectedHidden ? <span>&nbsp;</span> : Math.round(this.props.protected_percent) + '%'}</div>
+				<div title={percentageProtectedText + '% protected'} className={'percentBar protectedPercentBar'} style={{width: protectedWidth + 'px'}}>{protectedHidden ? <span>&nbsp;</span> : percentageProtectedText + '%'}</div>
 				<div title={'Target of ' + this.props.target_value + '%'} className={'percentBar targetShortfall'} style={{width: (this.props.visible) ? targetShortfallWidth + 'px' : '0px'}}></div>
 				<div className={'percentBar totalShortFall'} style={{width: unprotectedWidth + 'px', color:'rgba(0,0,0,0.7)', 'textAlign': (this.props.visible) ? null : 'left', 'fontStyle': (this.props.visible) ? null : 'italic'}}>{(this.props.visible) ? null : 'Does not occur'}</div>
 			</div>

@@ -169,6 +169,7 @@ class NewProjectDialog extends React.Component {
 											features={this.state.allFeatures.filter((item)=>{return item.selected;})}
 											openFeaturesDialog={this.openFeaturesDialog.bind(this)}  
 											simple={true}
+											showTargetButton={false}
 											leftmargin={'0px'}
 									/> : null}
 									{stepIndex === 3 ? <SelectCostFeatures

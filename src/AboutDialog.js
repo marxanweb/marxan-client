@@ -14,6 +14,7 @@ class AboutDialog extends React.Component {
         contentWidth={500}
         offsetY={80}
         title="About"
+        helpLink={"docs_user.html#about-window"}
         children={
           <div key="k5">
             <div className={"aboutTitle"}>Software development</div>
