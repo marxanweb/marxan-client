@@ -2400,12 +2400,14 @@ class App extends React.Component {
   
   //creates a new planning grid unit 
   createNewPlanningUnitGrid(iso3, domain, areakm2, shape) {
+    //start the logging
+    this.startLogging(true);
     return new Promise((resolve, reject) => {
-      this.startLogging(true);
-      this.setState({streamingLog: "Creating planning grid..\n"});
-      this._get("createPlanningUnitGrid?iso3=" + iso3 + "&domain=" + domain + "&areakm2=" + areakm2 + "&shape=" + shape).then((response) => {
-        this.newPlanningGridCreated(response, "Created").then(()=>{
+      this._ws("createPlanningUnitGrid?iso3=" + iso3 + "&domain=" + domain + "&areakm2=" + areakm2 + "&shape=" + shape, this.wsMessageCallback.bind(this)).then((message) => {
+        this.newPlanningGridCreated(message, "Created").then(()=>{
           this.closeNewPlanningGridDialog();
+          //websocket has finished 
+          resolve(message);
         });
       }).catch((error) => {
         //do something
