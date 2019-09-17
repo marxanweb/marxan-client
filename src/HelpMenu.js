@@ -10,7 +10,7 @@ import {faServer} from '@fortawesome/free-solid-svg-icons';
 
 class HelpMenu extends React.Component {
 	openDocumentation(){
-		window.open(this.props.DOCS_ROOT + "docs_user.html");
+		window.open(this.props.DOCS_ROOT + "docs_overview.html");
 	}
 
   render() {
