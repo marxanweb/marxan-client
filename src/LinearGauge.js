@@ -24,6 +24,8 @@ class LinearGauge extends React.Component {
 		protectedHidden = (protectedWidth < 26 && !(this.state.alwaysShowPercent));
 		//get the width of the target shortfall
 		let targetShortfallWidth = (this.props.protected_percent >= this.props.target_value) ? 0 : (targetPxOffset - protectedWidth);
+		//if targetShortfallWidth is less than zero if causes the linear guage to go off-scale
+		targetShortfallWidth = (targetShortfallWidth<0) ? 0 : targetShortfallWidth;
 		//get the width of the rest of the bar
 		let unprotectedWidth = (100 * scaleFactor) - protectedWidth - targetShortfallWidth;
 		return (
