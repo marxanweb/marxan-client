@@ -113,9 +113,9 @@ class FeaturesDialog extends React.Component {
                          {" " + this.props.allFeatures.length } features:</div>
                        <div id="projectsTable">
                          <ReactTable pageSize={ this.props.allFeatures.length } className={ 'projectsReactTable noselect' } showPagination={ false } minRows={ 0 } data={ this.props.allFeatures }
-                           thisRef={ this } columns={ [{ Header: 'Name', accessor: 'alias', width: 170, headerStyle: { 'textAlign': 'left' } }, 
-                           { Header: 'Description', accessor: 'description', width: 310, headerStyle: { 'textAlign': 'left' }, Cell: this.renderTitle.bind(this) }, 
-                           { Header: 'Date', accessor: 'creation_date', width: 205, headerStyle: { 'textAlign': 'left' }, sortMethod: this.sortDate.bind(this) },
+                           thisRef={ this } columns={ [{ Header: 'Name', accessor: 'alias', width: 215, headerStyle: { 'textAlign': 'left' } }, 
+                           { Header: 'Description', accessor: 'description', width: 355, headerStyle: { 'textAlign': 'left' }, Cell: this.renderTitle.bind(this) }, 
+                           { Header: 'Date', accessor: 'creation_date', width: 115, headerStyle: { 'textAlign': 'left' }, sortMethod: this.sortDate.bind(this) },
                            { Header: '', width: 8, headerStyle: { 'textAlign': 'center' }, Cell: this.renderPreview.bind(this) }] } getTrProps={ (state, rowInfo, column) => {
                           return {
                             style: {
