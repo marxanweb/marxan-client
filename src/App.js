@@ -3345,8 +3345,10 @@ class App extends React.Component {
           //re-add the WDPA source and layer
           this.addWDPASource();
           this.addWDPALayer();
-          //trigger a repaint
-          this.filterWdpaByIucnCategory(this.state.metadata.IUCN_CATEGORY);
+          //reset the protected area intersections on the client
+          this.protected_area_intersections = [];
+          //recalculate the protected area intersections and refilter the vector tiles
+          this.changeIucnCategory(this.state.metadata.IUCN_CATEGORY);
         });
         resolve(message);
       }).catch((error) => {
