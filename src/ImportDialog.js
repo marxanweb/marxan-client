@@ -86,7 +86,7 @@ class ImportDialog extends React.Component {
 			<MarxanDialog 
 				{...this.props} 
 				title={'Import existing Marxan project'}
-				contentWidth={358}
+				contentWidth={390}
 				children={c} 
 				okLabel={"Cancel"}
 				actions={actions} 

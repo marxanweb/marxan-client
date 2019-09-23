@@ -1282,7 +1282,9 @@ class App extends React.Component {
             this.upgradeProject(project).then((response) => {
               this.setState({streamingLog: this.state.streamingLog + " Project updated to new version\n"});
               //update the project file with the new settings - we also have to set the OUTPUTDIR to the standard 'output' as some imported projects may have set different output folders, e.g. output_BLMBEST
-              this.updateProjectParams(project, {DESCRIPTION: description + " (imported from an existing Marxan project)", CREATEDATE: new Date(Date.now()).toString(), OLDVERSION: 'True', PLANNING_UNIT_NAME: feature_class_name, OUTPUTDIR: 'output'}).then((response) => {
+              let d = new Date();
+              let formattedDate = ("00" + d.getDate()).slice(-2) + "/" + ("00" + (d.getMonth() + 1)).slice(-2) + "/" + d.getFullYear().toString().slice(-2) + " " + ("00" + d.getHours()).slice(-2) + ":" + ("00" + d.getMinutes()).slice(-2) + ":" + ("00" + d.getSeconds()).slice(-2);
+              this.updateProjectParams(project, {DESCRIPTION: description + " (imported from an existing Marxan project)", CREATEDATE: formattedDate, OLDVERSION: 'True', PLANNING_UNIT_NAME: feature_class_name, OUTPUTDIR: 'output'}).then((response) => {
                 this.setState({streamingLog: this.state.streamingLog + " Uploading planning grid to Mapbox (this may take a minute or two)"});
                 // wait for the tileset to upload to mapbox
                 this.pollMapbox(uploadId).then((response) => {
