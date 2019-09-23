@@ -28,7 +28,7 @@ class AboutDialog extends React.Component {
               Marxan 2.4.3 - Ian Ball, Matthew Watts &amp; Hugh Possingham
             </div>
             <div className={"aboutTitle"}>Data providers</div>
-            <div className={"aboutText"} style={{marginTop:'10px'}} dangerouslySetInnerHTML={{__html: this.props.wdpaAttribution}} ></div>
+            <div className={"aboutText"} style={{marginTop:'10px'}} dangerouslySetInnerHTML={{__html: this.props.wdpaAttribution}}></div>
             <div className={"aboutTitle"}>Funding and in-kind contributions</div>
             <div className={"aboutText"} style={{marginTop:'10px'}}>
               Marxan Web funded by the BIOPAMA project of the European Commission. With in-kind contributions from Mapbox. 

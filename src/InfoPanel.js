@@ -8,6 +8,7 @@ import MenuItem from 'material-ui/MenuItem';
 import Settings from 'material-ui/svg-icons/action/settings';
 import ToolbarButton from './ToolbarButton';
 import Checkbox from 'material-ui/Checkbox';
+import Textarea from 'react-textarea-autosize';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faLock } from '@fortawesome/free-solid-svg-icons';
 import { faUnlock } from '@fortawesome/free-solid-svg-icons';
@@ -96,8 +97,8 @@ class InfoPanel extends React.Component {
 							<Tab label="Project" onActive={this.props.project_tab_active} value="project" disabled={(this.props.puEditing) ? true : false}>
 								<div>
 									<div className={'tabTitle'}>Description</div>
-									{(this.props.userRole === "ReadOnly") ? null : <input id="descriptionEdit" style={{'display': (this.props.editingDescription) ? 'block' : 'none'}} className={'descriptionEditBox'} onKeyPress={this.onKeyPress.bind(this)} onBlur={this.onBlur.bind(this)}/>}
-									{(this.props.userRole === "ReadOnly") ? <div className={'description'} title={this.props.metadata.DESCRIPTION}>{this.props.metadata.DESCRIPTION}</div> : <div className={'description'} onClick={this.startEditingDescription.bind(this)} style={{'display': (!this.props.editingDescription) ? 'block' : 'none'}} title="Click to edit">{this.props.metadata.DESCRIPTION}</div>}
+									{(this.props.userRole === "ReadOnly") ? null : <Textarea minRows='5' id="descriptionEdit" style={{'display': (this.props.editingDescription) ? 'block' : 'none'}} className={'descriptionEditBox'} onKeyPress={this.onKeyPress.bind(this)} onBlur={this.onBlur.bind(this)}/>}
+									{(this.props.userRole === "ReadOnly") ? <div className={'description'} title={this.props.metadata.DESCRIPTION} dangerouslySetInnerHTML={{__html: this.props.metadata.DESCRIPTION}}/> : <div className={'description'} onClick={this.startEditingDescription.bind(this)} style={{'display': (!this.props.editingDescription) ? 'block' : 'none'}} title="Click to edit" dangerouslySetInnerHTML={{__html: this.props.metadata.DESCRIPTION}}/>}
 									<div className={'tabTitle tabTitleTopMargin'}>Created</div>
 									<div className={'createDate'}>{this.props.metadata.CREATEDATE}</div>
 									<div className={'tabTitle tabTitleTopMargin'}>{(this.props.metadata.OLDVERSION) ? "Imported project" : ""}</div>
