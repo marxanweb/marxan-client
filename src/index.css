@@ -275,11 +275,15 @@ table input {
   border: 1px lightgray solid;
   font-size: 13px;
   width: 350px;
-  height: 22px;
   margin-top: 1px;
   margin-bottom: 6px;
+  max-width:350px;
+  max-height:270px;
 }
 
+.description a{
+  text-decoration: underline;
+}
 .hoverMapContainer:hover {
   box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 10px, rgba(0, 0, 0, 0.23) 0px 3px 10px;
 }
