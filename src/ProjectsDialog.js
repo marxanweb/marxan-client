@@ -56,7 +56,7 @@ class ProjectsDialog extends React.Component {
 			this.props.onOk(); 
 		}
 		sortDate(a, b, desc){
-			return (Date.parse(a) > Date.parse(b)) ? 1 : -1;
+			return (new Date(a.slice(6,8),a.slice(3,5)-1,a.slice(0,2),a.slice(9,11),a.slice(12,14),a.slice(15,17)) > new Date(b.slice(6,8),b.slice(3,5)-1,b.slice(0,2),b.slice(9,11),b.slice(12,14),b.slice(15,17))) ? 1 : -1;
 		}
 		renderTitle(row){
 			return <div style={{width: '100%',height: '100%',backgroundColor: '#dadada',borderRadius: '2px'}} title={row.original.description}>{row.original.description}</div>;        
