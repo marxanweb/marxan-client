@@ -203,7 +203,7 @@ class App extends React.Component {
       feature_metadata:{},
       activeTab: "project",
       activeResultsTab: "legend",
-      streamingLog: "",
+      logMessages: [],
       map0_paintProperty: [],
       map1_paintProperty: [],
       map2_paintProperty: [],
@@ -369,41 +369,70 @@ class App extends React.Component {
 
   //called when any websocket message is received
   wsMessageCallback(message){
-    var logMessage = "";
+    //dont log any clumping projects
+    if (this.state.clumpingRunning) return;
+    //log the message from the websocket
+    if (message.status === 'SocketClosed'){ //server closed WebSocket unexpectedly - uncaught server error, server crash or WebSocket timeout)
+      this.log({method:message.method, status:'Finished', error:"The WebSocket connection closed unexpectedly"});
+    }else{
+      //see if the message has a pid and if it does then see if the status has changed from the last message - if it has then log the message
+      if (message.hasOwnProperty('pid')) {
+        //get the existing status
+        let _messages = this.state.logMessages.filter((_message) => {
+          if (_message.hasOwnProperty('pid')) {
+            return _message.pid === message.pid;
+          }else{
+            return false;
+          }
+        });
+        //if there is already a message for that pid
+        if (_messages.length > 0){
+          //compare with the latest status
+          if (message.status !== _messages[_messages.length-1].status) {
+            //if the new status is different and the message status is finished, then remove the processing message
+            if (message.status === 'Finished'){
+              this.removeMessageFromLog(message.pid, 'RunningQuery');
+            }
+            this.log(message);
+          }
+        }else{ //log the first message for that pid
+          this.log(message);
+        }
+      }else{
+        //the message does not have a pid
+        this.log(message);
+      }
+    }
     switch (message.status) {
       case 'Started': //from both asynchronous queries and marxan runs
       case "Updating WDPA":
       case "Importing feature": 
         //set the processing state when the websocket starts
         this.setState({preprocessing: true});
-        logMessage = this.state.streamingLog + message.info + "\n";
         break;
-      case 'pid': //from marxan runs - the pid is an identifer and the pid, e.g. m1234 is a marxan run process with a pid of 1234
+      case 'pid': //from marxan runs and preprocessing - the pid is an identifer and the pid, e.g. m1234 is a marxan run process with a pid of 1234
         this.setState({pid: message.pid});
         break;
-      case 'RunningMarxan': //from marxan runs
-        logMessage = this.state.streamingLog + message.info.replace(/(\n\n {2}Init)/gm,"\n  Init").replace(/(\n\n {2}ThermalAnnealing)/gm,"\n  ThermalAnnealing").replace(/(\n\n {2}Iterative)/gm,"\n  Iterative").replace(/(\n\n {2}Best)/gm,"\n  Best");
-        break;
-      case 'RunningQuery': //from asynchronous queries
-        break;
-      case 'FinishedQuery': //from asynchronous queries
-        logMessage = this.state.streamingLog + message.info + " (elapsed time: " + message.elapsedtime + ")\n";
-        break;
       case 'Finished': //from both asynchronous queries and marxan runs
-        if (message.hasOwnProperty("info")){ 
-          let msg = (message.hasOwnProperty("error")) ? message.error + "\n" + message.info : message.info; //if it has finished as the result of an error, then show the error message as well
-          logMessage = this.state.streamingLog + msg + " (Total time: " + message.elapsedtime + ")\n\n";
-        }
-        break;
-      case 'SocketClosed': //server closed WebSocket unexpectedly - either server crash or WebSocket timeout
-        this.setSnackBar("The WebSocket connection closed unexpectedly");
-        logMessage = this.state.streamingLog + "The WebSocket connection closed unexpectedly. (Total time: " + message.elapsedtime + ")\n\n";
+        //reset the pid
+        this.setState({pid: 0});
         break;
       default:
         break;
     }
-    //update the log if there is a new message and we are not running the clumping projects (there will be 5 simultaneous outputs)
-    if (logMessage !== "" && !this.state.clumpingRunning) this.setState({streamingLog: logMessage});
+  }
+  
+  //removes a message with the passed pid and status from the log
+  removeMessageFromLog(pid, status){
+    let _messages = this.state.logMessages;
+    _messages = _messages.filter((_message) => {
+      if (_message.hasOwnProperty('pid')) {
+        return (!(_message.pid === pid && _message.status === status));
+      }else{
+        return true;
+      }
+    });
+    this.setState({logMessages: _messages});
   }
   
   //can be called from other components
@@ -528,13 +557,16 @@ class App extends React.Component {
 
   //clears the log
   clearLog(){
-    this.setState({streamingLog: ''});
+    this.setState({logMessages: []});
   }
   
   //can be called from components to update the log
-  setLog(message){
-    this.setState({streamingLog: this.state.streamingLog + message});
+  log(message){
+    let _messages = this.state.logMessages;
+    _messages.push(message);
+    this.setState({logMessages: _messages});
   }
+
   //utiliy method for getting all puids from normalised data, e.g. from [["VI", [7, 8, 9]], ["IV", [0, 1, 2, 3, 4]], ["V", [5, 6]]]
   getPuidsFromNormalisedData(normalisedData) {
     let puids = [];
@@ -1053,7 +1085,7 @@ class App extends React.Component {
   //run a marxan job on the server
   runMarxan(e) {
     //start the logging
-    this.startLogging(true);
+    this.startLogging();
     //reset all of the protected and target areas for all features
     this.resetProtectedAreas();
     //update the spec.dat file with any that have been added or removed or changed target or spf
@@ -1077,9 +1109,11 @@ class App extends React.Component {
             //reset the running state
             this.marxanStopped(error);
         }); //startMarxanJob
-      }); //updatePuvsprFile
+      }).catch((error) => { //updatePuvsprFile error
+        console.error(error);
+      }); 
     }).catch((error) => { //updateSpecFile error
-      //
+      console.error(error);
     });
   }
 
@@ -1095,8 +1129,6 @@ class App extends React.Component {
   marxanStopped(error){
     //update the run log
     this.getRunLogs();
-    //return an error message
-    this.setState({pid: 0, streamingLog: this.state.streamingLog + "\n" + error + "\n\n"});
   }
   
   resetProtectedAreas() {
@@ -1168,10 +1200,8 @@ class App extends React.Component {
       this._ws("preprocessFeature?user=" + this.state.owner + "&project=" + this.state.project + "&planning_grid_name=" + this.state.metadata.PLANNING_UNIT_NAME + "&feature_class_name=" + feature.feature_class_name + "&alias=" + feature.alias + "&id=" + feature.id, this.wsMessageCallback.bind(this)).then((message) => {
         //websocket has finished
         this.updateFeature(feature, {preprocessed: true, pu_count: Number(message.pu_count), pu_area: Number(message.pu_area), occurs_in_planning_grid: (Number(message.pu_count) >0)});
-        this.setState({pid: 0});
         resolve(message);
       }).catch((error) => {
-        this.setState({pid: 0});
         reject(error);
       });
     });
@@ -1184,8 +1214,6 @@ class App extends React.Component {
       this.setState({active_pu: undefined});
       //make the request to get the marxan data
       this._ws("runMarxan?user=" + user + "&project=" + project, this.wsMessageCallback.bind(this)).then((message) => {
-        //websocket has finished
-        this.setState({pid: 0});
         resolve(message);
       }).catch((error) => {
         reject(error);
@@ -1263,34 +1291,33 @@ class App extends React.Component {
       //start the logging
       this.startLogging();
       //set the spinner and lot states
-      this.setState({streamingLog: "Starting import...\n"});
+      this.log({method:'importProject',status:'Importing',info:'Starting import..'});
       //create a new project
       //TODO: SORT OUT ROLLING BACK IF AN IMPORT FAILS - AND DONT PROVIDE REST CALLS TO DELETE PLANNING UNITS
       this.createImportProject(project).then((response) => {
-        this.setState({streamingLog: this.state.streamingLog + " Project '" + project + "' created\n"});
+        this.log({method:'importProject',status:'Importing',info:"Project '" + project + "' created"});
         //create the planning unit file
         this.importZippedShapefileAsPu(zipFilename, planning_grid_name, "Imported with the project '" + project + "'").then((response) => {
           //get the planning unit feature_class_name
           feature_class_name = response.feature_class_name;
           //get the uploadid
           uploadId = response.uploadId;
-          this.setState({streamingLog: this.state.streamingLog + " Planning grid imported\n"});
+          this.log({method:'importProject',status:'Importing',info:"Planning grid imported"});
           //upload all of the files from the local system
           this.uploadFiles(files, project).then((response) => {
-            this.setState({streamingLog: this.state.streamingLog + " All files uploaded\n"});
+            this.log({method:'importProject',status:'Importing',info:"All files uploaded"});
             //upgrade the project to the new version of Marxan - this adds the necessary settings in the project file and calculates the statistics for species in the puvspr.dat and puts them in the feature_preprocessing.dat file
             this.upgradeProject(project).then((response) => {
-              this.setState({streamingLog: this.state.streamingLog + " Project updated to new version\n"});
+              this.log({method:'importProject',status:'Importing',info:"Project updated to new version"});
               //update the project file with the new settings - we also have to set the OUTPUTDIR to the standard 'output' as some imported projects may have set different output folders, e.g. output_BLMBEST
               let d = new Date();
               let formattedDate = ("00" + d.getDate()).slice(-2) + "/" + ("00" + (d.getMonth() + 1)).slice(-2) + "/" + d.getFullYear().toString().slice(-2) + " " + ("00" + d.getHours()).slice(-2) + ":" + ("00" + d.getMinutes()).slice(-2) + ":" + ("00" + d.getSeconds()).slice(-2);
               this.updateProjectParams(project, {DESCRIPTION: description + " (imported from an existing Marxan project)", CREATEDATE: formattedDate, OLDVERSION: 'True', PLANNING_UNIT_NAME: feature_class_name, OUTPUTDIR: 'output'}).then((response) => {
-                this.setState({streamingLog: this.state.streamingLog + " Uploading planning grid to Mapbox (this may take a minute or two)"});
                 // wait for the tileset to upload to mapbox
                 this.pollMapbox(uploadId).then((response) => {
                   //refresh the planning grids
                   this.getPlanningUnitGrids();
-                  this.setState({streamingLog: this.state.streamingLog + "\nImport complete\n"});
+                  this.log({method:'importProject',status:'Finished',info:"Import complete"});
                   //now open the project
                   this.loadProject(project, this.state.user);
                   resolve("Import complete");
@@ -1328,7 +1355,7 @@ class App extends React.Component {
         filepath = file.webkitRelativePath.split("/").slice(1).join("/");
         formData.append('filename', filepath);
         formData.append('value', file);
-        this.setState({streamingLog: this.state.streamingLog + " Uploading: " + file.webkitRelativePath + "\n"});
+        this.log({method:'uploadFiles',status:'Uploading',info:"Uploading: " + file.webkitRelativePath});
         await this.uploadFile(formData);
       }
     }
@@ -2402,11 +2429,10 @@ class App extends React.Component {
   
   //creates a new planning grid unit 
   createNewPlanningUnitGrid(iso3, domain, areakm2, shape) {
-    //start the logging
-    this.startLogging(true);
     return new Promise((resolve, reject) => {
+      this.startLogging();
       this._ws("createPlanningUnitGrid?iso3=" + iso3 + "&domain=" + domain + "&areakm2=" + areakm2 + "&shape=" + shape, this.wsMessageCallback.bind(this)).then((message) => {
-        this.newPlanningGridCreated(message, "Created").then(()=>{
+        this.newPlanningGridCreated(message).then(()=>{
           this.closeNewPlanningGridDialog();
           //websocket has finished 
           resolve(message);
@@ -2421,27 +2447,26 @@ class App extends React.Component {
   //imports a zipped shapefile as a new planning grid
   importPlanningUnitGrid(zipFilename, alias, description){
     return new Promise((resolve, reject) => {
-      this.startLogging(true);
-      this.setState({streamingLog: "Importing planning grid..\n"});
+      this.startLogging();
+      this.log({method:'importPlanningUnitGrid',status:'Importing',info:"Importing planning grid.."});
       this.importZippedShapefileAsPu(zipFilename, alias, description).then((response) => {
-        this.newPlanningGridCreated(response, "Imported").then(()=> {
+        this.newPlanningGridCreated(response).then(()=> {
           this.closeImportPlanningGridDialog();
         });
       }).catch((error) => { //importZippedShapefileAsPu error
         this.deletePlanningUnitGrid(alias, true);
-        this.setState({streamingLog: this.state.streamingLog + error + "Finished\n"});
+        this.log({method:'importPlanningUnitGrid',status:'Finished',error:error});
         reject(error);
       });
     });
   }
   
   //called when a new planning grid has been created
-  newPlanningGridCreated(response, method){
+  newPlanningGridCreated(response){
     return new Promise((resolve, reject) => {
-      this.setState({streamingLog: this.state.streamingLog + method + "\nUploading to Mapbox..\n"});
       //start polling to see when the upload is done
       this.pollMapbox(response.uploadId).then(() => {
-        this.setState({streamingLog: this.state.streamingLog + "Uploaded\nPlanning grid: '" + response.alias + "' created"});
+        this.log({method:'newPlanningGridCreated',status:'Finished',info:"Planning grid: '" + response.alias + "' created"});
         //update the planning unit items
         this.getPlanningUnitGrids();
         resolve("Planning grid created");
@@ -2506,12 +2531,14 @@ class App extends React.Component {
   //polls mapbox to see when an upload has finished - returns as promise
   pollMapbox(uploadid){
     this.setState({loading: true});
+    this.log({info: 'Uploading to Mapbox..'});
     return new Promise((resolve, reject) => {
       this.timer = setInterval(() => {
         fetch("https://api.mapbox.com/uploads/v1/" + MAPBOX_USER + "/" + uploadid + "?access_token=" + mb_tk)
           .then(response => response.json())
           .then((response) => {
             if (response.complete){
+              this.log({info: 'Uploaded'});
               //clear the timer
               clearInterval(this.timer);
               this.timer = null;
@@ -2763,7 +2790,7 @@ class App extends React.Component {
   //create the new feature from the already uploaded zipped shapefile
   createNewFeatureFromImport(){
     //start the logging
-    this.startLogging(true);
+    this.startLogging();
     return new Promise((resolve, reject) => {
       this._ws("importFeature?filename=" + this.state.featureDatasetFilename + "&name=" + this.state.featureDatasetName + "&description=" + this.state.featureDatasetDescription, this.wsMessageCallback.bind(this)).then((message) => {
         if (message.id){
@@ -2783,8 +2810,8 @@ class App extends React.Component {
   //create the new feature from the feature that has been digitised on the map
   createNewFeatureFromDigitising(){
     //start the logging
-    this.startLogging(true);
-    this.setState({streamingLog: "Creating feature...\n"});
+    this.startLogging();
+    this.log({method:'createNewFeatureFromDigitising',status:'Started',info:"Creating feature.."});
     //post the geometry to the server with the metadata
     let formData = new FormData();
     formData.append('name', this.state.featureDatasetName);
@@ -2795,7 +2822,6 @@ class App extends React.Component {
     }).join(",");
     formData.append('linestring', "Linestring(" + coords + ")");
     this._post("createFeatureFromLinestring", formData).then((response) => {
-        this.setState({streamingLog: this.state.streamingLog + "Uploading to Mapbox...\n"});
         //start polling to see when the upload is done
         this.pollMapbox(response.uploadId).then(() => {
           this.newFeatureCreated(response);
@@ -2809,7 +2835,7 @@ class App extends React.Component {
   newFeatureCreated(response){
     this.getInterestFeature(response.id);
     //ui response
-    this.setState({streamingLog: this.state.streamingLog + "Uploaded\nFeature '" + this.state.featureDatasetName + "' created"});
+    this.log({method:'newFeatureCreated',status:'Finished',info:"Feature '" + this.state.featureDatasetName + "' created"});
     //close the dialog
     this.closeNewFeatureDialog();
     //reset the state
@@ -3329,7 +3355,7 @@ class App extends React.Component {
   //downloads and updates the WDPA on the server
   updateWDPA(){
     //start the logging
-    this.startLogging(true);
+    this.startLogging();
     //call the webservice
     return new Promise((resolve, reject) => {
       this._ws("updateWDPA?downloadUrl=" + window.WDPA.downloadUrl + "&wdpaVersion=" + window.WDPA.latest_version, this.wsMessageCallback.bind(this)).then((message) => {
@@ -3683,7 +3709,7 @@ class App extends React.Component {
             openClassificationDialog={this.openClassificationDialog.bind(this)}
             hideResults={this.hideResults.bind(this)}
             brew={this.state.brew}
-            log={this.state.streamingLog} 
+            messages={this.state.logMessages} 
             activeResultsTab={this.state.activeResultsTab}
             legend_tab_active={this.legend_tab_active.bind(this)}
             solutions_tab_active={this.solutions_tab_active.bind(this)}
@@ -3752,7 +3778,7 @@ class App extends React.Component {
           <NewPlanningGridDialog 
             open={this.state.NewPlanningGridDialogOpen} 
             onCancel={this.closeNewPlanningGridDialog.bind(this)}
-            loading={this.state.loading}
+            loading={this.state.preprocessing}
             createNewPlanningUnitGrid={this.createNewPlanningUnitGrid.bind(this)}
             countries={this.state.countries}
             setSnackBar={this.setSnackBar.bind(this)}
@@ -3906,7 +3932,7 @@ class App extends React.Component {
             SEND_CREDENTIALS={SEND_CREDENTIALS}
             importProject={this.importProject.bind(this)}
             checkForErrors={this.checkForErrors.bind(this)} 
-            setLog={this.setLog.bind(this)}
+            log={this.log.bind(this)}
             setSnackBar={this.setSnackBar.bind(this)}
             user={this.state.user}
           />

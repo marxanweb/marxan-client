@@ -21,7 +21,7 @@ class ImportDialog extends React.Component {
 				this.onOk();
 			}).catch((error) => {
 				this.setState({loading: false});
-				this.props.setLog(error + "Import stopped");
+				this.props.log(error + "Import stopped");
 				this.props.setSnackBar(error);
 			});
 			return;

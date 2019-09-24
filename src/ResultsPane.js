@@ -5,7 +5,8 @@ import { faEraser } from '@fortawesome/free-solid-svg-icons';
 import ReactTable from "react-table";
 import Paper from 'material-ui/Paper';
 import { Tabs, Tab } from 'material-ui/Tabs';
-import Legend from './Legend'; 
+import Legend from './Legend';
+import Log from './Log'; 
 import Settings from 'material-ui/svg-icons/action/settings';
 import Clipboard from 'material-ui/svg-icons/action/assignment';
 import Sync from 'material-ui/svg-icons/notification/sync';
@@ -18,14 +19,13 @@ class ResultsPane extends React.Component {
 		this.state = { showClipboard: false, selectedSolution: undefined,runtimeStr:'00:00s' };
 	}
 	componentDidUpdate(prevProps, prevState) {
-		//if the streaming log has changed then scroll to the bottom of the div
-		if (this.props.log !== prevProps.log) {
+		//scroll the log div to the bottom
+		// if (this.props.messages.length !== prevProps.messages.length) {
+		// 	var objDiv = document.getElementById("log");
+		// 	if (objDiv) objDiv.scrollTop = objDiv.scrollHeight;
+		// }
 			var objDiv = document.getElementById("log");
-			if (objDiv) {
-				objDiv.scrollTop = objDiv.scrollHeight;
-			}
-			this.resetSolution();//unselect a solution
-		}
+			if (objDiv) objDiv.scrollTop = objDiv.scrollHeight;
 		if (this.props.solutions !== prevProps.solutions) {
 			this.resetSolution();//unselect a solution
 		}
@@ -177,7 +177,7 @@ class ResultsPane extends React.Component {
 								</div>
 							</Tab>
 							<Tab label="Log" value="log" onActive={this.props.log_tab_active} >
-								<div id="log" onMouseEnter={this.mouseEnter.bind(this)} onMouseLeave={this.mouseLeave.bind(this)}>{this.props.log}</div>
+								<Log messages={this.props.messages} id="log" mouseEnter={this.mouseEnter.bind(this)} mouseLeave={this.mouseLeave.bind(this)} preprocessing={this.props.preprocessing}/>
 								<div className={"runtime"} style={{'display': (this.props.preprocessing ? 'block' : 'none')}}>Runtime: {this.state.runtimeStr}s</div>
 								<div id='buttonsDiv' style={{position:'absolute',top:'430px',right:'16px',padding:'10px'}}>
 									<ToolbarButton  

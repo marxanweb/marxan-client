@@ -277,13 +277,16 @@ table input {
   width: 350px;
   margin-top: 1px;
   margin-bottom: 6px;
-  max-width:350px;
-  max-height:270px;
+  max-width: 350px;
+  max-height: 270px;
+  min-width: 115px;
+  min-height: 115px;
 }
 
-.description a{
+.description a {
   text-decoration: underline;
 }
+
 .hoverMapContainer:hover {
   box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 10px, rgba(0, 0, 0, 0.23) 0px 3px 10px;
 }
@@ -555,7 +558,7 @@ div.rt-tbody>div>div>div>div[contenteditable="true"] {
   right: 3px;
   background-color: aliceblue;
   padding: 2px 10px 2px 10px;
-  font-size:12px;
+  font-size: 12px;
   color: #666666;
 }
 
@@ -608,12 +611,27 @@ div.rt-tbody>div>div>div>div[contenteditable="true"] {
   -ms-user-select: none;
   /* Internet Explorer/Edge */
   user-select: none;
-  /* Non-prefixed version, currently
-                                  supported by Chrome and Opera */
+  /* Non-prefixed version, currently supported by Chrome and Opera */
 }
 
 .docs {
   position: absolute;
   top: 10px;
   right: 10px;
+}
+
+.logStart{
+    margin-top: 30px;
+    border-top: 1px #ece8e8 solid;
+    background-color: aliceblue;
+}
+
+.logMessage{
+  
+}
+
+.logFinish{
+  padding-top: 10px;
+  border-bottom: 1px #ece8e8 solid;
+  background-color: aliceblue;
 }
