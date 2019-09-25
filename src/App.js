@@ -371,6 +371,29 @@ class App extends React.Component {
   wsMessageCallback(message){
     //dont log any clumping projects
     if (this.state.clumpingRunning) return;
+    //log the message if necessary
+    this.logMessage(message);
+    switch (message.status) {
+      case 'Started': //from both asynchronous queries and marxan runs
+      case "Updating WDPA":
+      case "Importing feature":
+        //set the processing state when the websocket starts
+        this.setState({preprocessing: true});
+        break;
+      case 'pid': //from marxan runs and preprocessing - the pid is an identifer and the pid, e.g. m1234 is a marxan run process with a pid of 1234
+        this.setState({pid: message.pid});
+        break;
+      case 'Finished': //from both asynchronous queries and marxan runs
+        //reset the pid
+        this.setState({pid: 0});
+        break;
+      default:
+        break;
+    }
+  }
+  
+  //logs the message if necessary - this removes duplicates
+  logMessage(message){
     //log the message from the websocket
     if (message.status === 'SocketClosed'){ //server closed WebSocket unexpectedly - uncaught server error, server crash or WebSocket timeout)
       this.log({method:message.method, status:'Finished', error:"The WebSocket connection closed unexpectedly"});
@@ -410,23 +433,6 @@ class App extends React.Component {
           this.log(message);
         }
       }
-    }
-    switch (message.status) {
-      case 'Started': //from both asynchronous queries and marxan runs
-      case "Updating WDPA":
-      case "Importing feature": 
-        //set the processing state when the websocket starts
-        this.setState({preprocessing: true});
-        break;
-      case 'pid': //from marxan runs and preprocessing - the pid is an identifer and the pid, e.g. m1234 is a marxan run process with a pid of 1234
-        this.setState({pid: message.pid});
-        break;
-      case 'Finished': //from both asynchronous queries and marxan runs
-        //reset the pid
-        this.setState({pid: 0});
-        break;
-      default:
-        break;
     }
   }
   
@@ -3790,7 +3796,7 @@ class App extends React.Component {
           <NewPlanningGridDialog 
             open={this.state.NewPlanningGridDialogOpen} 
             onCancel={this.closeNewPlanningGridDialog.bind(this)}
-            loading={this.state.preprocessing}
+            loading={this.state.loading || this.state.preprocessing}
             createNewPlanningUnitGrid={this.createNewPlanningUnitGrid.bind(this)}
             countries={this.state.countries}
             setSnackBar={this.setSnackBar.bind(this)}
