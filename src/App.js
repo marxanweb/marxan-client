@@ -367,7 +367,7 @@ class App extends React.Component {
     }
   }
 
-  //called when any websocket message is received
+  //called when any websocket message is received - this logic removes duplicate messages
   wsMessageCallback(message){
     //dont log any clumping projects
     if (this.state.clumpingRunning) return;
@@ -390,17 +390,25 @@ class App extends React.Component {
           //compare with the latest status
           if (message.status !== _messages[_messages.length-1].status) {
             //if the new status is different and the message status is finished, then remove the processing message
-            if (message.status === 'Finished'){
-              this.removeMessageFromLog(message.pid, 'RunningQuery');
-            }
+            if (message.status === 'Finished') this.removeMessageFromLog('RunningQuery', message.pid);
             this.log(message);
           }
         }else{ //log the first message for that pid
           this.log(message);
         }
       }else{
-        //the message does not have a pid
-        this.log(message);
+        //for downloading we dont want to show every downloading message
+        if (message.status === 'Downloading'){
+          //see if we already have a message which is downloading 
+          let _messages = this.state.logMessages.filter((_message) => {
+            return (_message.status === 'Downloading');
+          });
+          if (_messages.length === 0) this.log(message);
+        }else{
+          //if the message is downloaded then remove the downloading message
+          if (message.status === 'Downloaded') this.removeMessageFromLog('Downloading');
+          this.log(message);
+        }
       }
     }
     switch (message.status) {
@@ -422,14 +430,19 @@ class App extends React.Component {
     }
   }
   
-  //removes a message with the passed pid and status from the log
-  removeMessageFromLog(pid, status){
+  //removes a message from the log by matching on the status and if it is passed, the pid
+  removeMessageFromLog(status, pid){
     let _messages = this.state.logMessages;
+    //filter the messages to remove those that match on status (and pid)
     _messages = _messages.filter((_message) => {
-      if (_message.hasOwnProperty('pid')) {
-        return (!(_message.pid === pid && _message.status === status));
-      }else{
-        return true;
+      if (pid !== undefined){
+        if (_message.hasOwnProperty('pid')) {
+          return (!(_message.pid === pid && _message.status === status));
+        }else{
+          return true;
+        }
+      }else{ //match just on the status
+        return (!(_message.status === status));
       }
     });
     this.setState({logMessages: _messages});
@@ -2448,8 +2461,9 @@ class App extends React.Component {
   importPlanningUnitGrid(zipFilename, alias, description){
     return new Promise((resolve, reject) => {
       this.startLogging();
-      this.log({method:'importPlanningUnitGrid',status:'Importing',info:"Importing planning grid.."});
+      this.log({method:'importPlanningUnitGrid',status:'Started',info:"Importing planning grid.."});
       this.importZippedShapefileAsPu(zipFilename, alias, description).then((response) => {
+        this.log({method:'importPlanningUnitGrid',status:'Finished',info: response.info});
         this.newPlanningGridCreated(response).then(()=> {
           this.closeImportPlanningGridDialog();
         });
@@ -2466,7 +2480,6 @@ class App extends React.Component {
     return new Promise((resolve, reject) => {
       //start polling to see when the upload is done
       this.pollMapbox(response.uploadId).then(() => {
-        this.log({method:'newPlanningGridCreated',status:'Finished',info:"Planning grid: '" + response.alias + "' created"});
         //update the planning unit items
         this.getPlanningUnitGrids();
         resolve("Planning grid created");
@@ -2531,14 +2544,14 @@ class App extends React.Component {
   //polls mapbox to see when an upload has finished - returns as promise
   pollMapbox(uploadid){
     this.setState({loading: true});
-    this.log({info: 'Uploading to Mapbox..'});
+    this.log({info: 'Uploading to Mapbox..',status:'Uploading'});
     return new Promise((resolve, reject) => {
       this.timer = setInterval(() => {
         fetch("https://api.mapbox.com/uploads/v1/" + MAPBOX_USER + "/" + uploadid + "?access_token=" + mb_tk)
           .then(response => response.json())
           .then((response) => {
             if (response.complete){
-              this.log({info: 'Uploaded'});
+              this.log({info: 'Uploaded',status:'UploadComplete'});
               //clear the timer
               clearInterval(this.timer);
               this.timer = null;
@@ -2822,6 +2835,7 @@ class App extends React.Component {
     }).join(",");
     formData.append('linestring', "Linestring(" + coords + ")");
     this._post("createFeatureFromLinestring", formData).then((response) => {
+        this.log({method:'createNewFeatureFromDigitising',status:'Finished',info:response.info});
         //start polling to see when the upload is done
         this.pollMapbox(response.uploadId).then(() => {
           this.newFeatureCreated(response);
@@ -2834,8 +2848,6 @@ class App extends React.Component {
   //gets the new feature information and updates the state
   newFeatureCreated(response){
     this.getInterestFeature(response.id);
-    //ui response
-    this.log({method:'newFeatureCreated',status:'Finished',info:"Feature '" + this.state.featureDatasetName + "' created"});
     //close the dialog
     this.closeNewFeatureDialog();
     //reset the state

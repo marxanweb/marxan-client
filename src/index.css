@@ -161,7 +161,6 @@ body {
   font-size: 12px;
   overflow-x: hidden;
   border: 1px solid rgba(0, 0, 0, 0.1);
-  padding: 2px 5px;
   margin-left: -2px;
   white-space: pre;
   color: rgba(0, 0, 0, 0.6);
@@ -620,18 +619,20 @@ div.rt-tbody>div>div>div>div[contenteditable="true"] {
   right: 10px;
 }
 
-.logStart{
-    margin-top: 30px;
-    border-top: 1px #ece8e8 solid;
-    background-color: aliceblue;
+.logItem {
+  padding-left: 5px;
 }
 
-.logMessage{
-  
+.logStart {
+  margin-top: 20px;
+  border-top: 1px #ece8e8 solid;
+  background-color: aliceblue;
 }
 
-.logFinish{
-  padding-top: 10px;
+.logMessage {
+}
+
+.logFinish {
   border-bottom: 1px #ece8e8 solid;
   background-color: aliceblue;
 }
