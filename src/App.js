@@ -253,7 +253,7 @@ class App extends React.Component {
         }
       }, (err) => {
         this.setState({loading: false});
-        this.setSnackBar("Request timeout - the server may not be running");
+        this.setSnackBar("Request timeout - See <a href='" + ERRORS_PAGE + "#request-timeout' target='blank'>here</a>");
         reject(err);
       });
     });
