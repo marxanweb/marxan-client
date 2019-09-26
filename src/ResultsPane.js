@@ -121,6 +121,7 @@ class ResultsPane extends React.Component {
 										title="Legend Settings"
 										onClick={this.props.openClassificationDialog} 
 										style={{ top:'447px', position:'absolute', marginLeft:'-7px'}}
+										show={(this.props.resultsLayer !== undefined)}
 									/>
 								</div>
 							</Tab>
