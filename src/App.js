@@ -2831,6 +2831,14 @@ class App extends React.Component {
       });
     }); //return
   }
+
+      // this._ws("importFeatures?filename=multiple_features.zip&name=test&description=asinglefeature", this.wsMessageCallback.bind(this)).then((message) => { //for duplicates
+      // this._ws("importFeatures?filename=multiple_features.zip&description=description&namefield=sp_duplica", this.wsMessageCallback.bind(this)).then((message) => { //for duplicates
+    //   this._ws("importFeatures?filename=multiple_features.zip&description=description&namefield=species", this.wsMessageCallback.bind(this)).then((message) => {
+    //     console.log(message);
+    //   }).catch((error) => {
+    //     console.log(error);
+    //   });
   
   //create the new feature from the feature that has been digitised on the map
   createNewFeatureFromDigitising(){
@@ -3862,6 +3870,7 @@ class App extends React.Component {
             description={this.state.featureDatasetDescription}
             filename={this.state.featureDatasetFilename}
             createNewFeature={this.createNewFeature.bind(this)}
+            importFeatures={this.importFeatures.bind(this)}
             checkForErrors={this.checkForErrors.bind(this)} 
             requestEndpoint={this.state.marxanServer.endpoint}
             SEND_CREDENTIALS={SEND_CREDENTIALS}
