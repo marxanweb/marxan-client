@@ -2145,6 +2145,12 @@ class App extends React.Component {
     }
   }
 
+  //zooms to the extent of the project, i.e. the tileset bounds for the planning grid
+  zoomToProjectBounds(){
+    if (this.state.tileset && this.state.tileset.bounds) this.zoomToBounds(this.map, this.state.tileset.bounds);
+  }
+  
+  //zooms the passed map to the passed bounds
   zoomToBounds(_map, bounds) {
     let minLng = (bounds[0] < -180) ? -180 : bounds[0];
     let minLat = (bounds[1] < -90) ? -90 : bounds[1];
@@ -3718,6 +3724,7 @@ class App extends React.Component {
             toggleProjectPrivacy={this.toggleProjectPrivacy.bind(this)}
             toggleCosts={this.toggleCosts.bind(this)}
             openTargetPopup={this.openTargetPopup.bind(this)}
+            zoomToProjectBounds={this.zoomToProjectBounds.bind(this)}
           />
           <ResultsPane
             open={this.state.resultsPanelOpen}

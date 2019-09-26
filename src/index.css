@@ -636,3 +636,7 @@ div.rt-tbody>div>div>div>div[contenteditable="true"] {
   border-bottom: 1px #ece8e8 solid;
   background-color: aliceblue;
 }
+.toolbarSpacer{
+  margin-left:164px;
+  display:inline;
+}

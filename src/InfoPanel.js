@@ -13,6 +13,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faLock } from '@fortawesome/free-solid-svg-icons';
 import { faUnlock } from '@fortawesome/free-solid-svg-icons';
 import { faEraser } from '@fortawesome/free-solid-svg-icons';
+import { faHome } from '@fortawesome/free-solid-svg-icons';
 
 class InfoPanel extends React.Component {
 	constructor(props) {
@@ -180,6 +181,12 @@ class InfoPanel extends React.Component {
 									title="Run Settings"
 									onClick={this.props.showRunSettingsDialog} 
 								/>
+								<ToolbarButton   
+									icon={<FontAwesomeIcon icon={faHome}/>} 
+									title="Zoom to project extent"
+									onClick={this.props.zoomToProjectBounds} 
+								/>
+								<div className='toolbarSpacer'/>
 								<ToolbarButton 
 									label="Stop" 
 									title="Click to stop the current run"  
