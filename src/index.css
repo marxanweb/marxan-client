@@ -629,14 +629,38 @@ div.rt-tbody>div>div>div>div[contenteditable="true"] {
   background-color: aliceblue;
 }
 
-.logMessage {
-}
+.logMessage {}
 
 .logFinish {
   border-bottom: 1px #ece8e8 solid;
   background-color: aliceblue;
 }
-.toolbarSpacer{
-  margin-left:164px;
-  display:inline;
+
+.toolbarSpacer {
+  margin-left: 164px;
+  display: inline;
+}
+
+.metadataPanel {
+  float: right;
+  width: 340px;
+  font-size: small;
+}
+.metadataItemTitle{
+  /*color: rgb(255, 64, 129);*/
+  font-style: italic;
+  width:63px;
+}
+.metadataItemValue{
+  padding-left:10px;
+}
+.metadataItemValue2{
+  padding-bottom:10px;
+}
+.floatLeft {
+  float: left;
+}
+.superscript{
+  vertical-align: super;
+  font-size:xx-small;
 }

@@ -22,7 +22,7 @@ class PlanningUnitsDialog extends React.Component {
 			<React.Fragment>
 				<div className={'newPUDialogPane'}>
 					<div>
-						<div ref={el => this.mapContainer = el} className="absolute top right left bottom" style={{width:'352px',height:'300px', marginTop: '71px',marginLeft: '24px'}}/>
+						<div ref={el => this.mapContainer = el} className="absolute top right left bottom" style={{width:'352px',height:'300px', marginTop: '50px',marginLeft: '24px'}}/>
 						<div style={{position: 'absolute', top:'380px', verticalAlign: 'middle'}}>
 							<SelectFieldMapboxLayer 
 								menuItemStyle={{fontSize:'12px'}}

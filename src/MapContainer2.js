@@ -40,9 +40,9 @@ class MapContainer2 extends React.Component {
 	render() {
 		return (
 			<React.Fragment>
-				<div className={'mapContainer2'}>
+				<div className={'floatLeft mapContainer2'}>
 					<div>
-						<div ref={el => this.mapContainer = el} className="absolute top right left bottom" style={{width:'352px',height:'300px', marginTop: '71px',marginLeft: '24px'}}/>
+						<div ref={el => this.mapContainer = el} className="absolute top right left bottom" style={{width:'352px',height:'300px', marginTop: '50px',marginLeft: '24px'}}/>
 					</div>
 				</div>
 			</React.Fragment>
