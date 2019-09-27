@@ -57,6 +57,8 @@ class ImportFeaturesDialog extends React.Component {
 		});
 	}
 	closeDialog() {
+		//delete the zip file and shapefile
+		this.props.deleteShapefile(this.props.filename, this.shapefile);
 		this.setState({ stepIndex: 0, fieldnames: [], splitField: "", name: "", description: "" });
 		this.shapefile = "";
 		this.props.setFilename("");

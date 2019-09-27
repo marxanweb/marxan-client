@@ -2811,6 +2811,17 @@ class App extends React.Component {
     });    
   }
   
+  //deletes a zip file and shapefile (with the *.shp extension) 
+  deleteShapefile(zipfile, shapefile){
+    return new Promise((resolve, reject) => {
+      this._get("deleteShapefile?zipfile=" + zipfile + "&shapefile=" + shapefile).then((response) => {
+        resolve(response);
+      }).catch((error) => {
+        reject(error);
+      });
+    });    
+  }
+  
   //gets a list of fieldnames from the passed shapefile - this must exist in the servers root directory
   getShapefileFieldnames(filename){
     return new Promise((resolve, reject) => {
@@ -3870,6 +3881,7 @@ class App extends React.Component {
             preprocessing={this.state.preprocessing}
             unzipShapefile={this.unzipShapefile.bind(this)}
             getShapefileFieldnames={this.getShapefileFieldnames.bind(this)}
+            deleteShapefile={this.deleteShapefile.bind(this)}
           />
           <PlanningGridsDialog
             open={this.state.planningGridsDialogOpen}
