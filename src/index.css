@@ -664,3 +664,6 @@ div.rt-tbody>div>div>div>div[contenteditable="true"] {
   vertical-align: super;
   font-size:xx-small;
 }
+.importFeaturesContent{
+  height:180px;
+}

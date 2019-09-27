@@ -165,13 +165,18 @@ class NewProjectDialog extends React.Component {
 										planning_unit_grids={this.props.planning_unit_grids} 
 										changeItem={this.changePU.bind(this)} pu={this.state.pu} 
 										openImportPlanningGridDialog={this.props.openImportPlanningGridDialog}/> : null}
-									{stepIndex === 2 ? <SelectFeatures 
-											features={this.state.allFeatures.filter((item)=>{return item.selected;})}
-											openFeaturesDialog={this.openFeaturesDialog.bind(this)}  
-											simple={true}
-											showTargetButton={false}
-											leftmargin={'0px'}
-									/> : null}
+									{stepIndex === 2 ? 
+										<div style={{height:'390px'}}>
+											<div className={'tabTitle'}>Select the features</div>
+											<SelectFeatures 
+												features={this.state.allFeatures.filter((item)=>{return item.selected;})}
+												openFeaturesDialog={this.openFeaturesDialog.bind(this)}  
+												simple={true}
+												showTargetButton={false}
+												leftmargin={'0px'}
+											/>
+										</div>
+									: null}
 									{stepIndex === 3 ? <SelectCostFeatures
 											openCostsDialog={this.props.openCostsDialog}
 											selectedCosts={this.props.selectedCosts}

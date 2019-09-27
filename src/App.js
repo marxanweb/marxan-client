@@ -45,15 +45,16 @@ import FailedToDeleteDialog from './FailedToDeleteDialog';
 import PlanningGridDialog from './PlanningGridDialog';
 import PlanningGridsDialog from './PlanningGridsDialog';
 import NewPlanningGridDialog from './NewPlanningGridDialog';
-import UploadPlanningGridDialog from './UploadPlanningGridDialog';
+import ImportPlanningGridDialog from './ImportPlanningGridDialog';
 import FeatureDialog from './FeatureDialog';
 import FeaturesDialog from './FeaturesDialog';
 import NewFeatureDialog from './NewFeatureDialog';
+import ImportFeaturesDialog from './ImportFeaturesDialog';
 import CostsDialog from './CostsDialog';
 import RunSettingsDialog from './RunSettingsDialog';
 import ClassificationDialog from './ClassificationDialog';
 import ClumpingDialog from './ClumpingDialog';
-import ImportDialog from './ImportDialog';
+import ImportProjectDialog from './ImportProjectDialog';
 import RunLogDialog from './RunLogDialog';
 import ServerDetailsDialog from './ServerDetailsDialog';
 import AlertDialog from './AlertDialog';
@@ -130,7 +131,7 @@ class App extends React.Component {
       profileDialogOpen: false,
       aboutDialogOpen: false,
       helpDialogOpen: false,
-      importDialogOpen: false,
+      importProjectDialogOpen: false,
       optionsDialogOpen: false,
       CostsDialogOpen: false,
       registerDialogOpen: false,
@@ -145,6 +146,7 @@ class App extends React.Component {
       importPlanningGridDialogOpen: false,
       FailedToDeleteDialogOpen: false,
       changePasswordDialogOpen: false,
+      importFeaturesDialogOpen: false,
       serverDetailsDialogOpen: false,
       planningGridsDialogOpen: false,
       planningGridDialogOpen: false,
@@ -183,8 +185,6 @@ class App extends React.Component {
       pa_layer_visible: false,
       currentFeature:{},
       puvsprLayerText: '',
-      featureDatasetName: '',
-      featureDatasetDescription: '',
       featureDatasetFilename: '',
       loading: false,
       dataBreaks: [],
@@ -376,12 +376,14 @@ class App extends React.Component {
     switch (message.status) {
       case 'Started': //from both asynchronous queries and marxan runs
       case "Updating WDPA":
-      case "Importing feature":
         //set the processing state when the websocket starts
         this.setState({preprocessing: true});
         break;
       case 'pid': //from marxan runs and preprocessing - the pid is an identifer and the pid, e.g. m1234 is a marxan run process with a pid of 1234
         this.setState({pid: message.pid});
+        break;
+      case "FeatureCreated":
+        this.newFeatureCreated(message.id);
         break;
       case 'Finished': //from both asynchronous queries and marxan runs
         //reset the pid
@@ -2580,20 +2582,26 @@ class App extends React.Component {
     });
   }
   
-  openNewFeatureDialog(newFeatureSource) {
-    this.setState({ NewFeatureDialogOpen: true, newFeatureSource: newFeatureSource});
-  }
-  closeNewFeatureDialog() {
-    this.setState({ NewFeatureDialogOpen: false });
-    //finalise digitising if necessary
-    if (this.state.newFeatureSource === "digitising") this.finaliseDigitising();
-  }
   openFeaturesDialog(showClearSelectAll) {
     this.setState({ featuresDialogOpen: true, addingRemovingFeatures: showClearSelectAll});
     if (showClearSelectAll) this.getSelectedFeatureIds();
   }
   closeFeaturesDialog() {
     this.setState({ featuresDialogOpen: false, featuresDialogPopupOpen: false });
+  }
+  openNewFeatureDialog(){
+    this.setState({ NewFeatureDialogOpen: true });
+  }
+  closeNewFeatureDialog() {
+    this.setState({ NewFeatureDialogOpen: false });
+    //finalise digitising 
+    this.finaliseDigitising();
+  }
+  openImportFeaturesDialog() {
+    this.setState({ importFeaturesDialogOpen: true});
+  }
+  closeImportFeaturesDialog() {
+    this.setState({ importFeaturesDialogOpen: false});
   }
   openPlanningGridsDialog(){
     this.setState({planningGridsDialogOpen: true});
@@ -2624,12 +2632,6 @@ class App extends React.Component {
   }
   closeCostsDialog() {
     this.setState({ CostsDialogOpen: false });
-  }
-  setNewFeatureDatasetName(name) {
-    this.setState({ featureDatasetName: name });
-  }
-  setNewFeatureDatasetDescription(description) {
-    this.setState({ featureDatasetDescription: description });
   }
   setNewFeatureDatasetFilename(filename) {
     this.setState({ featureDatasetFilename: filename });
@@ -2711,7 +2713,7 @@ class App extends React.Component {
   //called when the user has drawn a polygon on screen
   polygonDrawn(evt){
     //open the new feature dialog for the metadata
-    this.openNewFeatureDialog("digitising");
+    this.openNewFeatureDialog();
     //save the feature in a local variable
     this.digitisedFeatures = evt.features;
   }
@@ -2798,32 +2800,36 @@ class App extends React.Component {
     this.openFeatureDialog();
   }
 
-  createNewFeature() {
-    //see the source of the new feature
-    switch (this.state.newFeatureSource) {
-      case 'import':
-        this.createNewFeatureFromImport();
-        break;
-      case 'digitising':
-        this.createNewFeatureFromDigitising();
-        break;
-      default:
-        // code
-    }
+  //unzips a shapefile on the server
+  unzipShapefile(filename){
+    return new Promise((resolve, reject) => {
+      this._get("unzipShapefile?filename=" + filename).then((response) => {
+        resolve(response);
+      }).catch((error) => {
+        reject(error);
+      });
+    });    
   }
-
-  //create the new feature from the already uploaded zipped shapefile
-  createNewFeatureFromImport(){
+  
+  //gets a list of fieldnames from the passed shapefile - this must exist in the servers root directory
+  getShapefileFieldnames(filename){
+    return new Promise((resolve, reject) => {
+      this._get("getShapefileFieldnames?filename=" + filename).then((response) => {
+        resolve(response);
+      }).catch((error) => {
+        reject(error);
+      });
+    });    
+  }
+  
+  //create new features from the already uploaded zipped shapefile 
+  importFeatures(zipfile, name, description, shapefile,  spiltfield){
     //start the logging
     this.startLogging();
     return new Promise((resolve, reject) => {
-      this._ws("importFeature?filename=" + this.state.featureDatasetFilename + "&name=" + this.state.featureDatasetName + "&description=" + this.state.featureDatasetDescription, this.wsMessageCallback.bind(this)).then((message) => {
-        if (message.id){
-          //start polling to see when the upload is done
-          this.pollMapbox(message.uploadId).then(() => {
-            this.newFeatureCreated(message);
-          });
-        }
+      //get the request url
+      let url = (name !== "") ? "importFeatures?zipfile=" + zipfile + "&shapefile=" + shapefile + "&name=" + name + "&description=" + description : "importFeatures?zipfile=" + zipfile + "&shapefile=" + shapefile + "&splitfield=" + spiltfield;
+      this._ws(url, this.wsMessageCallback.bind(this)).then((message) => {
         //websocket has finished 
         resolve(message);
       }).catch((error) => {
@@ -2832,52 +2838,38 @@ class App extends React.Component {
     }); //return
   }
 
-      // this._ws("importFeatures?filename=multiple_features.zip&name=test&description=asinglefeature", this.wsMessageCallback.bind(this)).then((message) => { //for duplicates
-      // this._ws("importFeatures?filename=multiple_features.zip&description=description&namefield=sp_duplica", this.wsMessageCallback.bind(this)).then((message) => { //for duplicates
-    //   this._ws("importFeatures?filename=multiple_features.zip&description=description&namefield=species", this.wsMessageCallback.bind(this)).then((message) => {
-    //     console.log(message);
-    //   }).catch((error) => {
-    //     console.log(error);
-    //   });
-  
   //create the new feature from the feature that has been digitised on the map
-  createNewFeatureFromDigitising(){
+  createNewFeature(name, description){
     //start the logging
     this.startLogging();
-    this.log({method:'createNewFeatureFromDigitising',status:'Started',info:"Creating feature.."});
+    this.log({method:'createNewFeature',status:'Started',info:"Creating feature.."});
     //post the geometry to the server with the metadata
     let formData = new FormData();
-    formData.append('name', this.state.featureDatasetName);
-    formData.append('description', this.state.featureDatasetDescription);
+    formData.append('name', name);
+    formData.append('description', description);
     //convert the coordinates into a linestring to create the polygon in postgis
     let coords = this.digitisedFeatures[0].geometry.coordinates[0].map((coordinate) => {
       return coordinate[0] + " " + coordinate[1];
     }).join(",");
     formData.append('linestring', "Linestring(" + coords + ")");
     this._post("createFeatureFromLinestring", formData).then((response) => {
-        this.log({method:'createNewFeatureFromDigitising',status:'Finished',info:response.info});
+        this.log({method:'createNewFeature',status:'Finished', info: response.info});
         //start polling to see when the upload is done
         this.pollMapbox(response.uploadId).then(() => {
-          this.newFeatureCreated(response);
+          this.newFeatureCreated(response.id);
+          //close the dialog
+          this.closeNewFeatureDialog();
         });
     }).catch((error) => {
-      //do something
+      this.log({status:'Finished', error: error});
     });
   }
   
   //gets the new feature information and updates the state
-  newFeatureCreated(response){
-    this.getInterestFeature(response.id);
-    //close the dialog
-    this.closeNewFeatureDialog();
-    //reset the state
-    this.resetNewConservationFeature();
+  newFeatureCreated(id){
+    this.getInterestFeature(id);
   }
   
-  resetNewConservationFeature() {
-    this.setState({ featureDatasetName: '', featureDatasetDescription: '', featureDatasetFilename: '' });
-  }
-
   getInterestFeature(id) {
     //load the interest feature from the marxan web database
     this._get("getFeature?oid=" + id + "&format=json").then((response) => {
@@ -3161,11 +3153,11 @@ class App extends React.Component {
     this.setState({ classificationDialogOpen: false });
   }
 
-  openImportDialog() {
-    this.setState({ importDialogOpen: true });
+  openImportProjectDialog() {
+    this.setState({ importProjectDialogOpen: true });
   }
   closeImportDialog() {
-    this.setState({ importDialogOpen: false });
+    this.setState({ importProjectDialogOpen: false });
   }
   openUsersDialog() {
     this.getUsers();
@@ -3791,7 +3783,7 @@ class App extends React.Component {
             loadProject={this.loadProject.bind(this)}
             cloneProject={this.cloneProject.bind(this)}
             openNewProjectDialog={this.openNewProjectDialog.bind(this)}
-            openImportDialog={this.openImportDialog.bind(this)}
+            openImportProjectDialog={this.openImportProjectDialog.bind(this)}
             unauthorisedMethods={this.state.unauthorisedMethods}
             userRole={this.state.userData.ROLE}
             getAllFeatures={this.getAllFeatures.bind(this)}
@@ -3817,7 +3809,7 @@ class App extends React.Component {
             setSnackBar={this.setSnackBar.bind(this)}
             ERRORS_PAGE={ERRORS_PAGE}
           />
-          <UploadPlanningGridDialog
+          <ImportPlanningGridDialog
             open={this.state.importPlanningGridDialogOpen} 
             onOk={this.importPlanningUnitGrid.bind(this)}
             onCancel={this.closeImportPlanningGridDialog.bind(this)}
@@ -3834,7 +3826,7 @@ class App extends React.Component {
             metadata={this.state.metadata}
             allFeatures={this.state.allFeatures}
             deleteFeature={this.deleteFeature.bind(this)}
-            openNewFeatureDialog={this.openNewFeatureDialog.bind(this)}
+            openImportFeaturesDialog={this.openImportFeaturesDialog.bind(this)}
             selectAllFeatures={this.selectAllFeatures.bind(this)}
             clearAllFeatures={this.clearAllFeatures.bind(this)}
             selectFeatures={this.selectFeatures.bind(this)}
@@ -3863,18 +3855,21 @@ class App extends React.Component {
             onOk={this.closeNewFeatureDialog.bind(this)}
             onCancel={this.closeNewFeatureDialog.bind(this)}
             loading={this.state.loading}
-            setName={this.setNewFeatureDatasetName.bind(this)}
-            setDescription={this.setNewFeatureDatasetDescription.bind(this)}
-            setFilename={this.setNewFeatureDatasetFilename.bind(this)}
-            name={this.state.featureDatasetName}
-            description={this.state.featureDatasetDescription}
-            filename={this.state.featureDatasetFilename}
             createNewFeature={this.createNewFeature.bind(this)}
+          />
+          <ImportFeaturesDialog
+            open={this.state.importFeaturesDialogOpen} 
             importFeatures={this.importFeatures.bind(this)}
+            onCancel={this.closeImportFeaturesDialog.bind(this)}
+            loading={this.state.loading}
+            setFilename={this.setNewFeatureDatasetFilename.bind(this)}
+            SEND_CREDENTIALS={SEND_CREDENTIALS}
+            filename={this.state.featureDatasetFilename}
             checkForErrors={this.checkForErrors.bind(this)} 
             requestEndpoint={this.state.marxanServer.endpoint}
-            SEND_CREDENTIALS={SEND_CREDENTIALS}
-            newFeatureSource={this.state.newFeatureSource}
+            preprocessing={this.state.preprocessing}
+            unzipShapefile={this.unzipShapefile.bind(this)}
+            getShapefileFieldnames={this.getShapefileFieldnames.bind(this)}
           />
           <PlanningGridsDialog
             open={this.state.planningGridsDialogOpen}
@@ -3958,8 +3953,8 @@ class App extends React.Component {
             setBlmValue={this.setBlmValue.bind(this)}
             clumpingRunning={this.state.clumpingRunning}
           />
-          <ImportDialog 
-            open={this.state.importDialogOpen}
+          <ImportProjectDialog
+            open={this.state.importProjectDialogOpen}
             onOk={this.closeImportDialog.bind(this)}
             loading={this.state.loading}
             requestEndpoint={this.state.marxanServer.endpoint}

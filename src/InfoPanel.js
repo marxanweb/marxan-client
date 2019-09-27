@@ -177,14 +177,14 @@ class InfoPanel extends React.Component {
 						</Tabs>     
 						<Paper className={'lowerToolbar'}>
 								<ToolbarButton   
-									icon={<Settings style={{height:'20px',width:'20px'}}/>} 
-									title="Run Settings"
-									onClick={this.props.showRunSettingsDialog} 
-								/>
-								<ToolbarButton   
 									icon={<FontAwesomeIcon icon={faHome}/>} 
 									title="Zoom to project extent"
 									onClick={this.props.zoomToProjectBounds} 
+								/>
+								<ToolbarButton   
+									icon={<Settings style={{height:'20px',width:'20px'}}/>} 
+									title="Run Settings"
+									onClick={this.props.showRunSettingsDialog} 
 								/>
 								<div className='toolbarSpacer'/>
 								<ToolbarButton 

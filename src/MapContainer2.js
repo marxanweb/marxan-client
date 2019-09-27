@@ -16,7 +16,7 @@ class MapContainer2 extends React.Component {
                 'type': "fill",
                 'source': {
                     'type': "vector",
-                    'url': "mapbox://blishten." + this.props.planning_grid_metadata.feature_class_name
+                    'url': "mapbox://" + this.props.planning_grid_metadata.tilesetid
                 },
                 'source-layer': this.props.planning_grid_metadata.feature_class_name,
                 'paint': {
@@ -25,7 +25,7 @@ class MapContainer2 extends React.Component {
                 }
             });
         });
-        this.props.getTilesetMetadata("blishten." + this.props.planning_grid_metadata.feature_class_name).then((tileset)=>{
+        this.props.getTilesetMetadata(this.props.planning_grid_metadata.tilesetid).then((tileset)=>{
             if (tileset.bounds != null) this.props.zoomToBounds(this.map, tileset.bounds);
         }).catch((error) => {
             this.props.setSnackBar(error);

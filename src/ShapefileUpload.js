@@ -50,7 +50,7 @@ class ShapefileUpload extends React.Component {
 	render() {
 		this.id = "upload" + this.props.parameter;
 		return (
-			<form className='uploadForm'>
+			<form >
 				<div className='uploadLabel' style={{color: (this.state.active) ? 'rgb(0, 188, 212)' : 'rgba(0, 0, 0, 0.3)'}}>{this.props.label}</div> 
 				<div className='uploadFileField'>
 					<div className='uploadFileFieldIcon'>
