@@ -1,6 +1,6 @@
 import * as React from 'react';
-import * as utilities from './utilities.js';
 import TransparencyControl from './TransparencyControl';
+import { getMaxNumberOfClasses } from './genericFunctions.js';
 
 class Legend extends React.Component {
 	 getPlanningUnitsLegend(colorCode) {
@@ -11,7 +11,7 @@ class Legend extends React.Component {
 			//get the number of classes the user currently has selected
 			let numClasses = this.props.brew.getNumClasses();
 			//get the maximum number of colors in this scheme
-			let colorSchemeLength = utilities.getMaxNumberOfClasses(this.props.brew, colorCode);
+			let colorSchemeLength = getMaxNumberOfClasses(this.props.brew, colorCode);
 			//get the color scheme
 			let colorScheme = this.props.brew.colorSchemes[colorCode];
 			//get the number of colors to show as an array

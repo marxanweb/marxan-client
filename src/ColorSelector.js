@@ -1,7 +1,7 @@
 import React from 'react';
 import SelectField from 'material-ui/SelectField';
 import MenuItem from 'material-ui/MenuItem';
-import * as utilities from './utilities.js';
+import { getMaxNumberOfClasses } from './genericFunctions.js';
 
 class ColorSelector extends React.Component {
 	handleChange(event, index, value) {
@@ -15,7 +15,7 @@ class ColorSelector extends React.Component {
 		//get the number of classes the user currently has selected
 		let numClasses = this.props.brew.getNumClasses();
 		//get the maximum number of colors in this scheme
-		let colorSchemeLength = utilities.getMaxNumberOfClasses(this.props.brew, colorCode);
+		let colorSchemeLength = getMaxNumberOfClasses(this.props.brew, colorCode);
 		//get the color scheme
 		let colorScheme = this.props.brew.colorSchemes[colorCode];
 		//get the number of colors to show as an array

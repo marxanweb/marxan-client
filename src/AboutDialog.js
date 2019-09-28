@@ -1,10 +1,10 @@
 import React from "react";
 import MarxanDialog from "./MarxanDialog";
-import iucn from './iucn.png';
-import wcmc from './wcmc.png';
-import mapbox_small from './mapbox_small.png';
-import biopama_small from './biopama_small.png';
-import jrc_logo_color_small from './jrc_logo_color_small.png';
+import iucn from './images/iucn.png';
+import wcmc from './images/wcmc.png';
+import mapbox_small from './images/mapbox_small.png';
+import biopama_small from './images/biopama_small.png';
+import jrc_logo_color_small from './images/jrc_logo_color_small.png';
 
 class AboutDialog extends React.Component {
   render() {

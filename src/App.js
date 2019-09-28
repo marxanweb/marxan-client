@@ -13,6 +13,7 @@ import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import jsonp from 'jsonp-promise';
 import classyBrew from 'classybrew';
+import { getMaxNumberOfClasses } from './genericFunctions.js';
 //material-ui components and icons
 import Popover from 'material-ui/Popover';
 import Menu from 'material-ui/Menu';
@@ -24,7 +25,6 @@ import RemoveFromMap from 'material-ui/svg-icons/action/visibility-off';
 import ZoomIn from 'material-ui/svg-icons/action/zoom-in';
 import Preprocess from 'material-ui/svg-icons/action/autorenew';
 //project components
-import * as utilities from './utilities.js';
 import AppBar from './AppBar';
 import LoginDialog from './LoginDialog';
 import RegisterDialog from './RegisterDialog.js';
@@ -37,7 +37,7 @@ import UsersDialog from './UsersDialog';
 import AboutDialog from './AboutDialog';
 import MenuItemWithButton from './MenuItemWithButton';
 import InfoPanel from './InfoPanel';
-import ResultsPane from './ResultsPane';
+import ResultsPanel from './ResultsPanel';
 import FeatureInfoDialog from './FeatureInfoDialog';
 import ProjectsDialog from './ProjectsDialog';
 import NewProjectDialog from './NewProjectDialog';
@@ -100,20 +100,20 @@ let HIDE_PUVSPR_LAYER_TEXT = "Remove planning unit outlines";
 let SHOW_PUVSPR_LAYER_TEXT = "Outline planning units where the feature occurs";
 let CLUMP_COUNT = 5;
 //an array of feature property information that is used in the Feature Information dialog box - showForOld sets whether that property is shown for old versions of marxan
-let FEATURE_PROPERTIES = [{ name: 'id', key: 'ID',hint: 'The unique identifier for the feature', showForOld: true},
-  { name: 'alias', key: 'Alias',hint: 'A human readable name for the feature', showForOld: true},
-  { name: 'feature_class_name', key: 'Feature class name',hint: 'The internal name for the feature in the PostGIS database', showForOld: false},
-  { name: 'description', key: 'Description',hint: 'Full description of the feature', showForOld: false},
-  { name: 'creation_date', key: 'Creation date',hint: 'The date the feature was created or imported', showForOld: false},
-  { name: 'tilesetid', key: 'Mapbox ID',hint: 'The unique identifier of the feature tileset in Mapbox', showForOld: false},
-  { name: 'area', key: 'Total area',hint: 'The total area for the feature in Km2 (i.e. globally)', showForOld: false},
-  { name: 'target_value', key: 'Target percent',hint: 'The target percentage for the feature within the planning grid', showForOld: true},
-  { name: 'spf', key: 'Species Penalty Factor',hint: 'The species penalty factor is used to weight the likelihood of getting a species in the results', showForOld: true},
-  { name: 'preprocessed', key: 'Preprocessed',hint: 'Whether or not the feature has been intersected with the planning units', showForOld: false},
-  { name: 'pu_count', key: 'Planning unit count',hint: 'The number of planning units that intersect the feature (calculated during pre-processing)', showForOld: true},
-  { name: 'pu_area', key: 'Planning grid area',hint: 'The area of the feature within the planning grid in Km2 (calculated during pre-processing)', showForOld: true},
-  { name: 'target_area', key: 'Target area',hint: 'The total area that needs to be protected to achieve the target percentage in Km2 (calculated during a Marxan Run)', showForOld: true},
-  { name: 'protected_area', key: 'Area protected',hint: 'The total area protected in the current solution in Km2 (calculated during a Marxan Run)', showForOld: true}];
+let FEATURE_PROPERTIES = [{ name: 'id', key: 'ID',hint: 'The unique identifier for the feature', showForOld: false, showForNew: false},
+  { name: 'alias', key: 'Alias',hint: 'A human readable name for the feature', showForOld: false, showForNew: false},
+  { name: 'feature_class_name', key: 'Feature class name',hint: 'The internal name for the feature in the PostGIS database', showForOld: false, showForNew: false},
+  { name: 'description', key: 'Description',hint: 'Full description of the feature', showForOld: false, showForNew: false},
+  { name: 'creation_date', key: 'Creation date',hint: 'The date the feature was created or imported', showForOld: false, showForNew: false},
+  { name: 'tilesetid', key: 'Mapbox ID',hint: 'The unique identifier of the feature tileset in Mapbox', showForOld: false, showForNew: false},
+  { name: 'area', key: 'Total area',hint: 'The total area for the feature in Km2 (i.e. globally)', showForOld: false, showForNew: false},
+  { name: 'target_value', key: 'Target percent',hint: 'The target percentage for the feature within the planning grid', showForOld: true, showForNew: true},
+  { name: 'spf', key: 'Species Penalty Factor',hint: 'The species penalty factor is used to weight the likelihood of getting a species in the results', showForOld: true, showForNew: true},
+  { name: 'preprocessed', key: 'Preprocessed',hint: 'Whether or not the feature has been intersected with the planning units', showForOld: false, showForNew: true},
+  { name: 'pu_count', key: 'Planning unit count',hint: 'The number of planning units that intersect the feature (calculated during pre-processing)', showForOld: true, showForNew: true},
+  { name: 'pu_area', key: 'Planning grid area',hint: 'The area of the feature within the planning grid in Km2 (calculated during pre-processing)', showForOld: true, showForNew: true},
+  { name: 'target_area', key: 'Target area',hint: 'The total area that needs to be protected to achieve the target percentage in Km2 (calculated during a Marxan Run)', showForOld: true, showForNew: true},
+  { name: 'protected_area', key: 'Area protected',hint: 'The total area protected in the current solution in Km2 (calculated during a Marxan Run)', showForOld: true, showForNew: true}];
 var mb_tk = "sk.eyJ1IjoiYmxpc2h0ZW4iLCJhIjoiY2piNm1tOGwxMG9lajMzcXBlZDR4aWVjdiJ9.Z1Jq4UAgGpXukvnUReLO1g";
 var wdpa_vector_tile_layer = ""; //the name of the WDPA vector tile layer that is set when a server is selected based on which version of the WDPA is in that servers PostGIS database
 var wdpaPopup = new mapboxgl.Popup({closeButton:false});
@@ -273,6 +273,10 @@ class App extends React.Component {
           this.setState({loading: false});
           reject(response.data.error);
         }
+      }, (err) => {
+        this.setState({loading: false});
+        this.setSnackBar(err.message);
+        reject(err);
       });
     });
   }
@@ -1504,7 +1508,7 @@ class App extends React.Component {
     //set the color code - see the color theory section on Joshua Tanners page here https://github.com/tannerjt/classybrew - for all the available colour codes
     this.state.brew.setColorCode(colorCode);
     //get the maximum number of colors in this scheme
-    let colorSchemeLength = utilities.getMaxNumberOfClasses(this.state.brew, colorCode);
+    let colorSchemeLength = getMaxNumberOfClasses(this.state.brew, colorCode);
     //check the color scheme supports the passed number of classes
     if (numClasses > colorSchemeLength) {
       //set the numClasses to the max for the color scheme
@@ -1768,7 +1772,7 @@ class App extends React.Component {
     while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
       coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
     }
-    //TODO: Need to report all protected areas where they overlap
+    //set the HTML of the protected areas popup
     wdpaPopup.setLngLat(coordinates).setLngLat(coordinates)
       .setHTML("<div class='noselect'><a href='https://www.protectedplanet.net/" + e.features[0].properties.wdpaid + "' target='_blank'>" + e.features[0].properties.name + " (" + e.features[0].properties.iucn_cat + ")</a></div>")
       .addTo(this);
@@ -3462,7 +3466,7 @@ class App extends React.Component {
           this.createProjectGroupAndRun();
         });
       }).catch((error) => { //updateSpecFile error
-
+        
       });
     }).catch((error) => { //preprocessBoundaryLengths error
       console.log(error);
@@ -3737,7 +3741,7 @@ class App extends React.Component {
             openTargetPopup={this.openTargetPopup.bind(this)}
             zoomToProjectBounds={this.zoomToProjectBounds.bind(this)}
           />
-          <ResultsPane
+          <ResultsPanel
             open={this.state.resultsPanelOpen}
             preprocessing={this.state.preprocessing}
             solutions={this.state.solutions}

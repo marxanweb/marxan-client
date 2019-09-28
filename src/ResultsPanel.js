@@ -13,7 +13,7 @@ import Sync from 'material-ui/svg-icons/notification/sync';
 
 let runtime=0;
 
-class ResultsPane extends React.Component {
+class ResultsPanel extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = { showClipboard: false, selectedSolution: undefined,runtimeStr:'00:00s' };
@@ -102,7 +102,7 @@ class ResultsPane extends React.Component {
 		return (
 			<React.Fragment>
 				<div style={{width:'300px',height:'400px', position:'absolute',right:'140px','display': (this.props.open ? 'block' : 'none')}}>
-					<Paper zDepth={2} className='ResultsPanePaper'>
+					<Paper zDepth={2} className='ResultsPanelPaper'>
 						<div className="resultsTitle">Results</div>
 						<Tabs contentContainerStyle={{'margin':'20px'}} className={'resultsTabs'} value={this.props.activeResultsTab} id='resultsTabs'>
 							<Tab label="Legend" value="legend" onActive={this.props.legend_tab_active} >
@@ -209,4 +209,4 @@ class ResultsPane extends React.Component {
 	}
 }
 
-export default ResultsPane;
+export default ResultsPanel;

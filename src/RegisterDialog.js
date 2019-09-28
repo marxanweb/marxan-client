@@ -34,7 +34,6 @@ class RegisterDialog extends React.Component {
 		this.props.onOk(this.state.user, this.state.password, this.state.name, this.state.email, this.state.mb_tk);
 	}
 
-	//TODO: MOVE THIS TO THE GENERICFUNCTIONS.JS MODULE
 	validateEmail() {
 		var re = /^(([^<>()\]\\.,;:\s@"]+(\.[^<>()\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 		let valid = re.test(String(this.state.email).toLowerCase());

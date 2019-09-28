@@ -57,7 +57,7 @@ body {
   height: 41px;
 }
 
-.ResultsPanePaper {
+.ResultsPanelPaper {
   width: 400px;
   margin: 20px;
 }
@@ -211,7 +211,7 @@ body {
 
 .infoTable {
   width: 337px;
-  height: 391px;
+  height: 212px;
 }
 
 .infoTableOldVersion {
@@ -544,7 +544,7 @@ div.rt-tbody>div>div>div>div[contenteditable="true"] {
 }
 
 .gbifLogo {
-  background-image: url(./gbif.jpg);
+  background-image: url(./images/gbif.jpg);
 }
 
 .snackbarLink {
@@ -553,12 +553,13 @@ div.rt-tbody>div>div>div>div[contenteditable="true"] {
 
 .runtime {
   position: absolute;
-  top: 1px;
-  right: 3px;
+  top: 0px;
+  right: 2px;
   background-color: aliceblue;
-  padding: 2px 10px 2px 10px;
+  padding: 0px 10px 0px 10px;
   font-size: 12px;
   color: #666666;
+  border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .table_column_right_align {
@@ -625,6 +626,10 @@ div.rt-tbody>div>div>div>div[contenteditable="true"] {
 
 .logStart {
   margin-top: 20px;
+  border-top: 1px #ece8e8 solid;
+  background-color: aliceblue;
+}
+.logFirstStart {
   border-top: 1px #ece8e8 solid;
   background-color: aliceblue;
 }

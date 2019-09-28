@@ -8,23 +8,8 @@ import Sync from 'material-ui/svg-icons/notification/sync';
 class Log extends React.Component {
 	
 	render() {
-	    let className='';
-	    //set the css class based on whether the message is the start, processing or finishing message
-	    switch (this.props.message.status) {
-	      case 'Started': 
-	      case 'Uploading': 
-	        className = 'logItem logStart';
-	        break;
-	      case 'Finished': 
-	      case 'UploadComplete': 
-	        className = 'logItem logFinish';
-	        break;
-	      default:
-	        className = 'logItem logMessage';
-	        break;
-	    }
     	return (
-    	    <div className={className}>
+    	    <div className={this.props.className}>
     	    	<Sync className='spin' style={{display: ((this.props.message.status === 'RunningQuery')||(this.props.message.status === 'Downloading')) ? 'inline' : 'none', height: '16px', width: '16px', verticalAlign: 'sub', color: 'rgb(255, 64, 129)', marginRight:'6px'}} title={'Preprocessing..'}/>
     	    	<FontAwesomeIcon icon={faCheckCircle} style={{display: ((this.props.message.status === 'Finished')&&(!this.props.message.hasOwnProperty('error'))) ? 'inline' : 'none', color:'green', marginRight:'6px'}} title={'Preprocessing completed'}/>
     	    	<FontAwesomeIcon icon={faArrowAltCircleRight} style={{display: (this.props.message.status === 'UploadComplete') ? 'inline' : 'none', color:'green', marginRight:'6px'}} title={'Upload complete'}/>

@@ -7,12 +7,13 @@ import MenuItem from "material-ui/MenuItem";
 import ToolbarButton from './ToolbarButton';
 import { RadioButton, RadioButtonGroup } from 'material-ui/RadioButton';
 
+let INITIAL_STATE = { steps: ['shapefile', 'single_or_multiple', 'metadata'], stepIndex: 0, fieldnames: [], splitField: "", name: "", description: "" };
 class ImportFeaturesDialog extends React.Component {
 	constructor(props) {
 		super(props);
-		this.state = { steps: ['shapefile', 'single_or_multiple', 'metadata'], stepIndex: 0, fieldnames: [], splitField: "", name: "", description: "" };
+		this.state = INITIAL_STATE;
 	}
-	handleNext = () => {
+	handleNext(){
 		const { stepIndex } = this.state;
 		switch (stepIndex) {
 			case 0:
@@ -23,23 +24,28 @@ class ImportFeaturesDialog extends React.Component {
 					this.setState({ stepIndex: stepIndex + 1 });
 				});
 				break;
+			case (this.state.steps.length - 1):
+				this.importFeatures();
+				break;
 			default:
 				this.setState({ stepIndex: stepIndex + 1 });
 		}
-	};
-	handlePrev = () => {
+	}
+	handlePrev(){
 		const { stepIndex } = this.state;
-		if (stepIndex > 0) {
-			this.setState({ stepIndex: stepIndex - 1 });
-		}
-	};
+		this.setState({ stepIndex: stepIndex - 1 });
+	}
 	changeName(event, newValue) {
 		this.setState({ name: newValue });
 	}
 	changeDescription(event, newValue) {
 		this.setState({ description: newValue });
 	}
+	changeSplitField(event, index) {
+		this.setState({ splitField: this.state.fieldnames[index] });
+	}
 	getShapefileFieldnames() {
+		//get the field names from the unzipped shapefile on the server
 		this.props.getShapefileFieldnames(this.shapefile).then((response) => {
 			//set the fieldnames in local state
 			this.setState({ fieldnames: response.fieldnames });
@@ -47,9 +53,6 @@ class ImportFeaturesDialog extends React.Component {
 	}
 	resetFieldnames() {
 		this.setState({ fieldnames: [] });
-	}
-	changeSplitField(event, index) {
-		this.setState({ splitField: this.state.fieldnames[index] });
 	}
 	importFeatures() {
 		this.props.importFeatures(this.props.filename, this.state.name, this.state.description, this.shapefile, this.state.splitField).then((response) => {
@@ -59,7 +62,7 @@ class ImportFeaturesDialog extends React.Component {
 	closeDialog() {
 		//delete the zip file and shapefile
 		this.props.deleteShapefile(this.props.filename, this.shapefile);
-		this.setState({ stepIndex: 0, fieldnames: [], splitField: "", name: "", description: "" });
+		this.setState(INITIAL_STATE);
 		this.shapefile = "";
 		this.props.setFilename("");
 		this.props.onCancel();
@@ -83,8 +86,8 @@ class ImportFeaturesDialog extends React.Component {
 			<div style={{width: '100%', maxWidth: '500px', margin: 'auto',textAlign:'center'}}>
 				<div style={contentStyle}>
 					<div style={{marginTop: 12}}>
-						<ToolbarButton label="Back" disabled={stepIndex === 0 || this.props.preprocessing} onClick={this.handlePrev} />
-						<ToolbarButton label={stepIndex === (this.state.steps.length-1) ? 'Finish' : 'Next'} onClick={stepIndex === (this.state.steps.length-1) ? this.importFeatures.bind(this) : this.handleNext} disabled={_disabled || this.props.preprocessing} primary={true}/>
+						<ToolbarButton label="Back" disabled={stepIndex === 0 || this.props.preprocessing} onClick={this.handlePrev.bind(this)} />
+						<ToolbarButton label={stepIndex === (this.state.steps.length-1) ? 'Finish' : 'Next'} onClick={this.handleNext.bind(this)} disabled={_disabled || this.props.preprocessing} primary={true}/>
 					</div>
 				</div>
 			</div>
