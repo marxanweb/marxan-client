@@ -156,7 +156,6 @@ class InfoPanel extends React.Component {
 										<FontAwesomeIcon icon={(this.props.puEditing) ? faUnlock : faLock} onClick={this.startStopPuEditSession.bind(this)} title={(this.props.puEditing) ? "Save" : "Click to edit"} style={{cursor:'pointer', marginRight: '10px', color: 'rgba(255, 64, 129, 0.7)'}}/>
 										<div className={'description'} style={{display: 'inline-block'}}>{(this.props.puEditing) ? "Click on the map to change the status" : "Click to edit"}</div>
 										<div style={{display: (this.props.puEditing) ? "block" : "none"}}>
-											<div className={"statusRow"}><div className={"statusSwatch"} style={{border: '1px rgba(63, 191, 63, 1) solid'}}></div><div className={"puStatus"}>Initially included</div></div>
 											<div className={"statusRow"}><div className={"statusSwatch"} style={{ border: '1px rgba(63, 63, 191, 1) solid'}}></div><div className={"puStatus"}>Locked in the reserve system</div></div>
 											<div className={"statusRow"}><div className={"statusSwatch"} style={{ border: '1px rgba(191, 63, 63, 1) solid'}}></div><div className={"puStatus"}>Locked out of the reserve system</div></div>
 											<ToolbarButton  

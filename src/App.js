@@ -1630,9 +1630,9 @@ class App extends React.Component {
         var color;
         //get the status
         switch (row[0]) {
-          case 1: //The PU will be included in the initial reserve system but may or may not be in the final solution.
-            color = "rgba(63, 191, 63, 1)";
-            break;
+          // case 1: //The PU will be included in the initial reserve system but may or may not be in the final solution.
+          //   color = "rgba(63, 191, 63, 1)";
+          //   break;
           case 2: //The PU is fixed in the reserve system (“locked in”). It starts in the initial reserve system and cannot be removed.
             color = "rgba(63, 63, 191, 1)";
             break;
@@ -2345,7 +2345,7 @@ class App extends React.Component {
   }
 
   getStatusLevel(puid) {
-    //iterate through the planning unit statuses to see which status the clicked planning unit belongs to, i.e. 1,2 or 3
+    //iterate through the planning unit statuses to see which status the clicked planning unit belongs to, i.e. 1, 2 or 3
     let status_level = 0; //default level as the getPlanningUnits REST call only returns the planning units with non-default values
     PLANNING_UNIT_STATUSES.forEach((item) => {
       let planning_units = this.getPlanningUnitsByStatus(item);
@@ -2381,11 +2381,11 @@ class App extends React.Component {
       case 0:
         nextStatus = (direction === "up") ? 3 : 0;
         break;
-      case 1:
+      case 1: //no longer used
         nextStatus = (direction === "up") ? 0 : 0;
         break;
       case 2:
-        nextStatus = (direction === "up") ? 1 : 0;
+        nextStatus = (direction === "up") ? 0 : 0; //used to be 1 going down
         break;
       case 3:
         nextStatus = (direction === "up") ? 2 : 0;

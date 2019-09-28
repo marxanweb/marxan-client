@@ -97,6 +97,7 @@ class FeatureInfoDialog extends React.Component {
 					<MarxanDialog title="Properties" 
 						{...this.props}  
 						contentWidth={380}
+						helpLink={"docs_user.html#feature-properties-window"}
 						offsetX={135}
 						offsetY={250}
 						children={
