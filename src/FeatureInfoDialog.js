@@ -4,6 +4,14 @@ import ReactTable from "react-table";
 import {isNumber, isValidTargetValue} from './genericFunctions.js'; 
 
 class FeatureInfoDialog extends React.Component {
+	onKeyPress(key, e) {
+		if (e.nativeEvent.keyCode === 13 || e.nativeEvent.keyCode === 27) {
+			//update the feature
+			this.updateFeatureValue(key,e);
+			//closes this window
+			this.props.onOk();
+		}
+	}
 	getHTML(value, title = ''){
 		return <div title={(title !== '') ? title : value}>{value}</div>;
 	}
@@ -21,7 +29,7 @@ class FeatureInfoDialog extends React.Component {
 	}
 	//called when the user moves away from an editable property, e.g. target percent or spf
 	updateFeatureValue(key, evt){
-		var value = (key === "target_value") ? evt.currentTarget.innerHTML.substr(0, evt.currentTarget.innerHTML.length-1) : evt.currentTarget.innerHTML;
+		var value = evt.currentTarget.innerHTML;
 		if (((key === "target_value") && (isValidTargetValue(value))) || ((key === "spf") && (isNumber(value)))) {
 			var obj = {};
 			obj[key] = value;
@@ -51,10 +59,10 @@ class FeatureInfoDialog extends React.Component {
 				html = (props.row.value === -1) ? this.getHTML("Not calculated", "Total areas are not available for imported projects") : this.getAreaHTML(props, props.original.hint);
 				break;
 			case 'Target percent':
-				html = (this.props.userRole === "ReadOnly") ? <div>{props.row.value}%</div> : <div contentEditable suppressContentEditableWarning title="Click to edit" onBlur={this.updateFeatureValue.bind(this, "target_value")}>{props.row.value}%</div>;
+				html = (this.props.userRole === "ReadOnly") ? <div>{props.row.value}</div> : <div contentEditable suppressContentEditableWarning title="Click to edit" onBlur={this.updateFeatureValue.bind(this, "target_value")} onKeyPress={this.onKeyPress.bind(this, "target_value")}>{props.row.value}</div>;
 				break;
 			case 'Species Penalty Factor':
-				html = (this.props.userRole === "ReadOnly") ? <div>{props.row.value}%</div> : <div contentEditable suppressContentEditableWarning title="Click to edit" onBlur={this.updateFeatureValue.bind(this, "spf")}>{props.row.value}</div>;
+				html = (this.props.userRole === "ReadOnly") ? <div>{props.row.value}</div> : <div contentEditable suppressContentEditableWarning title="Click to edit" onBlur={this.updateFeatureValue.bind(this, "spf")} onKeyPress={this.onKeyPress.bind(this, "spf")}>{props.row.value}</div>;
 				break;
 			case 'Preprocessed':
 				html = (props.row.value) ? this.getHTML("Yes", "The feature has been intersected with the planning units") : this.getHTML("No", "The feature has not yet been intersected with the planning units");
