@@ -64,9 +64,6 @@ import PopupFeatureList from './PopupFeatureList';
 import PopupPAList from './PopupPAList';
 import TargetPopup from './TargetPopup';
 
-//GLOBAL VARIABLE IN MAPBOX CLIENT
-mapboxgl.accessToken = 'pk.eyJ1IjoiYmxpc2h0ZW4iLCJhIjoiMEZrNzFqRSJ9.0QBRA2HxTb8YHErUFRMPZg'; //this is my public access token for using in the Mapbox GL client - TODO change this to the logged in users public access token
-
 //CONSTANTS
 let MARXAN_CLIENT_VERSION = packageJson.version; //TODO UPDATE PACKAGE.JSON WHEN THERE IS A NEW VERSION
 let DOCS_ROOT = "https://andrewcottam.github.io/marxan-web/documentation/";
@@ -114,7 +111,6 @@ let FEATURE_PROPERTIES = [{ name: 'id', key: 'ID',hint: 'The unique identifier f
   { name: 'pu_area', key: 'Planning grid area',hint: 'The area of the feature within the planning grid in Km2 (calculated during pre-processing)', showForOld: true, showForNew: true},
   { name: 'target_area', key: 'Target area',hint: 'The total area that needs to be protected to achieve the target percentage in Km2 (calculated during a Marxan Run)', showForOld: true, showForNew: true},
   { name: 'protected_area', key: 'Area protected',hint: 'The total area protected in the current solution in Km2 (calculated during a Marxan Run)', showForOld: true, showForNew: true}];
-var mb_tk = "sk.eyJ1IjoiYmxpc2h0ZW4iLCJhIjoiY2piNm1tOGwxMG9lajMzcXBlZDR4aWVjdiJ9.Z1Jq4UAgGpXukvnUReLO1g";
 var wdpa_vector_tile_layer = ""; //the name of the WDPA vector tile layer that is set when a server is selected based on which version of the WDPA is in that servers PostGIS database
 var wdpaPopup = new mapboxgl.Popup({closeButton:false});
 
@@ -1753,6 +1749,7 @@ class App extends React.Component {
 
   //instantiates the mapboxgl map
   createMap(url){
+    mapboxgl.accessToken = window.MBAT_PUBLIC; //this is my public access token 
     this.map = new mapboxgl.Map({
       container: this.mapContainer,
       style: url,
@@ -2565,7 +2562,7 @@ class App extends React.Component {
     this.log({info: 'Uploading to Mapbox..',status:'Uploading'});
     return new Promise((resolve, reject) => {
       this.timer = setInterval(() => {
-        fetch("https://api.mapbox.com/uploads/v1/" + MAPBOX_USER + "/" + uploadid + "?access_token=" + mb_tk)
+        fetch("https://api.mapbox.com/uploads/v1/" + MAPBOX_USER + "/" + uploadid + "?access_token=" + window.MBAT)
           .then(response => response.json())
           .then((response) => {
             if (response.complete){

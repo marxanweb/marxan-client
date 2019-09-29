@@ -24,6 +24,7 @@ class FailedToDeleteDialog extends React.Component {
 					bodyStyle={{ padding:'0px 24px 0px 24px'}}
 					title= {"Failed to delete " + this.props.deleteWhat} 
 					contentWidth={500}
+					helpLink={"docs_user.html#deleting-features"}
 					children={
 						<React.Fragment key="k24">
 							<div style={{marginBottom:'5px'}}>{"The " + this.props.deleteWhat + " is used in the following projects:"}</div>
