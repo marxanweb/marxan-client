@@ -177,7 +177,7 @@ class ResultsPanel extends React.Component {
 								: null}
 								</div>
 							</Tab>
-							<Tab label="Log" value="log" onActive={this.props.log_tab_active} >
+							<Tab label="Log" value="log" onActive={this.props.log_tab_active} style={{ display: (this.props.userRole === "ReadOnly") ? 'none' : 'block'}}>
 								<Log messages={this.props.messages} id="log" mouseEnter={this.mouseEnter.bind(this)} mouseLeave={this.mouseLeave.bind(this)} preprocessing={this.props.preprocessing}/>
 								<div className={"runtime"} style={{'display': (this.props.preprocessing ? 'block' : 'none')}}>Runtime: {this.state.runtimeStr}s</div>
 								<div id='buttonsDiv' style={{position:'absolute',top:'430px',right:'16px',padding:'10px'}}>

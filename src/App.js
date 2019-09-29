@@ -1,4 +1,5 @@
 /*global fetch*/
+/*global URLSearchParams*/
 import React from 'react';
 import packageJson from '../package.json';
 import fetchJsonp from 'fetch-jsonp';
@@ -26,6 +27,7 @@ import ZoomIn from 'material-ui/svg-icons/action/zoom-in';
 import Preprocess from 'material-ui/svg-icons/action/autorenew';
 //project components
 import AppBar from './AppBar';
+import LoadingDialog from './LoadingDialog';
 import LoginDialog from './LoginDialog';
 import RegisterDialog from './RegisterDialog.js';
 import ResendPasswordDialog from './ResendPasswordDialog.js';
@@ -161,6 +163,7 @@ class App extends React.Component {
       failedToDeleteProjects: [],
       owner: '', // the owner of the project - may be different to the user, e.g. if logged on as guest (user) and accessing someone elses project (owner)
       loggedIn: false,
+      shareableLink: false,
       userData: {},
       unauthorisedMethods: [],
       metadata: {},
@@ -222,12 +225,63 @@ class App extends React.Component {
   }
 
   componentDidMount() {
+    //if this is a shareable link, then dont show the login form
+    if (window.location.search !== "") this.setState({loggedIn:true, shareableLink:true});
     //if disabling the login, then programatically log in
     if (DISABLE_LOGIN) this.validateUser();
-    //check application level variables have been loaded from my github CDN (the MARXAN_REGISTRY_FILENAME)
-    this.getGlobalVariables();
+    //check application level variables have been loaded from the Marxan Registry
+    this.getGlobalVariables().then(()=>{
+      //automatically login if this is a shareable link
+      if (window.location.search !== "") {
+        var searchParams = new URLSearchParams(window.location.search);
+        this.openShareableLink(searchParams);
+      }
+    });
     //instantiate the classybrew to get the color ramps for the renderers
     this.setState({ brew: new classyBrew() });
+  }
+  
+  //gets various global variables from the marxan registry
+  getGlobalVariables(){
+    return new Promise((resolve, reject) => {
+      mapboxgl.accessToken = window.MBAT_PUBLIC; //this is my public access token 
+      //initialise the basemaps
+      this.setState({basemaps: window.MAPBOX_BASEMAPS});
+      //get all the information for the marxan servers by polling them
+      this.initialiseServers(window.MARXAN_SERVERS).then((response)=>{
+        resolve(response);
+      });
+    });
+  }
+  
+  //automatically logs in and loads a project as a guest user
+  openShareableLink(searchParams){
+    try {
+      if (searchParams.has("server") && searchParams.has("user") && searchParams.has("project")){
+        //get the server data from the servers object
+        let serverData = this.state.marxanServers.find(server => server.name === searchParams.get("server"));
+        if (serverData === undefined) throw new Error("Invalid server parameter on shareable link");
+        if (serverData && serverData.offline) throw new Error("Server is offline");
+        if (serverData && !serverData.guestUserEnabled) throw new Error("Guest user is not enabled on the server");
+        //set the server
+        this.selectServer(serverData);
+        //switch to the guest user
+        this.switchToGuestUser().then(()=>{
+          //login
+          this.login().then((response)=>{
+            this.loadProject(searchParams.get("project"),searchParams.get("user")).then(()=>{
+              //hide the loading dialog
+              this.setState({shareableLink:false});
+            });
+          });
+        });
+      }else{
+        throw new Error("Invalid query parameters on shareable link");
+      }
+    }
+		catch (err) {
+		  alert(err);
+		}
   }
   
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -465,38 +519,34 @@ class App extends React.Component {
   ////////////////////////// MANAGING MARXAN SERVERS
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  //gets various global variables from the marxan registry
-  getGlobalVariables(){
-    //initialise the basemaps
-    this.setState({basemaps: window.MAPBOX_BASEMAPS});
-    //get all the information for the marxan servers by polling them
-    this.initialiseServers(window.MARXAN_SERVERS);
-  }
-  
   //initialises the servers by requesting their capabilities and then filtering the list of available servers
   initialiseServers(marxanServers){
-    //get a list of server hosts from the marxan.js registry
-    let hosts = marxanServers.map((server) => {
-      return server.host;  
-    });
-    //add the current domain - this may be a local/local network install
-    let name = (window.location.hostname === "localhost") ? "localhost" : window.location.hostname;
-    marxanServers.push(({name: name, protocol: window.location.protocol, host: window.location.hostname, port: 8080, description:'Local machine', type:'local', }));
-    //get all the server capabilities - when all the servers have responded, finalise the marxanServer array
-    this.getAllServerCapabilities(marxanServers).then((server) => {
-      //remove the current domain if either the marxan server is not installed, or it is already in the list of servers from the marxan registry
-      marxanServers = marxanServers.filter((item) => {
-        return (item.type==="remote" || (item.type==="local" && !item.offline && hosts.indexOf(item.host) === -1) || (item.host === 'localhost'));
+    return new Promise((resolve, reject) => {
+      //get a list of server hosts from the marxan.js registry
+      let hosts = marxanServers.map((server) => {
+        return server.host;  
       });
-      //sort the servers by the name 
-      marxanServers.sort((a, b) => {
-        if ((a.name.toLowerCase() < b.name.toLowerCase())||(a.type === "local"))
-          return -1;
-        if (a.name.toLowerCase() > b.name.toLowerCase())
-          return 1;
-        return 0;
+      //add the current domain - this may be a local/local network install
+      let name = (window.location.hostname === "localhost") ? "localhost" : window.location.hostname;
+      marxanServers.push(({name: name, protocol: window.location.protocol, host: window.location.hostname, port: 8080, description:'Local machine', type:'local', }));
+      //get all the server capabilities - when all the servers have responded, finalise the marxanServer array
+      this.getAllServerCapabilities(marxanServers).then((server) => {
+        //remove the current domain if either the marxan server is not installed, or it is already in the list of servers from the marxan registry
+        marxanServers = marxanServers.filter((item) => {
+          return (item.type==="remote" || (item.type==="local" && !item.offline && hosts.indexOf(item.host) === -1) || (item.host === 'localhost'));
+        });
+        //sort the servers by the name 
+        marxanServers.sort((a, b) => {
+          if ((a.name.toLowerCase() < b.name.toLowerCase())||(a.type === "local"))
+            return -1;
+          if (a.name.toLowerCase() > b.name.toLowerCase())
+            return 1;
+          return 0;
+        });
+        this.setState({marxanServers: marxanServers}, ()=>{
+          resolve("ServerData retrieved");
+        });
       });
-      this.setState({marxanServers: marxanServers});
     });
   }  
 
@@ -561,7 +611,7 @@ class App extends React.Component {
     this.setWDPAVectorTilesLayerName(value.wdpa_version);
     //if the server is ready only then change the user/password to the guest user
     if (!value.offline && !value.corsEnabled && value.guestUserEnabled){
-      this.setState({user: "guest", password:"password"});
+      this.switchToGuestUser();
     }
   }
   
@@ -637,23 +687,27 @@ class App extends React.Component {
 
   //the user is validated so login
   login() {
-    this._get("getUser?user=" + this.state.user).then((response) => {
-      this.setState({userData: response.userData, unauthorisedMethods: response.unauthorisedMethods, project: response.userData.LASTPROJECT});
-      //set the basemap
-      var basemap = this.state.basemaps.filter((item) => {return (item.name === response.userData.BASEMAP);})[0];
-      this.setBasemap(basemap).then(() => {
-        //get all features
-        this.getAllFeatures().then(() => {
-          //get the users last project and load it 
-          this.loadProject(response.userData.LASTPROJECT, this.state.user);
+    return new Promise((resolve, reject) => {
+      this._get("getUser?user=" + this.state.user).then((response) => {
+        this.setState({userData: response.userData, unauthorisedMethods: response.unauthorisedMethods, project: response.userData.LASTPROJECT});
+        //set the basemap
+        var basemap = this.state.basemaps.filter((item) => {return (item.name === response.userData.BASEMAP);})[0];
+        this.setBasemap(basemap).then(() => {
+          //get all features
+          this.getAllFeatures().then(() => {
+            //get the users last project and load it 
+            this.loadProject(response.userData.LASTPROJECT, this.state.user).then((response)=>{
+              resolve("Logged in");
+            });
+          });
+          //get all planning grids
+          this.getPlanningUnitGrids();
+          //see if there is a new version of the wdpa data - this comes from the Marxan Registry WDPA object - if there is then show the alert message to admin users
+          ((this.state.marxanServer.wdpa_version !== window.WDPA.latest_version) && (this.state.userData.ROLE === 'Admin')) ? this.setState({newWDPAVersion: true, alertDialogOpen: true}) : this.setState({newWDPAVersion: false, alertDialogOpen: false});
         });
-        //get all planning grids
-        this.getPlanningUnitGrids();
-        //see if there is a new version of the wdpa data - this comes from the Marxan Registry WDPA object - if there is then show the alert message to admin users
-        ((this.state.marxanServer.wdpa_version !== window.WDPA.latest_version) && (this.state.userData.ROLE === 'Admin')) ? this.setState({newWDPAVersion: true, alertDialogOpen: true}) : this.setState({newWDPAVersion: false, alertDialogOpen: false});
+      }).catch((error) => {
+        //do something
       });
-    }).catch((error) => {
-      //do something
     });
   }
 
@@ -669,6 +723,15 @@ class App extends React.Component {
       //do something
     });
   }
+  
+  switchToGuestUser(){
+    return new Promise((resolve, reject) => {
+      this.setState({user: "guest", password:"password"}, ()=> {
+        resolve("Switched to guest user");
+      });
+    });
+  }
+  
   changeEmail(value) { 
       this.setState({ resendEmail: value });
   }
@@ -868,36 +931,41 @@ class App extends React.Component {
 
   //loads a project
   loadProject(project, user) {
-    //reset the results from any previous projects
-    this.resetResults();
-    this._get("getProject?user=" + user + "&project=" + project).then((response) => {
-      //set the state for the app based on the data that is returned from the server
-      this.setState({ loggedIn: true, project: response.project, owner: user, runParams: response.runParameters, files: Object.assign(response.files), metadata: response.metadata, renderer: response.renderer, planning_units: response.planning_units, infoPanelOpen: true, resultsPanelOpen: true  });
-      //if there is a PLANNING_UNIT_NAME passed then change to this planning grid and load the results if there are any available
-      if (response.metadata.PLANNING_UNIT_NAME) {
-        this.changePlanningGrid(MAPBOX_USER + "." + response.metadata.PLANNING_UNIT_NAME).then(()=>{
-          //poll the server to see if results are available for this project - if there are these will be loaded
-          this.getResults(user, response.project);
-        });
-      }
-      //set a local variable for the feature preprocessing - this is because we dont need to track state with these variables as they are not bound to anything
-      this.feature_preprocessing = response.feature_preprocessing;
-      //set a local variable for the protected area intersections - this is because we dont need to track state with these variables as they are not bound to anything
-      this.protected_area_intersections = response.protected_area_intersections;
-      //set a local variable for the selected iucn category
-      this.previousIucnCategory = response.metadata.IUCN_CATEGORY;
-      //initialise all the interest features with the interest features for this project
-      this.initialiseInterestFeatures(response.metadata.OLDVERSION, response.features);
-    }).catch((error) => {
-        if (error.indexOf('Logged on as read-only guest user')>-1){
-          this.setState({loggedIn: true});
+    return new Promise((resolve, reject) => {
+      //reset the results from any previous projects
+      this.resetResults();
+      this._get("getProject?user=" + user + "&project=" + project).then((response) => {
+        //set the state for the app based on the data that is returned from the server
+        this.setState({ loggedIn: true, project: response.project, owner: user, runParams: response.runParameters, files: Object.assign(response.files), metadata: response.metadata, renderer: response.renderer, planning_units: response.planning_units, infoPanelOpen: true, resultsPanelOpen: true  });
+        //if there is a PLANNING_UNIT_NAME passed then change to this planning grid and load the results if there are any available
+        if (response.metadata.PLANNING_UNIT_NAME) {
+          this.changePlanningGrid(MAPBOX_USER + "." + response.metadata.PLANNING_UNIT_NAME).then(()=>{
+            //poll the server to see if results are available for this project - if there are these will be loaded
+            this.getResults(user, response.project).then((response)=> {
+              resolve("Project loaded");
+            });
+          });
         }
-        if (error.indexOf("does not exist")>-1){
-          //probably the last loaded project has been deleted - send some feedback and load another project
-          this.setSnackBar("Loading first available project");
-          //passing an empty project to loadProject will load the first project
-          this.loadProject('', this.state.user);
-        }
+        //set a local variable for the feature preprocessing - this is because we dont need to track state with these variables as they are not bound to anything
+        this.feature_preprocessing = response.feature_preprocessing;
+        //set a local variable for the protected area intersections - this is because we dont need to track state with these variables as they are not bound to anything
+        this.protected_area_intersections = response.protected_area_intersections;
+        //set a local variable for the selected iucn category
+        this.previousIucnCategory = response.metadata.IUCN_CATEGORY;
+        //initialise all the interest features with the interest features for this project
+        this.initialiseInterestFeatures(response.metadata.OLDVERSION, response.features);
+      }).catch((error) => {
+          if (error.indexOf('Logged on as read-only guest user')>-1){
+            this.setState({loggedIn: true});
+            resolve("No project loaded - logged on as read-only guest user'");
+          }
+          if (error.indexOf("does not exist")>-1){
+            //probably the last loaded project has been deleted - send some feedback and load another project
+            this.setSnackBar("Loading first available project");
+            //passing an empty project to loadProject will load the first project
+            this.loadProject('', this.state.user);
+          }
+      });
     });
   }
 
@@ -1243,10 +1311,13 @@ class App extends React.Component {
 
   //gets the results for a project
   getResults(user, project){
-    this._get("getResults?user=" + user + "&project=" + project).then((response) => {
-      this.runCompleted(response);
-    }).catch((error) => {
-      //do something
+    return new Promise((resolve, reject) => {
+      this._get("getResults?user=" + user + "&project=" + project).then((response) => {
+        this.runCompleted(response);
+        resolve("Results retrieved");
+      }).catch((error) => {
+        reject("Unable to get results");
+      });
     });
   }
   
@@ -1748,7 +1819,6 @@ class App extends React.Component {
 
   //instantiates the mapboxgl map
   createMap(url){
-    mapboxgl.accessToken = window.MBAT_PUBLIC; //this is my public access token 
     this.map = new mapboxgl.Map({
       container: this.mapContainer,
       style: url,
@@ -3615,6 +3685,9 @@ class App extends React.Component {
       <MuiThemeProvider>
         <React.Fragment>
           <div ref={el => this.mapContainer = el} className="absolute top right left bottom" />
+          <LoadingDialog
+            open={this.state.shareableLink}
+          />
           <LoginDialog 
             open={!this.state.loggedIn} 
             onOk={this.processLogin.bind(this)} 
@@ -3755,6 +3828,7 @@ class App extends React.Component {
             changeOpacity={this.changeOpacity.bind(this)}
             results_layer_opacity={this.state.results_layer_opacity}
             wdpa_layer_opacity={this.state.wdpa_layer_opacity}
+            userRole={this.state.userData.ROLE}
           />
           <FeatureInfoDialog
             open={this.state.openInfoDialogOpen}

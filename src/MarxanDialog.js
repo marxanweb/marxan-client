@@ -28,6 +28,7 @@ class MarxanDialog extends React.Component {
 		let offsetY = (this.props.offsetY) ? {marginTop: this.props.offsetY - 60 + 'px'} : {};
 		let style = Object.assign(offsetX, offsetY);
 		let cancelButton = (this.props.showCancelButton) ? <ToolbarButton label={(this.props.cancelLabel) ? this.props.cancelLabel : "Cancel"} primary={true} onClick={this.props.onCancel} disabled={this.props.cancelDisabled}/> : null;
+		let okButton = (this.props.hideOKButton) ?  null : <ToolbarButton label={(this.props.okLabel) ? this.props.okLabel : "OK"} primary={true} onClick={this.props.onOk} disabled={this.props.okDisabled}/>;
 		let contentStyle = (this.props.contentStyle) ? this.props.contentStyle : (this.props.contentWidth) ? {width: this.props.contentWidth + 'px'} : {};
 		return (
 			<Dialog      
@@ -42,12 +43,7 @@ class MarxanDialog extends React.Component {
 				actions={[
 					this.props.actions,
 					cancelButton, 
-					<ToolbarButton 
-						label={(this.props.okLabel) ? this.props.okLabel : "OK"} 
-						primary={true} 
-						onClick={this.props.onOk} 
-						disabled={this.props.okDisabled}
-					/>,
+					okButton,
 				]} 
 				children={[
 					(this.props.titleBarIcon) ? <FontAwesomeIcon icon={this.props.titleBarIcon} style={{position: 'absolute', top: '18px', left: '24px'}} key="k1"/> : null,

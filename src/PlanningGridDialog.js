@@ -77,8 +77,8 @@ class PlanningGridDialog extends React.Component {
 									<td className='metadataItemValue'>{this.props.planning_grid_metadata.feature_class_name}</td>
 								</tr>
 								<tr style={{display:(this.state.expanded) ? 'table-row' : 'none'}}>
-									<td className='metadataItemTitle'>envelope:</td>
-									<td className='metadataItemValue'>{this.props.planning_grid_metadata.envelope}</td>
+									<td className='metadataItemTitle'>tilesetid:</td>
+									<td className='metadataItemValue'>{this.props.planning_grid_metadata.tilesetid}</td>
 								</tr>
 							</table>
 							<FontAwesomeIcon icon={(this.state.expanded) ? faAngleUp : faAngleDown} onClick={this.expand.bind(this)} title={(this.state.expanded) ? "Show less details" : "Show more details"} className={'appBarIcon'} style={{fontSize: '20px'}}/>
