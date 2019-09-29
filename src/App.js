@@ -969,13 +969,12 @@ class App extends React.Component {
   }
 
   //create a new user on the server
-  createNewUser(user, password, name, email, mapboxaccesstoken) {
+  createNewUser(user, password, name, email) {
     let formData = new FormData();
     formData.append('user', user);
     formData.append('password', password);
     formData.append('fullname', name);
     formData.append('email', email);
-    formData.append('mapboxaccesstoken', mapboxaccesstoken);
     this._post("createUser", formData).then((response) => {
       //ui feedback
       this.setSnackBar(response.info);
@@ -1966,7 +1965,7 @@ class App extends React.Component {
   //gets all of the metadata for the tileset
   getMetadata(tilesetId) {
     return new Promise((resolve, reject) => {
-      fetch("https://api.mapbox.com/v4/" + tilesetId + ".json?secure&access_token=" + this.state.userData.MAPBOXACCESSTOKEN)
+      fetch("https://api.mapbox.com/v4/" + tilesetId + ".json?secure&access_token=" + window.MBAT_PUBLIC)
       .then(response => response.json())
       .then((response2) => {
         if ((response2.message != null) && (response2.message.indexOf('does not exist') > 0)){
@@ -1974,9 +1973,6 @@ class App extends React.Component {
         }else{
           resolve(response2);
         }
-      })
-      .catch((error) => {
-        reject(error);
       });
     });
   }
