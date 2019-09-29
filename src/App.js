@@ -64,7 +64,8 @@ import ChangePasswordDialog from './ChangePasswordDialog';
 import Popup from './Popup';
 import PopupFeatureList from './PopupFeatureList';
 import PopupPAList from './PopupPAList';
-import TargetPopup from './TargetPopup';
+import TargetDialog from './TargetDialog';
+import ShareableLinkDialog from './ShareableLinkDialog';
 
 //CONSTANTS
 let MARXAN_CLIENT_VERSION = packageJson.version; //TODO UPDATE PACKAGE.JSON WHEN THERE IS A NEW VERSION
@@ -138,6 +139,7 @@ class App extends React.Component {
       projectsDialogOpen: false,
       openInfoDialogOpen: false,
       newProjectDialogOpen: false, 
+      shareableLinkDialogOpen: false,
       classificationDialogOpen: false,
       resendPasswordDialogOpen: false,
       NewPlanningGridDialogOpen: false, 
@@ -154,7 +156,7 @@ class App extends React.Component {
       runLogDialogOpen: false,
       infoPanelOpen: false,
       resultsPanelOpen: false,
-      targetPopupOpen: false,
+      targetDialogOpen: false,
       guestUserEnabled: true,
       users: [],
       user: DISABLE_LOGIN ? 'andrew' : '', //TODO REMOVE DISABLE_LOGIN
@@ -220,7 +222,8 @@ class App extends React.Component {
       mapZoom: 12,
       runLogs:[],
       puEditing: false,
-      wdpaAttribution: ""
+      wdpaAttribution: "",
+      shareableLinkUrl: "wibble"
     };
   }
 
@@ -229,11 +232,13 @@ class App extends React.Component {
     if (window.location.search !== "") this.setState({loggedIn:true, shareableLink:true});
     //if disabling the login, then programatically log in
     if (DISABLE_LOGIN) this.validateUser();
-    //check application level variables have been loaded from the Marxan Registry
+    //parse the application level variables from the Marxan Registry
     this.getGlobalVariables().then(()=>{
       //automatically login if this is a shareable link
       if (window.location.search !== "") {
+        //get the query parameters
         var searchParams = new URLSearchParams(window.location.search);
+        //open the shareable link
         this.openShareableLink(searchParams);
       }
     });
@@ -268,7 +273,7 @@ class App extends React.Component {
         //switch to the guest user
         this.switchToGuestUser().then(()=>{
           //login
-          this.login().then((response)=>{
+          this.validateUser().then((response)=>{
             this.loadProject(searchParams.get("project"),searchParams.get("user")).then(()=>{
               //hide the loading dialog
               this.setState({shareableLink:false});
@@ -677,11 +682,15 @@ class App extends React.Component {
   }
   //validates the user and then logs in if successful
   validateUser() {
-    this.checkPassword(this.state.user, this.state.password).then(() => {
-      //user validated - log them in
-      this.login();
-    }).catch((error) => {
-      //do something
+    return new Promise((resolve, reject) => {
+      this.checkPassword(this.state.user, this.state.password).then(() => {
+        //user validated - log them in
+        this.login().then((response)=>{
+          resolve("User validated");
+        });
+      }).catch((error) => {
+        //do something
+      });
     });
   }
 
@@ -3289,13 +3298,19 @@ class App extends React.Component {
   closeFailedToDeleteDialog(){
     this.setState({FailedToDeleteDialogOpen: false});
   }
-  openTargetPopup(){
-    this.setState({targetPopupOpen:true});
+  openTargetDialog(){
+    this.setState({targetDialogOpen:true});
   }
-  closeTargetPopup(){
-    this.setState({targetPopupOpen:false});
+  closeTargetDialog(){
+    this.setState({targetDialogOpen:false});
   }
 
+  openShareableLinkDialog(){
+    this.setState({shareableLinkDialogOpen: true});
+  }
+  closeShareableLinkDialog(){
+    this.setState({shareableLinkDialogOpen: false});
+  }
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////// PROTECTED AREAS LAYERS STUFF
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3679,6 +3694,10 @@ class App extends React.Component {
     });
   }
   
+  getShareableLink(){
+    this.openShareableLinkDialog();
+  }
+  
   render() {
     const message = (<span id="snackbar-message-id" dangerouslySetInnerHTML={{ __html: this.state.snackbarMessage }} />);    
     return (
@@ -3804,8 +3823,10 @@ class App extends React.Component {
             userRole={this.state.userData.ROLE}
             toggleProjectPrivacy={this.toggleProjectPrivacy.bind(this)}
             toggleCosts={this.toggleCosts.bind(this)}
-            openTargetPopup={this.openTargetPopup.bind(this)}
+            openTargetDialog={this.openTargetDialog.bind(this)}
             zoomToProjectBounds={this.zoomToProjectBounds.bind(this)}
+            getShareableLink={this.getShareableLink.bind(this)}
+            marxanServer={this.state.marxanServer}
           />
           <ResultsPanel
             open={this.state.resultsPanelOpen}
@@ -4100,12 +4121,17 @@ class App extends React.Component {
               <MenuItemWithButton leftIcon={<Preprocess style={{margin: '1px'}}/>} style={{display: ((this.state.currentFeature.old_version)||(this.state.userData.ROLE === "ReadOnly")) ? 'none' : 'block'}} onClick={this.preprocessSingleFeature.bind(this, this.state.currentFeature)} disabled={this.state.currentFeature.preprocessed || this.state.preprocessing}>Pre-process</MenuItemWithButton>
             </Menu>
           </Popover>   
-          <TargetPopup 
-            open={this.state.targetPopupOpen}
-            onOk={this.closeTargetPopup.bind(this)}
+          <TargetDialog 
+            open={this.state.targetDialogOpen}
+            onOk={this.closeTargetDialog.bind(this)}
             showCancelButton={true}
-            onCancel={this.closeTargetPopup.bind(this)}
+            onCancel={this.closeTargetDialog.bind(this)}
             updateTargetValueForFeatures={this.updateTargetValueForFeatures.bind(this)}
+          />
+          <ShareableLinkDialog
+            open={this.state.shareableLinkDialogOpen}
+            onOk={this.closeShareableLinkDialog.bind(this)}
+            shareableLinkUrl={window.location + "?server=" + this.state.marxanServer.name + "&user=" + this.state.user + "&project=" + this.state.project}
           />
           <AppBar
             open={this.state.loggedIn}

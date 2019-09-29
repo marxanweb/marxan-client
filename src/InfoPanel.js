@@ -14,6 +14,7 @@ import { faLock } from '@fortawesome/free-solid-svg-icons';
 import { faUnlock } from '@fortawesome/free-solid-svg-icons';
 import { faEraser } from '@fortawesome/free-solid-svg-icons';
 import { faHome } from '@fortawesome/free-solid-svg-icons';
+import { faShareAlt } from '@fortawesome/free-solid-svg-icons';
 
 class InfoPanel extends React.Component {
 	constructor(props) {
@@ -123,7 +124,7 @@ class InfoPanel extends React.Component {
 									leftmargin={'10px'}
 									simple={false}
 									showTargetButton={true}
-									openTargetPopup={this.props.openTargetPopup}
+									openTargetDialog={this.props.openTargetDialog}
 									userRole={this.props.userRole}
 								/>
 							</Tab>
@@ -179,6 +180,12 @@ class InfoPanel extends React.Component {
 									icon={<FontAwesomeIcon icon={faHome}/>} 
 									title="Zoom to project extent"
 									onClick={this.props.zoomToProjectBounds} 
+								/>
+								<ToolbarButton   
+									icon={<FontAwesomeIcon icon={faShareAlt}/>} 
+									title={(this.props.marxanServer.type!=='remote') ? "Unable to share a link from a project on a local computer": "Get a shareable link to this project"}
+									onClick={this.props.getShareableLink} 
+									disabled={(this.props.marxanServer.type!=='remote')}
 								/>
 								<ToolbarButton   
 									icon={<Settings style={{height:'20px',width:'20px'}}/>} 

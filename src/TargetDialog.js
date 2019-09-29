@@ -3,7 +3,7 @@ import MarxanDialog from './MarxanDialog';
 import TextField from 'material-ui/TextField';
 import { isValidTargetValue } from './genericFunctions.js';
 
-class TargetPopup extends React.PureComponent {
+class TargetDialog extends React.PureComponent {
     constructor(props) {
         super(props);
         this.state = { target_value: 17, validTarget: true };
@@ -42,12 +42,12 @@ class TargetPopup extends React.PureComponent {
                         floatingLabelFocusStyle={{fontSize:'16px'}} 
                         style={{fontSize:'13px',width:'70px'}} 
                         errorText={this.state.validTarget ?  '' : "Invalid target"} 
-                    /> <
-            /React.Fragment>
+                    /> 
+                </React.Fragment>
         }
         />
     );
 }
 }
 
-export default TargetPopup;
+export default TargetDialog;
