@@ -98,7 +98,7 @@ let RESULTS_LAYER_FILL_OPACITY_INACTIVE = 0;
 let WDPA_FILL_LAYER_OPACITY = 0.2;
 let HIDE_PUVSPR_LAYER_TEXT = "Remove planning unit outlines";
 let SHOW_PUVSPR_LAYER_TEXT = "Outline planning units where the feature occurs";
-let CLUMP_COUNT = 5;
+
 //an array of feature property information that is used in the Feature Information dialog box - showForOld sets whether that property is shown for old versions of marxan
 let FEATURE_PROPERTIES = [{ name: 'id', key: 'ID',hint: 'The unique identifier for the feature', showForOld: false, showForNew: false},
   { name: 'alias', key: 'Alias',hint: 'A human readable name for the feature', showForOld: false, showForNew: false},
@@ -210,9 +210,6 @@ class App extends React.Component {
       map2_paintProperty: [],
       map3_paintProperty: [],
       map4_paintProperty: [],
-      blmValues: [0.001,0.01,0.1,1,10],
-      blmMin: 0.001,
-      blmMax: 10, 
       clumpingRunning: false,
       deleteWhat:'',
       pid: 0,
@@ -3540,8 +3537,6 @@ class App extends React.Component {
         this.updatePuvsprFile().then((value) => {
           //show the clumping dialog
           this.setState({ clumpingDialogOpen: true, clumpingRunning: true });
-          //create the project group and run
-          this.createProjectGroupAndRun();
         });
       }).catch((error) => { //updateSpecFile error
         
@@ -3561,11 +3556,11 @@ class App extends React.Component {
   }
 
   //creates a group of 5 projects with UUIDs in the _clumping folder
-  createProjectGroupAndRun(){
+  createProjectGroupAndRun(blmValues){
     //clear any exists projects
     if (this.projects) this.deleteProjects();
     return new Promise((resolve, reject) => {
-      this._get("createProjectGroup?user=" + this.state.owner + "&project=" + this.state.project + "&copies=5&blmValues=" + this.state.blmValues.join(",")).then((response) => {
+      this._get("createProjectGroup?user=" + this.state.owner + "&project=" + this.state.project + "&copies=5&blmValues=" + blmValues.join(",")).then((response) => {
         //set the local variable for the projects
         this.projects = response.data;
         //run the projects
@@ -3616,50 +3611,16 @@ class App extends React.Component {
     });
   }
   
-  rerunProjects(){
+  rerunProjects(blmChanged, blmValues){
     //reset the paint properties in the clumping dialog
     this.resetPaintProperties();
     //if the blmValues have changed then recreate the project group and run
-    if (this.blmChanged){
-      this.createProjectGroupAndRun();
+    if (blmChanged){
+      this.createProjectGroupAndRun(blmValues);
     }else{
       //rerun the projects
       this.runProjects(this.projects);
     }
-    //reset the flag
-    this.blmChanged = false;
-  }
-  
-  resetPaintProperties(){
-    //reset the paint properties
-    this.setState({map0_paintProperty:[],map1_paintProperty:[],map2_paintProperty:[],map3_paintProperty:[],map4_paintProperty:[]});
-  }
-
-  changBlmMin(event, newValue){
-    //get the new blmValues
-    this.getBlmValues(newValue, this.state.blmMax);
-    //set the new blmMin
-    this.setState({blmMin:newValue});
-  }
-  
-  changBlmMax(event, newValue){
-    //get the new blmValues
-    this.getBlmValues(this.state.blmMin, newValue);
-    //set the new blmMax
-    this.setState({blmMax:newValue});
-  }
-
-  getBlmValues(min, max){
-    var blmValues = [];
-    //get the increment
-    var increment = (max - min) / (CLUMP_COUNT - 1);
-    //make the array of blmValues
-    for (var i = 0; i < CLUMP_COUNT; i++){
-        blmValues[i] = (i * increment) + Number(min);
-    }    
-    this.setState({blmValues: blmValues});
-    //flag that the blmValues have changed
-    this.blmChanged = true;
   }
   
   setBlmValue(blmValue){
@@ -3672,7 +3633,11 @@ class App extends React.Component {
     //update this run parameters
     this.updateRunParams(newRunParams);
   }
-  
+
+  resetPaintProperties(){
+    //reset the paint properties
+    this.setState({map0_paintProperty:[],map1_paintProperty:[],map2_paintProperty:[],map3_paintProperty:[],map4_paintProperty:[]});
+  }
   
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////// MANAGING RUNS
@@ -4046,14 +4011,10 @@ class App extends React.Component {
             map2_paintProperty={this.state.map2_paintProperty}
             map3_paintProperty={this.state.map3_paintProperty}
             map4_paintProperty={this.state.map4_paintProperty}
-            blmValues={this.state.blmValues}
             mapCentre={this.state.mapCentre}
             mapZoom={this.state.mapZoom}
+            createProjectGroupAndRun={this.createProjectGroupAndRun.bind(this)}
             rerunProjects={this.rerunProjects.bind(this)}
-            changBlmMin={this.changBlmMin.bind(this)}
-            changBlmMax={this.changBlmMax.bind(this)}
-            blmMin={this.state.blmMin}
-            blmMax={this.state.blmMax}
             setBlmValue={this.setBlmValue.bind(this)}
             clumpingRunning={this.state.clumpingRunning}
           />
