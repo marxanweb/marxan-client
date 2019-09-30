@@ -74,7 +74,6 @@ let ERRORS_PAGE = DOCS_ROOT + "docs_errors.html";
 let SEND_CREDENTIALS = true; //if true all post requests will send credentials
 let TORNADO_PATH = "/marxan-server/";
 let TIMEOUT = 0; //disable timeout setting
-let DISABLE_LOGIN = false; //to not show the login form, set loggedIn to true
 let MAPBOX_USER = "blishten";
 let MAPBOX_STYLE_PREFIX = 'mapbox://styles/';
 let PLANNING_UNIT_STATUSES = [1, 2, 3];
@@ -159,9 +158,9 @@ class App extends React.Component {
       targetDialogOpen: false,
       guestUserEnabled: true,
       users: [],
-      user: DISABLE_LOGIN ? 'andrew' : '', //TODO REMOVE DISABLE_LOGIN
-      password: DISABLE_LOGIN ? 'asd' : '',
-      project: DISABLE_LOGIN ? 'Tonga marine' : '',
+      user: '', 
+      password: '',
+      project: '',
       failedToDeleteProjects: [],
       owner: '', // the owner of the project - may be different to the user, e.g. if logged on as guest (user) and accessing someone elses project (owner)
       loggedIn: false,
@@ -227,8 +226,6 @@ class App extends React.Component {
   componentDidMount() {
     //if this is a shareable link, then dont show the login form
     if (window.location.search !== "") this.setState({loggedIn:true, shareableLink:true});
-    //if disabling the login, then programatically log in
-    if (DISABLE_LOGIN) this.validateUser();
     //parse the application level variables from the Marxan Registry
     this.getGlobalVariables().then(()=>{
       //automatically login if this is a shareable link
@@ -325,7 +322,7 @@ class App extends React.Component {
           this.setState({loading: false});
           reject(response.data.error);
         }
-      }, (err) => {
+      }, (err) => {//TODO - If the request is unauthorised it returns the Status Code of 200 with the error: "HTTP 403: Forbidden (The 'ReadOnly' role does not have permission to access the 'updateSpecFile' service)" - but for some reason this error handling is used
         this.setState({loading: false});
         this.setSnackBar(err.message);
         reject(err);
