@@ -3972,7 +3972,6 @@ class App extends React.Component {
             checkForErrors={this.checkForErrors.bind(this)} 
             log={this.log.bind(this)}
             setSnackBar={this.setSnackBar.bind(this)}
-            user={this.state.user}
           />
           <RunLogDialog
             open={this.state.runLogDialogOpen}
@@ -3981,8 +3980,8 @@ class App extends React.Component {
             loading={this.state.loading}
             preprocessing={this.state.preprocessing}
             unauthorisedMethods={this.state.unauthorisedMethods}
-            getRunLogs={this.getRunLogs.bind(this)}
             runLogs={this.state.runLogs}
+            getRunLogs={this.getRunLogs.bind(this)}
             clearRunLogs={this.clearRunLogs.bind(this)}
             stopMarxan={this.stopProcess.bind(this)}
           />
