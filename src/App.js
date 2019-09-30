@@ -157,6 +157,8 @@ class App extends React.Component {
       resultsPanelOpen: false,
       targetDialogOpen: false,
       guestUserEnabled: true,
+      userMenuOpen: false,
+      helpMenuOpen: false,
       users: [],
       user: '', 
       password: '',
@@ -169,8 +171,6 @@ class App extends React.Component {
       unauthorisedMethods: [],
       metadata: {},
       renderer: {},
-      editingProjectName: false,
-      editingDescription: false,
       runParams: [],
       files: {},
       popup_point: { x: 0, y: 0 },
@@ -179,14 +179,12 @@ class App extends React.Component {
       tilesets: [],
       puFeatures: [],
       paFeatures: [],
-      userMenuOpen: false,
-      helpMenuOpen: false,
+      loading: false,
       preprocessing: false,
       pa_layer_visible: false,
       currentFeature:{},
       puvsprLayerText: '',
       featureDatasetFilename: '',
-      loading: false,
       dataBreaks: [],
       allFeatures: [], //all of the interest features in the metadata_interest_features table
       projectFeatures: [], //the features for the currently loaded project
@@ -219,7 +217,7 @@ class App extends React.Component {
       runLogs:[],
       puEditing: false,
       wdpaAttribution: "",
-      shareableLinkUrl: "wibble"
+      shareableLinkUrl: ""
     };
   }
 
@@ -654,16 +652,6 @@ class App extends React.Component {
     this.setState({ password: password });
   }
   
-  //gets the server data and then validates the user
-  processLogin(){
-    this._get("getServerData").then((response) => {
-        //set the state for enabling the guest user
-        this.setState({guestUserEnabled: response.serverData.ENABLE_GUEST_USER});
-        //validate the use
-        this.validateUser();
-    });
-  }
-  
   //checks the users credentials
   checkPassword(user, password) {
     return new Promise((resolve, reject) => {
@@ -722,8 +710,6 @@ class App extends React.Component {
     //clear the currently set cookies
     this._get("logout").then((response) => {
         //do something
-    }).catch((error) => {
-      //do something
     });
   }
   
@@ -780,8 +766,6 @@ class App extends React.Component {
         //delete all the projects belonging to that user
         this.deleteProjectsForUser(user);
       }
-    }).catch((error) => {
-      //do something
     });
   }
   
@@ -815,8 +799,6 @@ class App extends React.Component {
     this._get("toggleEnableGuestUser").then((response) => {
       //if succesfull set the state
       this.setState({ guestUserEnabled: response.enabled });
-    }).catch((error) => {
-      //do something
     });
   }
   
@@ -824,8 +806,6 @@ class App extends React.Component {
   toggleProjectPrivacy(newValue){
     this.updateProjectParameter("PRIVATE", newValue).then((response) => {
       this.setState({ metadata: Object.assign(this.state.metadata, { PRIVATE: (newValue === "True") })});
-    }).catch((error) => {
-      //do something
     });
   }
   
@@ -916,8 +896,6 @@ class App extends React.Component {
     this.updateProjectParams(this.state.project, parameters).then((response) => {
       //if succesfull write the state back 
       this.setState({ runParams: this.runParams});
-    }).catch((error) => {
-      //do something
     });
     //save the local state to be able to update the state on callback
     this.runParams = array;
@@ -927,8 +905,6 @@ class App extends React.Component {
   getPlanningUnitGrids() {
     this._get("getPlanningUnitGrids").then((response) => {
       this.setState({ planning_unit_grids: response.planning_unit_grids });
-    }).catch((error) => {
-      //do something
     });
   }
 
@@ -1053,8 +1029,6 @@ class App extends React.Component {
       this.closeRegisterDialog();
       //enter the new users name in the username box and a blank password
       this.setState({user: user, password:''});
-    }).catch((error) => {
-      //do something
     });
   }
 
@@ -1081,8 +1055,6 @@ class App extends React.Component {
       this.setSnackBar(response.info);
       this.setState({projectsDialogOpen: false });
       this.loadProject(response.name, response.user);
-    }).catch((error) => {
-      //do something
     });
   }
 
@@ -1111,8 +1083,6 @@ class App extends React.Component {
           return project.name !== this.state.project;
         });
       }
-    }).catch((error) => {
-      //do something
     });
   }
 
@@ -1127,32 +1097,27 @@ class App extends React.Component {
     });
   }
 
-  startEditingProjectName() {
-    this.setState({ editingProjectName: true });
-  }
-
-  startEditingDescription() {
-    this.setState({ editingDescription: true });
-  }
   //rename a specific project on the server
   renameProject(newName) {
-    this.setState({ editingProjectName: false });
-    if (newName !== '' && newName !== this.state.project) {
-      this._get("renameProject?user=" + this.state.owner + "&project=" + this.state.project + "&newName=" + newName).then((response) => {
-        this.setState({ project: newName});
-        this.setSnackBar(response.info);
-      }).catch((error) => {
-        //do something
-      });
-    }
+    return new Promise((resolve, reject) => {
+      if (newName !== '' && newName !== this.state.project) {
+        this._get("renameProject?user=" + this.state.owner + "&project=" + this.state.project + "&newName=" + newName).then((response) => {
+          this.setState({ project: newName});
+          this.setSnackBar(response.info);
+          resolve("Project renamed");
+        }).catch((error) => {
+          //do something
+        });
+      }
+    });
   }
   //rename the description for a specific project on the server
   renameDescription(newDesc) {
-    this.setState({ editingDescription: false });
-    this.updateProjectParameter("DESCRIPTION", newDesc).then((response) => {
-      this.setState({ metadata: Object.assign(this.state.metadata, { DESCRIPTION: newDesc })});
-    }).catch((error) => {
-      //do something
+    return new Promise((resolve, reject) => {
+      this.updateProjectParameter("DESCRIPTION", newDesc).then((response) => {
+        this.setState({ metadata: Object.assign(this.state.metadata, { DESCRIPTION: newDesc })});
+        resolve("Description renamed");
+      });
     });
   }
 
@@ -1164,8 +1129,6 @@ class App extends React.Component {
         if (!(project.private && project.user !== this.state.user && this.state.userData.ROLE !== "Admin")) projects.push(project);
       });
       this.setState({ projects: projects});
-    }).catch((error) => {
-      //do something
     });
   }
 
@@ -1913,8 +1876,6 @@ class App extends React.Component {
   getPUFeatureList(puid){
     this._get("getPUSpeciesList?user=" + this.state.owner + "&project=" + this.state.project + "&puid=" + puid).then((response) => {
       this.setState({puFeatures: response.data});
-    }).catch((error) => {
-      //do something
     });
   }
   
@@ -2371,8 +2332,6 @@ class App extends React.Component {
     //post to the server
     this._post("updatePUFile", formData).then((response) => {
       //do something
-    }).catch((error) => {
-      //do something
     });
   }
 
@@ -2605,8 +2564,6 @@ class App extends React.Component {
   getCountries() {
     this._get("getCountries").then((response) => {
       this.setState({ countries: response.records });
-    }).catch((error) => {
-      //do something
     });
   }
 
@@ -2958,8 +2915,6 @@ class App extends React.Component {
       this.addFeatureAttributes(response.data[0]);
       //update the allFeatures array
       this.addNewFeature(response.data[0]);
-    }).catch((error) => {
-      //do something
     });
   }
 
@@ -2992,8 +2947,6 @@ class App extends React.Component {
       this.removeFeature(feature);
       //remove it from the allFeatures array
       this.removeFeatureFromAllFeatures(feature);
-    }).catch((error) => {
-      //do something
     });
   }
 
@@ -3108,8 +3061,6 @@ class App extends React.Component {
       this.showLayer(PUVSPR_LAYER_NAME);
       //set the puvsprLayerId value - this is used to see which puvspr layer is currently being shown on the map to be able to set the text for the menu item
       this.puvsprLayerId = oid;
-    }).catch((error) => {
-      //do something
     });
   }
 
@@ -3671,13 +3622,13 @@ class App extends React.Component {
           />
           <LoginDialog 
             open={!this.state.loggedIn} 
-            onOk={this.processLogin.bind(this)} 
+            onOk={this.validateUser.bind(this)} 
             onCancel={this.openRegisterDialog.bind(this)} 
             loading={this.state.loading} 
             user={this.state.user} 
+            password={this.state.password} 
             changeUserName={this.changeUserName.bind(this)} 
             changePassword={this.changePassword.bind(this)} 
-            password={this.state.password} 
             openResendPasswordDialog={this.openResendPasswordDialog.bind(this)}
             marxanServers={this.state.marxanServers}
             selectServer={this.selectServer.bind(this)}
@@ -3698,10 +3649,10 @@ class App extends React.Component {
             email={this.state.resendEmail} 
           />
           <UserMenu 
-            userMenuOpen={this.state.userMenuOpen} 
+            open={this.state.userMenuOpen} 
+            menuAnchor={this.state.menuAnchor}
             user={this.state.user}
             userRole={this.state.userData.ROLE}
-            menuAnchor={this.state.menuAnchor}
             hideUserMenu={this.hideUserMenu.bind(this)} 
             openOptionsDialog={this.openOptionsDialog.bind(this)}
             openProfileDialog={this.openProfileDialog.bind(this)}
@@ -3764,10 +3715,6 @@ class App extends React.Component {
             pid={this.state.pid}
             renameProject={this.renameProject.bind(this)}
             renameDescription={this.renameDescription.bind(this)}
-            startEditingProjectName={this.startEditingProjectName.bind(this)}
-            startEditingDescription={this.startEditingDescription.bind(this)}
-            editingProjectName={this.state.editingProjectName}
-            editingDescription={this.state.editingDescription}
             features={this.state.projectFeatures}
             project_tab_active={this.project_tab_active.bind(this)}
             features_tab_active={this.features_tab_active.bind(this)}

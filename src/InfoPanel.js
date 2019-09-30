@@ -16,20 +16,21 @@ import { faEraser } from '@fortawesome/free-solid-svg-icons';
 import { faHome } from '@fortawesome/free-solid-svg-icons';
 import { faShareAlt } from '@fortawesome/free-solid-svg-icons';
 
+let IUCN_CATEGORIES = ['None','IUCN I-II','IUCN I-IV','IUCN I-V','IUCN I-VI','All'];
+
 class InfoPanel extends React.Component {
 	constructor(props) {
 		super(props);
-		//local variable 
-		this.iucnCategories = ['None','IUCN I-II','IUCN I-IV','IUCN I-V','IUCN I-VI','All'];
+		this.state = {editingProjectName:false, editingDescription: false};
 	}
 	componentDidUpdate(prevProps, prevState, snapshot) {
 		//if the input box for renaming the project has been made visible and it has no value, then initialise it with the project name and focus it
-		if (prevProps.editingProjectName === false && this.props.editingProjectName) {
+		if (prevState.editingProjectName === false && this.state.editingProjectName) {
 			document.getElementById("projectName").value = this.props.project;
 			document.getElementById("projectName").focus();
 		}
 		//if the input box for renaming the description has been made visible and it has no value, then initialise it with the description and focus it
-		if (prevProps.editingDescription === false && this.props.editingDescription) {
+		if (prevState.editingDescription === false && this.state.editingDescription) {
 			document.getElementById("descriptionEdit").value = this.props.metadata.DESCRIPTION;
 			document.getElementById("descriptionEdit").focus();
 		}
@@ -43,21 +44,25 @@ class InfoPanel extends React.Component {
 
 	onBlur(e) {
 		if (e.nativeEvent.target.id === 'projectName') {
-			this.props.renameProject(e.target.value);
+			this.props.renameProject(e.target.value).then(()=> {
+			    this.setState({ editingProjectName: false });
+			});
 		}
 		else {
-			this.props.renameDescription(e.target.value);
+			this.props.renameDescription(e.target.value).then(()=> {
+				this.setState({ editingDescription: false });
+			});
 		}
 	}
 
 	startEditingProjectName() {
 		if (this.props.project) { //a project may not be loaded
-			this.props.startEditingProjectName();
+			this.setState({editingProjectName: true});
 		}
 	}
 	startEditingDescription() {
 		if (this.props.project) { //a project may not be loaded
-			this.props.startEditingDescription();
+			this.setState({editingDescription: true});
 		}
 	}
 	startStopPuEditSession(evt) {
@@ -74,7 +79,7 @@ class InfoPanel extends React.Component {
 	}
 	
 	changeIucnCategory(event,key,payload){
-		this.props.changeIucnCategory(this.iucnCategories[key]);
+		this.props.changeIucnCategory(IUCN_CATEGORIES[key]);
 	}
 	toggleProjectPrivacy(evt, isInputChecked){
 		let checkedString = (isInputChecked) ? "True" : "False";
@@ -93,14 +98,14 @@ class InfoPanel extends React.Component {
 					<Paper zDepth={2} className="InfoPanelPaper"> 
 						<Paper zDepth={2} className="titleBar">
 							{(this.props.userRole === "ReadOnly") ? <span className={'projectNameEditBox'} title={this.props.project + " (Read-only)"}><FontAwesomeIcon style={{color: 'white', height: '16px', marginTop:'4px',marginBottom: '2px', marginRight: '5px'}} icon={faLock}/>{this.props.project}</span> : <span onClick={this.startEditingProjectName.bind(this)} className={'projectNameEditBox'} title="Click to rename the project">{this.props.project}</span>}
-							{(this.props.userRole === "ReadOnly") ? null : <input id="projectName" style={{position:'absolute', 'display': (this.props.editingProjectName) ? 'block' : 'none',left:'39px',top:'32px',width:'365px', border:'1px lightgray solid'}} className={'projectNameEditBox'} onKeyPress={this.onKeyPress.bind(this)} onBlur={this.onBlur.bind(this)}/>}
+							{(this.props.userRole === "ReadOnly") ? null : <input id="projectName" style={{position:'absolute', 'display': (this.state.editingProjectName) ? 'block' : 'none',left:'39px',top:'32px',width:'365px', border:'1px lightgray solid'}} className={'projectNameEditBox'} onKeyPress={this.onKeyPress.bind(this)} onBlur={this.onBlur.bind(this)}/>}
 						</Paper>
 						<Tabs contentContainerStyle={{'margin':'20px'}} className={'tabs'} value={this.props.activeTab}>
 							<Tab label="Project" onActive={this.props.project_tab_active} value="project" disabled={(this.props.puEditing) ? true : false}>
 								<div>
 									<div className={'tabTitle'}>Description</div>
-									{(this.props.userRole === "ReadOnly") ? null : <Textarea minRows='5' id="descriptionEdit" style={{'display': (this.props.editingDescription) ? 'block' : 'none'}} className={'descriptionEditBox'} onKeyPress={this.onKeyPress.bind(this)} onBlur={this.onBlur.bind(this)}/>}
-									{(this.props.userRole === "ReadOnly") ? <div className={'description'} title={this.props.metadata.DESCRIPTION} dangerouslySetInnerHTML={{__html: this.props.metadata.DESCRIPTION}}/> : <div className={'description'} onClick={this.startEditingDescription.bind(this)} style={{'display': (!this.props.editingDescription) ? 'block' : 'none'}} title="Click to edit" dangerouslySetInnerHTML={{__html: this.props.metadata.DESCRIPTION}}/>}
+									{(this.props.userRole === "ReadOnly") ? null : <Textarea minRows='5' id="descriptionEdit" style={{'display': (this.state.editingDescription) ? 'block' : 'none'}} className={'descriptionEditBox'} onKeyPress={this.onKeyPress.bind(this)} onBlur={this.onBlur.bind(this)}/>}
+									{(this.props.userRole === "ReadOnly") ? <div className={'description'} title={this.props.metadata.DESCRIPTION} dangerouslySetInnerHTML={{__html: this.props.metadata.DESCRIPTION}}/> : <div className={'description'} onClick={this.startEditingDescription.bind(this)} style={{'display': (!this.state.editingDescription) ? 'block' : 'none'}} title="Click to edit" dangerouslySetInnerHTML={{__html: this.props.metadata.DESCRIPTION}}/>}
 									<div className={'tabTitle tabTitleTopMargin'}>Created</div>
 									<div className={'createDate'}>{this.props.metadata.CREATEDATE}</div>
 									<div className={'tabTitle tabTitleTopMargin'}>{(this.props.metadata.OLDVERSION) ? "Imported project" : ""}</div>
@@ -143,7 +148,7 @@ class InfoPanel extends React.Component {
 										style={{marginTop:'-15px',width:'140px'}}
 										value={this.props.metadata.IUCN_CATEGORY} 
 										onChange={this.changeIucnCategory.bind(this)}
-										children= {this.iucnCategories.map((item)=> {
+										children= {IUCN_CATEGORIES.map((item)=> {
 											return  <MenuItem 
 												value={item} 
 												key={item} 
@@ -183,9 +188,9 @@ class InfoPanel extends React.Component {
 								/>
 								<ToolbarButton   
 									icon={<FontAwesomeIcon icon={faShareAlt}/>} 
-									title={(this.props.marxanServer.type!=='remote') ? "Unable to share a link from a project on a local computer": "Get a shareable link to this project"}
+									title={"Get a shareable link to this project"}
 									onClick={this.props.getShareableLink} 
-									disabled={(this.props.marxanServer.type!=='remote')}
+									show={(this.props.marxanServer.type ==='remote')}
 								/>
 								<ToolbarButton   
 									icon={<Settings style={{height:'20px',width:'20px'}}/>} 
