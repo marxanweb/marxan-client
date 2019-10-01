@@ -43,7 +43,7 @@ class OptionsDialog extends React.Component {
                                                         menuItemStyle={{fontSize:'12px'}}
                                                         labelStyle={{fontSize:'12px'}} 
                                                         style={{width:'260px'}}
-                                                        value={this.props.basemap} 
+                                                        value={this.props.basemap.name} 
                                                         onChange={this.changeBasemap.bind(this)}
                                                         children= {this.props.basemaps.map((item)=> {
                                                                 return  <MenuItem 

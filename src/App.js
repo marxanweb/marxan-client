@@ -8,6 +8,7 @@ import axios, { post } from 'axios';
 /*eslint-enable no-unused-vars*/
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 //mapbox imports
+import Map from './Map.js';
 import MapboxDraw from '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.js';
 import mapboxgl from 'mapbox-gl';
 import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
@@ -75,7 +76,6 @@ let SEND_CREDENTIALS = true; //if true all post requests will send credentials
 let TORNADO_PATH = "/marxan-server/";
 let TIMEOUT = 0; //disable timeout setting
 let MAPBOX_USER = "blishten";
-let MAPBOX_STYLE_PREFIX = 'mapbox://styles/';
 let PLANNING_UNIT_STATUSES = [1, 2, 3];
 //layer source names
 let PLANNING_UNIT_SOURCE_NAME = "planning_units_source";
@@ -188,6 +188,7 @@ class App extends React.Component {
       projectFeatures: [], //the features for the currently loaded project
       selectedFeatureIds :[],
       addingRemovingFeatures: false,
+      resultsLayerPaintProperty: {},
       results_layer_opacity: RESULTS_LAYER_FILL_OPACITY_ACTIVE, //initial value
       wdpa_layer_opacity: WDPA_FILL_LAYER_OPACITY, //initial value
       costs: [],
@@ -673,14 +674,14 @@ class App extends React.Component {
   login() {
     return new Promise((resolve, reject) => {
       this._get("getUser?user=" + this.state.user).then((response) => {
-        this.setState({userData: response.userData, unauthorisedMethods: response.unauthorisedMethods, project: response.userData.LASTPROJECT});
-        //set the basemap
-        var basemap = this.state.basemaps.filter((item) => {return (item.name === response.userData.BASEMAP);})[0];
-        this.setBasemap(basemap).then(() => {
+        //set the data for the user 
+        this.setState({userData: response.userData, unauthorisedMethods: response.unauthorisedMethods, project: response.userData.LASTPROJECT}, ()=>{
+          //set the basemap based on the users data
+          this.setBasemap(this.state.basemaps.filter((item) => {return (item.name === response.userData.BASEMAP);})[0]);
           //get all features
           this.getAllFeatures().then(() => {
             //get the users last project and load it 
-            this.loadProject(response.userData.LASTPROJECT, this.state.user).then((response)=>{
+            this.loadProject(this.state.userData.LASTPROJECT, this.state.user).then((response)=>{
               resolve("Logged in");
             });
           });
@@ -694,7 +695,12 @@ class App extends React.Component {
       });
     });
   }
-
+  
+  //sets the basemap
+  setBasemap(basemap){
+    this.setState({basemap: basemap});
+  }
+  
   //log out and reset some state 
   logout() {
     this.hideUserMenu();
@@ -909,15 +915,8 @@ class App extends React.Component {
       this._get("getProject?user=" + user + "&project=" + project).then((response) => {
         //set the state for the app based on the data that is returned from the server
         this.setState({ loggedIn: true, project: response.project, owner: user, runParams: response.runParameters, files: Object.assign(response.files), metadata: response.metadata, renderer: response.renderer, planning_units: response.planning_units, infoPanelOpen: true, resultsPanelOpen: true  });
-        //if there is a PLANNING_UNIT_NAME passed then change to this planning grid and load the results if there are any available
-        if (response.metadata.PLANNING_UNIT_NAME) {
-          this.changePlanningGrid(MAPBOX_USER + "." + response.metadata.PLANNING_UNIT_NAME).then(()=>{
-            //poll the server to see if results are available for this project - if there are these will be loaded
-            this.getResults(user, response.project).then((response)=> {
-              resolve("Project loaded");
-            });
-          });
-        }
+        //if there is a PLANNING_UNIT_NAME passed then load this planning grid - planningGridLoaded will be called
+        if (response.metadata.PLANNING_UNIT_NAME) this.setState({tilesetid: response.metadata.PLANNING_UNIT_NAME});
         //set a local variable for the feature preprocessing - this is because we dont need to track state with these variables as they are not bound to anything
         this.feature_preprocessing = response.feature_preprocessing;
         //set a local variable for the protected area intersections - this is because we dont need to track state with these variables as they are not bound to anything
@@ -940,7 +939,13 @@ class App extends React.Component {
       });
     });
   }
-
+  
+  //called when the planning grid has loaded
+  planningGridLoaded(){
+    //poll the server to see if results are available for this project - if there are these will be loaded
+    this.getResults(this.state.owner, this.state.project);
+  }
+  
   //matches and returns an item in an object array with the passed id - this assumes the first item in the object is the id identifier
   getArrayItem(arr, id) {
     let tmpArr = arr.filter((item) => { return item[0] === id });
@@ -1554,9 +1559,7 @@ class App extends React.Component {
     if (!data) return;
     var paintProperties = this.getPaintProperties(data, sum, true);
     //set the render paint property
-    this.map.setPaintProperty(RESULTS_LAYER_NAME, "fill-color", paintProperties.fillColor);
-    this.map.setPaintProperty(RESULTS_LAYER_NAME, "fill-outline-color", paintProperties.oulineColor);
-    this.map.setPaintProperty(RESULTS_LAYER_NAME, "fill-opacity", this.state.results_layer_opacity);
+    this.setState({resultsLayerPaintProperty: paintProperties});
   }
 
   //gets the various paint properties for the planning unit layer - if setRenderer is true then it will also update the renderer in the Legend panel
@@ -1842,127 +1845,10 @@ class App extends React.Component {
     });
   }
   
-  //gets a Mapbox Style Specification JSON object from the passed ESRI style endpoint
-  getESRIStyle(styleUrl){
-    return new Promise((resolve, reject) => {
-      fetch(styleUrl) //fetch the style json
-        .then(response => {
-          return response.json()
-            .then(style => {
-              // next fetch metadata for the raw tiles
-              const TileJSON = style.sources.esri.url;
-              fetch(TileJSON)
-                .then(response => {
-                    return response.json()
-                    .then(metadata => {
-                      let tilesurl = (metadata.tiles[0].substr(0,1) === "/") ? TileJSON + metadata.tiles[0] : TileJSON + '/' + metadata.tiles[0];
-                      style.sources.esri = {
-                        type: 'vector',
-                        scheme: 'xyz',
-                        tilejson: metadata.tilejson || '2.0.0',
-                        format: (metadata.tileInfo && metadata.tileInfo.format) || 'pbf',
-                        /* mapbox-gl-js does not respect the indexing of esri tiles because we cache to different zoom levels depending on feature density, in rural areas 404s will still be encountered. more info: https://github.com/mapbox/mapbox-gl-js/pull/1377*/
-                        // index: metadata.tileMap ? style.sources.esri.url + '/' + metadata.tileMap : null,
-                        maxzoom: 15,  
-                        tiles: [
-                          tilesurl
-                        ],
-                        description: metadata.description,
-                        name: metadata.name
-                      };
-                      resolve(style);
-                    });
-                });
-            });
-        });
-    });
-  }
-
-  //sets the basemap
-  setBasemap(basemap){
-    return new Promise((resolve, reject) => {
-      //change the state
-      this.setState({basemap: basemap.name});
-      //get a valid map style
-      this.getValidStyle(basemap).then((style)=>{
-        //load the style
-        this.loadMapStyle(style).then((evt) => {
-          //add the WDPA layer 
-          this.addWDPASource();
-          this.addWDPALayer();
-          //add the planning unit layers (if a project has already been loaded)
-          if (this.state.tileset) {
-            this.addPlanningGridLayers(this.state.tileset);
-            //get the results, if any
-            this.getResults(this.state.owner, this.state.project);
-            //filter the wdpa vector tiles
-            this.filterWdpaByIucnCategory(this.state.metadata.IUCN_CATEGORY);
-            //turn on/off layers depending on which tab is selected
-            if (this.state.activeTab === "planning_units") this.pu_tab_active();
-            resolve();
-          }else{
-            resolve();
-          }
-        });
-      });
-    });
-  }
-
-  //gets the style JSON either as a valid TileJSON object or as a url to a valid TileJSON object
-  getValidStyle(basemap){
-    return new Promise((resolve, reject) => {
-      if (basemap.provider !== 'esri'){ // the style is a url - just return the url
-        resolve(MAPBOX_STYLE_PREFIX + basemap.id);
-      }else{ //the style json will be loaded dynamically from an esri endpoint and parsed to produce a valid TileJSON object
-        this.getESRIStyle(basemap.id).then((styleJson)=>{
-          resolve(styleJson);
-        });  
-      }
-    });
-  }
-  
-  //loads the maps style using either a url to a Mapbox Style Specification file or a JSON object
-  loadMapStyle(style){
-    return new Promise((resolve, reject) => {
-      if (!this.map) {
-        this.createMap(style);
-      }else{
-        //request the style
-        this.map.setStyle(style, {diff:false});
-      }
-      this.map.on('style.load', (evt) => {
-        resolve("Map style loaded");
-      });
-    });
-  }
-  
-  //called when the planning grid layer has changed, i.e. the project has changed
-  changePlanningGrid(tilesetid) {
-    return new Promise((resolve, reject) => {
-      //get the tileset metadata
-      this.getMetadata(tilesetid).then((tileset) => {
-        //remove the results layer, planning unit layer etc.
-        this.removePlanningGridLayers();
-        //add the results layer, planning unit layer etc.
-        this.addPlanningGridLayers(tileset);
-        //zoom to the layers extent
-        if (tileset.bounds != null) this.zoomToBounds(this.map, tileset.bounds);
-        //set the state
-        this.setState({ tileset: tileset });
-        //filter the wdpa vector tiles as the map doesn't respond to state changes
-        this.filterWdpaByIucnCategory(this.state.metadata.IUCN_CATEGORY);
-        resolve();
-      }).catch((error) => {
-        this.setSnackBar(error);
-        reject(error);
-      });
-    });
-  }
-
   //gets all of the metadata for the tileset
   getMetadata(tilesetId) {
     return new Promise((resolve, reject) => {
-      fetch("https://api.mapbox.com/v4/" + tilesetId + ".json?secure&access_token=" + window.MBAT_PUBLIC)
+      fetch("https://api.mapbox.com/v4/" + MAPBOX_USER + "." + tilesetId + ".json?secure&access_token=" + window.MBAT_PUBLIC)
       .then(response => response.json())
       .then((response2) => {
         if ((response2.message != null) && (response2.message.indexOf('does not exist') > 0)){
@@ -3506,7 +3392,16 @@ class App extends React.Component {
     return (
       <MuiThemeProvider>
         <React.Fragment>
-          <div ref={el => this.mapContainer = el} className="absolute top right left bottom" />
+          <div ref={el => this.mapContainer = el} className="absolute top right left bottom" style={{display:'none'}}/>
+          <Map
+            marxanServer={this.state.marxanServer}
+            basemap={this.state.basemap}
+            planningGridLoaded={this.planningGridLoaded.bind(this)}
+            tilesetid={this.state.tilesetid}
+            getMetadata={this.getMetadata.bind(this)}
+            resultsLayerPaintProperty={this.state.resultsLayerPaintProperty}
+            setSnackBar={this.setSnackBar.bind(this)}
+          />
           <LoadingDialog
             open={this.state.shareableLink}
           />
