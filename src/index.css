@@ -185,12 +185,6 @@ body {
   padding: 0px 5px !important;
 }
 
-#popup {
-  position: absolute;
-  background-color: white;
-  box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 10px, rgba(0, 0, 0, 0.23) 0px 3px 10px;
-}
-
 .popupHeader {
   background-color: rgb(0, 188, 212);
   color: white;
@@ -671,4 +665,20 @@ div.rt-tbody>div>div>div>div[contenteditable="true"] {
 }
 .importFeaturesContent{
   height:180px;
+}
+#popup {
+  position: absolute;
+  background-color: white;
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 10px, rgba(0, 0, 0, 0.23) 0px 3px 10px;
+  padding:2px;
+  border-radius: 3px;
+}
+.wdpaPopup
+{
+  padding:3px;
+  font-size:12px;
+  border-radius: 3px;
+}
+.wdpaPopup:hover{
+  background-color:aliceblue;
 }

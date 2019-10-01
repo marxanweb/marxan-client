@@ -1,31 +1,15 @@
 import React from 'react';
-import ReactTable from "react-table";
-import Sync from 'material-ui/svg-icons/notification/sync';
 
 class PopupPAList extends React.Component {
 	render() {
 		let left = this.props.xy.x + 25 + 'px';
 		let top = this.props.xy.y - 25 + 'px';
+		let children = this.props.features.map((item)=>{
+			return <div className={'wdpaPopup'} key={item.wdpaid}><a href={"https://www.protectedplanet.net/" + item.wdpaid} target='_blank'  rel="noopener noreferrer" title='Click to open the protected area in the Protected Planet website'>{item.name}<span style={{paddingRight:'5px'}}/>({item.iucn_cat})</a></div>;
+		});
 		return (
-			<div style={{'display': this.props.features && this.props.features.length > 0 ? 'block' : 'none', 'left': left,'top':top}} id="popup">
-				<div className={'popupHeader'}>Protected Areas</div>
-				<Sync className='spin' style={{display: this.props.loading ? "inline-block" : "none", color: 'rgb(255, 64, 129)', position: 'absolute', top: '5px', right: '7px'}} key={"spinner"}/>
-				<ReactTable
-					showPagination={false}
-					pageSize={(this.props.loading) ? 0 : this.props.features && this.props.features.length}
-					minRows={0}
-					noDataText=''
-					data={this.props.features}
-					columns={[{
-						 Header: 'Name',
-						 accessor: 'name',
-						 width: 320,
-					},{
-						 Header: 'Category',
-						 accessor: 'iucn_cat',
-						 width: 60,
-					}]}
-				/>
+			<div style={{'display': this.props.features && this.props.features.length > 0 ? 'block' : 'none', 'left': left,'top':top}} id="popup" onMouseOver={this.props.onMouseEnter} onMouseLeave={this.props.onMouseLeave}>
+				{children}
 			</div>
 		);
 	}

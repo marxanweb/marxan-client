@@ -1692,10 +1692,10 @@ class App extends React.Component {
   mouseMove(e) {
     //hide the popup feature list if it is visible
     if (this.state.puFeatures && this.state.puFeatures.length > 0) this.setState({puFeatures:[]});
-    //error check
+    //return if the user does not want to show popups
     if (!this.state.userData.SHOWPOPUP) return;
     //get the features under the mouse
-    var features = this.map.queryRenderedFeatures(e.point, { layers: [RESULTS_LAYER_NAME, WDPA_LAYER_NAME] });
+    var features = this.map.queryRenderedFeatures(e.point, { layers: [RESULTS_LAYER_NAME] });
     //see if there are any features under the mouse
     if (features.length) {
       //set the location for the popup
@@ -1725,21 +1725,6 @@ class App extends React.Component {
     this.setState({ active_pu: undefined });
   }
 
-  showProtectedAreasPopup(features, e){
-    let paFeatures =[];
-    let wdpaIds = [];
-    features.forEach((feature) => {
-      if (feature.layer.id === WDPA_LAYER_NAME){
-        //to get unique protected areas
-        if (wdpaIds.indexOf(feature.properties.wdpaid) < 0){
-           paFeatures.push(feature.properties);
-           wdpaIds.push(feature.properties.wdpaid);
-        }
-      }
-    });  
-    this.setState({paFeatures: paFeatures, popup_point: e.point});
-  }
-  
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   ///MAP INSTANTIATION, LAYERS ADDING/REMOVING AND INTERACTION
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1752,14 +1737,12 @@ class App extends React.Component {
       center: [0, 0],
       zoom: 2
     });
-    //create the wdpa popup
-    this.wdpaPopup = new mapboxgl.Popup({closeButton:false});
     //add event handlers for the load and error events
     this.map.on("load", this.mapLoaded.bind(this));
     this.map.on("error", this.mapError.bind(this));
     this.map.on("click", this.mapClick.bind(this));
     this.map.on('mouseenter', WDPA_LAYER_NAME, this.mouseEnterPA.bind(this));
-    this.map.on('mouseleave', WDPA_LAYER_NAME, this.mouseLeavePA.bind(this));
+    this.map.on('mouseleave', WDPA_LAYER_NAME, this.mouseLeavePA.bind(this, 2500));
   }
   mouseEnterPA(e) {
     this.map.getCanvas().style.cursor = 'pointer';
@@ -1767,19 +1750,41 @@ class App extends React.Component {
     while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
       coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
     }
-    //set the HTML of the protected areas popup
-    this.wdpaPopup.setLngLat(coordinates).setLngLat(coordinates)
-      .setHTML("<div class='noselect'><a href='https://www.protectedplanet.net/" + e.features[0].properties.wdpaid + "' target='_blank'>" + e.features[0].properties.name + " (" + e.features[0].properties.iucn_cat + ")</a></div>")
-      .addTo(this.map);
+    this.showProtectedAreasPopup(e.features, e);
   }
 
-  mouseLeavePA(e) {
+  mouseLeavePA(ms, e) {
     setTimeout(()=>{
-      this.map.getCanvas().style.cursor = '';
-      this.wdpaPopup.remove();
-    }, 2800);            
+      if (!this.timerCancelled){
+        this.map.getCanvas().style.cursor = '';
+        this.setState({paFeatures:[]});
+      }
+    }, ms);            
   }
 
+  cancelTimer(e){
+    this.timerCancelled = true;  
+  }
+  
+  startTimer(e){
+    this.timerCancelled = false;  
+    this.mouseLeavePA(5);
+  }
+  
+  //shows the list of protected areas that the user is mousing over
+  showProtectedAreasPopup(features, e){
+    let paFeatures =[];
+    let wdpaIds = [];
+    features.forEach((feature) => {
+      //to get unique protected areas
+      if (wdpaIds.indexOf(feature.properties.wdpaid) < 0){
+         paFeatures.push(feature.properties);
+         wdpaIds.push(feature.properties.wdpaid);
+      }
+    });  
+    this.setState({paFeatures: paFeatures, popup_point: e.point});
+  }
+  
   mapLoaded(e) {
     // this.map.addControl(new mapboxgl.FullscreenControl(), 'bottom-right'); // currently full screen hides the info panel and setting position:absolute and z-index: 10000000000 doesnt work properly
     this.map.addControl(new mapboxgl.ScaleControl());
@@ -3673,6 +3678,8 @@ class App extends React.Component {
             xy={this.state.popup_point}
             features={this.state.paFeatures}
             loading={this.state.loading}
+            onMouseEnter={this.cancelTimer.bind(this)}
+            onMouseLeave={this.startTimer.bind(this)}
           />
           <ProjectsDialog 
             open={this.state.projectsDialogOpen} 
