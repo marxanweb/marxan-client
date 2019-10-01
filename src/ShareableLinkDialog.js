@@ -4,7 +4,6 @@ import TextField from 'material-ui/TextField';
 import ToolbarButton from './ToolbarButton';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faClipboard } from '@fortawesome/free-solid-svg-icons';
-import { selectText } from './genericFunctions.js';
 
 class ShareableLinkDialog extends React.PureComponent {
     copyToClipboard(evt){

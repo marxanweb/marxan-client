@@ -113,8 +113,6 @@ let FEATURE_PROPERTIES = [{ name: 'id', key: 'ID',hint: 'The unique identifier f
   { name: 'pu_area', key: 'Planning grid area',hint: 'The area of the feature within the planning grid in Km2 (calculated during pre-processing)', showForOld: true, showForNew: true},
   { name: 'target_area', key: 'Target area',hint: 'The total area that needs to be protected to achieve the target percentage in Km2 (calculated during a Marxan Run)', showForOld: true, showForNew: true},
   { name: 'protected_area', key: 'Area protected',hint: 'The total area protected in the current solution in Km2 (calculated during a Marxan Run)', showForOld: true, showForNew: true}];
-var wdpa_vector_tile_layer = ""; //the name of the WDPA vector tile layer that is set when a server is selected based on which version of the WDPA is in that servers PostGIS database
-var wdpaPopup = new mapboxgl.Popup({closeButton:false});
 
 class App extends React.Component {
 
@@ -202,11 +200,6 @@ class App extends React.Component {
       activeTab: "project",
       activeResultsTab: "legend",
       logMessages: [],
-      map0_paintProperty: [],
-      map1_paintProperty: [],
-      map2_paintProperty: [],
-      map3_paintProperty: [],
-      map4_paintProperty: [],
       clumpingRunning: false,
       deleteWhat:'',
       pid: 0,
@@ -223,7 +216,7 @@ class App extends React.Component {
 
   componentDidMount() {
     //if this is a shareable link, then dont show the login form
-    if (window.location.search !== "") this.setState({loggedIn:true, shareableLink:true});
+    if (window.location.search !== "") this.setState({loggedIn: true, shareableLink: true});
     //parse the application level variables from the Marxan Registry
     this.getGlobalVariables().then(()=>{
       //automatically login if this is a shareable link
@@ -599,7 +592,7 @@ class App extends React.Component {
     //get the short version of the wdpa_version, e.g. August 2019 to aug_2019
     let version = wdpa_version.toLowerCase().substr(0,3) + "_" + wdpa_version.substr(-4);
     //set the value of the vector_tile_layer based on which version of the wdpa the server has in the PostGIS database
-    wdpa_vector_tile_layer = "wdpa_" + version + "_polygons";
+    this.wdpa_vector_tile_layer = "wdpa_" + version + "_polygons";
   }
   //called when the user selects a server
   selectServer(value){
@@ -1446,38 +1439,6 @@ class App extends React.Component {
     }
   }
 
-  //load a solution from another project - used in the clumping dialog - when the solution is loaded the paint properties are set on the individual maps through state changes
-  loadOtherSolution(user, project, solution) {
-    this.getSolution(user, project, solution).then((response) => {
-      var paintProperties = this.getPaintProperties(response.solution, false, false);
-      //get the project that matches the project name from the this.projects property - this was set when the projectGroup was created
-      if (this.projects){
-        var _projects = this.projects.filter((item) => {return item.projectName === project});
-        //get which clump it is
-        var clump = _projects[0].clump;
-        switch (clump) {
-          case 0:
-            this.setState({map0_paintProperty: paintProperties});
-            break;
-          case 1:
-            this.setState({map1_paintProperty: paintProperties});
-            break;
-          case 2:
-            this.setState({map2_paintProperty: paintProperties});
-            break;
-          case 3:
-            this.setState({map3_paintProperty: paintProperties});
-            break;
-          case 4:
-            this.setState({map4_paintProperty: paintProperties});
-            break;
-          default:
-            break;
-        }
-      }
-    });
-  }
-  
   //gets a solution and returns a promise
   getSolution(user, project, solution){
     return this._get("getSolution?user=" + user + "&project=" + project + "&solution=" + solution);
@@ -1791,29 +1752,31 @@ class App extends React.Component {
       center: [0, 0],
       zoom: 2
     });
+    //create the wdpa popup
+    this.wdpaPopup = new mapboxgl.Popup({closeButton:false});
     //add event handlers for the load and error events
     this.map.on("load", this.mapLoaded.bind(this));
     this.map.on("error", this.mapError.bind(this));
     this.map.on("click", this.mapClick.bind(this));
-    this.map.on('mouseenter', WDPA_LAYER_NAME, this.mouseEnterPA);
-    this.map.on('mouseleave', WDPA_LAYER_NAME, this.mouseLeavePA);
+    this.map.on('mouseenter', WDPA_LAYER_NAME, this.mouseEnterPA.bind(this));
+    this.map.on('mouseleave', WDPA_LAYER_NAME, this.mouseLeavePA.bind(this));
   }
   mouseEnterPA(e) {
-    this.getCanvas().style.cursor = 'pointer';
+    this.map.getCanvas().style.cursor = 'pointer';
     var coordinates = e.lngLat;
     while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
       coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
     }
     //set the HTML of the protected areas popup
-    wdpaPopup.setLngLat(coordinates).setLngLat(coordinates)
+    this.wdpaPopup.setLngLat(coordinates).setLngLat(coordinates)
       .setHTML("<div class='noselect'><a href='https://www.protectedplanet.net/" + e.features[0].properties.wdpaid + "' target='_blank'>" + e.features[0].properties.name + " (" + e.features[0].properties.iucn_cat + ")</a></div>")
-      .addTo(this);
+      .addTo(this.map);
   }
 
   mouseLeavePA(e) {
     setTimeout(()=>{
-      this.getCanvas().style.cursor = '';
-      wdpaPopup.remove();
+      this.map.getCanvas().style.cursor = '';
+      this.wdpaPopup.remove();
     }, 2800);            
   }
 
@@ -2110,7 +2073,7 @@ class App extends React.Component {
     //add the source for the wdpa
     let yr = this.state.marxanServer.wdpa_version.substr(-4); //get the year from the wdpa_version
     let attribution = "IUCN and UNEP-WCMC (" + yr + "), The World Database on Protected Areas (WDPA) " + this.state.marxanServer.wdpa_version + ", Cambridge, UK: UNEP-WCMC. Available at: <a href='http://www.protectedplanet.net'>www.protectedplanet.net</a>";
-    let tiles = [window.WDPA.tilesUrl + "layer=marxan:" + wdpa_vector_tile_layer + "&tilematrixset=EPSG:900913&Service=WMTS&Request=GetTile&Version=1.0.0&Format=application/x-protobuf;type=mapbox-vector&TileMatrix=EPSG:900913:{z}&TileCol={x}&TileRow={y}"];
+    let tiles = [window.WDPA.tilesUrl + "layer=marxan:" + this.wdpa_vector_tile_layer + "&tilematrixset=EPSG:900913&Service=WMTS&Request=GetTile&Version=1.0.0&Format=application/x-protobuf;type=mapbox-vector&TileMatrix=EPSG:900913:{z}&TileCol={x}&TileRow={y}"];
     this.setState({wdpaAttribution: attribution});
     this.map.addSource(WDPA_SOURCE_NAME,{
         "attribution": attribution,
@@ -2126,7 +2089,7 @@ class App extends React.Component {
       "id": WDPA_LAYER_NAME,
       "type": "fill",
       "source": WDPA_SOURCE_NAME,
-      "source-layer": wdpa_vector_tile_layer,
+      "source-layer": this.wdpa_vector_tile_layer,
       "layout": {
         "visibility": "visible"
       },
@@ -3495,80 +3458,12 @@ class App extends React.Component {
   }
 
   hideClumpingDialog(){
-    //delete the project group
-    this.deleteProjects();
-    //reset the paint properties in the clumping dialog
-    this.resetPaintProperties();
     //return state to normal
     this.setState({ clumpingDialogOpen: false });
   }
 
-  //creates a group of 5 projects with UUIDs in the _clumping folder
-  createProjectGroupAndRun(blmValues){
-    //clear any exists projects
-    if (this.projects) this.deleteProjects();
-    return new Promise((resolve, reject) => {
-      this._get("createProjectGroup?user=" + this.state.owner + "&project=" + this.state.project + "&copies=5&blmValues=" + blmValues.join(",")).then((response) => {
-        //set the local variable for the projects
-        this.projects = response.data;
-        //run the projects
-        this.runProjects(response.data);
-        resolve("Project group created");
-      }).catch((error) => {
-        //do something
-        reject(error);
-      });
-    });
-  }
-  
-  //deletes the projects from the _clumping folder
-  deleteProjects(){
-    if (this.projects){
-      var projectNames = this.projects.map((item) => {
-        return item.projectName;
-      });
-      //clear the local variable
-      this.projects = undefined;
-      return new Promise((resolve, reject) => {
-        this._get("deleteProjects?projectNames=" + projectNames.join(",")).then((response) => {
-          resolve("Projects deleted");
-        }).catch((error) => {
-          reject(error);
-        });
-      });
-    }
-  }
-  
-  runProjects(projects){
-    //reset the counter
-    this.projectsRun = 0;
-    //set the intitial state
-    this.setState({clumpingRunning: true});
-    //run the projects
-    projects.forEach((project) => {
-      this.startMarxanJob("_clumping", project.projectName, false).then((response) => {
-        if (!this.checkForErrors(response, false)) {
-          //run completed - get a single solution
-          this.loadOtherSolution(response.user, response.project, 1);
-        }
-        //increment the project counter
-        this.projectsRun = this.projectsRun + 1;
-        //set the state
-        if (this.projectsRun===5) this.setState({clumpingRunning: false});
-      });
-    });
-  }
-  
-  rerunProjects(blmChanged, blmValues){
-    //reset the paint properties in the clumping dialog
-    this.resetPaintProperties();
-    //if the blmValues have changed then recreate the project group and run
-    if (blmChanged){
-      this.createProjectGroupAndRun(blmValues);
-    }else{
-      //rerun the projects
-      this.runProjects(this.projects);
-    }
+  setClumpingRunning(value){
+    this.setState({clumpingRunning:value});
   }
   
   setBlmValue(blmValue){
@@ -3582,11 +3477,6 @@ class App extends React.Component {
     this.updateRunParams(newRunParams);
   }
 
-  resetPaintProperties(){
-    //reset the paint properties
-    this.setState({map0_paintProperty:[],map1_paintProperty:[],map2_paintProperty:[],map3_paintProperty:[],map4_paintProperty:[]});
-  }
-  
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////// MANAGING RUNS
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3948,18 +3838,18 @@ class App extends React.Component {
             open={this.state.clumpingDialogOpen}
             onOk={this.hideClumpingDialog.bind(this)}
             onCancel={this.hideClumpingDialog.bind(this)}
+            _get={this._get.bind(this)}
+            owner={this.state.owner}
+            project={this.state.project}
+            startMarxanJob={this.startMarxanJob.bind(this)}
+            getSolution={this.getSolution.bind(this)}
+            getPaintProperties={this.getPaintProperties.bind(this)}
             tileset={this.state.tileset}
             RESULTS_LAYER_NAME={RESULTS_LAYER_NAME}
-            map0_paintProperty={this.state.map0_paintProperty}
-            map1_paintProperty={this.state.map1_paintProperty}
-            map2_paintProperty={this.state.map2_paintProperty}
-            map3_paintProperty={this.state.map3_paintProperty}
-            map4_paintProperty={this.state.map4_paintProperty}
             mapCentre={this.state.mapCentre}
             mapZoom={this.state.mapZoom}
-            createProjectGroupAndRun={this.createProjectGroupAndRun.bind(this)}
-            rerunProjects={this.rerunProjects.bind(this)}
             setBlmValue={this.setBlmValue.bind(this)}
+            setClumpingRunning= {this.setClumpingRunning.bind(this)}
             clumpingRunning={this.state.clumpingRunning}
           />
           <ImportProjectDialog
