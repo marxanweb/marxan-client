@@ -1,5 +1,6 @@
 import * as React from 'react';
 import Checkbox from 'material-ui/Checkbox';
+
 class Options extends React.Component {
 		render() {
 				return (

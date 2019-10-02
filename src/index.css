@@ -699,21 +699,53 @@ div.rt-tbody>div>div>div>div[contenteditable="true"] {
   right: 85px;
   box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 10px, rgba(0, 0, 0, 0.23) 0px 3px 10px;
   border-radius: 3px;
-  font-size:12px;
-  max-width:300px;
+  font-size: 13px;
+  max-width: 300px;
 }
 
 .notificationsTitle {
+  height: 37px;
   background-color: rgb(0, 188, 212);
   color: white;
   padding: 7px;
   border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-.notificationType{
-  font-weight:bold;  
+.notificationsTitleText {
+  padding-left: 7px;
+}
+
+.closeWindow {
+  float: right;
+  cursor: pointer;
+  padding: 0px 5px;
+}
+
+.notificationType {
+  font-weight: bold;
 }
 
 .notification {
-  padding: 7px;
+  padding: 5px;
+}
+
+.removeNotification {
+  float: right;
+  cursor: pointer;
+  padding: 5px;
+}
+
+.notificationPointer {
+  top: 0px;
+  left: 0px;
+  /*transform: translate3d(2474px, 877px, 0px);*/
+  border-width: 6px 0px 6px 6px;
+  border-top-style: solid;
+  border-top-color: transparent;
+  border-bottom-style: solid;
+  border-bottom-color: transparent;
+  border-left-style: solid;
+  border-left-color: rgb(255, 255, 255);
+  border-right-style: initial;
+  border-right-color: initial;
 }

@@ -683,7 +683,7 @@ class App extends React.Component {
   login() {
     return new Promise((resolve, reject) => {
       this._get("getUser?user=" + this.state.user).then((response) => {
-        this.setState({userData: response.userData, unauthorisedMethods: response.unauthorisedMethods, project: response.userData.LASTPROJECT}, ()=>{
+        this.setState({userData: response.userData, unauthorisedMethods: response.unauthorisedMethods, project: response.userData.LASTPROJECT, dismissedNotifications: response.dismissedNotifications}, ()=>{
           //show any notifications while the basemap and project are loaded
           this.showNotifications();
         });
@@ -699,13 +699,6 @@ class App extends React.Component {
           });
           //get all planning grids
           this.getPlanningUnitGrids();
-          //see if there is a new version of the wdpa data - this comes from the Marxan Registry WDPA object - if there is then show a notification to admin users
-          if (this.state.marxanServer.wdpa_version !== window.WDPA.latest_version) {
-            this.setState({newWDPAVersion: true});
-            this.addNotifications([{id:2, html:"A new version of the WDPA is available. <br/>Click on Help | Server Details for more information.", type:"Data Update", startDate: "01/10/19", endDate: "", source: "LocalMachine", showForRoles: ["Admin"]}]);
-          }else{
-            this.setState({newWDPAVersion: false});
-          }
         });
       }).catch((error) => {
         //do something
@@ -820,19 +813,62 @@ class App extends React.Component {
     });
   }
   
+  //shows the notifications in the UI
   showNotifications(){
     //see if there are any new notifications from the marxan-registry
     if (window.NOTIFICATIONS.length>0){
-      this.addNotifications(window.NOTIFICATIONS)
+      this.addNotifications(window.NOTIFICATIONS);
+      this.setState({notificationsOpen: true});
     }
+    //see if there is a new version of the wdpa data - this comes from the Marxan Registry WDPA object - if there is then show a notification to admin users
+    if (this.state.marxanServer.wdpa_version !== window.WDPA.latest_version) {
+      this.setState({newWDPAVersion: true});
+      this.addNotifications([{id:'wdpa_update_' + window.WDPA.latest_version, html:"A new version of the WDPA is available. <br/>Click on Help | Server Details for more information.", type:"Data Update", startDate: "01/10/19", endDate: "", source: "LocalMachine", showForRoles: ["Admin"]}]);
+    }else{
+      this.setState({newWDPAVersion: false});
+    }
+  }
+  
+  //hides the notifications from the UI
+  hideNotifications(){
+    this.setState({notificationsOpen: false});
   }
   
   //add the passed notifications to the notifications state
   addNotifications(notifications){
     let _notifications = this.state.notifications;
+      //set the visibility of the notifications based on the users role and on whether they have already been dismissed
+      notifications = notifications.map(item => {
+        let visible = (item.showForRoles.indexOf(this.state.userData.ROLE)>-1) && (this.state.dismissedNotifications.indexOf(String(item.id)) === -1);
+        return Object.assign(item, {visible: visible});  
+      });
     _notifications.push.apply(_notifications, notifications);
     this.setState({notifications: _notifications});
   }
+  
+  //removes a notification
+  removeNotification(notification){
+    //remove the notification from the state
+    let _notifications  = this.state.notifications.filter(_notification => _notification.id !== notification.id);
+    //remove it in the users notifications.dat file
+    this.dismissNotification(notification);
+    //set the state
+    this.setState({notifications: _notifications});
+  }
+  
+  //dismisses a notification on the server
+  dismissNotification(notification){
+    this._get("dismissNotification?user=" + this.state.user + "&notificationid=" + notification.id);
+  }
+  
+  //clears all of the dismissed notifications on the server
+  resetNotifications(){
+    this._get("resetNotifications?user=" + this.state.user).then(()=>{
+      this.setState({notifications:[]});
+      this.showNotifications();  
+    });
+  }
+  
   appendToFormData(formData, obj) {
     //iterate through the object and add each key/value pair to the formData to post to the server
     for (var key in obj) {
@@ -3702,6 +3738,7 @@ class App extends React.Component {
             changeBasemap={this.setBasemap.bind(this)}
             basemaps={this.state.basemaps}
             basemap={this.state.basemap}
+            resetNotifications={this.resetNotifications.bind(this)}
           />
           <UsersDialog
             open={this.state.usersDialogOpen}
@@ -4040,9 +4077,10 @@ class App extends React.Component {
             bodyStyle={{maxWidth:'800px !important'}}
           />
           <Notifications
-            open={this.state.notificationsOpen}
+            open={this.state.notificationsOpen && this.state.loggedIn}
+            hideNotifications={this.hideNotifications.bind(this)}
+            removeNotification={this.removeNotification.bind(this)}
             notifications={this.state.notifications}
-            role={this.state.userData.ROLE}
           />
           <Popover open={this.state.featureMenuOpen} anchorEl={this.state.menuAnchor} onRequestClose={this.closeFeatureMenu.bind(this)} style={{width:'307px'}}>
             <Menu style={{width:'207px'}} onMouseLeave={this.closeFeatureMenu.bind(this)} >

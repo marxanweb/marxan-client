@@ -3,6 +3,7 @@ import MarxanDialog from './MarxanDialog';
 import Checkbox from 'material-ui/Checkbox';
 import SelectField from 'material-ui/SelectField';
 import MenuItem from 'material-ui/MenuItem';
+import ToolbarButton from './ToolbarButton';
 
 class OptionsDialog extends React.Component {
         constructor(props){
@@ -56,6 +57,7 @@ class OptionsDialog extends React.Component {
                                                         })}
                                                 />
                                                 <Checkbox label="Show planning unit popup" defaultChecked={this.props.userData.SHOWPOPUP} onCheck={(e, isInputChecked)=>this.setOption("SHOWPOPUP",isInputChecked)} style={{fontSize:'13px'}}/>
+                                                <ToolbarButton label="Clear" onClick={this.props.resetNotifications} />
                                         </div>
                                 } 
                         />
