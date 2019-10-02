@@ -727,6 +727,7 @@ div.rt-tbody>div>div>div>div[contenteditable="true"] {
 
 .notification {
   padding: 5px;
+  border: 1px solid whitesmoke;
 }
 
 .removeNotification {
@@ -735,17 +736,9 @@ div.rt-tbody>div>div>div>div[contenteditable="true"] {
   padding: 5px;
 }
 
-.notificationPointer {
-  top: 0px;
-  left: 0px;
-  /*transform: translate3d(2474px, 877px, 0px);*/
-  border-width: 6px 0px 6px 6px;
-  border-top-style: solid;
-  border-top-color: transparent;
-  border-bottom-style: solid;
-  border-bottom-color: transparent;
-  border-left-style: solid;
-  border-left-color: rgb(255, 255, 255);
-  border-right-style: initial;
-  border-right-color: initial;
+.resetNotifications {
+  margin-top: 15px !important;
+}
+a{
+ color:rgb(255, 64, 129); 
 }

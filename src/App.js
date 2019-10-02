@@ -578,7 +578,7 @@ class App extends React.Component {
           //see if CORS is enabled from this domain - either the domain has been added as an allowable domain on the server, or the client and server are on the same machine
           let corsEnabled = ((json.serverData.PERMITTED_DOMAINS.indexOf(window.location.hostname)>-1)||(server.host === window.location.hostname)) ? true : false;
           //set the flags for the server capabilities
-          server = Object.assign(server, {guestUserEnabled: json.serverData.ENABLE_GUEST_USER, corsEnabled: corsEnabled, offline: false, machine: json.serverData.MACHINE, client_version: json.serverData.MARXAN_CLIENT_VERSION, server_version: json.serverData.MARXAN_SERVER_VERSION, node: json.serverData.NODE, processor: json.serverData.PROCESSOR, release: json.serverData.RELEASE, system:json.serverData.SYSTEM, version: json.serverData.VERSION, wdpa_version: json.serverData.WDPA_VERSION, planning_grid_units_limit: Number(json.serverData.PLANNING_GRID_UNITS_LIMIT)});
+          server = Object.assign(server, {guestUserEnabled: json.serverData.ENABLE_GUEST_USER, corsEnabled: corsEnabled, offline: false, machine: json.serverData.MACHINE, client_version: json.serverData.MARXAN_CLIENT_VERSION, server_version: json.serverData.MARXAN_SERVER_VERSION, node: json.serverData.NODE, processor: json.serverData.PROCESSOR, release: json.serverData.RELEASE, system:json.serverData.SYSTEM, version: json.serverData.VERSION, wdpa_version: json.serverData.WDPA_VERSION, planning_grid_units_limit: Number(json.serverData.PLANNING_GRID_UNITS_LIMIT), disk_space: Number(json.serverData.DISK_FREE_SPACE)});
           //if the server defines its own name then set it 
           if(json.serverData.SERVER_NAME!=="") {
             server = Object.assign(server, {name:json.serverData.SERVER_NAME});
@@ -684,7 +684,7 @@ class App extends React.Component {
     return new Promise((resolve, reject) => {
       this._get("getUser?user=" + this.state.user).then((response) => {
         this.setState({userData: response.userData, unauthorisedMethods: response.unauthorisedMethods, project: response.userData.LASTPROJECT, dismissedNotifications: response.dismissedNotifications}, ()=>{
-          //show any notifications while the basemap and project are loaded
+          //show any notifications 
           this.showNotifications();
         });
         //set the basemap
@@ -823,9 +823,23 @@ class App extends React.Component {
     //see if there is a new version of the wdpa data - this comes from the Marxan Registry WDPA object - if there is then show a notification to admin users
     if (this.state.marxanServer.wdpa_version !== window.WDPA.latest_version) {
       this.setState({newWDPAVersion: true});
-      this.addNotifications([{id:'wdpa_update_' + window.WDPA.latest_version, html:"A new version of the WDPA is available. <br/>Click on Help | Server Details for more information.", type:"Data Update", startDate: "01/10/19", endDate: "", source: "LocalMachine", showForRoles: ["Admin"]}]);
+      this.addNotifications([{id:'wdpa_update_' + window.WDPA.latest_version, html:"A new version of the WDPA is available. <br/>Click on Help | Server Details for more information.", type:"Data Update", showForRoles: ["Admin"]}]);
     }else{
       this.setState({newWDPAVersion: false});
+    }
+    //see if there is a new version of the marxan-client software
+    if (MARXAN_CLIENT_VERSION !== window.CLIENT_VERSION) this.addNotifications([{id:'marxan_client_update_' + window.CLIENT_VERSION, html:"A new version of marxan-client is available (" + window.CLIENT_VERSION + "). <br/>Click on Help | About for more information.", type:"Software Update", showForRoles: ["Admin"]}]);
+    //see if there is a new version of the marxan-server software
+    if (this.state.marxanServer.server_version !== window.SERVER_VERSION) this.addNotifications([{id:'marxan_server_update_' + window.SERVER_VERSION, html:"A new version of marxan-server is available (" + window.SERVER_VERSION + "). <br/>Click on Help | Server Details for more information.", type:"Software Update", showForRoles: ["Admin"]}]);
+    //check that there is enough disk space
+    if (this.state.marxanServer.disk_space < 1000)  {
+      this.addNotifications([{id:'hardware_1000', html:"Disk space < 1Gb", type:"Hardware Issue", showForRoles: ["Admin"]}]);
+    }else{
+      if (this.state.marxanServer.disk_space < 2000)  {
+        this.addNotifications([{id:'hardware_2000', html:"Disk space < 2Gb", type:"Hardware Issue", showForRoles: ["Admin"]}]);
+      }else{
+        if (this.state.marxanServer.disk_space < 3000) this.addNotifications([{id:'hardware_3000', html:"Disk space < 3Gb", type:"Hardware Issue", showForRoles: ["Admin"]}]);
+      }
     }
   }
   
@@ -837,9 +851,22 @@ class App extends React.Component {
   //add the passed notifications to the notifications state
   addNotifications(notifications){
     let _notifications = this.state.notifications;
-      //set the visibility of the notifications based on the users role and on whether they have already been dismissed
+      //set the visibility of the notifications based on the users role, whether they have already been dismissed or if it has expired
       notifications = notifications.map(item => {
-        let visible = (item.showForRoles.indexOf(this.state.userData.ROLE)>-1) && (this.state.dismissedNotifications.indexOf(String(item.id)) === -1);
+        let allowedForRole = (item.showForRoles.indexOf(this.state.userData.ROLE)>-1);
+        let notDismissed = (this.state.dismissedNotifications.indexOf(String(item.id)) === -1);
+        let notExpired = true;
+        //if an expiry date is set, then get this as a Date
+        if ((item.hasOwnProperty("expires")) && (item.hasOwnProperty("expires") && (item.expires !== ""))){
+      		try {
+            var d = Date.parse(item.expires); 
+            if (new Date() > d) notExpired = false;
+      		}
+      		catch (err) {
+      			//invalid date so not expiry date
+      		}
+        }
+        let visible = allowedForRole && notDismissed && notExpired;
         return Object.assign(item, {visible: visible});  
       });
     _notifications.push.apply(_notifications, notifications);
