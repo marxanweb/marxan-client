@@ -683,7 +683,7 @@ class App extends React.Component {
   login() {
     return new Promise((resolve, reject) => {
       this._get("getUser?user=" + this.state.user).then((response) => {
-        this.setState({userData: response.userData, unauthorisedMethods: response.unauthorisedMethods, project: response.userData.LASTPROJECT, dismissedNotifications: response.dismissedNotifications}, ()=>{
+        this.setState({userData: response.userData, unauthorisedMethods: response.unauthorisedMethods, project: response.userData.LASTPROJECT, dismissedNotifications: (response.dismissedNotifications ? response.dismissedNotifications : [])}, ()=>{
           //show any notifications 
           this.showNotifications();
         });
@@ -851,24 +851,24 @@ class App extends React.Component {
   //add the passed notifications to the notifications state
   addNotifications(notifications){
     let _notifications = this.state.notifications;
-      //set the visibility of the notifications based on the users role, whether they have already been dismissed or if it has expired
-      notifications = notifications.map(item => {
-        let allowedForRole = (item.showForRoles.indexOf(this.state.userData.ROLE)>-1);
-        let notDismissed = (this.state.dismissedNotifications.indexOf(String(item.id)) === -1);
-        let notExpired = true;
-        //if an expiry date is set, then get this as a Date
-        if ((item.hasOwnProperty("expires")) && (item.hasOwnProperty("expires") && (item.expires !== ""))){
-      		try {
-            var d = Date.parse(item.expires); 
-            if (new Date() > d) notExpired = false;
-      		}
-      		catch (err) {
-      			//invalid date so not expiry date
-      		}
-        }
-        let visible = allowedForRole && notDismissed && notExpired;
-        return Object.assign(item, {visible: visible});  
-      });
+    //set the visibility of the notifications based on the users role, whether they have already been dismissed or if it has expired
+    notifications = notifications.map(item => {
+      let allowedForRole = (item.showForRoles.indexOf(this.state.userData.ROLE)>-1);
+      let notDismissed = (this.state.dismissedNotifications.indexOf(String(item.id)) === -1);
+      let notExpired = true;
+      //if an expiry date is set, then get this as a Date
+      if ((item.hasOwnProperty("expires")) && (item.hasOwnProperty("expires") && (item.expires !== ""))){
+    		try {
+          var d = Date.parse(item.expires); 
+          if (new Date() > d) notExpired = false;
+    		}
+    		catch (err) {
+    			//invalid date so not expiry date
+    		}
+      }
+      let visible = allowedForRole && notDismissed && notExpired;
+      return Object.assign(item, {visible: visible});  
+    });
     _notifications.push.apply(_notifications, notifications);
     this.setState({notifications: _notifications});
   }
