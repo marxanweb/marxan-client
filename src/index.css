@@ -691,6 +691,9 @@ div.rt-tbody>div>div>div>div[contenteditable="true"] {
 .wdpaPopup:hover {
   background-color: aliceblue;
 }
+.wdpaPopup a {
+  color: unset;
+}
 
 .notifications {
   position: absolute;

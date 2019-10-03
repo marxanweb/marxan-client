@@ -114,8 +114,6 @@ let FEATURE_PROPERTIES = [{ name: 'id', key: 'ID',hint: 'The unique identifier f
   { name: 'pu_area', key: 'Planning grid area',hint: 'The area of the feature within the planning grid in Km2 (calculated during pre-processing)', showForOld: true, showForNew: true},
   { name: 'target_area', key: 'Target area',hint: 'The total area that needs to be protected to achieve the target percentage in Km2 (calculated during a Marxan Run)', showForOld: true, showForNew: true},
   { name: 'protected_area', key: 'Area protected',hint: 'The total area protected in the current solution in Km2 (calculated during a Marxan Run)', showForOld: true, showForNew: true}];
-var wdpa_vector_tile_layer = ""; //the name of the WDPA vector tile layer that is set when a server is selected based on which version of the WDPA is in that servers PostGIS database
-var wdpaPopup = new mapboxgl.Popup({closeButton:false});
 
 class App extends React.Component {
 
@@ -602,7 +600,7 @@ class App extends React.Component {
     //get the short version of the wdpa_version, e.g. August 2019 to aug_2019
     let version = wdpa_version.toLowerCase().substr(0,3) + "_" + wdpa_version.substr(-4);
     //set the value of the vector_tile_layer based on which version of the wdpa the server has in the PostGIS database
-    wdpa_vector_tile_layer = "wdpa_" + version + "_polygons";
+    this.wdpa_vector_tile_layer = "wdpa_" + version + "_polygons";
   }
   //called when the user selects a server
   selectServer(value){
@@ -1818,10 +1816,10 @@ class App extends React.Component {
   mouseMove(e) {
     //hide the popup feature list if it is visible
     if (this.state.puFeatures && this.state.puFeatures.length > 0) this.setState({puFeatures:[]});
-    //error check
+    //return if the user does not want to show popups
     if (!this.state.userData.SHOWPOPUP) return;
     //get the features under the mouse
-    var features = this.map.queryRenderedFeatures(e.point, { layers: [RESULTS_LAYER_NAME, WDPA_LAYER_NAME] });
+    var features = this.map.queryRenderedFeatures(e.point, { layers: [RESULTS_LAYER_NAME] });
     //see if there are any features under the mouse
     if (features.length) {
       //set the location for the popup
@@ -1851,21 +1849,6 @@ class App extends React.Component {
     this.setState({ active_pu: undefined });
   }
 
-  showProtectedAreasPopup(features, e){
-    let paFeatures =[];
-    let wdpaIds = [];
-    features.forEach((feature) => {
-      if (feature.layer.id === WDPA_LAYER_NAME){
-        //to get unique protected areas
-        if (wdpaIds.indexOf(feature.properties.wdpaid) < 0){
-           paFeatures.push(feature.properties);
-           wdpaIds.push(feature.properties.wdpaid);
-        }
-      }
-    });  
-    this.setState({paFeatures: paFeatures, popup_point: e.point});
-  }
-  
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   ///MAP INSTANTIATION, LAYERS ADDING/REMOVING AND INTERACTION
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1882,26 +1865,48 @@ class App extends React.Component {
     this.map.on("load", this.mapLoaded.bind(this));
     this.map.on("error", this.mapError.bind(this));
     this.map.on("click", this.mapClick.bind(this));
-    this.map.on('mouseenter', WDPA_LAYER_NAME, this.mouseEnterPA);
-    this.map.on('mouseleave', WDPA_LAYER_NAME, this.mouseLeavePA);
+    this.map.on('mouseenter', WDPA_LAYER_NAME, this.mouseEnterPA.bind(this));
+    this.map.on('mouseleave', WDPA_LAYER_NAME, this.mouseLeavePA.bind(this,2500));
   }
   mouseEnterPA(e) {
-    this.getCanvas().style.cursor = 'pointer';
+    this.map.getCanvas().style.cursor = 'pointer';
     var coordinates = e.lngLat;
     while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
       coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
     }
-    //set the HTML of the protected areas popup
-    wdpaPopup.setLngLat(coordinates).setLngLat(coordinates)
-      .setHTML("<div class='noselect'><a href='https://www.protectedplanet.net/" + e.features[0].properties.wdpaid + "' target='_blank'>" + e.features[0].properties.name + " (" + e.features[0].properties.iucn_cat + ")</a></div>")
-      .addTo(this);
+    this.showProtectedAreasPopup(e.features, e);
   }
 
-  mouseLeavePA(e) {
+ mouseLeavePA(ms, e) {
     setTimeout(()=>{
-      this.getCanvas().style.cursor = '';
-      wdpaPopup.remove();
-    }, 2800);            
+      if (!this.timerCancelled){
+        this.map.getCanvas().style.cursor = '';
+        this.setState({paFeatures:[]});
+      }
+    }, ms);            
+  }
+
+  cancelTimer(e){
+    this.timerCancelled = true;  
+  }
+  
+  startTimer(e){
+    this.timerCancelled = false;  
+    this.mouseLeavePA(5);
+  }
+  
+  //shows the list of protected areas that the user is mousing over
+  showProtectedAreasPopup(features, e){
+    let paFeatures =[];
+    let wdpaIds = [];
+    features.forEach((feature) => {
+      //to get unique protected areas
+      if (wdpaIds.indexOf(feature.properties.wdpaid) < 0){
+         paFeatures.push(feature.properties);
+         wdpaIds.push(feature.properties.wdpaid);
+      }
+    });  
+    this.setState({paFeatures: paFeatures, popup_point: e.point});
   }
 
   mapLoaded(e) {
@@ -2197,7 +2202,7 @@ class App extends React.Component {
     //add the source for the wdpa
     let yr = this.state.marxanServer.wdpa_version.substr(-4); //get the year from the wdpa_version
     let attribution = "IUCN and UNEP-WCMC (" + yr + "), The World Database on Protected Areas (WDPA) " + this.state.marxanServer.wdpa_version + ", Cambridge, UK: UNEP-WCMC. Available at: <a href='http://www.protectedplanet.net'>www.protectedplanet.net</a>";
-    let tiles = [window.WDPA.tilesUrl + "layer=marxan:" + wdpa_vector_tile_layer + "&tilematrixset=EPSG:900913&Service=WMTS&Request=GetTile&Version=1.0.0&Format=application/x-protobuf;type=mapbox-vector&TileMatrix=EPSG:900913:{z}&TileCol={x}&TileRow={y}"];
+    let tiles = [window.WDPA.tilesUrl + "layer=marxan:" + this.wdpa_vector_tile_layer + "&tilematrixset=EPSG:900913&Service=WMTS&Request=GetTile&Version=1.0.0&Format=application/x-protobuf;type=mapbox-vector&TileMatrix=EPSG:900913:{z}&TileCol={x}&TileRow={y}"];
     this.setState({wdpaAttribution: attribution});
     this.map.addSource(WDPA_SOURCE_NAME,{
         "attribution": attribution,
@@ -2213,7 +2218,7 @@ class App extends React.Component {
       "id": WDPA_LAYER_NAME,
       "type": "fill",
       "source": WDPA_SOURCE_NAME,
-      "source-layer": wdpa_vector_tile_layer,
+      "source-layer": this.wdpa_vector_tile_layer,
       "layout": {
         "visibility": "visible"
       },
@@ -3871,6 +3876,8 @@ class App extends React.Component {
             xy={this.state.popup_point}
             features={this.state.paFeatures}
             loading={this.state.loading}
+            onMouseEnter={this.cancelTimer.bind(this)}
+            onMouseLeave={this.startTimer.bind(this)}
           />
           <ProjectsDialog 
             open={this.state.projectsDialogOpen} 
