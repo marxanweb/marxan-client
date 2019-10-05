@@ -21,6 +21,7 @@ class ServerDetailsDialog extends React.Component {
             <div className="tabTitle">Host:</div><div className="serverDetails">{this.props.marxanServer&&this.props.marxanServer.host}</div>
             <div className="tabTitle">Description:</div><div className="serverDetails">{this.props.marxanServer&&this.props.marxanServer.description}</div>
             <div className="tabTitle">System:</div><div className="serverDetails">{this.props.marxanServer&&this.props.marxanServer.system}</div>
+            <div className="tabTitle">Disk space:</div><div className="serverDetails">{this.props.marxanServer&&this.props.marxanServer.disk_space}Mb</div>
             <div className="tabTitle">Marxan Server version:</div><div className="serverDetails">{this.props.marxanServer&&this.props.marxanServer.server_version}</div>
             <div className="tabTitle">WDPA version:</div><div className="serverDetails">{this.props.marxanServer&&this.props.marxanServer.wdpa_version}</div>
             <div style={{display: (this.props.newWDPAVersion ? 'block' : 'none')}}>

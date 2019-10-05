@@ -19,7 +19,7 @@ class AboutDialog extends React.Component {
           <div key="k5">
             <div className={"aboutTitle"}>Software development</div>
             <div className={"aboutText"}>
-              Marxan Web v{this.props.marxanClientReleaseVersion} Feedback:{" "}
+              Marxan Web {this.props.marxanClientReleaseVersion} Feedback:{" "}
               <a href="mailto:andrew.cottam@ec.europa.eu" className="email">
                 Andrew Cottam
               </a>
