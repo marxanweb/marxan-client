@@ -629,7 +629,9 @@ div.rt-tbody>div>div>div>div[contenteditable="true"] {
   background-color: aliceblue;
 }
 
-.logMessage {}
+.logMessage {
+  display:inline;
+}
 
 .logFinish {
   border-bottom: 1px #ece8e8 solid;

@@ -8,6 +8,7 @@ class Log extends React.Component {
 			//message cleaning and formatting
 			switch (message.status) {
 				case 'RunningMarxan': //from marxan runs - remove all the double line endings
+					className = 'logItem logMessage';
 					Object.assign(message, { info: message.info.replace(/(\n\n {2}Init)/gm, "\n  Init").replace(/(\n\n {2}ThermalAnnealing)/gm, "\n  ThermalAnnealing").replace(/(\n\n {2}Iterative)/gm, "\n  Iterative").replace(/(\n\n {2}Best)/gm, "\n  Best") });
 					break;
 				case 'Started':

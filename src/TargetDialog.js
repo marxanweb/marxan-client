@@ -29,7 +29,7 @@ class TargetDialog extends React.PureComponent {
                 contentWidth={240}
 				offsetX={80}
 				offsetY={260}
-                title="Target"
+                title="Target for all features"
                 onOk={this.onOk.bind(this)}
                 children={
                 <React.Fragment>
