@@ -19,7 +19,7 @@ class LinearGauge extends React.Component {
 		protectedWidth = Math.round((this.props.protected_percent === -1) ? 0 : (this.props.protected_percent * scaleFactor));
 		//protected percent text - if protected_percent < target_value then if the rounded protected_percent is the same as the rounded target_value, show the protected_percent to 1dp
 		let protNum = this.props.protected_percent;
-		let percentageProtectedText = (protNum < Number(this.props.target_value)) ? (Math.round(protNum)===this.props.target_value) ? String(protNum).slice(0,String(protNum).indexOf(".") + 2) : Math.round(protNum) : Math.round(protNum);
+		let percentageProtectedText = (protNum < Number(this.props.target_value)) ? (Math.round(protNum)===Number(this.props.target_value)) ? String(protNum).slice(0,String(protNum).indexOf(".") + 2) : Math.round(protNum) : Math.round(protNum);
 		//get whether or not the % protected should be visible or hidden
 		protectedHidden = (protectedWidth < 26 && !(this.state.alwaysShowPercent));
 		//get the width of the target shortfall
