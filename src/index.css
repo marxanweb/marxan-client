@@ -747,3 +747,46 @@ div.rt-tbody>div>div>div>div[contenteditable="true"] {
 a{
  color:rgb(255, 64, 129); 
 }
+.MetChart {
+  position: relative;
+  box-shadow: rgba(0, 0, 0, 0.12) 0px 1px 6px, rgba(0, 0, 0, 0.12) 0px 1px 4px;
+  border-radius: 3px;
+  color: rgba(0, 0, 0, 0.87);
+  margin: 10px;
+  display: inline-block;
+
+}
+
+.MetChart:hover {
+  box-shadow: rgba(0, 0, 0, 0.12) 0px 3px 6px, rgba(0, 0, 0, 0.12) 0px 3px 4px;
+}
+
+.MetChartDiv {
+  position: absolute;
+  top: 0px;
+  width: 100%;
+  height: 100%;
+}
+
+.MetChartPercentLabel {
+  font-weight: bold;
+  text-align: center;
+  position: absolute;
+  top: 47px;
+  width: 100%;
+}
+
+.MetChartTitle {
+  text-align: center;
+  padding: 5px;
+  font-size: 13px;
+  color: rgba(0, 0, 0, 0.87);
+  width: 120px;
+  background-color: #f6f6f6;
+  line-height: 15px;
+}
+
+.MetChartInner {
+  text-align: -webkit-center;
+  position: relative;
+}

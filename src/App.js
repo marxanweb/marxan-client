@@ -16,7 +16,7 @@ import jsonp from 'jsonp-promise';
 import classyBrew from 'classybrew';
 import { getMaxNumberOfClasses } from './genericFunctions.js';
 //material-ui components and icons
-import Popover from 'material-ui/Popover';
+import Popover from 'material-ui/Popover'; 
 import Menu from 'material-ui/Menu';
 import Snackbar from 'material-ui/Snackbar';
 import Properties from 'material-ui/svg-icons/alert/error-outline';
@@ -67,6 +67,7 @@ import Notifications from './Notifications';
 import PopupPAList from './PopupPAList';
 import TargetDialog from './TargetDialog';
 import ShareableLinkDialog from './ShareableLinkDialog';
+import AnalysisDialog from './AnalysisDialog';
 
 //CONSTANTS
 let MARXAN_CLIENT_VERSION = packageJson.version; //TODO UPDATE PACKAGE.JSON WHEN THERE IS A NEW VERSION
@@ -150,6 +151,7 @@ class App extends React.Component {
       planningGridDialogOpen: false,
       NewFeatureDialogOpen: false,
       featuresDialogOpen: false,
+      analysisDialogOpen: false,
       featureDialogOpen: false,
       runLogDialogOpen: false,
       infoPanelOpen: false,
@@ -218,7 +220,8 @@ class App extends React.Component {
       puEditing: false,
       wdpaAttribution: "",
       shareableLinkUrl: "",
-      notifications:[]
+      notifications:[],
+      gapAnalysis: []
     };
   }
 
@@ -3314,6 +3317,13 @@ class App extends React.Component {
   closeRunLogDialog(){
     this.setState({runLogDialogOpen: false});
   }
+  openAnalysisDialog(){
+    this.setState({analysisDialogOpen: true, gapAnalysis: []});
+    this.runGapAnalysis();
+  }
+  closeAnalysisDialog(){
+    this.setState({analysisDialogOpen: false});
+  }
   openServerDetailsDialog(){
     this.setState({serverDetailsDialogOpen: true});
     this.hideHelpMenu();
@@ -3701,6 +3711,25 @@ class App extends React.Component {
   
   getShareableLink(){
     this.openShareableLinkDialog();
+  }
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  ////////////////////////// GAP ANALYSIS
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  
+  runGapAnalysis(){
+    return new Promise((resolve, reject) => {
+      //switches the results pane to the log tab
+      this.log_tab_active();
+      //call the websocket 
+      this._ws("runGapAnalysis?user=" + this.state.owner + "&project=" + this.state.project, this.wsMessageCallback.bind(this)).then((message) => {
+        this.setState({gapAnalysis: message.data});
+        resolve(message);
+      }).catch((error) => {
+        reject(error);
+      });
+    });
+    
   }
   
   render() {
@@ -4133,6 +4162,13 @@ class App extends React.Component {
             onCancel={this.closeTargetDialog.bind(this)}
             updateTargetValueForFeatures={this.updateTargetValueForFeatures.bind(this)}
           />
+          <AnalysisDialog 
+            open={this.state.analysisDialogOpen}
+            showCancelButton={true}
+            onCancel={this.closeAnalysisDialog.bind(this)}
+            gapAnalysis={this.state.gapAnalysis}
+            preprocessing={this.state.preprocessing}
+          />
           <ShareableLinkDialog
             open={this.state.shareableLinkDialogOpen}
             onOk={this.closeShareableLinkDialog.bind(this)}
@@ -4153,6 +4189,7 @@ class App extends React.Component {
             showHelpMenu={this.showHelpMenu.bind(this)}
             openUsersDialog={this.openUsersDialog.bind(this)}
             openRunLogDialog={this.openRunLogDialog.bind(this)}
+            openAnalysisDialog={this.openAnalysisDialog.bind(this)}
           />
         </React.Fragment>
       </MuiThemeProvider>
