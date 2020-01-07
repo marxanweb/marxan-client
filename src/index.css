@@ -630,7 +630,7 @@ div.rt-tbody>div>div>div>div[contenteditable="true"] {
 }
 
 .logMessage {
-  display:inline;
+  display: inline;
 }
 
 .logFinish {
@@ -693,6 +693,7 @@ div.rt-tbody>div>div>div>div[contenteditable="true"] {
 .wdpaPopup:hover {
   background-color: aliceblue;
 }
+
 .wdpaPopup a {
   color: unset;
 }
@@ -744,9 +745,11 @@ div.rt-tbody>div>div>div>div[contenteditable="true"] {
 .resetNotifications {
   margin-top: 15px !important;
 }
-a{
- color:rgb(255, 64, 129); 
+
+a {
+  color: rgb(255, 64, 129);
 }
+
 .MetChart {
   position: relative;
   box-shadow: rgba(0, 0, 0, 0.12) 0px 1px 6px, rgba(0, 0, 0, 0.12) 0px 1px 4px;
@@ -789,4 +792,201 @@ a{
 .MetChartInner {
   text-align: -webkit-center;
   position: relative;
+}
+
+.analysisReport {
+  height: 700px;
+  padding: 10px;
+}
+
+.analysisTab {
+  background-color: white !important;
+  color: rgba(0, 0, 0, 0.6) !important;
+  text-transform: inherit !important;
+  font-size: 16px !important;
+  font-weight: 400 !important;
+}
+
+.countryLabel {
+  color: rgba(0, 0, 0, 0.6) !important;
+  font-size: 24px !important;
+  position: absolute !important;
+}
+
+.countryMap {}
+
+.representationTable {
+    position: absolute;
+    /* right: 0px !important; */
+    width: 400px !important;
+    top: 80px;
+}
+
+.analysisChartsDiv {
+  position: absolute;
+  top: 241px;
+}
+
+.representationHeader {
+  background-color: #C5D0D4 !important;
+  color: white !important;
+  text-align: center !important;
+  padding: 7px !important;
+}
+
+.representationBody {
+  background-color: #F2F2F2 !important;
+  height: 130px !important;
+}
+
+.sdgImage {
+  /*transform: scale(0.6,0.6) !important;*/
+}
+
+.coveragePercent {
+  position: absolute !important;
+  top: 70px !important;
+  left: 150px !important;
+  font-size: 36px !important;
+  color: #B5D661 !important;
+}
+
+.coverageLabel {
+  position: absolute !important;
+  top: 119px !important;
+  left: 150px !important;
+  font-size: 24px !important;
+}
+
+.landAreaProtected {
+  position: absolute !important;
+  left: 270px !important;
+  top: 60px !important;
+  font-weight: 500 !important;
+}
+
+.landAreaProtectedLabel {
+  left: 270px !important;
+  position: absolute !important;
+  top: 78px !important;
+  font-size: 13px !important;
+}
+
+.totalArea {
+  position: absolute !important;
+  left: 270px !important;
+  top: 106px !important;
+  font-weight: 500 !important;
+}
+
+.totalAreaLabel {
+  left: 270px !important;
+  position: absolute !important;
+  top: 124px !important;
+  font-size: 13px !important;
+}
+
+.representationFooter {
+  background-color: #E3DFE0 !important;
+  /*text-align: center !important;*/
+  padding: 7px !important;
+  color: rgba(0, 0, 0, 0.6) !important;
+  font-size: 15px;
+}
+
+.blueBoxes {
+  background-color: #4472C4;
+  position: absolute !important;
+  color: white !important;
+  padding: 5px !important;
+  width: 130px !important;
+  height: 58px !important;
+  text-align: center !important;
+  vertical-align: middle !important;
+}
+
+.totalFeatures {}
+
+.targetsMet {
+  left: 135px !important;
+}
+
+.targetsMetProp {
+  left: 270px !important;
+}
+
+.lightblueBoxes {
+  background-color: #CFD5EA;
+  position: absolute !important;
+  color: rgba(0, 0, 0, 0.6) !important;
+  padding: 5px !important;
+  width: 130px !important;
+  height: 58px !important;
+  vertical-align: middle !important;
+  top: 64px !important;
+  font-size: 26px !important;
+  padding: 10px !important;
+}
+
+.totalFeaturesValue {}
+
+.targetsMetValue {
+  left: 135px !important;
+}
+
+.targetsMetPropValue {
+  left: 270px !important;
+  font-size: 30px !important;
+  color: #548235 !important;
+}
+
+.targetsFooter {
+  position: absolute !important;
+  background-color: #E9EBF5 !important;
+  color: rgba(0, 0, 0, 0.6) !important;
+  width: 100%;
+  padding: 7px !important;
+  top: 122px !important;
+  font-size: 15px;
+}
+
+.representationChart {}
+
+.representationScore {}
+
+.representationScoreValue {}
+
+.representationScoreColors {}
+
+.analysisChartHolder {
+  position: absolute !important;
+  top: 420px !important;
+}
+
+.recharts-cartesian-axis-tick-value {
+  font-size: 12px !important;
+}
+
+.analysisChartHolder2 {
+  position: absolute !important;
+  top: 250px !important;
+}
+
+.representationScore {
+  position: absolute !important;
+  top: 220px !important;
+  right: 0px !important;
+}
+
+.representationScoreValue {
+  position: absolute !important;
+  top: 250px !important;
+  right: 0px !important;
+}
+
+.endemicImg {
+  transform: scale(0.75,0.75) !important;
+  position: absolute !important;
+  bottom: 3px !important;
+  right: 3px !important;
 }

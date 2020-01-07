@@ -4168,6 +4168,7 @@ class App extends React.Component {
             onCancel={this.closeAnalysisDialog.bind(this)}
             gapAnalysis={this.state.gapAnalysis}
             preprocessing={this.state.preprocessing}
+            projectFeatures={this.state.projectFeatures}
           />
           <ShareableLinkDialog
             open={this.state.shareableLinkDialogOpen}

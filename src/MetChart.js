@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { PieChart, Pie, Cell } from 'recharts';
 import Divider from 'material-ui/Divider';
+import star from './images/star.png';
 
 class MetChart extends React.Component {
     getArea(value){
@@ -21,11 +22,12 @@ class MetChart extends React.Component {
         return Number((value * scale).toFixed(1));
     }
     render() {
-        let rounded = Number(this.props.percentMet.toFixed(1));
+        let rounded = Number(this.props.current_protected_percent.toFixed(1));
         let country_area = this.getArea(this.props.country_area);
-        let protected_area = this.getArea(this.props.protected_area);
+        let protected_area = this.getArea(this.props.current_protected_area);
         let total_area = this.getArea(this.props.total_area);
-        let titleText = "Area: " +  total_area + ' ' + this.props.units + "\nCountry area: " + country_area + ' ' + this.props.units +"\nProtected area: " + protected_area + ' ' + this.props.units;
+        let countryText = (this.props.showCountryArea) ? "\nCountry area: " + country_area + ' ' + this.props.units : "";
+        let titleText = "Area: " +  total_area + ' ' + this.props.units + countryText + "\nProtected area: " + protected_area + ' ' + this.props.units;
         const data = (this.props.showCountryArea) ? [{ name: 'Protected area', value: protected_area},{ name: 'Country area', value: (country_area - protected_area) }, { name: 'Total area', value: (total_area - country_area) }] : [{ name: 'Protected area', value: protected_area}, { name: 'Total area', value: (total_area - protected_area) }];
         const colors = ['#D9D9D9', this.props.color];
         return (
@@ -59,6 +61,7 @@ class MetChart extends React.Component {
                             {rounded}%
                         </div>
                         <div className="MetChartDiv" style={this.props.clickable!==false ? {cursor: 'pointer'} : null} title={titleText} />
+                        <span style={{display: (this.props.endemic && (this.props.created_by === "global admin")) ? 'inline' : 'none'}}><img src={star} alt="Endemic" title={"Endemic"} className={"endemicImg"}/></span>
                     </div>
                 </div>
             </React.Fragment>
