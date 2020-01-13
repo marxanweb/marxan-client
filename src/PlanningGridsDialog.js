@@ -54,10 +54,10 @@ class PlanningGridsDialog extends React.Component {
 		let tableColumns = [];
 		tableColumns = [
 			{ Header: 'Name', accessor: 'alias', width: 215, headerStyle: { 'textAlign': 'left' }, Cell: this.renderName.bind(this) }, 
-			{ Header: 'Description', accessor: 'description', width: 273, headerStyle: { 'textAlign': 'left' }, Cell: this.renderTitle.bind(this) }, 
+			{ Header: 'Description', accessor: 'description', width: 258, headerStyle: { 'textAlign': 'left' }, Cell: this.renderTitle.bind(this) }, 
 			{ Header: 'Country', accessor: 'country', width: 70, headerStyle: { 'textAlign': 'left' }, Cell: this.renderCountry.bind(this)}, 
 			{ Header: 'Domain', accessor: 'domain', width: 70, headerStyle: { 'textAlign': 'left' }}, 
-			{ Header: 'Area (Km2)', accessor: '_area', width: 75, headerStyle: { 'textAlign': 'left' }, Cell: this.renderArea.bind(this) },
+			{ Header: 'Area (Km2)', accessor: '_area', width: 73, headerStyle: { 'textAlign': 'left' }, Cell: this.renderArea.bind(this) },
 			{ Header: '', width: 8, headerStyle: { 'textAlign': 'center' }, Cell: this.renderPreview.bind(this) }
 		];
 		return (

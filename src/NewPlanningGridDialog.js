@@ -17,8 +17,9 @@ class NewPlanningGridDialog extends React.Component {
 	changeIso3(evt, value) {
 		let iso3 = this.props.countries[value].iso3;
 		if (['FJI','KIR','NZL','RUS','TUV','USA','WLF'].includes(iso3)){ //no support currently for countries that span the meridian
-			this.setState({iso3: undefined});
-			this.props.setSnackBar("Countries that span the meridian are currently not supported. See <a href='" + this.props.ERRORS_PAGE + "#planning-grids-cannot-be-created-for-countries-that-span-the-meridian' target='blank'>here</a>");
+			// this.setState({iso3: undefined});
+			// this.props.setSnackBar("Countries that span the meridian are currently not supported. See <a href='" + this.props.ERRORS_PAGE + "#planning-grids-cannot-be-created-for-countries-that-span-the-meridian' target='blank'>here</a>");
+			this.setState({iso3: this.props.countries[value].iso3});
 		}else{
 			this.setState({iso3: this.props.countries[value].iso3});
 		}
@@ -61,7 +62,7 @@ class NewPlanningGridDialog extends React.Component {
 										<MenuItem
 											style={{ fontSize: "12px" }}
 											value={item.iso3}
-											primaryText={item.original_n}
+											primaryText={item.name_iso31}
 											key={item.iso3}
 										/>
 									);
