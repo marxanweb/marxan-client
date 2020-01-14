@@ -25,6 +25,9 @@ class UsersDialog extends React.Component {
 			changeUser(event, user) {
 					this.setState({ selectedUser: user });
 			}
+			  sortDate(a, b, desc) {
+			    return (new Date(a.slice(6,8),a.slice(3,5)-1,a.slice(0,2),a.slice(9,11),a.slice(12,14),a.slice(15,17)) > new Date(b.slice(6,8),b.slice(3,5)-1,b.slice(0,2),b.slice(9,11),b.slice(12,14),b.slice(15,17))) ? 1 : -1;
+			  }
 			closeDialog() {
 					this.setState({ selectedUser: undefined });
 					this.props.onOk();
@@ -55,8 +58,8 @@ class UsersDialog extends React.Component {
 																	data={this.props.users}
 																	thisRef={this} 
 																	columns={[{ Header: 'User', accessor: 'user', width: 90, headerStyle: { 'textAlign': 'left' } }, 
-																	{ Header: 'Name', accessor: 'NAME', width: 200, headerStyle: { 'textAlign': 'left' } }, 
-																	{ Header: 'email', accessor: 'EMAIL', width: 250, headerStyle: { 'textAlign': 'left' } }, 
+																	{ Header: 'Name', accessor: 'NAME', width: 173, headerStyle: { 'textAlign': 'left' } }, 
+																	{ Header: 'email', accessor: 'EMAIL', width: 135, headerStyle: { 'textAlign': 'left' } }, 
 																	{ Header: 'Role', accessor: 'ROLE', width: 180, headerStyle: { 'textAlign': 'left' },
 																		Cell: row => 
 																			(row.original.user === 'guest') ?
@@ -80,7 +83,8 @@ class UsersDialog extends React.Component {
 																				);
 																			})}
 																		</SelectField>
-																	}]}
+																	},
+																	{ Header: 'Date', accessor: 'CREATEDATE', width: 115, headerStyle: { 'textAlign': 'left' }, sortMethod: this.sortDate.bind(this) },]}
 																	getTrProps={(state, rowInfo, column) => {
 																			return {
 																					style: {
