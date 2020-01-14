@@ -53,6 +53,10 @@ class PlanningGridDialog extends React.Component {
 									{areaTD}
 								</tr>
 								<tr>
+									<td className='metadataItemTitle'>Unit count:</td>
+									<td className='metadataItemValue'>{this.props.planning_grid_metadata.planning_unit_count}</td>
+								</tr>
+								<tr>
 									<td className='metadataItemTitle'>Author:</td>
 									<td className='metadataItemValue'>{this.props.planning_grid_metadata.created_by}</td>
 								</tr>

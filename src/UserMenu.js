@@ -21,7 +21,7 @@ class UserMenu extends React.Component {
 					onRequestClose={this.props.hideUserMenu}
 				>
 					<Menu desktop={true} onMouseLeave={this.props.hideUserMenu} menuItemStyle={{backgroundColor:'rgb(0, 188, 212)', color:'white'}} listStyle={{width:'120px',backgroundColor:'rgb(0, 188, 212)'}} selectedMenuItemStyle={{color:'rgb(24,24,24)'}}>
-						<MenuItem primaryText={this.props.user + " (" + this.props.userRole + ")"} style={{marginLeft:'40px'}}/>
+						{/*<MenuItem primaryText={this.props.user + " (" + this.props.userRole + ")"} style={{marginLeft:'40px'}}/>*/}
 						<MenuItem style={{display: (this.props.userRole !== "ReadOnly") ? 'block' : 'none'}} primaryText="Settings" onClick={this.props.openOptionsDialog.bind(this)} leftIcon={<FontAwesomeIcon style={{fontSize: '20px', marginBottom: '7px'}} icon={faCog} color={'white'}/>}/>
 						<MenuItem style={{display: (this.props.userRole !== "ReadOnly") ? 'block' : 'none'}} primaryText="Profile" onClick={this.props.openProfileDialog} leftIcon={<FontAwesomeIcon style={{fontSize: '20px', marginBottom: '7px'}} icon={faEdit} color={'white'}/>}/>
 						<MenuItem style={{display: (this.props.userRole !== "ReadOnly") ? 'block' : 'none'}} primaryText="Change password" onClick={this.props.openChangePasswordDialog} leftIcon={<FontAwesomeIcon style={{fontSize: '20px', marginBottom: '7px'}} icon={faUserLock} color={'white'}/>}/>

@@ -8,7 +8,7 @@ import {faArrowAltCircleLeft} from '@fortawesome/free-solid-svg-icons';
 import {faArrowAltCircleRight} from '@fortawesome/free-solid-svg-icons'; 
 import {faArrowAltCircleLeft as a} from '@fortawesome/free-regular-svg-icons';
 import {faArrowAltCircleRight as b} from '@fortawesome/free-regular-svg-icons';
-import {faQuestionCircle} from '@fortawesome/free-regular-svg-icons';
+import {faQuestionCircle} from '@fortawesome/free-solid-svg-icons';
 import {faUser} from '@fortawesome/free-solid-svg-icons';
 import {Toolbar, ToolbarGroup, ToolbarSeparator} from 'material-ui/Toolbar';
 
@@ -35,7 +35,7 @@ class AppBar extends React.Component {
             <ToolbarSeparator style={{marginLeft:'12px', marginRight:'12px'}}/>
             <FontAwesomeIcon icon={faWrench} onClick={this.props.showToolsMenu} title={"Tools and analysis"} className={'appBarIcon'} style={{fontSize: '19px'}}/>
             <FontAwesomeIcon icon={faUser} onClick={this.props.showUserMenu} title={"User: " + this.props.user + " (" + this.props.userRole + ")"} className={'appBarIcon'} style={{fontSize: '20px'}}/>
-            <FontAwesomeIcon icon={faQuestionCircle} onClick={this.props.showHelpMenu} title={"Help and support"} className={'appBarIcon'} style={{fontSize: '20px'}}/>
+            <FontAwesomeIcon icon={faQuestionCircle} onClick={this.props.showHelpMenu} title={"Help and support"} className={'appBarIcon'} style={{fontSize: '19px'}}/>
           </ToolbarGroup>
         </Toolbar>
       </React.Fragment>
