@@ -68,6 +68,7 @@ import PopupPAList from './PopupPAList';
 import TargetDialog from './TargetDialog';
 import ShareableLinkDialog from './ShareableLinkDialog';
 import AnalysisDialog from './AnalysisDialog';
+import UpdateWDPADialog from './UpdateWDPADialog';
 
 //CONSTANTS
 let MARXAN_CLIENT_VERSION = packageJson.version; //TODO UPDATE PACKAGE.JSON WHEN THERE IS A NEW VERSION
@@ -149,6 +150,7 @@ class App extends React.Component {
       serverDetailsDialogOpen: false,
       planningGridsDialogOpen: false,
       planningGridDialogOpen: false,
+      updateWDPADialogOpen: false,
       NewFeatureDialogOpen: false,
       featuresDialogOpen: false,
       analysisDialogOpen: false,
@@ -579,7 +581,7 @@ class App extends React.Component {
           //see if CORS is enabled from this domain - either the domain has been added as an allowable domain on the server, or the client and server are on the same machine
           let corsEnabled = ((json.serverData.PERMITTED_DOMAINS.indexOf(window.location.hostname)>-1)||(server.host === window.location.hostname)) ? true : false;
           //set the flags for the server capabilities
-          server = Object.assign(server, {guestUserEnabled: json.serverData.ENABLE_GUEST_USER, corsEnabled: corsEnabled, offline: false, machine: json.serverData.MACHINE, client_version: json.serverData.MARXAN_CLIENT_VERSION, server_version: json.serverData.MARXAN_SERVER_VERSION, node: json.serverData.NODE, processor: json.serverData.PROCESSOR, release: json.serverData.RELEASE, system:json.serverData.SYSTEM, version: json.serverData.VERSION, wdpa_version: json.serverData.WDPA_VERSION, planning_grid_units_limit: Number(json.serverData.PLANNING_GRID_UNITS_LIMIT), disk_space: Number(json.serverData.DISK_FREE_SPACE)});
+          server = Object.assign(server, {guestUserEnabled: json.serverData.ENABLE_GUEST_USER, corsEnabled: corsEnabled, offline: false, machine: json.serverData.MACHINE, client_version: json.serverData.MARXAN_CLIENT_VERSION, server_version: json.serverData.MARXAN_SERVER_VERSION, node: json.serverData.NODE, processor: json.serverData.PROCESSOR, processor_count: json.serverData.PROCESSOR_COUNT,ram: json.serverData.RAM, release: json.serverData.RELEASE, system:json.serverData.SYSTEM, version: json.serverData.VERSION, wdpa_version: json.serverData.WDPA_VERSION, planning_grid_units_limit: Number(json.serverData.PLANNING_GRID_UNITS_LIMIT), disk_space: json.serverData.DISK_FREE_SPACE});
           //if the server defines its own name then set it 
           if(json.serverData.SERVER_NAME!=="") {
             server = Object.assign(server, {name:json.serverData.SERVER_NAME});
@@ -2755,6 +2757,12 @@ class App extends React.Component {
   closeCostsDialog() {
     this.setState({ CostsDialogOpen: false });
   }
+  openWDPAUpdateDialog(){
+    this.setState({ updateWDPADialogOpen: true });
+  }
+  closeWDPAUpdateDialog(){
+    this.setState({ updateWDPADialogOpen: false });
+  }
   setNewFeatureDatasetFilename(filename) {
     this.setState({ featureDatasetFilename: filename });
   }
@@ -4112,12 +4120,20 @@ class App extends React.Component {
           <ServerDetailsDialog  
             open={this.state.serverDetailsDialogOpen}
             onOk={this.closeServerDetailsDialog.bind(this)}
+            onCancel={this.closeServerDetailsDialog.bind(this)}
             onRequestClose={this.closeServerDetailsDialog.bind(this)}
-            newWDPAVersion={this.state.newWDPAVersion}
             marxanServer={this.state.marxanServer}
+            newWDPAVersion={this.state.newWDPAVersion}
+            showUpdateWDPADialog={this.openWDPAUpdateDialog.bind(this)}
+          />
+          <UpdateWDPADialog
+            open={this.state.updateWDPADialogOpen}
+            onOk={this.closeWDPAUpdateDialog.bind(this)}
+            onCancel={this.closeWDPAUpdateDialog.bind(this)}
+            newWDPAVersion={this.state.newWDPAVersion}
             updateWDPA={this.updateWDPA.bind(this)}
             loading={this.state.preprocessing}
-          />
+          />          
           <ChangePasswordDialog  
             open={this.state.changePasswordDialogOpen}
             onOk={this.closeChangePasswordDialog.bind(this)}

@@ -1,9 +1,37 @@
 import React from "react";
 import MarxanDialog from "./MarxanDialog";
-import ToolbarButton from './ToolbarButton';
+import ReactTable from "react-table";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 
 class ServerDetailsDialog extends React.Component {
+	renderWithIcon(cellInfo) {
+	  let newServerSoftware = ((cellInfo.row.key === 'Marxan Server version')&&(this.props.server_version !== window.SERVER_VERSION));
+		return (
+			<React.Fragment>
+				<div style={{ float: 'left' }}>{cellInfo.row.value}</div>
+				<FontAwesomeIcon icon={faExclamationTriangle} style={{color:'red', display: ((cellInfo.row.key === 'Disk space')&&(cellInfo.row.value.substr(0,1) === '0')) ? 'inline' : 'none', right: '5px', position: 'absolute', marginTop: '5px'}} title={'Disk space running low'}/>
+				<FontAwesomeIcon icon={faExclamationTriangle} style={{color:'red', display: (newServerSoftware) ? 'inline' : 'none', right: '5px', position: 'absolute', marginTop: '5px'}} title={'A new version of Marxan Server is available (' + window.SERVER_VERSION + ')'}/>
+			  <FontAwesomeIcon icon={faExclamationTriangle} style={{color:'red',display: ((cellInfo.row.key === 'WDPA version')&&(this.props.newWDPAVersion)) ? 'inline' : 'none', position: 'absolute', right:'5px', marginTop: '5px'}} title={'A new version of the WDPA is available - click for details'} onClick={this.props.showUpdateWDPADialog}/>
+			</React.Fragment>
+		);
+	}
   render() {
+    let data = this.props.marxanServer ? 
+    [
+      {key:'Name',value:this.props.marxanServer.name},
+      {key:'Description',value:this.props.marxanServer.description},
+      {key:'Host',value:this.props.marxanServer.host},
+      {key:'Port',value:this.props.marxanServer.port},
+      {key:'System',value:this.props.marxanServer.system},
+      {key:'Processors',value:this.props.marxanServer.processor_count},
+      {key:'Disk space',value:this.props.marxanServer.disk_space},
+      {key:'RAM',value:this.props.marxanServer.ram},
+      {key:'Marxan Server version',value:this.props.marxanServer.server_version},
+      {key:'WDPA version',value:this.props.marxanServer.wdpa_version},
+      {key:'Planning grid units limit',value:this.props.marxanServer.planning_grid_units_limit},
+    ] 
+    : [];
     // add the following if necessary
     // <div className="tabTitle">Release: {this.props.marxanServer&&this.props.marxanServer.release}</div>
     // <div className="tabTitle">Version: {this.props.marxanServer&&this.props.marxanServer.version}</div>
@@ -11,26 +39,31 @@ class ServerDetailsDialog extends React.Component {
     return (
       <MarxanDialog
         {...this.props}
-        contentWidth={500}
+        contentWidth={445}
         offsetY={80}
         title="Server Details"
         helpLink={"docs_user.html#server-details"}
         children={
-          <div key="k5">
-            <div className="tabTitle">Name:</div><div className="serverDetails">{this.props.marxanServer&&this.props.marxanServer.name}</div>
-            <div className="tabTitle">Host:</div><div className="serverDetails">{this.props.marxanServer&&this.props.marxanServer.host}</div>
-            <div className="tabTitle">Description:</div><div className="serverDetails">{this.props.marxanServer&&this.props.marxanServer.description}</div>
-            <div className="tabTitle">System:</div><div className="serverDetails">{this.props.marxanServer&&this.props.marxanServer.system}</div>
-            <div className="tabTitle">Disk space:</div><div className="serverDetails">{this.props.marxanServer&&this.props.marxanServer.disk_space}Mb</div>
-            <div className="tabTitle">Marxan Server version:</div><div className="serverDetails">{this.props.marxanServer&&this.props.marxanServer.server_version}</div>
-            <div className="tabTitle">WDPA version:</div><div className="serverDetails">{this.props.marxanServer&&this.props.marxanServer.wdpa_version}</div>
-            <div style={{display: (this.props.newWDPAVersion ? 'block' : 'none')}}>
-              <br/>
-              <div className="tabTitle" dangerouslySetInnerHTML={{ __html: window.WDPA.latest_version + " is available. Details <a href='" + window.WDPA.metadataUrl + "' target='_blank'>here</a>. Click below to update. "}}/>
-							<br/>
-							<ToolbarButton title="Update WDPA" onClick={this.props.updateWDPA} label="Update" disabled={this.props.loading}/>
-            </div>
-          </div>
+						<ReactTable 
+							showPagination={false} 
+							className={'server_details_infoTable'}
+							minRows={0}
+							pageSize={data.length}
+							data={data}
+							noDataText=''
+							columns={[{
+							   Header: 'Parameter', 
+							   accessor: 'key',
+							   width:144,
+							   headerStyle:{'textAlign':'left'},
+							},{
+							   Header: 'Value',
+							   accessor: 'value',
+							   width:252,
+							   headerStyle:{'textAlign':'left'},
+							   Cell: this.renderWithIcon.bind(this)
+							}]}
+					  />
         }
       />
     );
