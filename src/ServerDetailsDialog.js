@@ -43,7 +43,7 @@ class ServerDetailsDialog extends React.Component {
         offsetY={80}
         title="Server Details"
         helpLink={"docs_user.html#server-details"}
-        children={
+        children={[
 						<ReactTable 
 							showPagination={false} 
 							className={'server_details_infoTable'}
@@ -51,6 +51,7 @@ class ServerDetailsDialog extends React.Component {
 							pageSize={data.length}
 							data={data}
 							noDataText=''
+							key='k27'
 							columns={[{
 							   Header: 'Parameter', 
 							   accessor: 'key',
@@ -64,7 +65,7 @@ class ServerDetailsDialog extends React.Component {
 							   Cell: this.renderWithIcon.bind(this)
 							}]}
 					  />
-        }
+        ]}
       />
     );
   }

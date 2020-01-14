@@ -31,6 +31,7 @@ import LoadingDialog from './LoadingDialog';
 import LoginDialog from './LoginDialog';
 import RegisterDialog from './RegisterDialog.js';
 import ResendPasswordDialog from './ResendPasswordDialog.js';
+import ToolsMenu from './ToolsMenu';
 import UserMenu from './UserMenu';
 import HelpMenu from './HelpMenu';
 import OptionsDialog from './OptionsDialog';
@@ -161,6 +162,7 @@ class App extends React.Component {
       targetDialogOpen: false,
       notificationsOpen: false,
       guestUserEnabled: true,
+      toolsMenuOpen: false,
       userMenuOpen: false,
       helpMenuOpen: false,
       users: [],
@@ -3202,6 +3204,13 @@ class App extends React.Component {
   hideHelpMenu(e) {
     this.setState({ helpMenuOpen: false });
   }
+  showToolsMenu(e) {
+    e.preventDefault();
+    this.setState({ toolsMenuOpen: true, menuAnchor: e.currentTarget });
+  }
+  hideToolsMenu(e) {
+    this.setState({ toolsMenuOpen: false });
+  }
   openRegisterDialog() {
     this.setState({ registerDialogOpen: true });
   }
@@ -3777,6 +3786,15 @@ class App extends React.Component {
             changeEmail={this.changeEmail.bind(this)} 
             email={this.state.resendEmail} 
           />
+          <ToolsMenu
+            open={this.state.toolsMenuOpen} 
+            menuAnchor={this.state.menuAnchor}
+            hideToolsMenu={this.hideToolsMenu.bind(this)}
+            openUsersDialog={this.openUsersDialog.bind(this)}
+            openRunLogDialog={this.openRunLogDialog.bind(this)}
+            openAnalysisDialog={this.openAnalysisDialog.bind(this)}
+            userRole={this.state.userData.ROLE}
+          />
           <UserMenu 
             open={this.state.userMenuOpen} 
             menuAnchor={this.state.menuAnchor}
@@ -4202,11 +4220,9 @@ class App extends React.Component {
             openPlanningGridsDialog={this.openPlanningGridsDialog.bind(this)}
             toggleInfoPanel={this.toggleInfoPanel.bind(this)}
             toggleResultsPanel={this.toggleResultsPanel.bind(this)}
+            showToolsMenu={this.showToolsMenu.bind(this)}
             showUserMenu={this.showUserMenu.bind(this)}
             showHelpMenu={this.showHelpMenu.bind(this)}
-            openUsersDialog={this.openUsersDialog.bind(this)}
-            openRunLogDialog={this.openRunLogDialog.bind(this)}
-            openAnalysisDialog={this.openAnalysisDialog.bind(this)}
           />
         </React.Fragment>
       </MuiThemeProvider>
