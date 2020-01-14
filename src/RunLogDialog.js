@@ -74,7 +74,15 @@ class RunLogDialog extends React.Component {
 		return <div style={{width: '100%',height: '100%',backgroundColor: '#dadada',borderRadius: '2px'}}>{(row.original.endtime) ? row.original.endtime : ''}</div>;        
 	}
 	renderRuntime(row){
-		return <div style={{width: '100%',height: '100%',backgroundColor: '#dadada',borderRadius: '2px'}}>{(row.original.runtime) ? row.original.runtime : ''}</div>;        
+		if ((row.original.runtime)){
+			let s = Number(row.original.runtime.substr(0,row.original.runtime.length-1));
+			let mins = Math.floor(s/60);
+			let secs = (s%60) + "s";
+			let runTimeFormatted = (mins !== 0) ? mins + "m " + secs : secs;
+			return <div style={{width: '100%',height: '100%',backgroundColor: '#dadada',borderRadius: '2px'}}>{runTimeFormatted}</div>;        
+		}else{
+			return '';
+		}
 	}
 	render() {
 		let tableColumns = [];

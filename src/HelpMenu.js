@@ -3,7 +3,6 @@ import Menu from 'material-ui/Menu';
 import MenuItem from 'material-ui/MenuItem';
 import Popover from 'material-ui/Popover';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {white} from 'material-ui/styles/colors';
 import {faServer} from '@fortawesome/free-solid-svg-icons';
 import {faQuestionCircle} from '@fortawesome/free-solid-svg-icons';
 import {faInfoCircle} from '@fortawesome/free-solid-svg-icons';
