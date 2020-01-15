@@ -624,18 +624,13 @@ div.rt-tbody>div>div>div>div[contenteditable="true"] {
 }
 
 .logStart {
-  margin-top: 20px;
-  border-top: 1px #ece8e8 solid;
-  background-color: aliceblue;
-}
-
-.logFirstStart {
   border-top: 1px #ece8e8 solid;
   background-color: aliceblue;
 }
 
 .logMessage {
   display: inline;
+  background-color: aliceblue;
 }
 
 .logNone {
@@ -643,6 +638,7 @@ div.rt-tbody>div>div>div>div[contenteditable="true"] {
 }
 
 .logFinish {
+  margin-bottom: 20px;
   border-bottom: 1px #ece8e8 solid;
   background-color: aliceblue;
 }

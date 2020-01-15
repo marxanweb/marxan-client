@@ -14,7 +14,7 @@ class Log extends React.Component {
     	    	<FontAwesomeIcon icon={faCheckCircle} style={{display: ((this.props.message.status === 'Finished')&&(!this.props.message.hasOwnProperty('error'))) ? 'inline' : 'none', color:'green', marginRight:'6px'}} title={'Preprocessing completed'}/>
     	    	<FontAwesomeIcon icon={faArrowAltCircleRight} style={{display: (this.props.message.status === 'UploadComplete') ? 'inline' : 'none', color:'green', marginRight:'6px'}} title={'Upload complete'}/>
     	        <FontAwesomeIcon icon={faExclamationTriangle} style={{color:'red', display:(this.props.message.hasOwnProperty('error') ? 'inline' : 'none'), marginRight:'6px'}} title={this.props.message.info}/>
-    	        <div style={{display:'inline'}}dangerouslySetInnerHTML={{__html: this.props.message.info}}/>
+    	        <div style={{display:'inline'}} dangerouslySetInnerHTML={{__html: this.props.message.info}}/>
     	    </div>
     	);
 	}

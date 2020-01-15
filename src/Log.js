@@ -13,7 +13,7 @@ class Log extends React.Component {
 					break;
 				case 'Started':
 				case 'Uploading':
-					className = (index === 0) ? 'logItem logFirstStart' : 'logItem logStart';
+					className = 'logItem logStart';
 					break;
 				case "RunningQuery":
 					className = 'logItem logMessage';
