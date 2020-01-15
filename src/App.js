@@ -2621,7 +2621,7 @@ class App extends React.Component {
   newPlanningGridCreated(response){
     return new Promise((resolve, reject) => {
       //start polling to see when the upload is done
-      this.pollMapbox(response.uploadId).then(() => {
+      this.pollMapbox(response.uploadId).then((response) => {
         //update the planning unit items
         this.getPlanningUnitGrids();
         resolve("Planning grid created");
@@ -2673,7 +2673,7 @@ class App extends React.Component {
         this.setState({loading: true});
         //poll mapbox to see when the upload has finished
         this.pollMapbox(response.uploadid).then((response2) => {
-          resolve("Uploaded to Mapbox");
+          resolve(response2);
         });
       }).catch((error) => {
         reject(error);
@@ -2686,25 +2686,32 @@ class App extends React.Component {
     this.setState({loading: true});
     this.log({info: 'Uploading to Mapbox..',status:'Uploading'});
     return new Promise((resolve, reject) => {
-      this.timer = setInterval(() => {
-        fetch("https://api.mapbox.com/uploads/v1/" + MAPBOX_USER + "/" + uploadid + "?access_token=" + window.MBAT)
-          .then(response => response.json())
-          .then((response) => {
-            if (response.complete){
-              this.log({info: 'Uploaded',status:'UploadComplete'});
-              //clear the timer
-              clearInterval(this.timer);
-              this.timer = null;
-              //reset state
+      if (uploadid === '0'){
+        this.log({info: 'Tileset already exists on Mapbox',status:'UploadComplete'});
+        //reset state
+        this.setState({loading: false });
+        resolve("Uploaded to Mapbox");
+      }else{
+        this.timer = setInterval(() => {
+          fetch("https://api.mapbox.com/uploads/v1/" + MAPBOX_USER + "/" + uploadid + "?access_token=" + window.MBAT)
+            .then(response => response.json())
+            .then((response) => {
+              if (response.complete){
+                this.log({info: 'Uploaded',status:'UploadComplete'});
+                //clear the timer
+                clearInterval(this.timer);
+                this.timer = null;
+                //reset state
+                this.setState({loading: false });
+                resolve("Uploaded to Mapbox");
+              }
+            })
+            .catch((error) => {
               this.setState({loading: false });
-              resolve("Uploaded to Mapbox");
-            }
-          })
-          .catch((error) => {
-            this.setState({loading: false });
-            reject(error);
-          });
-      }, 3000);
+              reject(error);
+            });
+        }, 3000);
+      }
     });
   }
   
