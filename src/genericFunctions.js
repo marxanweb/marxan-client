@@ -24,5 +24,23 @@ module.exports = {
 			return Math.max(a, b);
 		});
 		return colorSchemeLength;
-	}
+	},
+	//returns the area in the passed units, e.g. getArea(10000,'m2') will return 10000
+    getArea: function(value, units){
+        let scale;
+        switch (units) {
+            case 'm2':
+                scale = 1;
+                break;
+            case 'ha':
+                scale = 0.0001;
+                break;
+            case 'km2':
+                scale = 0.000001;
+                break;
+            default:
+                // code
+        }
+        return Number((value * scale).toFixed(1));
+    }
 };

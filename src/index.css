@@ -630,7 +630,6 @@ div.rt-tbody>div>div>div>div[contenteditable="true"] {
 
 .logMessage {
   display: inline;
-  background-color: aliceblue;
 }
 
 .logNone {
@@ -800,8 +799,12 @@ a {
 }
 
 .analysisReport {
-  height: 700px;
+  height: 480px;
   padding: 10px;
+}
+
+.analysisReportInner {
+  padding: 5px;
 }
 
 .analysisTab {
@@ -810,6 +813,12 @@ a {
   text-transform: inherit !important;
   font-size: 16px !important;
   font-weight: 400 !important;
+}
+
+.score {
+  font-size: 19px;
+  font-weight: bold;
+  padding-left: 10px;
 }
 
 .countryLabel {
@@ -821,15 +830,15 @@ a {
 .countryMap {}
 
 .representationTable {
-    position: absolute;
-    /* right: 0px !important; */
-    width: 400px !important;
-    top: 80px;
+  position: absolute;
+  /* right: 0px !important; */
+  width: 400px !important;
+  top: 80px;
 }
 
 .analysisChartsDiv {
-  position: absolute;
-  top: 241px;
+  height: 350px;
+  overflow: auto;
 }
 
 .representationHeader {
@@ -990,7 +999,7 @@ a {
 }
 
 .endemicImg {
-  transform: scale(0.75,0.75) !important;
+  transform: scale(0.75, 0.75) !important;
   position: absolute !important;
   bottom: 3px !important;
   right: 3px !important;

@@ -1,31 +1,15 @@
 import * as React from 'react';
 import { PieChart, Pie, Cell } from 'recharts';
 import Divider from 'material-ui/Divider';
-import star from './images/star.png';
+import { getArea } from './genericFunctions.js';
+// import star from './images/star.png';
 
 class MetChart extends React.Component {
-    getArea(value){
-        let scale;
-        switch (this.props.units) {
-            case 'm2':
-                scale = 1;
-                break;
-            case 'ha':
-                scale = 0.0001;
-                break;
-            case 'km2':
-                scale = 0.000001;
-                break;
-            default:
-                // code
-        }
-        return Number((value * scale).toFixed(1));
-    }
     render() {
         let rounded = Number(this.props.current_protected_percent.toFixed(1));
-        let country_area = this.getArea(this.props.country_area);
-        let protected_area = this.getArea(this.props.current_protected_area);
-        let total_area = this.getArea(this.props.total_area);
+        let country_area = getArea(this.props.country_area, this.props.units);
+        let protected_area = getArea(this.props.current_protected_area, this.props.units);
+        let total_area = getArea(this.props.total_area, this.props.units);
         let countryText = (this.props.showCountryArea) ? "\nCountry area: " + country_area + ' ' + this.props.units : "";
         let titleText = "Area: " +  total_area + ' ' + this.props.units + countryText + "\nProtected area: " + protected_area + ' ' + this.props.units;
         const data = (this.props.showCountryArea) ? [{ name: 'Protected area', value: protected_area},{ name: 'Country area', value: (country_area - protected_area) }, { name: 'Total area', value: (total_area - country_area) }] : [{ name: 'Protected area', value: protected_area}, { name: 'Total area', value: (total_area - protected_area) }];
@@ -61,7 +45,7 @@ class MetChart extends React.Component {
                             {rounded}%
                         </div>
                         <div className="MetChartDiv" style={this.props.clickable!==false ? {cursor: 'pointer'} : null} title={titleText} />
-                        <span style={{display: (this.props.endemic && (this.props.created_by === "global admin")) ? 'inline' : 'none'}}><img src={star} alt="Endemic" title={"Endemic"} className={"endemicImg"}/></span>
+                        {/*<span style={{display: (this.props.endemic && (this.props.created_by === "global admin")) ? 'inline' : 'none'}}><img src={star} alt="Endemic" title={"Endemic"} className={"endemicImg"}/></span>*/}
                     </div>
                 </div>
             </React.Fragment>

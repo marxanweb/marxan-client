@@ -68,7 +68,7 @@ import Notifications from './Notifications';
 import PopupPAList from './PopupPAList';
 import TargetDialog from './TargetDialog';
 import ShareableLinkDialog from './ShareableLinkDialog';
-import AnalysisDialog from './AnalysisDialog';
+import GapAnalysisDialog from './GapAnalysisDialog';
 import UpdateWDPADialog from './UpdateWDPADialog';
 
 //CONSTANTS
@@ -154,7 +154,7 @@ class App extends React.Component {
       updateWDPADialogOpen: false,
       NewFeatureDialogOpen: false,
       featuresDialogOpen: false,
-      analysisDialogOpen: false,
+      gapAnalysisDialogOpen: false,
       featureDialogOpen: false,
       runLogDialogOpen: false,
       infoPanelOpen: false,
@@ -3341,12 +3341,12 @@ class App extends React.Component {
   closeRunLogDialog(){
     this.setState({runLogDialogOpen: false});
   }
-  openAnalysisDialog(){
-    this.setState({analysisDialogOpen: true, gapAnalysis: []});
+  openGapAnalysisDialog(){
+    this.setState({gapAnalysisDialogOpen: true, gapAnalysis: []});
     this.runGapAnalysis();
   }
-  closeAnalysisDialog(){
-    this.setState({analysisDialogOpen: false});
+  closeGapAnalysisDialog(){
+    this.setState({gapAnalysisDialogOpen: false});
   }
   openServerDetailsDialog(){
     this.setState({serverDetailsDialogOpen: true});
@@ -3799,8 +3799,9 @@ class App extends React.Component {
             hideToolsMenu={this.hideToolsMenu.bind(this)}
             openUsersDialog={this.openUsersDialog.bind(this)}
             openRunLogDialog={this.openRunLogDialog.bind(this)}
-            openAnalysisDialog={this.openAnalysisDialog.bind(this)}
+            openGapAnalysisDialog={this.openGapAnalysisDialog.bind(this)}
             userRole={this.state.userData.ROLE}
+            metadata={this.state.metadata}
           />
           <UserMenu 
             open={this.state.userMenuOpen} 
@@ -4203,13 +4204,15 @@ class App extends React.Component {
             onCancel={this.closeTargetDialog.bind(this)}
             updateTargetValueForFeatures={this.updateTargetValueForFeatures.bind(this)}
           />
-          <AnalysisDialog 
-            open={this.state.analysisDialogOpen}
+          <GapAnalysisDialog 
+            open={this.state.gapAnalysisDialogOpen}
             showCancelButton={true}
-            onCancel={this.closeAnalysisDialog.bind(this)}
+            onOk={this.closeGapAnalysisDialog.bind(this)}
+            closeGapAnalysisDialog={this.closeGapAnalysisDialog.bind(this)}
             gapAnalysis={this.state.gapAnalysis}
             preprocessing={this.state.preprocessing}
             projectFeatures={this.state.projectFeatures}
+            metadata={this.state.metadata}
           />
           <ShareableLinkDialog
             open={this.state.shareableLinkDialogOpen}
