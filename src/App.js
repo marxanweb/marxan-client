@@ -2686,7 +2686,7 @@ class App extends React.Component {
     this.setState({loading: true});
     this.log({info: 'Uploading to Mapbox..',status:'Uploading'});
     return new Promise((resolve, reject) => {
-      if (uploadid === '0'){
+      if (uploadid === '0'){ 
         this.log({info: 'Tileset already exists on Mapbox',status:'UploadComplete'});
         //reset state
         this.setState({loading: false });

@@ -15,12 +15,15 @@ class Log extends React.Component {
 				case 'Uploading':
 					className = (index === 0) ? 'logItem logFirstStart' : 'logItem logStart';
 					break;
+				case "RunningQuery":
+					className = 'logItem logMessage';
+					break;
 				case 'Finished':
 				case 'UploadComplete':
 					className = 'logItem logFinish';
 					break;
 				default:
-					className = 'logItem logMessage';
+					className = 'logItem logNone';
 					break;
 			}
 			//if there is an error, then set that as the message

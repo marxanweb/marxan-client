@@ -638,6 +638,10 @@ div.rt-tbody>div>div>div>div[contenteditable="true"] {
   display: inline;
 }
 
+.logNone {
+  display: none;
+}
+
 .logFinish {
   border-bottom: 1px #ece8e8 solid;
   background-color: aliceblue;
