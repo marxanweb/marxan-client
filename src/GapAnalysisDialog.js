@@ -1,8 +1,23 @@
 import * as React from 'react';
 import MarxanDialog from './MarxanDialog';
 import MetChart from "./MetChart";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Label } from 'recharts';
+import {ReferenceLine, ComposedChart , Bar, XAxis, YAxis, CartesianGrid, Tooltip, Label } from 'recharts';
 import Toggle from 'material-ui/Toggle';
+import { getArea } from './genericFunctions.js';
+
+const CustomTooltip = ({ active, payload, label }) => {
+  if (active&&payload) {
+    return (
+      <div className="custom-tooltip">
+        <div className="tooltip">Area: {getArea(payload[0].payload.total_area,'km2')} km2</div>
+        <div className="tooltip">Protected area: {getArea(payload[0].payload.current_protected_area,'km2')} km2</div>
+      </div>
+    );
+  }
+
+  return null;
+};
+
 class GapAnalysisDialog extends React.PureComponent {
   constructor(props) {
     super(props);
@@ -44,10 +59,22 @@ class GapAnalysisDialog extends React.PureComponent {
 					var stats = this.props.projectFeatures.filter(item2 => {
 						return (item2.feature_class_name === item._feature_class_name);
 					})[0];
-					return Object.assign(item, {target_value: stats.target_value});
+					if (stats){
+						return Object.assign(item, {target_value: stats.target_value});
+					}else{
+						return item;
+					}
 				});
+				//sort the data by current protection
+		        _data.sort((a, b) => {
+		          let returnval = (a.current_protected_percent < b.current_protected_percent) ? -1 : 1;
+		          return returnval;
+		        });
+				//create the charts and get the count of features that have met the target
+				let targetsMetCount = 0;
 				let charts = _data.map((item, index) => {
 					if (item.country_area > 0) {
+						if (item.current_protected_percent >= item.target_value) targetsMetCount = targetsMetCount + 1;
 						return <MetChart {...item} title={item._alias} color={window.colors[index % window.colors.length]} key={item._feature_class_name} units={'km2'} showCountryArea={false}/>;
 					}
 					else {
@@ -69,24 +96,30 @@ class GapAnalysisDialog extends React.PureComponent {
                 children={
                 <React.Fragment>
 					<div className="analysisReport">
-						A gap analysis calculates how much of each conservation feature is protected within the existing protected area network and then summarises the representation as a score. For more information see the online help.
-						<div className={'analysisReportInner'}>
+						<div>Gap Analysis for {this.props.metadata.pu_country} using the {this.props.marxanServer.wdpa_version} version of the WDPA</div>
+						<div className={'analysisReportInner'} style={{display: (this.props.gapAnalysis.length) ? 'block' : ' none'}}>
 							<div className={'analysisChartsDiv'} style={{display: (this.state.showChart) ? 'none' : 'block'}}>
 								{charts}
 							</div>
-							<BarChart width={550} height={350} data={_data} margin={{bottom:80, top:20}} style={{display: (this.state.showChart) ? 'block' : 'none',margin:'auto'}}>
+							<ComposedChart  width={550} height={350} data={_data} margin={{bottom:80, top:20}} style={{display: (this.state.showChart) ? 'block' : 'none', margin:'auto'}}>
 								<CartesianGrid strokeDasharray="1" stroke="#f4f4f4"/>
 								<XAxis dataKey="_alias" angle={-45} textAnchor="end" interval={0}>
 								</XAxis> 
 								<YAxis tick={{fontSize:11}} >
 									<Label value='Percent Protected' angle={-90} position='insideBottomLeft' style={{fontSize:'11px',color:'#222222'}} offset={30}/>
 								</YAxis>
-								<Tooltip content={this.renderTooltip} />
-								<Bar dataKey="current_protected_percent" fill="#E14081" />
-							</BarChart>
+    							<Tooltip content={<CustomTooltip />} />
+								<Bar dataKey="current_protected_percent" fill="#FF4081" />
+    							<ReferenceLine y={(_data.length) ? _data[0].target_value : 0} stroke="#7C7C7C" strokeDasharray="3 3" style={{display: (_data.length) ? 'inline' : 'none'}}/>
+							</ComposedChart >
+							<div className={'gapAnalysisStatsPanel'}>
+								<table><tr>
+								<td>Features meeting targets:</td><td className={'score'}>{targetsMetCount}/{charts.length}</td></tr><tr>
+								<td>Representation score:</td><td className={'score'}>{score}</td></tr>
+								</table>
+							</div>
+							<Toggle label="Show as a chart" onToggle={this.toggleView.bind(this)} style={{width:'unset',float:'right',paddingTop:'2px'}} labelStyle={{fontSize:'14px',width:'100px',color:'rgba(0, 0, 0, 0.6)'}} toggled={this.state.showChart}/>
 						</div>
-						Representation score: <span className={'score'}>{score}</span>
-						<Toggle label="Show as a chart" onToggle={this.toggleView.bind(this)} style={{width:'unset',float:'right',paddingTop:'2px'}} labelStyle={{fontSize:'14px',width:'100px',color:'rgba(0, 0, 0, 0.6)'}}/>
 					</div>
                 </React.Fragment>
         }

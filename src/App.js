@@ -3346,7 +3346,7 @@ class App extends React.Component {
     this.runGapAnalysis();
   }
   closeGapAnalysisDialog(){
-    this.setState({gapAnalysisDialogOpen: false});
+    this.setState({gapAnalysisDialogOpen: false, gapAnalysis: []});
   }
   openServerDetailsDialog(){
     this.setState({serverDetailsDialogOpen: true});
@@ -4213,6 +4213,7 @@ class App extends React.Component {
             preprocessing={this.state.preprocessing}
             projectFeatures={this.state.projectFeatures}
             metadata={this.state.metadata}
+            marxanServer={this.state.marxanServer}
           />
           <ShareableLinkDialog
             open={this.state.shareableLinkDialogOpen}

@@ -5,7 +5,7 @@ import Popover from 'material-ui/Popover';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {faUsers} from '@fortawesome/free-solid-svg-icons';
 import {faRunning} from '@fortawesome/free-solid-svg-icons';
-import {faGraduationCap} from '@fortawesome/free-solid-svg-icons';
+import {faChartBar} from '@fortawesome/free-solid-svg-icons';
 
 class ToolsMenu extends React.Component { 
  openUsersDialog(){
@@ -27,7 +27,7 @@ class ToolsMenu extends React.Component {
 	            <Menu desktop={true} onMouseLeave={this.props.hideToolsMenu} menuItemStyle={{backgroundColor:'rgb(0, 188, 212)', color:'white'}} listStyle={{width:'120px',backgroundColor:'rgb(0, 188, 212)'}} selectedMenuItemStyle={{color:'rgb(24,24,24)'}}>
 	              <MenuItem style={{display: (this.props.userRole === 'Admin') ? 'inline-block' : 'none'}} leftIcon={<FontAwesomeIcon style={{fontSize: '20px'}} icon={faUsers} color={'white'}/>} onClick={this.openUsersDialog.bind(this)} title={"Manage Users"}>Manage Users</MenuItem>
 	              <MenuItem style={{display: (this.props.userRole === 'Admin') ? 'inline-block' : 'none'}} leftIcon={<FontAwesomeIcon style={{fontSize: '20px'}} icon={faRunning} color={'white'}/>} onClick={this.openRunLogDialog.bind(this)} title={"View Run Log and stop runs"}>Run log</MenuItem>
-	              <MenuItem leftIcon={<FontAwesomeIcon style={{fontSize: '20px'}} icon={faGraduationCap} color={'white'}/>} onClick={this.openGapAnalysisDialog.bind(this)} title={"Gap Analysis"} disabled={this.props.metadata.pu_country===null}>{(this.props.metadata.pu_country===null) ? 'Gap Analysis (not available)' : 'Gap Analysis'}</MenuItem>
+	              <MenuItem leftIcon={<FontAwesomeIcon style={{fontSize: '20px'}} icon={faChartBar} color={'white'}/>} onClick={this.openGapAnalysisDialog.bind(this)} title={"Gap Analysis"} disabled={this.props.metadata.pu_country===null}>{(this.props.metadata.pu_country===null) ? 'Gap Analysis (not available)' : 'Gap Analysis'}</MenuItem>
 	            </Menu>
 	          </Popover>   
 			</React.Fragment>

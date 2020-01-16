@@ -1,6 +1,6 @@
 {
   "name": "marxan_web",
-  "version": "v0.9.22",
+  "version": "v0.9.26",
   "private": true,
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^1.2.26",

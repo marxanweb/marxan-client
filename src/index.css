@@ -799,11 +799,11 @@ a {
 }
 
 .analysisReport {
-  height: 480px;
   padding: 10px;
 }
 
 .analysisReportInner {
+  height: 420px;
   padding: 5px;
 }
 
@@ -1003,4 +1003,20 @@ a {
   position: absolute !important;
   bottom: 3px !important;
   right: 3px !important;
+}
+
+.custom-tooltip {
+  background: white;
+  border: 1px solid black;
+  padding:5px;
+}
+
+.tooltip {
+  font-family: Arial;
+  font-size: 12px;
+  color:black;
+  line-height:14px;
+}
+.gapAnalysisStatsPanel{
+  padding-top:10px;
 }
