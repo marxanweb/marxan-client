@@ -3563,6 +3563,8 @@ class App extends React.Component {
           this.protected_area_intersections = [];
           //recalculate the protected area intersections and refilter the vector tiles
           this.changeIucnCategory(this.state.metadata.IUCN_CATEGORY);
+          //close the dialog
+          this.closeWDPAUpdateDialog();
         });
         resolve(message);
       }).catch((error) => {

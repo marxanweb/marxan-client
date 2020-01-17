@@ -6,7 +6,7 @@ import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 
 class ServerDetailsDialog extends React.Component {
 	renderWithIcon(cellInfo) {
-	  let newServerSoftware = ((cellInfo.row.key === 'Marxan Server version')&&(this.props.server_version !== window.SERVER_VERSION));
+	  let newServerSoftware = ((cellInfo.row.key === 'Marxan Server version')&&(this.props.marxanServer.server_version !== window.SERVER_VERSION));
 		return (
 			<React.Fragment>
 				<div style={{ float: 'left' }}>{cellInfo.row.value}</div>
