@@ -29,6 +29,8 @@ class FeatureDialog extends React.Component {
 							getTilesetMetadata={this.props.getTilesetMetadata}
 							zoomToBounds={this.props.zoomToBounds}
 							setSnackBar={this.props.setSnackBar}
+							color={this.props.feature_metadata.color}
+							outlineColor={"rgba(0, 0, 0, 0.2)"}
 						/>
 						<div className="metadataPanel">
 							<table>

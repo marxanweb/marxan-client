@@ -11,6 +11,8 @@ class MapContainer2 extends React.Component {
             attributionControl: false,
 		});
         this.map.on("load", (evt) => {
+            let color = (this.props.color) ? this.props.color : "rgba(255, 0, 0, 0.4)";
+            let outlineColor = (this.props.outlineColor) ? this.props.outlineColor : "rgba(255, 0, 0, 0.5)";
             evt.target.addLayer({
                 'id': 'planning_grid',
                 'type': "fill",
@@ -20,8 +22,9 @@ class MapContainer2 extends React.Component {
                 },
                 'source-layer': this.props.planning_grid_metadata.feature_class_name,
                 'paint': {
-                    'fill-color': "rgba(255, 0, 0, 0.4)", 
-                    'fill-outline-color': "rgba(255, 0, 0, 0.5)"
+                    'fill-color': color, 
+                    'fill-opacity': 0.9,
+                    'fill-outline-color': outlineColor
                 }
             });
         });
