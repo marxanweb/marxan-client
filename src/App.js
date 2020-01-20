@@ -34,7 +34,7 @@ import ResendPasswordDialog from './ResendPasswordDialog.js';
 import ToolsMenu from './ToolsMenu';
 import UserMenu from './UserMenu';
 import HelpMenu from './HelpMenu';
-import OptionsDialog from './OptionsDialog';
+import UserSettingsDialog from './UserSettingsDialog';
 import ProfileDialog from './ProfileDialog';
 import UsersDialog from './UsersDialog';
 import AboutDialog from './AboutDialog';
@@ -129,7 +129,7 @@ class App extends React.Component {
       aboutDialogOpen: false,
       helpDialogOpen: false,
       importProjectDialogOpen: false,
-      optionsDialogOpen: false,
+      UserSettingsDialogOpen: false,
       CostsDialogOpen: false,
       registerDialogOpen: false,
       clumpingDialogOpen: false,
@@ -932,7 +932,6 @@ class App extends React.Component {
       this._post("updateUserParameters", formData).then((response) => {
         // if succesfull write the state back to the userData key
         if (this.state.user === user) this.setState({ userData: this.newUserData});
-        this.setState({optionsDialogOpen: false });
         resolve();
       }).catch((error) => {
         reject(error);
@@ -944,8 +943,6 @@ class App extends React.Component {
 
   //saveOptions - the options are in the users data so we use the updateUser REST call to update them
   saveOptions(options) {
-    //hide the popup 
-    this.hidePopup();
     this.updateUser(options);
   }
   //updates the project from the old version to the new version
@@ -1052,13 +1049,13 @@ class App extends React.Component {
       return item.id;
     });
     //iterate through features to add the required attributes to be used in the app and to populate them based on the current project features
-    var outFeatures = features.map((item, index) => {
+    var outFeatures = features.map((item) => {
       //see if the feature is in the current project
       var projectFeature = (ids.indexOf(item.id) > -1) ? projectFeatures[ids.indexOf(item.id)] : null;
       //get the preprocessing for that feature from the feature_preprocessing.dat file
       let preprocessing = this.getArrayItem(this.feature_preprocessing, item.id);
       //add the required attributes to the features - these will be populated in the function calls preprocessFeature (pu_area, pu_count) and pollResults (protected_area, target_area)
-      this.addFeatureAttributes(item, oldVersion, index);
+      this.addFeatureAttributes(item, oldVersion);
       //if the interest feature is in the current project then populate the data from that feature
       if (projectFeature) {
         item['selected'] = true;
@@ -1078,7 +1075,7 @@ class App extends React.Component {
   }
 
   //adds the required attributes for the features to work in the marxan web app - these are the default values
-  addFeatureAttributes(item, oldVersion, index){
+  addFeatureAttributes(item, oldVersion){
       // the -1 flag indicates that the values are unknown
       item['selected'] = false; //if the feature is currently selected (i.e. in the current project)
       item['preprocessed'] = false; //has the feature already been intersected with the planning grid to populate the puvspr.dat file
@@ -1092,7 +1089,7 @@ class App extends React.Component {
       item['feature_puid_layer_loaded'] = false; //are the planning units that intersect the feature currently visible on the map
       item['old_version'] = oldVersion; //true if the current project is an project imported from marxan for DOS
       item['occurs_in_planning_grid'] = false; //does the feature occur in the planning grid
-      item['color'] = window.colors[index % window.colors.length]; //color for the map layer and analysis outputs
+      item['color'] = window.colors[item.id % window.colors.length]; //color for the map layer and analysis outputs
   }
 
   //resets various variables and state in between users
@@ -1821,8 +1818,6 @@ class App extends React.Component {
   mouseMove(e) {
     //hide the popup feature list if it is visible
     if (this.state.puFeatures && this.state.puFeatures.length > 0) this.setState({puFeatures:[]});
-    //return if the user does not want to show popups
-    if (!this.state.userData.SHOWPOPUP) return;
     //get the features under the mouse
     var features = this.map.queryRenderedFeatures(e.point, { layers: [RESULTS_LAYER_NAME] });
     //see if there are any features under the mouse
@@ -1835,11 +1830,11 @@ class App extends React.Component {
       let marxan_results = this.runMarxanResponse && this.runMarxanResponse.ssoln ? this.runMarxanResponse.ssoln.filter(item => item[1].indexOf(vector_tile_properties.puid) > -1)[0] : {};
       if (marxan_results) {
         //convert the marxan results from an array to an object
-        let marxan_results_dict = { "puid": vector_tile_properties.puid, "Number": marxan_results[0] };
+        // let marxan_results_dict = { "puid": vector_tile_properties.puid, "Number": marxan_results[0] };
         //combine the 2 sets of properties
-        let active_pu = Object.assign(marxan_results_dict, vector_tile_properties);
+        // let active_pu = Object.assign(marxan_results_dict, vector_tile_properties);
         //set the state to re-render the popup
-        this.setState({ active_pu: active_pu });
+        // this.setState({ active_pu: active_pu });
       }
       else {
         this.hidePopup();
@@ -3251,13 +3246,13 @@ class App extends React.Component {
       this.setState({ openInfoDialogOpen: false });
   }
 
-  openOptionsDialog() {
-    this.setState({ optionsDialogOpen: true });
+  openUserSettingsDialog() {
+    this.setState({ UserSettingsDialogOpen: true });
     this.hideUserMenu();
   }
 
-  closeOptionsDialog() {
-    this.setState({ optionsDialogOpen: false });
+  closeUserSettingsDialog() {
+    this.setState({ UserSettingsDialogOpen: false });
   }
 
   openProfileDialog() {
@@ -3799,7 +3794,7 @@ class App extends React.Component {
             user={this.state.user}
             userRole={this.state.userData.ROLE}
             hideUserMenu={this.hideUserMenu.bind(this)} 
-            openOptionsDialog={this.openOptionsDialog.bind(this)}
+            openUserSettingsDialog={this.openUserSettingsDialog.bind(this)}
             openProfileDialog={this.openProfileDialog.bind(this)}
             logout={this.logout.bind(this)}
             marxanServer={this.state.marxanServer}
@@ -3813,10 +3808,10 @@ class App extends React.Component {
             openServerDetailsDialog={this.openServerDetailsDialog.bind(this)}
             DOCS_ROOT={DOCS_ROOT}
           />
-          <OptionsDialog 
-            open={this.state.optionsDialogOpen}
-            onOk={this.closeOptionsDialog.bind(this)}
-            onCancel={this.closeOptionsDialog.bind(this)}
+          <UserSettingsDialog 
+            open={this.state.UserSettingsDialogOpen}
+            onOk={this.closeUserSettingsDialog.bind(this)}
+            onCancel={this.closeUserSettingsDialog.bind(this)}
             loading={this.state.loading} 
             userData={this.state.userData}
             saveOptions={this.saveOptions.bind(this)}
@@ -3884,6 +3879,7 @@ class App extends React.Component {
             marxanServer={this.state.marxanServer}
             toggleFeatureLayer={this.toggleFeatureLayer.bind(this)}
             toggleFeaturePUIDLayer={this.toggleFeaturePUIDLayer.bind(this)}
+            useFeatureColors={this.state.userData.USEFEATURECOLORS}
           />
           <ResultsPanel
             open={this.state.resultsPanelOpen}

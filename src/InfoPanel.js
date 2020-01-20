@@ -133,6 +133,7 @@ class InfoPanel extends React.Component {
 									userRole={this.props.userRole}
 									toggleFeatureLayer={this.props.toggleFeatureLayer}
 									toggleFeaturePUIDLayer={this.props.toggleFeaturePUIDLayer}
+									useFeatureColors={this.props.useFeatureColors}
 								/>
 							</Tab>
 							<Tab label="Planning units" onActive={this.props.pu_tab_active} value="planning_units">

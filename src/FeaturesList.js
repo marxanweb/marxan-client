@@ -65,6 +65,8 @@ class FeaturesList extends React.Component {
 										target_value={item.target_value} 
 										protected_percent={protected_percent}
 										visible={(item.pu_area!==0)}
+										color={item.color}
+										useFeatureColors={this.props.useFeatureColors}
 									/>
 								} 
 								key={item.id} 

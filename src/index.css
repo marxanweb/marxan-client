@@ -382,10 +382,6 @@ input:-webkit-autofill {
   line-height: 20px;
 }
 
-.protectedPercentBar {
-  background-color: rgb(0, 188, 212);
-}
-
 .unprotectedPercentBar {
   background-color: lightgray;
 }

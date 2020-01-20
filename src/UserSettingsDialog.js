@@ -3,8 +3,9 @@ import MarxanDialog from './MarxanDialog';
 import SelectField from 'material-ui/SelectField';
 import MenuItem from 'material-ui/MenuItem';
 import ToolbarButton from './ToolbarButton';
+import Checkbox from 'material-ui/Checkbox';
 
-class OptionsDialog extends React.Component {
+class UserSettingsDialog extends React.Component {
         constructor(props){
                 super(props);
                 this.state = {saveEnabled: false};
@@ -13,9 +14,9 @@ class OptionsDialog extends React.Component {
         setOption(key, value){
                 this.setState({saveEnabled: true});
                 this.options[key] = value;
+                this.props.saveOptions(this.options);
         }
         updateOptions(){
-                this.props.saveOptions(this.options);
                 this.props.onOk();
         }
         changeBasemap(event, key, payload){
@@ -23,7 +24,9 @@ class OptionsDialog extends React.Component {
                 this.props.changeBasemap(basemap);    
                 this.setOption("BASEMAP", basemap.name);
         }
-        
+        toggleUseFeatureColors(evt, isInputChecked){
+        	this.setOption("USEFEATURECOLORS", isInputChecked);
+        }
         render() {
                 return (
                         <MarxanDialog 
@@ -55,6 +58,13 @@ class OptionsDialog extends React.Component {
                                                                 />;
                                                         })}
                                                 />
+						<Checkbox
+							label="Use feature colours"
+							style={{fontSize:'12px'}}
+							checked={this.props.userData.USEFEATURECOLORS}
+							onCheck={this.toggleUseFeatureColors.bind(this)}
+						/>
+                                                
                                                 <ToolbarButton label="Reset notifications" onClick={this.props.resetNotifications} className={"resetNotifications"}/>
                                         </div>
                                 } 
@@ -63,4 +73,4 @@ class OptionsDialog extends React.Component {
         }
 }
 
-export default OptionsDialog;
+export default UserSettingsDialog;
