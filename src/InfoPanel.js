@@ -131,6 +131,8 @@ class InfoPanel extends React.Component {
 									showTargetButton={true}
 									openTargetDialog={this.props.openTargetDialog}
 									userRole={this.props.userRole}
+									toggleFeatureLayer={this.props.toggleFeatureLayer}
+									toggleFeaturePUIDLayer={this.props.toggleFeaturePUIDLayer}
 								/>
 							</Tab>
 							<Tab label="Planning units" onActive={this.props.pu_tab_active} value="planning_units">

@@ -13,6 +13,19 @@ class FeaturesList extends React.Component {
 	updateTargetValue(targetIcon, newValue) {
 		this.props.updateFeature(targetIcon.props.interestFeature, {target_value: newValue});
 	}
+	itemClick(feature, evt){
+		if (evt.ctrlKey){
+			//toggle the layers puid visibility
+			feature.feature_puid_layer_loaded = !feature.feature_puid_layer_loaded;
+			//add/remove it from the map
+			this.props.toggleFeaturePUIDLayer(feature);
+		}else{
+			//toggle the layers visibility
+			feature.feature_layer_loaded = !feature.feature_layer_loaded;
+			//add/remove it from the map
+			this.props.toggleFeatureLayer(feature);
+		}
+	}
 	render() {
 		return (
 			<React.Fragment>
@@ -56,6 +69,7 @@ class FeaturesList extends React.Component {
 								} 
 								key={item.id} 
 								value={item.alias}
+								onClick={this.props.simple ? null : this.itemClick.bind(this, item)}
 								rightIconButton={this.props.simple ?
 									<div />
 									:

@@ -1,28 +1,28 @@
 import * as React from 'react';
 import MarxanDialog from './MarxanDialog';
 import MetChart from "./MetChart";
-import {ReferenceLine, ComposedChart , Bar, XAxis, YAxis, CartesianGrid, Tooltip, Label } from 'recharts';
+import { Cell, ReferenceLine, ComposedChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Label } from 'recharts';
 import Toggle from 'material-ui/Toggle';
 import { getArea } from './genericFunctions.js';
 
 const CustomTooltip = ({ active, payload, label }) => {
-  if (active&&payload) {
-    return (
-      <div className="custom-tooltip">
+	if (active && payload) {
+		return (
+			<div className="custom-tooltip">
         <div className="tooltip">Area: {getArea(payload[0].payload.total_area,'km2')} km2</div>
         <div className="tooltip">Protected area: {getArea(payload[0].payload.current_protected_area,'km2')} km2</div>
       </div>
-    );
-  }
+		);
+	}
 
-  return null;
+	return null;
 };
 
 class GapAnalysisDialog extends React.PureComponent {
-  constructor(props) {
-    super(props);
-    this.state = {showChart:false};
-  }
+		constructor(props) {
+			super(props);
+			this.state = { showChart: false };
+		}
 		getRepresentationScore(features) {
 			let sum = 0,
 				amount_under_protection_property, total_amount_property;
@@ -46,10 +46,10 @@ class GapAnalysisDialog extends React.PureComponent {
 			let mean = (sum / features.length);
 			return Number(mean * 100).toFixed(1);
 		}
-		toggleView(event, isInputChecked){
-			this.setState({showChart:isInputChecked})	;
-		} 
-		renderTooltip(a,b,c){
+		toggleView(event, isInputChecked) {
+			this.setState({ showChart: isInputChecked });
+		}
+		renderTooltip(a, b, c) {
 			return 'wibble';
 		}
 		render() {
@@ -59,23 +59,24 @@ class GapAnalysisDialog extends React.PureComponent {
 					var stats = this.props.projectFeatures.filter(item2 => {
 						return (item2.feature_class_name === item._feature_class_name);
 					})[0];
-					if (stats){
-						return Object.assign(item, {target_value: stats.target_value});
-					}else{
+					if (stats) {
+						return Object.assign(item, { target_value: stats.target_value, color: stats.color });
+					}
+					else {
 						return item;
 					}
 				});
 				//sort the data by current protection
-		        _data.sort((a, b) => {
-		          let returnval = (a.current_protected_percent < b.current_protected_percent) ? -1 : 1;
-		          return returnval;
-		        });
+				_data.sort((a, b) => {
+					let returnval = (a.current_protected_percent < b.current_protected_percent) ? -1 : 1;
+					return returnval;
+				});
 				//create the charts and get the count of features that have met the target
 				let targetsMetCount = 0;
 				let charts = _data.map((item, index) => {
 					if (item.country_area > 0) {
 						if (item.current_protected_percent >= item.target_value) targetsMetCount = targetsMetCount + 1;
-						return <MetChart {...item} title={item._alias} color={window.colors[index % window.colors.length]} key={item._feature_class_name} units={'km2'} showCountryArea={false}/>;
+						return <MetChart {...item} title={item._alias} color={item.color} key={item._feature_class_name} units={'km2'} showCountryArea={false}/>;
 					}
 					else {
 						return null;
@@ -108,9 +109,16 @@ class GapAnalysisDialog extends React.PureComponent {
 								<YAxis tick={{fontSize:11}} >
 									<Label value='Percent Protected' angle={-90} position='insideBottomLeft' style={{fontSize:'11px',color:'#222222'}} offset={30}/>
 								</YAxis>
-    							<Tooltip content={<CustomTooltip />} />
-								<Bar dataKey="current_protected_percent" fill="#FF4081" />
-    							<ReferenceLine y={(_data.length) ? _data[0].target_value : 0} stroke="#7C7C7C" strokeDasharray="3 3" style={{display: (_data.length) ? 'inline' : 'none'}}/>
+    						<Tooltip content={<CustomTooltip />} />
+								<Bar dataKey="current_protected_percent" fill="#8884d8">
+								{
+								_data.map((entry, index) => {
+								const color = entry.color;
+								return <Cell fill={color} />;
+								})
+								}
+							</Bar>
+    					<ReferenceLine y={(_data.length) ? _data[0].target_value : 0} stroke="#7C7C7C" strokeDasharray="3 3" style={{display: (_data.length) ? 'inline' : 'none'}}/>
 							</ComposedChart >
 							<div className={'gapAnalysisStatsPanel'}>
 								<table><tr>

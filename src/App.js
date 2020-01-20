@@ -95,12 +95,9 @@ let WDPA_LAYER_NAME = "wdpa"; //layer showing the protected areas from the WDPA
 let PU_LAYER_OPACITY = 0.4;
 let STATUS_LAYER_LINE_WIDTH = 1.5;
 let PUVSPR_LAYER_LINE_WIDTH = 1.5;
-let PUVSPR_LAYER_OUTLINE_COLOR = 'rgba(255, 0, 0, 1)';
 let RESULTS_LAYER_FILL_OPACITY_ACTIVE = 0.9;
 let RESULTS_LAYER_FILL_OPACITY_INACTIVE = 0;
 let WDPA_FILL_LAYER_OPACITY = 0.2;
-let HIDE_PUVSPR_LAYER_TEXT = "Remove planning unit outlines";
-let SHOW_PUVSPR_LAYER_TEXT = "Outline planning units where the feature occurs";
 
 //an array of feature property information that is used in the Feature Information dialog box - showForOld sets whether that property is shown for old versions of marxan
 let FEATURE_PROPERTIES = [{ name: 'id', key: 'ID',hint: 'The unique identifier for the feature', showForOld: false, showForNew: false},
@@ -189,7 +186,6 @@ class App extends React.Component {
       preprocessing: false,
       pa_layer_visible: false,
       currentFeature:{},
-      puvsprLayerText: '',
       featureDatasetFilename: '',
       dataBreaks: [],
       allFeatures: [], //all of the interest features in the metadata_interest_features table
@@ -1056,13 +1052,13 @@ class App extends React.Component {
       return item.id;
     });
     //iterate through features to add the required attributes to be used in the app and to populate them based on the current project features
-    var outFeatures = features.map((item) => {
+    var outFeatures = features.map((item, index) => {
       //see if the feature is in the current project
       var projectFeature = (ids.indexOf(item.id) > -1) ? projectFeatures[ids.indexOf(item.id)] : null;
       //get the preprocessing for that feature from the feature_preprocessing.dat file
       let preprocessing = this.getArrayItem(this.feature_preprocessing, item.id);
       //add the required attributes to the features - these will be populated in the function calls preprocessFeature (pu_area, pu_count) and pollResults (protected_area, target_area)
-      this.addFeatureAttributes(item, oldVersion);
+      this.addFeatureAttributes(item, oldVersion, index);
       //if the interest feature is in the current project then populate the data from that feature
       if (projectFeature) {
         item['selected'] = true;
@@ -1082,19 +1078,21 @@ class App extends React.Component {
   }
 
   //adds the required attributes for the features to work in the marxan web app - these are the default values
-  addFeatureAttributes(item, oldVersion){
+  addFeatureAttributes(item, oldVersion, index){
       // the -1 flag indicates that the values are unknown
-      item['selected'] = false;
-      item['preprocessed'] = false;
-      item['pu_area'] = -1;
-      item['pu_count'] = -1;
-      item['spf'] = 40;
-      item['target_value'] = 17;
-      item['target_area'] = -1;
-      item['protected_area'] = -1;
-      item['feature_layer_loaded'] = false;
-      item['old_version'] = oldVersion;
-      item['occurs_in_planning_grid'] = false;
+      item['selected'] = false; //if the feature is currently selected (i.e. in the current project)
+      item['preprocessed'] = false; //has the feature already been intersected with the planning grid to populate the puvspr.dat file
+      item['pu_area'] = -1; //the area of the feature within the planning grid
+      item['pu_count'] = -1; //the number of planning units that the feature intersects with
+      item['spf'] = 40; //species penalty factor
+      item['target_value'] = 17; //the target value for the feature to protect as a percentage
+      item['target_area'] = -1; //the area of the feature that must be protected to meet the targets percentage
+      item['protected_area'] = -1; //the area of the feature that is protected
+      item['feature_layer_loaded'] = false; //is the features distribution currently visible on the map
+      item['feature_puid_layer_loaded'] = false; //are the planning units that intersect the feature currently visible on the map
+      item['old_version'] = oldVersion; //true if the current project is an project imported from marxan for DOS
+      item['occurs_in_planning_grid'] = false; //does the feature occur in the planning grid
+      item['color'] = window.colors[index % window.colors.length]; //color for the map layer and analysis outputs
   }
 
   //resets various variables and state in between users
@@ -2892,7 +2890,7 @@ class App extends React.Component {
         //remove the feature layer if it is loaded
         if (feature.feature_layer_loaded) this.toggleFeatureLayer(feature);
         //remove the planning unit layer if it is loaded
-        if (feature.id === this.puvsprLayerId) this.toggleFeaturePuvsprLayer(feature);
+        if (feature.feature_puid_layer_loaded) this.toggleFeaturePUIDLayer(feature);
       }
     });
     //when the project features have been saved to state, update the spec.dat file
@@ -3090,25 +3088,12 @@ class App extends React.Component {
   }
 
   openFeatureMenu(evt, feature){
-    //set the menu text
-    let puvsprLayerText = this.getMenuTextForPuvsprLayer(feature);
-    this.setState({featureMenuOpen: true, currentFeature: feature, menuAnchor: evt.currentTarget, puvsprLayerText: puvsprLayerText});
+    this.setState({featureMenuOpen: true, currentFeature: feature, menuAnchor: evt.currentTarget});
   }
   closeFeatureMenu(evt){
     this.setState({featureMenuOpen: false});
   }
 
-  //get feature menu text for puvspr layer
-  getMenuTextForPuvsprLayer(feature){
-    //see if the layer that shows the planning units for a feature is currently visible on the map
-    let visible = this.isLayerVisible(PUVSPR_LAYER_NAME);
-    //see if the feature layer is different from the one that is already being shown on the map
-    let newFeature = ((feature.id !== this.puvsprLayerId) || (this.puvsprLayerId === undefined));
-    //really confusing line!
-    let puvsprLayerText = (visible) ? (newFeature) ? (feature.preprocessed) ? SHOW_PUVSPR_LAYER_TEXT : HIDE_PUVSPR_LAYER_TEXT : (feature.preprocessed) ? HIDE_PUVSPR_LAYER_TEXT : SHOW_PUVSPR_LAYER_TEXT : SHOW_PUVSPR_LAYER_TEXT;
-    return puvsprLayerText;
-  }
-  
   //hides the feature layer
   hideFeatureLayer(){
     this.state.projectFeatures.forEach((feature) => {
@@ -3118,6 +3103,7 @@ class App extends React.Component {
   
   //toggles the feature layer on the map
   toggleFeatureLayer(feature){
+    if (feature.tilesetid === '') return;
     // this.closeFeatureMenu();
     let layerName = feature.tilesetid.split(".")[1];
     if (this.map.getLayer(layerName)){
@@ -3134,46 +3120,48 @@ class App extends React.Component {
         },
         'source-layer': layerName,
         'paint': {
-          'fill-color': "rgba(255, 0, 0, 1)",
-          'fill-outline-color': "rgba(255, 0, 0, 1)"
+          'fill-color': feature.color,
+          'fill-opacity': 0.9,
+          'fill-outline-color': "rgba(0, 0, 0, 0.2)"
         }
       }, PUVSPR_LAYER_NAME); //add it before the layer that shows the planning unit outlines for the feature
       this.updateFeature(feature, {feature_layer_loaded: true});
     }
   }
   
-  toggleFeaturePuvsprLayer(feature){
+  //toggles the feature layer on the map
+  toggleFeaturePUIDLayer(feature){
     // this.closeFeatureMenu();
-    if (this.state.puvsprLayerText === HIDE_PUVSPR_LAYER_TEXT){
-      this.hideLayer(PUVSPR_LAYER_NAME);
-      //set the text
-      this.setState({puvsprLayerText: SHOW_PUVSPR_LAYER_TEXT});
-      //reset the id of the currently shown pu layer
-      this.puvsprLayerId = -1;
+    let layerName = "puid_" + feature.id;
+    if (this.map.getLayer(layerName)){
+      this.map.removeLayer(layerName);
+      this.updateFeature(feature, {feature_puid_layer_loaded: false});
     }else{
-      //set the text
-      this.setState({puvsprLayerText: HIDE_PUVSPR_LAYER_TEXT});
-      //get the planning units where the feature occurs from the puvspr.dat file
-      this.getFeaturePlanningUnits(feature.id);
-    }
-  }
-
-  //get the planning unit ids where the feature occurs
-  getFeaturePlanningUnits(oid){
-    this._get("getFeaturePlanningUnits?user=" + this.state.owner + "&project=" + this.state.project + "&oid=" + oid).then((response) => {
-      //update the paint property for the layer
-      var line_color_expression = this.initialiseFillColorExpression("puid");
-      response.data.forEach((puid) => {
-          line_color_expression.push(puid, PUVSPR_LAYER_OUTLINE_COLOR); 
+      //get the planning units where the feature occurs
+      this._get("getFeaturePlanningUnits?user=" + this.state.owner + "&project=" + this.state.project + "&oid=" + feature.id).then((response) => {
+        //ids retrieved - add the layer
+        this.map.addLayer({
+          'id': layerName,
+          'type': "line",
+          'source': PLANNING_UNIT_SOURCE_NAME,
+          'source-layer': this.state.tileset.name,
+          "layout": {
+            "visibility": "none"
+          }
+        }); 
+        //update the paint property for the layer
+        var line_color_expression = this.initialiseFillColorExpression("puid");
+        response.data.forEach((puid) => {
+            line_color_expression.push(puid, feature.color); 
+        });
+        // Last value is the default, used where there is no data
+        line_color_expression.push("rgba(0,0,0,0)");
+        this.map.setPaintProperty(layerName, "line-color", line_color_expression);
+        //show the layer
+        this.showLayer(layerName);
       });
-      // Last value is the default, used where there is no data
-      line_color_expression.push("rgba(0,0,0,0)");
-      this.map.setPaintProperty(PUVSPR_LAYER_NAME, "line-color", line_color_expression);
-      //show the layer
-      this.showLayer(PUVSPR_LAYER_NAME);
-      //set the puvsprLayerId value - this is used to see which puvspr layer is currently being shown on the map to be able to set the text for the menu item
-      this.puvsprLayerId = oid;
-    });
+      this.updateFeature(feature, {feature_puid_layer_loaded: true});
+    }
   }
 
   //removes the current feature from the project
@@ -3894,6 +3882,8 @@ class App extends React.Component {
             zoomToProjectBounds={this.zoomToProjectBounds.bind(this)}
             getShareableLink={this.getShareableLink.bind(this)}
             marxanServer={this.state.marxanServer}
+            toggleFeatureLayer={this.toggleFeatureLayer.bind(this)}
+            toggleFeaturePUIDLayer={this.toggleFeaturePUIDLayer.bind(this)}
           />
           <ResultsPanel
             open={this.state.resultsPanelOpen}
@@ -4194,7 +4184,7 @@ class App extends React.Component {
               <MenuItemWithButton leftIcon={<Properties style={{margin: '1px'}}/>} onClick={this.openInfoDialog.bind(this)}>Properties</MenuItemWithButton>
               <MenuItemWithButton leftIcon={<RemoveFromProject style={{margin: '1px'}}/>} style={{display: ((this.state.currentFeature.old_version)||(this.state.userData.ROLE === "ReadOnly")) ? 'none' : 'block'}} onClick={this.removeFromProject.bind(this, this.state.currentFeature)}>Remove from project</MenuItemWithButton>
               <MenuItemWithButton leftIcon={(this.state.currentFeature.feature_layer_loaded) ? <RemoveFromMap style={{margin: '1px'}}/> : <AddToMap style={{margin: '1px'}}/>} style={{display: (this.state.currentFeature.tilesetid) ? 'block' : 'none'}} onClick={this.toggleFeatureLayer.bind(this, this.state.currentFeature)}>{(this.state.currentFeature.feature_layer_loaded) ? "Remove from map" : "Add to map"}</MenuItemWithButton>
-              <MenuItemWithButton leftIcon={(this.state.puvsprLayerText === HIDE_PUVSPR_LAYER_TEXT) ? <RemoveFromMap style={{margin: '1px'}}/> : <AddToMap style={{margin: '1px'}}/>} onClick={this.toggleFeaturePuvsprLayer.bind(this, this.state.currentFeature)} disabled={!(this.state.currentFeature.preprocessed && this.state.currentFeature.occurs_in_planning_grid)}>{this.state.puvsprLayerText}</MenuItemWithButton>
+              <MenuItemWithButton leftIcon={(this.state.currentFeature.feature_puid_layer_loaded) ? <RemoveFromMap style={{margin: '1px'}}/> : <AddToMap style={{margin: '1px'}}/>} onClick={this.toggleFeaturePUIDLayer.bind(this, this.state.currentFeature)} disabled={!(this.state.currentFeature.preprocessed && this.state.currentFeature.occurs_in_planning_grid)}>{(this.state.currentFeature.feature_puid_layer_loaded) ? "Remove planning unit outlines" : "Outline planning units where the feature occurs"}</MenuItemWithButton>
               <MenuItemWithButton leftIcon={<ZoomIn style={{margin: '1px'}}/>} style={{display: (this.state.currentFeature.extent) ? 'block' : 'none'}} onClick={this.zoomToFeature.bind(this, this.state.currentFeature)}>Zoom to feature extent</MenuItemWithButton>
               <MenuItemWithButton leftIcon={<Preprocess style={{margin: '1px'}}/>} style={{display: ((this.state.currentFeature.old_version)||(this.state.userData.ROLE === "ReadOnly")) ? 'none' : 'block'}} onClick={this.preprocessSingleFeature.bind(this, this.state.currentFeature)} disabled={this.state.currentFeature.preprocessed || this.state.preprocessing}>Pre-process</MenuItemWithButton>
             </Menu>
