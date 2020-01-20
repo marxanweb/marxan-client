@@ -631,7 +631,10 @@ div.rt-tbody>div>div>div>div[contenteditable="true"] {
 .logMessage {
   display: inline;
 }
-
+.logMessageBlock{
+  display: block;
+  background-color:aliceblue;
+}
 .logNone {
   display: none;
 }
