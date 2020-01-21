@@ -1,5 +1,6 @@
 import * as React from 'react';
 import mapboxgl from 'mapbox-gl';
+import {zoomToBounds } from './genericFunctions.js';
 //TODO: Combine this with MapContainer.js as they do similar things
 class MapContainer2 extends React.Component {
 	componentDidMount() {
@@ -29,7 +30,7 @@ class MapContainer2 extends React.Component {
             });
         });
         this.props.getTilesetMetadata(this.props.planning_grid_metadata.tilesetid).then((tileset)=>{
-            if (tileset.bounds != null) this.props.zoomToBounds(this.map, tileset.bounds);
+            if (tileset.bounds != null) zoomToBounds(this.map, tileset.bounds);
         }).catch((error) => {
             this.props.setSnackBar(error);
         });

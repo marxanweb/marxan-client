@@ -42,5 +42,13 @@ module.exports = {
                 // code
         }
         return Number((value * scale).toFixed(1));
-    }
+    },
+  //zooms the passed map to the passed bounds
+  zoomToBounds: function (map, bounds) {
+    let minLng = (bounds[0] < -180) ? -180 : bounds[0];
+    let minLat = (bounds[1] < -90) ? -90 : bounds[1];
+    let maxLng = (bounds[2] > 180) ? 180 : bounds[2];
+    let maxLat = (bounds[3] > 90) ? 90 : bounds[3];
+    map.fitBounds([minLng, minLat, maxLng, maxLat], { padding: { top: 10, bottom: 10, left: 10, right: 10 }, easing: (num) => { return 1; } });
+  }
 };

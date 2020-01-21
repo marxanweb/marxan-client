@@ -13,7 +13,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faLock } from '@fortawesome/free-solid-svg-icons';
 import { faUnlock } from '@fortawesome/free-solid-svg-icons';
 import { faEraser } from '@fortawesome/free-solid-svg-icons';
-import { faHome } from '@fortawesome/free-solid-svg-icons';
 import { faShareAlt } from '@fortawesome/free-solid-svg-icons';
 
 let IUCN_CATEGORIES = ['None','IUCN I-II','IUCN I-IV','IUCN I-V','IUCN I-VI','All'];
@@ -184,11 +183,6 @@ class InfoPanel extends React.Component {
 							</Tab>
 						</Tabs>     
 						<Paper className={'lowerToolbar'}>
-								<ToolbarButton   
-									icon={<FontAwesomeIcon icon={faHome}/>} 
-									title="Zoom to project extent"
-									onClick={this.props.zoomToProjectBounds} 
-								/>
 								<ToolbarButton   
 									icon={<FontAwesomeIcon icon={faShareAlt}/>} 
 									title={"Get a shareable link to this project"}

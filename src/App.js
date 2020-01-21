@@ -12,9 +12,10 @@ import MapboxDraw from '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.js';
 import mapboxgl from 'mapbox-gl';
 import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import HomeButton from './HomeButton.js'; 
 import jsonp from 'jsonp-promise';
 import classyBrew from 'classybrew';
-import { getMaxNumberOfClasses } from './genericFunctions.js';
+import { getMaxNumberOfClasses,zoomToBounds } from './genericFunctions.js';
 //material-ui components and icons
 import Popover from 'material-ui/Popover'; 
 import Menu from 'material-ui/Menu';
@@ -116,7 +117,6 @@ let FEATURE_PROPERTIES = [{ name: 'id', key: 'ID',hint: 'The unique identifier f
   { name: 'protected_area', key: 'Area protected',hint: 'The total area protected in the current solution in Km2 (calculated during a Marxan Run)', showForOld: true, showForNew: true}];
 
 class App extends React.Component {
-
   constructor(props) {
     super(props);
     this.state = {
@@ -487,6 +487,7 @@ class App extends React.Component {
         }else{
           //if the message is downloaded then remove the downloading message
           if (message.status === 'Downloaded') this.removeMessageFromLog('Downloading');
+          //log all other messages
           this.log(message);
         }
       }
@@ -1913,6 +1914,7 @@ class App extends React.Component {
     // this.map.addControl(new mapboxgl.FullscreenControl(), 'bottom-right'); // currently full screen hides the info panel and setting position:absolute and z-index: 10000000000 doesnt work properly
     this.map.addControl(new mapboxgl.ScaleControl());
     this.map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
+    this.map.addControl(new HomeButton());
     //create the draw controls for the map
     this.mapboxDrawControls = new MapboxDraw({
       displayControlsDefault: false,
@@ -2075,7 +2077,7 @@ class App extends React.Component {
         //add the results layer, planning unit layer etc.
         this.addPlanningGridLayers(tileset);
         //zoom to the layers extent
-        if (tileset.bounds != null) this.zoomToBounds(this.map, tileset.bounds);
+        if (tileset.bounds != null) zoomToBounds(this.map, tileset.bounds);
         //set the state
         this.setState({ tileset: tileset });
         //filter the wdpa vector tiles as the map doesn't respond to state changes
@@ -2270,19 +2272,6 @@ class App extends React.Component {
     }
   }
 
-  //zooms to the extent of the project, i.e. the tileset bounds for the planning grid
-  zoomToProjectBounds(){
-    if (this.state.tileset && this.state.tileset.bounds) this.zoomToBounds(this.map, this.state.tileset.bounds);
-  }
-  
-  //zooms the passed map to the passed bounds
-  zoomToBounds(_map, bounds) {
-    let minLng = (bounds[0] < -180) ? -180 : bounds[0];
-    let minLat = (bounds[1] < -90) ? -90 : bounds[1];
-    let maxLng = (bounds[2] > 180) ? 180 : bounds[2];
-    let maxLat = (bounds[3] > 90) ? 90 : bounds[3];
-    _map.fitBounds([minLng, minLat, maxLng, maxLat], { padding: { top: 10, bottom: 10, left: 10, right: 10 }, easing: (num) => { return 1; } });
-  }
 
   toggleCosts(show){
     //show/hide the planning units cost layer 
@@ -3098,7 +3087,10 @@ class App extends React.Component {
   
   //toggles the feature layer on the map
   toggleFeatureLayer(feature){
-    if (feature.tilesetid === '') return;
+    if (feature.tilesetid === ''){
+      this.setSnackBar("This feature does not have an associated tileset on Mapbox. See <a href='" + ERRORS_PAGE + "#the-tileset-from-source-source-was-not-found' target='blank'>here</a>");
+      return;
+    }
     // this.closeFeatureMenu();
     let layerName = feature.tilesetid.split(".")[1];
     if (this.map.getLayer(layerName)){
@@ -3874,7 +3866,6 @@ class App extends React.Component {
             toggleProjectPrivacy={this.toggleProjectPrivacy.bind(this)}
             toggleCosts={this.toggleCosts.bind(this)}
             openTargetDialog={this.openTargetDialog.bind(this)}
-            zoomToProjectBounds={this.zoomToProjectBounds.bind(this)}
             getShareableLink={this.getShareableLink.bind(this)}
             marxanServer={this.state.marxanServer}
             toggleFeatureLayer={this.toggleFeatureLayer.bind(this)}
@@ -4005,7 +3996,6 @@ class App extends React.Component {
             loading={this.state.loading}
             feature_metadata={this.state.feature_metadata}
             getTilesetMetadata={this.getMetadata.bind(this)}
-            zoomToBounds={this.zoomToBounds.bind(this)}
             setSnackBar={this.setSnackBar.bind(this)}
           />
           <NewFeatureDialog
@@ -4057,7 +4047,6 @@ class App extends React.Component {
             loading={this.state.loading}
             planning_grid_metadata={this.state.planning_grid_metadata}
             getTilesetMetadata={this.getMetadata.bind(this)}
-            zoomToBounds={this.zoomToBounds.bind(this)}
             setSnackBar={this.setSnackBar.bind(this)}
           />
           <CostsDialog

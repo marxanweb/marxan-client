@@ -19,6 +19,7 @@ class Log extends React.Component {
 				case "Downloading":
 				case "Updating WDPA":
 				case "Downloaded":
+				case "FeatureCreated":
 					className = 'logItem logMessageBlock';
 					break;
 				case 'Finished':

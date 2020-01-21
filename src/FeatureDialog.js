@@ -27,7 +27,6 @@ class FeatureDialog extends React.Component {
 						<MapContainer2
 							planning_grid_metadata={this.props.feature_metadata}
 							getTilesetMetadata={this.props.getTilesetMetadata}
-							zoomToBounds={this.props.zoomToBounds}
 							setSnackBar={this.props.setSnackBar}
 							color={this.props.feature_metadata.color}
 							outlineColor={"rgba(0, 0, 0, 0.2)"}
