@@ -99,6 +99,7 @@ let PUVSPR_LAYER_LINE_WIDTH = 1.5;
 let RESULTS_LAYER_FILL_OPACITY_ACTIVE = 0.9;
 let RESULTS_LAYER_FILL_OPACITY_INACTIVE = 0;
 let WDPA_FILL_LAYER_OPACITY = 0.2;
+let timers = []; //array of timers for seeing when asynchronous calls have finished
 
 //an array of feature property information that is used in the Feature Information dialog box - showForOld sets whether that property is shown for old versions of marxan
 let FEATURE_PROPERTIES = [{ name: 'id', key: 'ID',hint: 'The unique identifier for the feature', showForOld: false, showForNew: false},
@@ -182,8 +183,9 @@ class App extends React.Component {
       tilesets: [],
       puFeatures: [],
       paFeatures: [],
-      loading: false,
-      preprocessing: false,
+      loading: false, //true when GET/POST requests are ongoing
+      preprocessing: false, //true when a WebSocket is ongoing
+      uploading: false, //true when an upload to Mapbox is ongoing
       pa_layer_visible: false,
       currentFeature:{},
       featureDatasetFilename: '',
@@ -296,6 +298,7 @@ class App extends React.Component {
       this.setState({loading: true});
       jsonp(this.state.marxanServer.endpoint + params, { timeout: timeout }).promise.then((response) => {
         this.setState({loading: false});
+        console.log("loading finished");
         if (!this.checkForErrors(response)) {
           resolve(response);
         }
@@ -429,7 +432,7 @@ class App extends React.Component {
     //log the message if necessary
     this.logMessage(message);
     switch (message.status) {
-      case 'Started': //from both asynchronous queries and marxan runs
+      case 'Started': //from asynchronous queries, marxan runs and feature imports
       case "Updating WDPA":
         //set the processing state when the websocket starts
         this.setState({preprocessing: true});
@@ -440,7 +443,7 @@ class App extends React.Component {
       case "FeatureCreated":
         this.newFeatureCreated(message.id);
         break;
-      case 'Finished': //from both asynchronous queries and marxan runs
+      case 'Finished': //from asynchronous queries, marxan runs and feature imports
         //reset the pid
         this.setState({pid: 0});
         break;
@@ -2665,34 +2668,37 @@ class App extends React.Component {
 
   //polls mapbox to see when an upload has finished - returns as promise
   pollMapbox(uploadid){
-    this.setState({loading: true});
+    this.setState({uploading: true});
     this.log({info: 'Uploading to Mapbox..',status:'Uploading'});
     return new Promise((resolve, reject) => {
       if (uploadid === '0'){ 
         this.log({info: 'Tileset already exists on Mapbox',status:'UploadComplete'});
         //reset state
-        this.setState({loading: false });
+        this.setState({uploading: false});
         resolve("Uploaded to Mapbox");
       }else{
-        this.timer = setInterval(() => {
+        let timer = setInterval(() => {
           fetch("https://api.mapbox.com/uploads/v1/" + MAPBOX_USER + "/" + uploadid + "?access_token=" + window.MBAT)
             .then(response => response.json())
             .then((response) => {
               if (response.complete){
+                resolve("Uploaded to Mapbox");
                 this.log({info: 'Uploaded',status:'UploadComplete'});
                 //clear the timer
-                clearInterval(this.timer);
-                this.timer = null;
+                let _timer = timers.find(timer => timer.uploadid === uploadid);
+                clearInterval(_timer.timer);
+                //remove the timer from the timers array
+                timers = timers.filter(timer => timer.uploadid !== uploadid);
                 //reset state
-                this.setState({loading: false });
-                resolve("Uploaded to Mapbox");
+                if (timers.length === 0) this.setState({uploading: false});
               }
             })
             .catch((error) => {
-              this.setState({loading: false });
+              this.setState({uploading: false});
               reject(error);
             });
         }, 3000);
+        timers.push({uploadid: uploadid, timer: timer});
       }
     });
   }
@@ -2962,8 +2968,18 @@ class App extends React.Component {
       //get the request url
       let url = (name !== "") ? "importFeatures?zipfile=" + zipfile + "&shapefile=" + shapefile + "&name=" + name + "&description=" + description : "importFeatures?zipfile=" + zipfile + "&shapefile=" + shapefile + "&splitfield=" + spiltfield;
       this._ws(url, this.wsMessageCallback.bind(this)).then((message) => {
-        //websocket has finished 
-        resolve(message);
+        //get the uploadIds
+        let uploadIds = message.uploadIds;
+        //get a promise array to see when all of the uploads are done
+        let promiseArray = [];
+        //iterate through the uploadIds to see when they are done
+        for (var i = 0; i < uploadIds.length; ++i) {
+          promiseArray.push(this.pollMapbox(uploadIds[i]));
+        }
+        //see when they're done
+        Promise.all(promiseArray).then(response => {
+          resolve("All features uploaded");
+        });
       }).catch((error) => {
         reject(error);
       });
@@ -3952,7 +3968,7 @@ class App extends React.Component {
           <NewPlanningGridDialog 
             open={this.state.NewPlanningGridDialogOpen} 
             onCancel={this.closeNewPlanningGridDialog.bind(this)}
-            loading={this.state.loading || this.state.preprocessing}
+            loading={this.state.loading || this.state.preprocessing || this.state.uploading}
             createNewPlanningUnitGrid={this.createNewPlanningUnitGrid.bind(this)}
             countries={this.state.countries}
             setSnackBar={this.setSnackBar.bind(this)}
@@ -3962,7 +3978,7 @@ class App extends React.Component {
             open={this.state.importPlanningGridDialogOpen} 
             onOk={this.importPlanningUnitGrid.bind(this)}
             onCancel={this.closeImportPlanningGridDialog.bind(this)}
-            loading={this.state.loading}
+            loading={this.state.loading || this.state.uploading}
             requestEndpoint={this.state.marxanServer.endpoint}
             SEND_CREDENTIALS={SEND_CREDENTIALS}
             checkForErrors={this.checkForErrors.bind(this)} 
@@ -3971,7 +3987,7 @@ class App extends React.Component {
             open={this.state.featuresDialogOpen}
             onOk={this.updateSelectedFeatures.bind(this)}
             onCancel={this.closeFeaturesDialog.bind(this)}
-            loading={this.state.loading}
+            loading={this.state.loading || this.state.uploading}
             metadata={this.state.metadata}
             allFeatures={this.state.allFeatures}
             deleteFeature={this.deleteFeature.bind(this)}
@@ -4002,20 +4018,19 @@ class App extends React.Component {
             open={this.state.NewFeatureDialogOpen} 
             onOk={this.closeNewFeatureDialog.bind(this)}
             onCancel={this.closeNewFeatureDialog.bind(this)}
-            loading={this.state.loading}
+            loading={this.state.loading || this.state.uploading}
             createNewFeature={this.createNewFeature.bind(this)}
           />
           <ImportFeaturesDialog
             open={this.state.importFeaturesDialogOpen} 
             importFeatures={this.importFeatures.bind(this)}
             onCancel={this.closeImportFeaturesDialog.bind(this)}
-            loading={this.state.loading}
+            loading={this.state.loading || this.state.preprocessing || this.state.uploading}
             setFilename={this.setNewFeatureDatasetFilename.bind(this)}
             SEND_CREDENTIALS={SEND_CREDENTIALS}
             filename={this.state.featureDatasetFilename}
             checkForErrors={this.checkForErrors.bind(this)} 
             requestEndpoint={this.state.marxanServer.endpoint}
-            preprocessing={this.state.preprocessing}
             unzipShapefile={this.unzipShapefile.bind(this)}
             getShapefileFieldnames={this.getShapefileFieldnames.bind(this)}
             deleteShapefile={this.deleteShapefile.bind(this)}
@@ -4100,7 +4115,7 @@ class App extends React.Component {
           <ImportProjectDialog
             open={this.state.importProjectDialogOpen}
             onOk={this.closeImportDialog.bind(this)}
-            loading={this.state.loading}
+            loading={this.state.loading || this.state.uploading}
             requestEndpoint={this.state.marxanServer.endpoint}
             SEND_CREDENTIALS={SEND_CREDENTIALS}
             importProject={this.importProject.bind(this)}

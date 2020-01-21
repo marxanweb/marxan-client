@@ -86,8 +86,8 @@ class ImportFeaturesDialog extends React.Component {
 			<div style={{width: '100%', maxWidth: '500px', margin: 'auto',textAlign:'center'}}>
 				<div style={contentStyle}>
 					<div style={{marginTop: 12}}>
-						<ToolbarButton label="Back" disabled={stepIndex === 0 || this.props.preprocessing} onClick={this.handlePrev.bind(this)} />
-						<ToolbarButton label={stepIndex === (this.state.steps.length-1) ? 'Finish' : 'Next'} onClick={this.handleNext.bind(this)} disabled={_disabled || this.props.preprocessing} primary={true}/>
+						<ToolbarButton label="Back" disabled={stepIndex === 0 || this.props.loading} onClick={this.handlePrev.bind(this)} />
+						<ToolbarButton label={stepIndex === (this.state.steps.length-1) ? 'Finish' : 'Next'} onClick={this.handleNext.bind(this)} disabled={_disabled || this.props.loading} primary={true}/>
 					</div>
 				</div>
 			</div>
