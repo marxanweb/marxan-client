@@ -2,7 +2,6 @@ import React from 'react';
 import MarxanDialog from './MarxanDialog';
 import SelectField from 'material-ui/SelectField';
 import MenuItem from 'material-ui/MenuItem';
-import ToolbarButton from './ToolbarButton';
 import Checkbox from 'material-ui/Checkbox';
 
 class UserSettingsDialog extends React.Component {
@@ -26,6 +25,9 @@ class UserSettingsDialog extends React.Component {
         }
         toggleUseFeatureColors(evt, isInputChecked){
         	this.setOption("USEFEATURECOLORS", isInputChecked);
+        }
+        toggleShowWelcomeScreen(evt, isInputChecked){
+                this.setOption("SHOWWELCOMESCREEN", isInputChecked);
         }
         render() {
                 return (
@@ -64,8 +66,13 @@ class UserSettingsDialog extends React.Component {
 							checked={this.props.userData.USEFEATURECOLORS}
 							onCheck={this.toggleUseFeatureColors.bind(this)}
 						/>
+						<Checkbox
+							label="Show welcome screen"
+							style={{fontSize:'12px'}}
+							checked={this.props.userData.SHOWWELCOMESCREEN}
+							onCheck={this.toggleShowWelcomeScreen.bind(this)}
+						/>
                                                 
-                                                <ToolbarButton label="Reset notifications" onClick={this.props.resetNotifications} className={"resetNotifications"}/>
                                         </div>
                                 } 
                         />

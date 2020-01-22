@@ -32,6 +32,7 @@ import LoadingDialog from './LoadingDialog';
 import LoginDialog from './LoginDialog';
 import RegisterDialog from './RegisterDialog.js';
 import ResendPasswordDialog from './ResendPasswordDialog.js';
+import Welcome from './Welcome.js';
 import ToolsMenu from './ToolsMenu';
 import UserMenu from './UserMenu';
 import HelpMenu from './HelpMenu';
@@ -65,7 +66,6 @@ import AlertDialog from './AlertDialog';
 import ChangePasswordDialog from './ChangePasswordDialog';
 import Popup from './Popup';
 import PopupFeatureList from './PopupFeatureList';
-import Notifications from './Notifications';
 import PopupPAList from './PopupPAList';
 import TargetDialog from './TargetDialog';
 import ShareableLinkDialog from './ShareableLinkDialog';
@@ -132,6 +132,7 @@ class App extends React.Component {
       importProjectDialogOpen: false,
       UserSettingsDialogOpen: false,
       CostsDialogOpen: false,
+      welcomeDialogOpen: false,
       registerDialogOpen: false,
       clumpingDialogOpen: false,
       settingsDialogOpen: false,
@@ -689,8 +690,8 @@ class App extends React.Component {
     return new Promise((resolve, reject) => {
       this._get("getUser?user=" + this.state.user).then((response) => {
         this.setState({userData: response.userData, unauthorisedMethods: response.unauthorisedMethods, project: response.userData.LASTPROJECT, dismissedNotifications: (response.dismissedNotifications ? response.dismissedNotifications : [])}, ()=>{
-          //show any notifications 
-          this.showNotifications();
+          //show the welcome dialog
+          this.openWelcomeDialog();
         });
         //set the basemap
         var basemap = this.state.basemaps.filter((item) => {return (item.name === response.userData.BASEMAP);})[0];
@@ -818,24 +819,23 @@ class App extends React.Component {
     });
   }
   
-  //shows the notifications in the UI
-  showNotifications(){
+  //parse the notifications 
+  parseNotifications(){
     //see if there are any new notifications from the marxan-registry
     if (window.NOTIFICATIONS.length>0){
       this.addNotifications(window.NOTIFICATIONS);
-      this.setState({notificationsOpen: true});
     }
     //see if there is a new version of the wdpa data - this comes from the Marxan Registry WDPA object - if there is then show a notification to admin users
     if (this.state.marxanServer.wdpa_version !== window.WDPA.latest_version) {
       this.setState({newWDPAVersion: true});
-      this.addNotifications([{id:'wdpa_update_' + window.WDPA.latest_version, html:"A new version of the WDPA is available. <br/>Click on Help | Server Details for more information.", type:"Data Update", showForRoles: ["Admin"]}]);
+      this.addNotifications([{id:'wdpa_update_' + window.WDPA.latest_version, html:"A new version of the WDPA is available. Go to Help | Server Details for more information.", type:"Data Update", showForRoles: ["Admin"]}]);
     }else{
       this.setState({newWDPAVersion: false});
     }
     //see if there is a new version of the marxan-client software
-    if (MARXAN_CLIENT_VERSION !== window.CLIENT_VERSION) this.addNotifications([{id:'marxan_client_update_' + window.CLIENT_VERSION, html:"A new version of marxan-client is available (" + window.CLIENT_VERSION + "). <br/>Click on Help | About for more information.", type:"Software Update", showForRoles: ["Admin"]}]);
+    if (MARXAN_CLIENT_VERSION !== window.CLIENT_VERSION) this.addNotifications([{id:'marxan_client_update_' + window.CLIENT_VERSION, html:"A new version of marxan-client is available (" + window.CLIENT_VERSION + "). Go to Help | About for more information.", type:"Software Update", showForRoles: ["Admin"]}]);
     //see if there is a new version of the marxan-server software
-    if (this.state.marxanServer.server_version !== window.SERVER_VERSION) this.addNotifications([{id:'marxan_server_update_' + window.SERVER_VERSION, html:"A new version of marxan-server is available (" + window.SERVER_VERSION + "). <br/>Click on Help | Server Details for more information.", type:"Software Update", showForRoles: ["Admin"]}]);
+    if (this.state.marxanServer.server_version !== window.SERVER_VERSION) this.addNotifications([{id:'marxan_server_update_' + window.SERVER_VERSION, html:"A new version of marxan-server is available (" + window.SERVER_VERSION + "). Go to Help | Server Details for more information.", type:"Software Update", showForRoles: ["Admin"]}]);
     //check that there is enough disk space
     if (this.state.marxanServer.disk_space < 1000)  {
       this.addNotifications([{id:'hardware_1000', html:"Disk space < 1Gb", type:"Hardware Issue", showForRoles: ["Admin"]}]);
@@ -896,8 +896,8 @@ class App extends React.Component {
   //clears all of the dismissed notifications on the server
   resetNotifications(){
     this._get("resetNotifications?user=" + this.state.user).then(()=>{
-      this.setState({notifications:[]});
-      this.showNotifications();  
+      this.setState({notifications:[], dismissedNotifications:[]});
+      this.parseNotifications();  
     });
   }
   
@@ -2703,6 +2703,13 @@ class App extends React.Component {
     });
   }
   
+  closeWelcomeDialog(){
+    this.setState({ welcomeDialogOpen: false });
+  }
+  openWelcomeDialog(){
+    this.parseNotifications();
+    this.setState({ welcomeDialogOpen: true });
+  }
   openFeaturesDialog(showClearSelectAll) {
     this.setState({ featuresDialogOpen: true, addingRemovingFeatures: showClearSelectAll});
     if (showClearSelectAll) this.getSelectedFeatureIds();
@@ -3786,6 +3793,14 @@ class App extends React.Component {
             changeEmail={this.changeEmail.bind(this)} 
             email={this.state.resendEmail} 
           />
+          <Welcome
+            open={this.state.userData.SHOWWELCOMESCREEN && this.state.welcomeDialogOpen} 
+            onOk={this.closeWelcomeDialog.bind(this)}
+            onCancel={this.closeWelcomeDialog.bind(this)}
+            notifications={this.state.notifications}
+            resetNotifications={this.resetNotifications.bind(this)}
+            removeNotification={this.removeNotification.bind(this)}
+          />
           <ToolsMenu
             open={this.state.toolsMenuOpen} 
             menuAnchor={this.state.menuAnchor}
@@ -3826,7 +3841,6 @@ class App extends React.Component {
             changeBasemap={this.setBasemap.bind(this)}
             basemaps={this.state.basemaps}
             basemap={this.state.basemap}
-            resetNotifications={this.resetNotifications.bind(this)}
           />
           <UsersDialog
             open={this.state.usersDialogOpen}
@@ -4172,12 +4186,6 @@ class App extends React.Component {
             style={{maxWidth:'800px !important'}} 
             contentStyle={{maxWidth:'800px !important'}}
             bodyStyle={{maxWidth:'800px !important'}}
-          />
-          <Notifications
-            open={this.state.notificationsOpen && this.state.loggedIn}
-            hideNotifications={this.hideNotifications.bind(this)}
-            removeNotification={this.removeNotification.bind(this)}
-            notifications={this.state.notifications}
           />
           <Popover open={this.state.featureMenuOpen} anchorEl={this.state.menuAnchor} onRequestClose={this.closeFeatureMenu.bind(this)} style={{width:'307px'}}>
             <Menu style={{width:'207px'}} onMouseLeave={this.closeFeatureMenu.bind(this)} >

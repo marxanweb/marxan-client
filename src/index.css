@@ -641,7 +641,7 @@ div.rt-tbody>div>div>div>div[contenteditable="true"] {
 }
 
 .toolbarSpacer {
-  margin-left: 125px;
+  margin-left: 164px;
   display: inline;
 }
 
@@ -701,27 +701,10 @@ div.rt-tbody>div>div>div>div[contenteditable="true"] {
 }
 
 .notifications {
-  position: absolute;
-  background-color: white;
-  bottom: 50px;
-  right: 85px;
-  box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 10px, rgba(0, 0, 0, 0.23) 0px 3px 10px;
-  border-radius: 3px;
-  font-size: 13px;
-  max-width: 300px;
+  height:290px;
+  overflow: auto;
 }
 
-.notificationsTitle {
-  height: 37px;
-  background-color: rgb(0, 188, 212);
-  color: white;
-  padding: 7px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-.notificationsTitleText {
-  padding-left: 7px;
-}
 
 .closeWindow {
   float: right;
@@ -1022,3 +1005,11 @@ a {
 	background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MDAgODAwIiBjb2xvcj0icmdiYSgwLCAwLCAwLCAwLjcpIiBzdHlsZT0ibWFyZ2luLWxlZnQ6NnB4O21hcmdpbi10b3A6NXB4Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik0wIDE4MFY1NmMwLTEzLjMgMTAuNy0yNCAyNC0yNGgxMjRjNi42IDAgMTIgNS40IDEyIDEydjQwYzAgNi42LTUuNCAxMi0xMiAxMkg2NHY4NGMwIDYuNi01LjQgMTItMTIgMTJIMTJjLTYuNiAwLTEyLTUuNC0xMi0xMnpNMjg4IDQ0djQwYzAgNi42IDUuNCAxMiAxMiAxMmg4NHY4NGMwIDYuNiA1LjQgMTIgMTIgMTJoNDBjNi42IDAgMTItNS40IDEyLTEyVjU2YzAtMTMuMy0xMC43LTI0LTI0LTI0SDMwMGMtNi42IDAtMTIgNS40LTEyIDEyem0xNDggMjc2aC00MGMtNi42IDAtMTIgNS40LTEyIDEydjg0aC04NGMtNi42IDAtMTIgNS40LTEyIDEydjQwYzAgNi42IDUuNCAxMiAxMiAxMmgxMjRjMTMuMyAwIDI0LTEwLjcgMjQtMjRWMzMyYzAtNi42LTUuNC0xMi0xMi0xMnpNMTYwIDQ2OHYtNDBjMC02LjYtNS40LTEyLTEyLTEySDY0di04NGMwLTYuNi01LjQtMTItMTItMTJIMTJjLTYuNiAwLTEyIDUuNC0xMiAxMnYxMjRjMCAxMy4zIDEwLjcgMjQgMjQgMjRoMTI0YzYuNiAwIDEyLTUuNCAxMi0xMnoiPjwvcGF0aD48L3N2Zz4=);
 	background-repeat: no-repeat;
 } 
+.welcomeContent {
+  height: 420px;
+  padding: 5px;
+  font-size:12px;
+}
+.welcomeToolbar{
+    margin: 18px 10px 10px 0px;
+}
