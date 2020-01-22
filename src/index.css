@@ -627,9 +627,11 @@ div.rt-tbody>div>div>div>div[contenteditable="true"] {
 .logMessage {
   display: inline;
 }
-.logMessageBlock{
+
+.logMessageBlock {
   display: block;
 }
+
 .logNone {
   display: none;
 }
@@ -701,7 +703,7 @@ div.rt-tbody>div>div>div>div[contenteditable="true"] {
 }
 
 .notifications {
-  height:290px;
+  height: 290px;
   overflow: auto;
 }
 
@@ -728,7 +730,7 @@ div.rt-tbody>div>div>div>div[contenteditable="true"] {
 }
 
 .resetNotifications {
-  margin-top: 15px !important;
+  margin-bottom: 3px;
 }
 
 a {
@@ -989,27 +991,53 @@ a {
 .custom-tooltip {
   background: white;
   border: 1px solid black;
-  padding:5px;
+  padding: 5px;
 }
 
 .tooltip {
   font-family: Arial;
   font-size: 12px;
-  color:black;
-  line-height:14px;
+  color: black;
+  line-height: 14px;
 }
-.gapAnalysisStatsPanel{
-  padding-top:10px;
+
+.gapAnalysisStatsPanel {
+  padding-top: 10px;
 }
-.homeIcon {     
-	background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MDAgODAwIiBjb2xvcj0icmdiYSgwLCAwLCAwLCAwLjcpIiBzdHlsZT0ibWFyZ2luLWxlZnQ6NnB4O21hcmdpbi10b3A6NXB4Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik0wIDE4MFY1NmMwLTEzLjMgMTAuNy0yNCAyNC0yNGgxMjRjNi42IDAgMTIgNS40IDEyIDEydjQwYzAgNi42LTUuNCAxMi0xMiAxMkg2NHY4NGMwIDYuNi01LjQgMTItMTIgMTJIMTJjLTYuNiAwLTEyLTUuNC0xMi0xMnpNMjg4IDQ0djQwYzAgNi42IDUuNCAxMiAxMiAxMmg4NHY4NGMwIDYuNiA1LjQgMTIgMTIgMTJoNDBjNi42IDAgMTItNS40IDEyLTEyVjU2YzAtMTMuMy0xMC43LTI0LTI0LTI0SDMwMGMtNi42IDAtMTIgNS40LTEyIDEyem0xNDggMjc2aC00MGMtNi42IDAtMTIgNS40LTEyIDEydjg0aC04NGMtNi42IDAtMTIgNS40LTEyIDEydjQwYzAgNi42IDUuNCAxMiAxMiAxMmgxMjRjMTMuMyAwIDI0LTEwLjcgMjQtMjRWMzMyYzAtNi42LTUuNC0xMi0xMi0xMnpNMTYwIDQ2OHYtNDBjMC02LjYtNS40LTEyLTEyLTEySDY0di04NGMwLTYuNi01LjQtMTItMTItMTJIMTJjLTYuNiAwLTEyIDUuNC0xMiAxMnYxMjRjMCAxMy4zIDEwLjcgMjQgMjQgMjRoMTI0YzYuNiAwIDEyLTUuNCAxMi0xMnoiPjwvcGF0aD48L3N2Zz4=);
-	background-repeat: no-repeat;
-} 
+
+.homeIcon {
+  background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MDAgODAwIiBjb2xvcj0icmdiYSgwLCAwLCAwLCAwLjcpIiBzdHlsZT0ibWFyZ2luLWxlZnQ6NnB4O21hcmdpbi10b3A6NXB4Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik0wIDE4MFY1NmMwLTEzLjMgMTAuNy0yNCAyNC0yNGgxMjRjNi42IDAgMTIgNS40IDEyIDEydjQwYzAgNi42LTUuNCAxMi0xMiAxMkg2NHY4NGMwIDYuNi01LjQgMTItMTIgMTJIMTJjLTYuNiAwLTEyLTUuNC0xMi0xMnpNMjg4IDQ0djQwYzAgNi42IDUuNCAxMiAxMiAxMmg4NHY4NGMwIDYuNiA1LjQgMTIgMTIgMTJoNDBjNi42IDAgMTItNS40IDEyLTEyVjU2YzAtMTMuMy0xMC43LTI0LTI0LTI0SDMwMGMtNi42IDAtMTIgNS40LTEyIDEyem0xNDggMjc2aC00MGMtNi42IDAtMTIgNS40LTEyIDEydjg0aC04NGMtNi42IDAtMTIgNS40LTEyIDEydjQwYzAgNi42IDUuNCAxMiAxMiAxMmgxMjRjMTMuMyAwIDI0LTEwLjcgMjQtMjRWMzMyYzAtNi42LTUuNC0xMi0xMi0xMnpNMTYwIDQ2OHYtNDBjMC02LjYtNS40LTEyLTEyLTEySDY0di04NGMwLTYuNi01LjQtMTItMTItMTJIMTJjLTYuNiAwLTEyIDUuNC0xMiAxMnYxMjRjMCAxMy4zIDEwLjcgMjQgMjQgMjRoMTI0YzYuNiAwIDEyLTUuNCAxMi0xMnoiPjwvcGF0aD48L3N2Zz4=);
+  background-repeat: no-repeat;
+}
+
 .welcomeContent {
-  height: 420px;
+  height: 500px;
   padding: 5px;
-  font-size:12px;
+  font-size: 12px;
 }
-.welcomeToolbar{
-    margin: 18px 10px 10px 0px;
+
+.welcomeToolbar {}
+
+.showAtStartupChk {
+  display: inline-block !important;
+  width: 200px !important;
+  vertical-align: middle !important;
+  margin-left: 10px !important;
+}
+
+.task {
+  margin: 15px;
+}
+
+.newNationalProjectContent {
+  height: 400px;
+  color: rgba(0, 0, 0, 0.67);
+}
+
+.speciesList {
+  margin-top: 13px;
+}
+
+.habitatsList {
+  margin-top: 13px;
 }

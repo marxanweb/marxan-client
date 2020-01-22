@@ -60,19 +60,8 @@ class UserSettingsDialog extends React.Component {
                                                                 />;
                                                         })}
                                                 />
-						<Checkbox
-							label="Use feature colours"
-							style={{fontSize:'12px'}}
-							checked={this.props.userData.USEFEATURECOLORS}
-							onCheck={this.toggleUseFeatureColors.bind(this)}
-						/>
-						<Checkbox
-							label="Show welcome screen"
-							style={{fontSize:'12px'}}
-							checked={this.props.userData.SHOWWELCOMESCREEN}
-							onCheck={this.toggleShowWelcomeScreen.bind(this)}
-						/>
-                                                
+						<Checkbox label="Use feature colours" style={{fontSize:'12px'}} checked={this.props.userData.USEFEATURECOLORS} onCheck={this.toggleUseFeatureColors.bind(this)} />
+						<Checkbox label="Show welcome screen at startup" style={{fontSize:'12px'}} checked={this.props.userData.SHOWWELCOMESCREEN} onCheck={this.toggleShowWelcomeScreen.bind(this)} />
                                         </div>
                                 } 
                         />

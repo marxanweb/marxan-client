@@ -15,8 +15,6 @@ import { faUnlock } from '@fortawesome/free-solid-svg-icons';
 import { faEraser } from '@fortawesome/free-solid-svg-icons';
 import { faShareAlt } from '@fortawesome/free-solid-svg-icons';
 
-let IUCN_CATEGORIES = ['None','IUCN I-II','IUCN I-IV','IUCN I-V','IUCN I-VI','All'];
-
 class InfoPanel extends React.Component {
 	constructor(props) {
 		super(props);
@@ -78,7 +76,7 @@ class InfoPanel extends React.Component {
 	}
 	
 	changeIucnCategory(event,key,payload){
-		this.props.changeIucnCategory(IUCN_CATEGORIES[key]);
+		this.props.changeIucnCategory(this.props.iucn_categories[key]);
 	}
 	toggleProjectPrivacy(evt, isInputChecked){
 		let checkedString = (isInputChecked) ? "True" : "False";
@@ -150,7 +148,7 @@ class InfoPanel extends React.Component {
 										style={{marginTop:'-15px',width:'140px'}}
 										value={this.props.metadata.IUCN_CATEGORY} 
 										onChange={this.changeIucnCategory.bind(this)}
-										children= {IUCN_CATEGORIES.map((item)=> {
+										children= {this.props.iucn_categories.map((item)=> {
 											return  <MenuItem 
 												value={item} 
 												key={item} 

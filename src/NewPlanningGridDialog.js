@@ -5,9 +5,6 @@ import MenuItem from "material-ui/MenuItem";
 import ToolbarButton from "./ToolbarButton";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowAltCircleUp } from '@fortawesome/free-regular-svg-icons';
-let domains = ["Marine", "Terrestrial"];
-let areakm2s = [10, 20, 30, 40, 50];
-let shapes = ['Hexagon', 'Square'];
 
 class NewPlanningGridDialog extends React.Component {
 	constructor(props){
@@ -25,13 +22,13 @@ class NewPlanningGridDialog extends React.Component {
 		}
 	}
 	changeDomain(evt, value) {
-		this.setState({domain: domains[value]});
+		this.setState({domain: this.props.domains[value]});
 	}
 	changeShape(evt, value) {
-		this.setState({shape: shapes[value]});
+		this.setState({shape: this.props.shapes[value]});
 	}
 	changeAreaKm2(evt, value) {
-		this.setState({areakm2: areakm2s[value]});
+		this.setState({areakm2: this.props.areakm2s[value]});
 	}
 	onOk(){
 		//create the new planning grid
@@ -72,7 +69,7 @@ class NewPlanningGridDialog extends React.Component {
 						</div>
 						<div>
 							<SelectField menuItemStyle={{ fontSize: "12px" }} labelStyle={{ fontSize: "12px" }} onChange={this.changeDomain.bind(this)} value={this.state.domain} style={dropDownStyle} floatingLabelText="Domain" floatingLabelFixed={true}>
-								{domains.map(item => {
+								{this.props.domains.map(item => {
 									return (
 										<MenuItem
 											style={{ fontSize: "12px" }}
@@ -86,7 +83,7 @@ class NewPlanningGridDialog extends React.Component {
 						</div>
 						<div>
 							<SelectField menuItemStyle={{ fontSize: "12px" }} labelStyle={{ fontSize: "12px" }} onChange={this.changeShape.bind(this)} value={this.state.shape} style={dropDownStyle} floatingLabelText="Planning unit shape" floatingLabelFixed={true}>
-								{shapes.map(item => {
+								{this.props.shapes.map(item => {
 									return (
 										<MenuItem
 											style={{ fontSize: "12px" }}
@@ -100,7 +97,7 @@ class NewPlanningGridDialog extends React.Component {
 						</div>
 						<div>
 							<SelectField menuItemStyle={{ fontSize: "12px" }} labelStyle={{ fontSize: "12px" }} onChange={this.changeAreaKm2.bind(this)} value={this.state.areakm2} style={dropDownStyle} floatingLabelText="Area of each planning unit" floatingLabelFixed={true}>
-								{areakm2s.map(item => {
+								{this.props.areakm2s.map(item => {
 									return (
 										<MenuItem
 											style={{ fontSize: "12px" }}

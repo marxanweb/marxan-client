@@ -210,6 +210,7 @@ class NewProjectDialog extends React.Component {
 							selectedFeatureIds={this.state.selectedFeatureIds}
 							metadata={{OLDVERSION:false}}
 							userRole={"User"}
+            				previewFeature={this.props.previewFeature} 
 						/>
 					</React.Fragment>
 			);

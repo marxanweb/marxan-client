@@ -46,6 +46,7 @@ import ResultsPanel from './ResultsPanel';
 import FeatureInfoDialog from './FeatureInfoDialog';
 import ProjectsDialog from './ProjectsDialog';
 import NewProjectDialog from './NewProjectDialog';
+import NewProjectWizardDialog from './NewProjectWizardDialog';
 import FailedToDeleteDialog from './FailedToDeleteDialog';
 import PlanningGridDialog from './PlanningGridDialog';
 import PlanningGridsDialog from './PlanningGridsDialog';
@@ -82,6 +83,11 @@ let TIMEOUT = 0; //disable timeout setting
 let MAPBOX_USER = "blishten";
 let MAPBOX_STYLE_PREFIX = 'mapbox://styles/';
 let PLANNING_UNIT_STATUSES = [1, 2, 3];
+let IUCN_CATEGORIES = ['None','IUCN I-II','IUCN I-IV','IUCN I-V','IUCN I-VI','All'];
+//constants for creating new planning grids
+let DOMAINS = ["Marine", "Terrestrial"];
+let SHAPES = ['Hexagon', 'Square'];
+let AREAKM2S = [10, 20, 30, 40, 50];
 //layer source names
 let PLANNING_UNIT_SOURCE_NAME = "planning_units_source";
 let WDPA_SOURCE_NAME = "wdpa_source";
@@ -139,6 +145,7 @@ class App extends React.Component {
       projectsDialogOpen: false,
       openInfoDialogOpen: false,
       newProjectDialogOpen: false, 
+      newProjectWizardDialogOpen: true, 
       shareableLinkDialogOpen: false,
       classificationDialogOpen: false,
       resendPasswordDialogOpen: false,
@@ -172,7 +179,7 @@ class App extends React.Component {
       owner: '', // the owner of the project - may be different to the user, e.g. if logged on as guest (user) and accessing someone elses project (owner)
       loggedIn: false,
       shareableLink: false,
-      userData: {},
+      userData: {'SHOWWELCOMESCREEN': true},
       unauthorisedMethods: [],
       metadata: {},
       renderer: {},
@@ -299,7 +306,6 @@ class App extends React.Component {
       this.setState({loading: true});
       jsonp(this.state.marxanServer.endpoint + params, { timeout: timeout }).promise.then((response) => {
         this.setState({loading: false});
-        console.log("loading finished");
         if (!this.checkForErrors(response)) {
           resolve(response);
         }
@@ -3241,6 +3247,13 @@ class App extends React.Component {
   closeNewProjectDialog() {
     this.setState({ newProjectDialogOpen: false });
   }
+  openNewProjectWizardDialog(){
+    this.getCountries();
+    this.setState({ newProjectWizardDialogOpen: true });
+  }
+  closeNewProjectWizardDialog(){
+    this.setState({ newProjectWizardDialogOpen: false });
+  }
   openNewPlanningGridDialog() {
     this.getCountries();
     this.setState({ NewPlanningGridDialogOpen: true });
@@ -3533,9 +3546,9 @@ class App extends React.Component {
 
   getIntersections(iucnCategory) {
     //get the individual iucn categories
-    let iucn_categories = this.getIndividualIucnCategories(iucnCategory);
+    let _iucn_categories = this.getIndividualIucnCategories(iucnCategory);
     //get the planning units that intersect the protected areas with the passed iucn category
-    return this.protected_area_intersections.filter((item) => { return (iucn_categories.indexOf(item[0]) > -1); });
+    return this.protected_area_intersections.filter((item) => { return (_iucn_categories.indexOf(item[0]) > -1); });
   }
 
   //downloads and updates the WDPA on the server
@@ -3797,9 +3810,12 @@ class App extends React.Component {
             open={this.state.userData.SHOWWELCOMESCREEN && this.state.welcomeDialogOpen} 
             onOk={this.closeWelcomeDialog.bind(this)}
             onCancel={this.closeWelcomeDialog.bind(this)}
+            userData={this.state.userData}
+            saveOptions={this.saveOptions.bind(this)}
             notifications={this.state.notifications}
             resetNotifications={this.resetNotifications.bind(this)}
             removeNotification={this.removeNotification.bind(this)}
+            openNewProjectDialog={this.openNewProjectDialog.bind(this)}
           />
           <ToolsMenu
             open={this.state.toolsMenuOpen} 
@@ -3901,6 +3917,7 @@ class App extends React.Component {
             toggleFeatureLayer={this.toggleFeatureLayer.bind(this)}
             toggleFeaturePUIDLayer={this.toggleFeaturePUIDLayer.bind(this)}
             useFeatureColors={this.state.userData.USEFEATURECOLORS}
+            iucn_categories={IUCN_CATEGORIES}
           />
           <ResultsPanel
             open={this.state.resultsPanelOpen}
@@ -3978,6 +3995,19 @@ class App extends React.Component {
             openCostsDialog={this.openCostsDialog.bind(this)}
             selectedCosts={this.state.selectedCosts}
             createNewProject={this.createNewProject.bind(this)}
+    				previewFeature={this.previewFeature.bind(this)} 
+          />
+          <NewProjectWizardDialog
+            open={this.state.newProjectWizardDialogOpen}
+            onOk={this.closeNewProjectWizardDialog.bind(this)}
+            okDisabled={true}
+            // countries={this.state.countries}
+            countries={[{"iso3": "AFG", "name_iso31": "Afghanistan"}, {"iso3": "ALB", "name_iso31": "Albania"}, {"iso3": "DZA", "name_iso31": "Algeria"}, {"iso3": "ASM", "name_iso31": "American Samoa"}, {"iso3": "AND", "name_iso31": "Andorra"}]}
+    				domains={DOMAINS}
+    				shapes={SHAPES}
+    				areakm2s={AREAKM2S}
+            iucn_categories={IUCN_CATEGORIES}
+            closeNewProjectWizardDialog={this.closeNewProjectWizardDialog.bind(this)}
           />
           <NewPlanningGridDialog 
             open={this.state.NewPlanningGridDialogOpen} 
@@ -3986,6 +4016,9 @@ class App extends React.Component {
             createNewPlanningUnitGrid={this.createNewPlanningUnitGrid.bind(this)}
             countries={this.state.countries}
             setSnackBar={this.setSnackBar.bind(this)}
+    				domains={DOMAINS}
+    				shapes={SHAPES}
+    				areakm2s={AREAKM2S}
             ERRORS_PAGE={ERRORS_PAGE}
           />
           <ImportPlanningGridDialog

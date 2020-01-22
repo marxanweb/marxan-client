@@ -34,10 +34,10 @@ class FeatureDialog extends React.Component {
 						<div className="metadataPanel">
 							<table>
 								<tr>
-									<td colspan='2' className='metadataItemTitle'>Description:</td>
+									<td colSpan='2' className='metadataItemTitle'>Description:</td>
 								</tr>
 								<tr>
-									<td colspan='2' className='metadataItemValue2'>{this.props.feature_metadata.description}</td>
+									<td colSpan='2' className='metadataItemValue2'>{this.props.feature_metadata.description}</td>
 								</tr>
 								<tr>
 									<td className='metadataItemTitle'>Area:</td>
