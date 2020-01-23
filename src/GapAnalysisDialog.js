@@ -76,7 +76,7 @@ class GapAnalysisDialog extends React.PureComponent {
 				let charts = _data.map((item, index) => {
 					if (item.country_area > 0) {
 						if (item.current_protected_percent >= item.target_value) targetsMetCount = targetsMetCount + 1;
-						return <MetChart {...item} title={item._alias} color={item.color} key={item._feature_class_name} units={'km2'} showCountryArea={false}/>;
+						return <MetChart {...item} title={item._alias} color={item.color} key={item._feature_class_name} units={'km2'} showCountryArea={false} dataKey={item._feature_class_name}/>;
 					}
 					else {
 						return null;
@@ -95,7 +95,7 @@ class GapAnalysisDialog extends React.PureComponent {
                 onRequestClose={this.props.closeGapAnalysisDialog}
                 showCancelButton={false}
                 children={
-                <React.Fragment>
+                <React.Fragment key={'gapAnalysiskey'}>
 					<div className="analysisReport">
 						<div>Gap Analysis for {this.props.metadata.pu_country} using the {this.props.marxanServer.wdpa_version} version of the WDPA</div>
 						<div className={'analysisReportInner'} style={{display: (this.props.gapAnalysis.length) ? 'block' : ' none'}}>
@@ -113,18 +113,17 @@ class GapAnalysisDialog extends React.PureComponent {
 								<Bar dataKey="current_protected_percent" fill="#8884d8">
 								{
 								_data.map((entry, index) => {
-								const color = entry.color;
-								return <Cell fill={color} />;
+									return <Cell fill={entry.color} key={entry.color}/>;
 								})
 								}
 							</Bar>
     					<ReferenceLine y={(_data.length) ? _data[0].target_value : 0} stroke="#7C7C7C" strokeDasharray="3 3" style={{display: (_data.length) ? 'inline' : 'none'}}/>
 							</ComposedChart >
 							<div className={'gapAnalysisStatsPanel'}>
-								<table><tr>
-								<td>Features meeting targets:</td><td className={'score'}>{targetsMetCount}/{charts.length}</td></tr><tr>
-								<td>Representation score:</td><td className={'score'}>{score}</td></tr>
-								</table>
+								<table><tbody><tr>
+									<td>Features meeting targets:</td><td className={'score'}>{targetsMetCount}/{charts.length}</td></tr><tr>
+									<td>Representation score:</td><td className={'score'}>{score}</td></tr>
+								</tbody></table>
 							</div>
 							<Toggle label="Show as a chart" onToggle={this.toggleView.bind(this)} style={{width:'unset',float:'right',paddingTop:'2px'}} labelStyle={{fontSize:'14px',width:'100px',color:'rgba(0, 0, 0, 0.6)'}} toggled={this.state.showChart}/>
 						</div>

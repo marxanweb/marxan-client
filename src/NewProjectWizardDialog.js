@@ -19,32 +19,30 @@ class NewProjectWizardDialog extends React.Component {
 		this.setState({stepIndex: this.state.stepIndex - 1});
 	};
 	getComplete(){
+	    let complete = false;
 	    switch (this.state.stepIndex) {
 	        case 0:
-                this.state.stepComplete = (this.state.country !=='' && this.state.domain !=='');	            
+                complete = (this.state.country !=='' && this.state.domain !=='');	            
 	            break;
 	        case 1:
-                this.state.stepComplete = (this.state.shape !=='' && this.state.areakm2 !==0);	            
+                complete = (this.state.shape !=='' && this.state.areakm2 !==0);	            
 	            break;
 	        default:
 	            // code
 	    }
+	    this.setState({stepComplete: complete});
 	}
 	changeCountry(evt, value) {
-		this.setState({iso3: this.props.countries[value].iso3, country: this.props.countries[value].name_iso31});
-		this.getComplete();
+		this.setState({iso3: this.props.countries[value].iso3, country: this.props.countries[value].name_iso31}, () => this.getComplete());
 	}
 	changeDomain(evt, value) {
-		this.setState({domain: this.props.domains[value]});
-		this.getComplete();
+		this.setState({domain: this.props.domains[value]}, () => this.getComplete());
 	}
 	changeShape(evt, value) {
-		this.setState({shape: this.props.shapes[value]});
-		this.getComplete();
+		this.setState({shape: this.props.shapes[value]}, () => this.getComplete());
 	}
 	changeAreaKm2(evt, value) {
-		this.setState({areakm2: this.props.areakm2s[value]});
-		this.getComplete();
+		this.setState({areakm2: this.props.areakm2s[value]}, () => this.getComplete());
 	}
     toggleWorldEcosystems(evt, isInputChecked){
         this.setState({worldEcosystems: isInputChecked});
@@ -66,7 +64,7 @@ class NewProjectWizardDialog extends React.Component {
     }
     //create a new national project
 	createNewNationalProject(){
-	    
+	    this.props.createNewNationalProject(this.state);
 	}
     render() {
         let dropDownStyle = {width: "240px"};

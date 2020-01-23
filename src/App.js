@@ -72,6 +72,7 @@ import TargetDialog from './TargetDialog';
 import ShareableLinkDialog from './ShareableLinkDialog';
 import GapAnalysisDialog from './GapAnalysisDialog';
 import UpdateWDPADialog from './UpdateWDPADialog';
+import ImportGBIFDialog from './ImportGBIFDialog';
 
 //CONSTANTS
 let MARXAN_CLIENT_VERSION = packageJson.version; //TODO UPDATE PACKAGE.JSON WHEN THERE IS A NEW VERSION
@@ -144,8 +145,9 @@ class App extends React.Component {
       settingsDialogOpen: false,
       projectsDialogOpen: false,
       openInfoDialogOpen: false,
+      importGBIFDialogOpen: false,
       newProjectDialogOpen: false, 
-      newProjectWizardDialogOpen: true, 
+      newProjectWizardDialogOpen: false, 
       shareableLinkDialogOpen: false,
       classificationDialogOpen: false,
       resendPasswordDialogOpen: false,
@@ -698,6 +700,7 @@ class App extends React.Component {
         this.setState({userData: response.userData, unauthorisedMethods: response.unauthorisedMethods, project: response.userData.LASTPROJECT, dismissedNotifications: (response.dismissedNotifications ? response.dismissedNotifications : [])}, ()=>{
           //show the welcome dialog
           this.openWelcomeDialog();
+          this.setState({importGBIFDialogOpen:true}); //TODO Remove this
         });
         //set the basemap
         var basemap = this.state.basemaps.filter((item) => {return (item.name === response.userData.BASEMAP);})[0];
@@ -1155,6 +1158,21 @@ class App extends React.Component {
     });
   }
 
+  createNewNationalProject(params){
+    return new Promise((resolve, reject) => {
+      //first create the planning grid
+      this.createNewPlanningUnitGrid(params.iso3, params.domain, params.areakm2, params.shape).then((response) => {
+        console.log(response);
+      }).catch((error) => {
+        console.log(error);
+      });
+      //create the features from
+      // world ecosystems
+      // species from gbif
+      // species from the red list
+    });
+  }
+  
   //REST call to create a new import project from the wizard
   createImportProject(project) {
     let formData = new FormData();
@@ -2737,6 +2755,12 @@ class App extends React.Component {
   closeImportFeaturesDialog() {
     this.setState({ importFeaturesDialogOpen: false});
   }
+  openImportGBIFDialog() {
+    this.setState({ importGBIFDialogOpen: true});
+  }
+  closeImportGBIFDialog() {
+    this.setState({ importGBIFDialogOpen: false});
+  }
   openPlanningGridsDialog(){
     this.setState({planningGridsDialogOpen: true});
   }
@@ -2999,6 +3023,23 @@ class App extends React.Component {
     }); //return
   }
 
+  //import features from GBIF
+  importGBIFData(taxonKey){
+    //start the logging
+    this.startLogging();
+    return new Promise((resolve, reject) => {
+      //get the request url
+      this._ws("importGBIFData?taxonKey=2492936", this.wsMessageCallback.bind(this)).then((message) => {
+        //get the uploadId
+        let uploadId = message.uploadId;
+          this.pollMapbox(uploadId).then((response) => {
+            resolve(response);
+          });
+      }).catch((error) => {
+        reject(error);
+      });
+    }); //return
+  }
   //create the new feature from the feature that has been digitised on the map
   createNewFeature(name, description){
     //start the logging
@@ -3815,7 +3856,7 @@ class App extends React.Component {
             notifications={this.state.notifications}
             resetNotifications={this.resetNotifications.bind(this)}
             removeNotification={this.removeNotification.bind(this)}
-            openNewProjectDialog={this.openNewProjectDialog.bind(this)}
+            openNewProjectDialog={this.openNewProjectWizardDialog.bind(this)}
           />
           <ToolsMenu
             open={this.state.toolsMenuOpen} 
@@ -4001,13 +4042,13 @@ class App extends React.Component {
             open={this.state.newProjectWizardDialogOpen}
             onOk={this.closeNewProjectWizardDialog.bind(this)}
             okDisabled={true}
-            // countries={this.state.countries}
-            countries={[{"iso3": "AFG", "name_iso31": "Afghanistan"}, {"iso3": "ALB", "name_iso31": "Albania"}, {"iso3": "DZA", "name_iso31": "Algeria"}, {"iso3": "ASM", "name_iso31": "American Samoa"}, {"iso3": "AND", "name_iso31": "Andorra"}]}
+            countries={this.state.countries}
     				domains={DOMAINS}
     				shapes={SHAPES}
     				areakm2s={AREAKM2S}
             iucn_categories={IUCN_CATEGORIES}
             closeNewProjectWizardDialog={this.closeNewProjectWizardDialog.bind(this)}
+            createNewNationalProject={this.createNewNationalProject.bind(this)}
           />
           <NewPlanningGridDialog 
             open={this.state.NewPlanningGridDialogOpen} 
@@ -4081,6 +4122,11 @@ class App extends React.Component {
             unzipShapefile={this.unzipShapefile.bind(this)}
             getShapefileFieldnames={this.getShapefileFieldnames.bind(this)}
             deleteShapefile={this.deleteShapefile.bind(this)}
+          />
+          <ImportGBIFDialog
+            open={this.state.importGBIFDialogOpen} 
+            onCancel={this.closeImportGBIFDialog.bind(this)}
+            importGBIFData={this.importGBIFData.bind(this)}
           />
           <PlanningGridsDialog
             open={this.state.planningGridsDialogOpen}
