@@ -44,6 +44,10 @@ class FeaturesDialog extends React.Component {
     //show the drawing controls
     this.props.initialiseDigitising();
   }
+  openImportGBIFDialog(){
+    this.props.openImportGBIFDialog();
+    this.props.onCancel();
+  }
   clickFeature(event, rowInfo) {
     //if adding or removing features from a project
     if (this.props.addingRemovingFeatures) {
@@ -142,7 +146,7 @@ class FeaturesDialog extends React.Component {
                          <Popover open={ this.props.featuresDialogPopupOpen } anchorEl={ this.state.anchorEl } anchorOrigin={ { horizontal: 'left', vertical: 'bottom' } } targetOrigin={ { horizontal: 'left', vertical: 'top' } } onRequestClose={ this.props.closePopover }>
                            <Menu desktop={ true }>
                              <MenuItem primaryText="Draw on screen" title="Create a new feature by digitising it on the screen" onClick={ this._newByDigitising.bind(this) } />
-                             <MenuItem primaryText="Add from GBIF" disabled={ true } />
+                             <MenuItem primaryText="Add from GBIF" title="Add data by importing it from GBIF" onClick={ this.openImportGBIFDialog.bind(this) } />
                              <MenuItem primaryText="Add from IUCN Red List" disabled={ true } />
                            </Menu>
                          </Popover>

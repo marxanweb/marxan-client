@@ -1041,3 +1041,21 @@ a {
 .habitatsList {
   margin-top: 13px;
 }
+
+.suggestions {
+  position: absolute;
+  margin: auto;
+  top: 112px;
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.suggestion {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.suggestion:hover {
+  background-color: aliceblue;
+  cursor: pointer;
+}

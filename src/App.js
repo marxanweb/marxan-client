@@ -3023,12 +3023,12 @@ class App extends React.Component {
   }
 
   //import features from GBIF
-  importGBIFData(taxonKey, taxon, vernacularName){
+  importGBIFData(item){
     //start the logging
     this.startLogging();
     return new Promise((resolve, reject) => {
       //get the request url
-      this._ws("importGBIFData?taxonKey=" + taxonKey + "&taxon=" + taxon + "&vernacularName=" + vernacularName, this.wsMessageCallback.bind(this)).then((message) => {
+      this._ws("importGBIFData?taxonKey=" + item.key + "&scientificName=" + item.scientificName, this.wsMessageCallback.bind(this)).then((message) => {
         //get the uploadId
         let uploadId = message.uploadId;
           this.pollMapbox(uploadId).then((response) => {
@@ -3039,6 +3039,18 @@ class App extends React.Component {
       });
     }); //return
   }
+  
+    //requests matching species names in GBIF
+  gbifSpeciesSuggest(q) {
+    return new Promise((resolve, reject) => {
+      jsonp("https://api.gbif.org/v1/species/suggest?q=" + q + "&rank=SPECIES").promise.then((response) => {
+        resolve(response);
+      }, (err) => {
+        reject(err);
+      });
+    });
+  }
+
   //create the new feature from the feature that has been digitised on the map
   createNewFeature(name, description){
     //start the logging
@@ -4091,6 +4103,7 @@ class App extends React.Component {
             closePopover={this.closePopover.bind(this)}
             showNewFeaturesDialogPopover={this.showNewFeaturesDialogPopover.bind(this)}
             previewFeature={this.previewFeature.bind(this)} 
+            openImportGBIFDialog={this.openImportGBIFDialog.bind(this)}
           />
           <FeatureDialog
             open={this.state.featureDialogOpen}
@@ -4125,7 +4138,9 @@ class App extends React.Component {
           <ImportGBIFDialog
             open={this.state.importGBIFDialogOpen} 
             onCancel={this.closeImportGBIFDialog.bind(this)}
+            loading={this.state.loading || this.state.preprocessing || this.state.uploading}
             importGBIFData={this.importGBIFData.bind(this)}
+            gbifSpeciesSuggest={this.gbifSpeciesSuggest.bind(this)}
           />
           <PlanningGridsDialog
             open={this.state.planningGridsDialogOpen}
