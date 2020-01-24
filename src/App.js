@@ -700,7 +700,6 @@ class App extends React.Component {
         this.setState({userData: response.userData, unauthorisedMethods: response.unauthorisedMethods, project: response.userData.LASTPROJECT, dismissedNotifications: (response.dismissedNotifications ? response.dismissedNotifications : [])}, ()=>{
           //show the welcome dialog
           this.openWelcomeDialog();
-          this.setState({importGBIFDialogOpen:true}); //TODO Remove this
         });
         //set the basemap
         var basemap = this.state.basemaps.filter((item) => {return (item.name === response.userData.BASEMAP);})[0];
@@ -3024,12 +3023,12 @@ class App extends React.Component {
   }
 
   //import features from GBIF
-  importGBIFData(taxonKey){
+  importGBIFData(taxonKey, taxon, vernacularName){
     //start the logging
     this.startLogging();
     return new Promise((resolve, reject) => {
       //get the request url
-      this._ws("importGBIFData?taxonKey=2492936", this.wsMessageCallback.bind(this)).then((message) => {
+      this._ws("importGBIFData?taxonKey=" + taxonKey + "&taxon=" + taxon + "&vernacularName=" + vernacularName, this.wsMessageCallback.bind(this)).then((message) => {
         //get the uploadId
         let uploadId = message.uploadId;
           this.pollMapbox(uploadId).then((response) => {

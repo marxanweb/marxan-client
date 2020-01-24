@@ -31,12 +31,20 @@ class SelectFieldMapboxLayer extends React.Component {
 	}
 
 	getLatLngLikeFromWKT(wkt) {
+		let envelope, returnVal;
 		var parse = require('wellknown');
-		let envelope = parse(wkt).coordinates[0];
-		return [
-			[envelope[0][0], envelope[0][1]],
-			[envelope[2][0], envelope[2][1]]
-		];
+		var geometry = parse(wkt);
+		//see if the envelope spans the dateline
+		if (geometry.coordinates.length>1){
+			//if the envelope spans the dateline then the first polygon is in the western hemisphere
+			let west = parse(wkt).coordinates[0];
+			let east = parse(wkt).coordinates[1];
+			returnVal= [[east[0][1][0],east[0][1][1]],[west[0][1][0]+360,west[0][1][1]]];
+		}else{
+			envelope = parse(wkt).coordinates[0];
+			returnVal= [[envelope[0][0], envelope[0][1]],[envelope[2][0], envelope[2][1]]];
+		}
+		return returnVal;
 	}
 
 	//check the layer exists
