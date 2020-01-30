@@ -383,7 +383,7 @@ class App extends React.Component {
         //reset state
         this.setState({preprocessing: false});
         if (!evt.wasClean) {
-          msgCallback({status:'SocketClosed'});
+          msgCallback({status:'SocketClosedUnexpectedly'});
         }else{
           reject(evt);
         }
@@ -464,7 +464,7 @@ class App extends React.Component {
   //logs the message if necessary - this removes duplicates
   logMessage(message){
     //log the message from the websocket
-    if (message.status === 'SocketClosed'){ //server closed WebSocket unexpectedly - uncaught server error, server crash or WebSocket timeout)
+    if (message.status === 'SocketClosedUnexpectedly'){ //server closed WebSocket unexpectedly - uncaught server error, server crash or WebSocket timeout)
       this.log({method:message.method, status:'Finished', error:"The WebSocket connection closed unexpectedly"});
     }else{
       //see if the message has a pid and if it does then see if the status has changed from the last message - if it has then log the message
