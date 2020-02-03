@@ -2740,7 +2740,7 @@ class App extends React.Component {
     if (showClearSelectAll) this.getSelectedFeatureIds();
   }
   closeFeaturesDialog() {
-    this.setState({ featuresDialogOpen: false, featuresDialogPopupOpen: false });
+    this.setState({ featuresDialogOpen: false, newFeaturePopoverOpen: false, importFeaturePopoverOpen: false });
   }
   openNewFeatureDialog(){
     this.setState({ NewFeatureDialogOpen: true });
@@ -2780,11 +2780,17 @@ class App extends React.Component {
   closeFeatureDialog(){
     this.setState({featureDialogOpen: false});
   }
-  showNewFeaturesDialogPopover(){
-    this.setState({ featuresDialogPopupOpen: true });
+  showNewFeaturePopover(){
+    this.setState({ newFeaturePopoverOpen: true });
   }
-  closePopover(){
-    this.setState({ featuresDialogPopupOpen: false });
+  hideNewFeaturePopover(){
+    this.setState({ newFeaturePopoverOpen: false });
+  }
+  showImportFeaturePopover(){
+    this.setState({ importFeaturePopoverOpen: true });
+  }
+  hideImportFeaturePopover(){
+    this.setState({ importFeaturePopoverOpen: false });
   }
   openCostsDialog() {
     this.setState({ CostsDialogOpen: true });
@@ -4101,9 +4107,12 @@ class App extends React.Component {
             addingRemovingFeatures={this.state.addingRemovingFeatures}
             selectedFeatureIds={this.state.selectedFeatureIds}
             initialiseDigitising={this.initialiseDigitising.bind(this)}
-            featuresDialogPopupOpen={this.state.featuresDialogPopupOpen}
-            closePopover={this.closePopover.bind(this)}
-            showNewFeaturesDialogPopover={this.showNewFeaturesDialogPopover.bind(this)}
+            newFeaturePopoverOpen={this.state.newFeaturePopoverOpen}
+            hideNewFeaturePopover={this.hideNewFeaturePopover.bind(this)}
+            showNewFeaturePopover={this.showNewFeaturePopover.bind(this)}
+            importFeaturePopoverOpen={this.state.importFeaturePopoverOpen}
+            hideImportFeaturePopover={this.hideImportFeaturePopover.bind(this)}
+            showImportFeaturePopover={this.showImportFeaturePopover.bind(this)}
             previewFeature={this.previewFeature.bind(this)} 
             openImportGBIFDialog={this.openImportGBIFDialog.bind(this)}
           />

@@ -33,40 +33,42 @@ class FeatureDialog extends React.Component {
 						/>
 						<div className="metadataPanel">
 							<table>
-								<tr>
-									<td colSpan='2' className='metadataItemTitle'>Description:</td>
-								</tr>
-								<tr>
-									<td colSpan='2' className='metadataItemValue2'>{this.props.feature_metadata.description}</td>
-								</tr>
-								<tr>
-									<td className='metadataItemTitle'>Area:</td>
-									<td className='metadataItemValue'>{this.props.feature_metadata.area}m<span className='superscript'>2</span></td>
-								</tr>
-								<tr>
-									<td className='metadataItemTitle'>Author:</td>
-									<td className='metadataItemValue'>{this.props.feature_metadata.created_by}</td>
-								</tr>
-								<tr>
-									<td className='metadataItemTitle'>Created:</td>
-									<td className='metadataItemValue'>{this.props.feature_metadata.creation_date}</td>
-								</tr>
-								<tr>
-									<td className='metadataItemTitle'>Source:</td>
-									<td className='metadataItemValue'>{this.props.feature_metadata.source}</td>
-								</tr>
-								<tr style={{display:(this.state.expanded) ? 'table-row' : 'none'}}>
-									<td className='metadataItemTitle'>id:</td>
-									<td className='metadataItemValue'>{this.props.feature_metadata.id}</td>
-								</tr>
-								<tr style={{display:(this.state.expanded) ? 'table-row' : 'none'}}>
-									<td className='metadataItemTitle'>guid:</td>
-									<td className='metadataItemValue'>{this.props.feature_metadata.feature_class_name}</td>
-								</tr>
-								<tr style={{display:(this.state.expanded) ? 'table-row' : 'none'}}>
-									<td className='metadataItemTitle'>tileset:</td>
-									<td className='metadataItemValue'>{this.props.feature_metadata.tilesetid}</td>
-								</tr>
+								<tbody>
+									<tr>
+										<td colSpan='2' className='metadataItemTitle'>Description:</td>
+									</tr>
+									<tr>
+										<td colSpan='2' className='metadataItemValue2'>{this.props.feature_metadata.description}</td>
+									</tr>
+									<tr>
+										<td className='metadataItemTitle'>Area:</td>
+										<td className='metadataItemValue'>{this.props.feature_metadata.area}m<span className='superscript'>2</span></td>
+									</tr>
+									<tr>
+										<td className='metadataItemTitle'>Author:</td>
+										<td className='metadataItemValue'>{this.props.feature_metadata.created_by}</td>
+									</tr>
+									<tr>
+										<td className='metadataItemTitle'>Created:</td>
+										<td className='metadataItemValue'>{this.props.feature_metadata.creation_date}</td>
+									</tr>
+									<tr>
+										<td className='metadataItemTitle'>Source:</td>
+										<td className='metadataItemValue'>{this.props.feature_metadata.source}</td>
+									</tr>
+									<tr style={{display:(this.state.expanded) ? 'table-row' : 'none'}}>
+										<td className='metadataItemTitle'>id:</td>
+										<td className='metadataItemValue'>{this.props.feature_metadata.id}</td>
+									</tr>
+									<tr style={{display:(this.state.expanded) ? 'table-row' : 'none'}}>
+										<td className='metadataItemTitle'>guid:</td>
+										<td className='metadataItemValue'>{this.props.feature_metadata.feature_class_name}</td>
+									</tr>
+									<tr style={{display:(this.state.expanded) ? 'table-row' : 'none'}}>
+										<td className='metadataItemTitle'>tileset:</td>
+										<td className='metadataItemValue'>{this.props.feature_metadata.tilesetid}</td>
+									</tr>
+								</tbody>
 							</table>
 							<FontAwesomeIcon icon={(this.state.expanded) ? faAngleUp : faAngleDown} onClick={this.expand.bind(this)} title={(this.state.expanded) ? "Show less details" : "Show more details"} className={'appBarIcon'} style={{fontSize: '20px'}}/>
 						</div>

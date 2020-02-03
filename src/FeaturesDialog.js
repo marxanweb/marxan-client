@@ -28,9 +28,13 @@ class FeaturesDialog extends React.Component {
     this.props.deleteFeature(this.state.selectedFeature);
     this.setState({selectedFeature: undefined});
   }
-  _new(event) {
-    this.setState({anchorEl: event.currentTarget});
-    this.props.showNewFeaturesDialogPopover();
+  showNewFeaturePopover(event) {
+    this.setState({newFeatureAnchor: event.currentTarget});
+    this.props.showNewFeaturePopover();
+  }
+  showImportFeaturePopover(event) {
+    this.setState({importFeatureAnchor: event.currentTarget});
+    this.props.showImportFeaturePopover();
   }
   _openImportFeaturesDialog() {
     //close the dialog
@@ -141,16 +145,20 @@ class FeaturesDialog extends React.Component {
                      </div>
                        <div id="projectsToolbar">
                          <div style={ { display: (this.props.metadata.OLDVERSION) ? "block" : "none" } } className={ 'tabTitle' }>This is an imported project. Only features from this project are shown.</div>
-                         <ToolbarButton show={ (this.props.userRole !== "ReadOnly") && (!this.props.metadata.OLDVERSION) && (!this.props.addingRemovingFeatures) } icon={ <FontAwesomeIcon icon={ faPlusCircle } /> } title="New feature" disabled={ this.props.loading } onClick={ this._new.bind(this) } label={ "New" }
-                         />
-                         <Popover open={ this.props.featuresDialogPopupOpen } anchorEl={ this.state.anchorEl } anchorOrigin={ { horizontal: 'left', vertical: 'bottom' } } targetOrigin={ { horizontal: 'left', vertical: 'top' } } onRequestClose={ this.props.closePopover }>
+                         <ToolbarButton show={ (this.props.userRole !== "ReadOnly") && (!this.props.metadata.OLDVERSION) && (!this.props.addingRemovingFeatures) } icon={ <FontAwesomeIcon icon={ faPlusCircle } /> } title="New feature" disabled={ this.props.loading } onClick={ this.showNewFeaturePopover.bind(this) } label={ "New" }/>
+                         <Popover open={ this.props.newFeaturePopoverOpen} anchorEl={ this.state.newFeatureAnchor } anchorOrigin={ { horizontal: 'left', vertical: 'bottom' } } targetOrigin={ { horizontal: 'left', vertical: 'top' } } onRequestClose={ this.props.hideNewFeaturePopover }>
                            <Menu desktop={ true }>
                              <MenuItem primaryText="Draw on screen" title="Create a new feature by digitising it on the screen" onClick={ this._newByDigitising.bind(this) } />
-                             <MenuItem primaryText="Add from GBIF" title="Add data by importing it from GBIF" onClick={ this.openImportGBIFDialog.bind(this) } />
-                             <MenuItem primaryText="Add from IUCN Red List" disabled={ true } />
                            </Menu>
                          </Popover>
-                         <ToolbarButton show={ (!this.props.metadata.OLDVERSION) && (!this.props.addingRemovingFeatures) && (this.props.userRole !== "ReadOnly") } icon={<Import style={{height:'20px',width:'20px'}}/>} title="Import features from a shapefile" disabled={ this.props.loading } onClick={ this._openImportFeaturesDialog.bind(this) } label={ "Import" }/>
+                         <ToolbarButton show={ (!this.props.metadata.OLDVERSION) && (!this.props.addingRemovingFeatures) && (this.props.userRole !== "ReadOnly") } icon={<Import style={{height:'20px',width:'20px'}}/>} title="Create new features from existing data" disabled={ this.props.loading }  onClick={ this.showImportFeaturePopover.bind(this) } label={ "Import" }/>
+                         <Popover open={ this.props.importFeaturePopoverOpen } anchorEl={ this.state.importFeatureAnchor } anchorOrigin={ { horizontal: 'left', vertical: 'bottom' } } targetOrigin={ { horizontal: 'left', vertical: 'top' } } onRequestClose={ this.props.hideImportFeaturePopover }>
+                           <Menu desktop={ true }>
+                             <MenuItem primaryText="Import features from a shapefile" title="Import one or more features from a shapefile" onClick={this._openImportFeaturesDialog.bind(this)} />
+                             <MenuItem primaryText="Import species from the Global Biodiversity Information Facility" title="Add data by importing it from GBIF" onClick={ this.openImportGBIFDialog.bind(this) } />
+                             <MenuItem primaryText="Import species from the IUCN Red List of Threatened Species" disabled={ true } />
+                           </Menu>
+                         </Popover>
                          <ToolbarButton show={ (this.props.userRole === "Admin") && (!this.props.metadata.OLDVERSION) && (!this.props.addingRemovingFeatures) } icon={ <FontAwesomeIcon icon={ faTrashAlt } color='rgb(255, 64, 129)' /> } title="Delete feature" disabled={ this.state.selectedFeature === undefined || this.props.loading  || (this.state.selectedFeature && this.state.selectedFeature.created_by === 'global admin')} onClick={ this._delete.bind(this) } label={ "Delete" }/>
                          <ToolbarButton show={ this.props.addingRemovingFeatures } icon={ <FontAwesomeIcon icon={ faCircle } /> } title="Clear all features" onClick={ this.props.clearAllFeatures } label={ "Clear all" } />
                          <ToolbarButton show={ this.props.addingRemovingFeatures } icon={ <FontAwesomeIcon icon={ faCheckCircle } /> } title="Select all features" onClick={ this.props.selectAllFeatures } label={ "Select all" } />
