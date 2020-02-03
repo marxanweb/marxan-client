@@ -27,6 +27,7 @@ class MapContainer extends React.Component {
             });
             this.map.setCenter(this.props.mapCentre);
             this.setMapZoom();
+            if (!this.resultsRendered) this.renderResults();
             // this.map.setCenter(this.props.tileset.center);
         });
     }
@@ -38,10 +39,12 @@ class MapContainer extends React.Component {
                 this.map.setPaintProperty(this.props.RESULTS_LAYER_NAME, "fill-color", "rgba(0, 0, 0, 0)");
                 this.map.setPaintProperty(this.props.RESULTS_LAYER_NAME, "fill-outline-color", "rgba(0, 0, 0, 0)");
             }else{
-                //the solution has been loaded and the paint properties have been calculated
-                this.map.setPaintProperty(this.props.RESULTS_LAYER_NAME, "fill-color", this.props.paintProperty.fillColor);
-                this.map.setPaintProperty(this.props.RESULTS_LAYER_NAME, "fill-outline-color", this.props.paintProperty.oulineColor);
-                this.map.setPaintProperty(this.props.RESULTS_LAYER_NAME, "fill-opacity", 0.5);
+                //the solution has been loaded and the paint properties have been calculated - if the results layer (i.e. the planning unit grid layer) is loaded then render the results
+                if (this.map.getLayer(this.props.RESULTS_LAYER_NAME)) {
+                    this.renderResults();
+                }else{
+                    this.resultsRendered = false;
+                }
             }
         }
         if (this.props.mapCentre !== prevProps.mapCentre){
@@ -52,6 +55,13 @@ class MapContainer extends React.Component {
         }
     }
 
+    //the results layer has been loaded and so the results can be rendered
+    renderResults(){
+        this.map.setPaintProperty(this.props.RESULTS_LAYER_NAME, "fill-color", this.props.paintProperty.fillColor);
+        this.map.setPaintProperty(this.props.RESULTS_LAYER_NAME, "fill-outline-color", this.props.paintProperty.oulineColor);
+        this.map.setPaintProperty(this.props.RESULTS_LAYER_NAME, "fill-opacity", 0.5);
+        this.resultsRendered = true;
+    }
     componentWillUnmount() {
         //remove the map and free all resources
         if (this.map) this.map.remove();

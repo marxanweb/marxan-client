@@ -72,29 +72,6 @@ class ClumpingDialog extends React.Component {
 	}
 
 	render() {
-		let mapContainers = [...Array(CLUMP_COUNT).keys()].map((clump) => {
-			let paintProperty;
-			switch (clump) {
-				case 0:
-					paintProperty = this.props.map0_paintProperty;
-					break;
-				case 1:
-					paintProperty = this.props.map1_paintProperty;
-					break;
-				case 2:
-					paintProperty = this.props.map2_paintProperty;
-					break;
-				case 3:
-					paintProperty = this.props.map3_paintProperty;
-					break;
-				case 4:
-					paintProperty = this.props.map4_paintProperty;
-					break;
-				default:
-					// code
-			}
-			return <MapContainer key={clump} disabled={this.props.clumpingRunning} selectBlm={this.selectBlm.bind(this)} tileset={this.props.tileset} RESULTS_LAYER_NAME={this.props.RESULTS_LAYER_NAME} paintProperty={paintProperty} blmValue={this.parseBlmValue(this.state.blmValues[clump])} mapCentre={this.props.mapCentre} mapZoom={this.props.mapZoom}/>;
-		});
 		return (
 			<MarxanDialog 
 				{...this.props} 
@@ -117,7 +94,11 @@ class ClumpingDialog extends React.Component {
 				title = "Clumping"
 				children = {
 					<div key="k7">
-						{mapContainers}
+						<MapContainer key={0} disabled={this.props.clumpingRunning} selectBlm={this.selectBlm.bind(this)} tileset={this.props.tileset} RESULTS_LAYER_NAME={this.props.RESULTS_LAYER_NAME} paintProperty={this.props.map0_paintProperty} blmValue={this.parseBlmValue(this.state.blmValues[0])} mapCentre={this.props.mapCentre} mapZoom={this.props.mapZoom}/>
+						<MapContainer key={1} disabled={this.props.clumpingRunning} selectBlm={this.selectBlm.bind(this)} tileset={this.props.tileset} RESULTS_LAYER_NAME={this.props.RESULTS_LAYER_NAME} paintProperty={this.props.map1_paintProperty} blmValue={this.parseBlmValue(this.state.blmValues[1])} mapCentre={this.props.mapCentre} mapZoom={this.props.mapZoom}/>
+						<MapContainer key={2} disabled={this.props.clumpingRunning} selectBlm={this.selectBlm.bind(this)} tileset={this.props.tileset} RESULTS_LAYER_NAME={this.props.RESULTS_LAYER_NAME} paintProperty={this.props.map2_paintProperty} blmValue={this.parseBlmValue(this.state.blmValues[2])} mapCentre={this.props.mapCentre} mapZoom={this.props.mapZoom}/>
+						<MapContainer key={3} disabled={this.props.clumpingRunning} selectBlm={this.selectBlm.bind(this)} tileset={this.props.tileset} RESULTS_LAYER_NAME={this.props.RESULTS_LAYER_NAME} paintProperty={this.props.map3_paintProperty} blmValue={this.parseBlmValue(this.state.blmValues[3])} mapCentre={this.props.mapCentre} mapZoom={this.props.mapZoom}/>
+						<MapContainer key={4} disabled={this.props.clumpingRunning} selectBlm={this.selectBlm.bind(this)} tileset={this.props.tileset} RESULTS_LAYER_NAME={this.props.RESULTS_LAYER_NAME} paintProperty={this.props.map4_paintProperty} blmValue={this.parseBlmValue(this.state.blmValues[4])} mapCentre={this.props.mapCentre} mapZoom={this.props.mapZoom}/>
 						<div style={{display:'inline-block', margin:'5px','verticalAlign':'top','paddingTop':'60px','textAlign':'center','fontSize':'14px',width:'200px', height:'224px'}}>
 								<div>Move and zoom the main map to preview the clumping</div>
 								<div style={{'paddingTop':'30px'}}>
