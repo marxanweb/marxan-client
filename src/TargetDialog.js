@@ -34,6 +34,7 @@ class TargetDialog extends React.PureComponent {
                 children={
                 <React.Fragment>
                     <TextField 
+                        id={"commonTarget"}
                         floatingLabelFixed={true} 
                         onChange = {(event,newValue) => this.setState({"target_value":newValue})} 
                         defaultValue ={this.state.target_value} 

@@ -33,56 +33,58 @@ class PlanningGridDialog extends React.Component {
 						/>
 						<div className="metadataPanel">
 							<table>
-								<tr>
-									<td colspan='2' className='metadataItemTitle'>Description:</td>
-								</tr>
-								<tr>
-									<td colspan='2' className='metadataItemValue2'>{this.props.planning_grid_metadata.description}</td>
-								</tr>
-								<tr>
-									<td className='metadataItemTitle'>Country:</td>
-									<td className='metadataItemValue'>{this.props.planning_grid_metadata.country}</td>
-								</tr>
-								<tr>
-									<td className='metadataItemTitle'>Domain:</td>
-									<td className='metadataItemValue'>{this.props.planning_grid_metadata.domain}</td>
-								</tr>
-								<tr>
-									<td className='metadataItemTitle'>Area:</td>
-									{areaTD}
-								</tr>
-								<tr>
-									<td className='metadataItemTitle'>Unit count:</td>
-									<td className='metadataItemValue'>{this.props.planning_grid_metadata.planning_unit_count}</td>
-								</tr>
-								<tr>
-									<td className='metadataItemTitle'>Author:</td>
-									<td className='metadataItemValue'>{this.props.planning_grid_metadata.created_by}</td>
-								</tr>
-								<tr>
-									<td className='metadataItemTitle'>Created:</td>
-									<td className='metadataItemValue'>{this.props.planning_grid_metadata.creation_date}</td>
-								</tr>
-								<tr>
-									<td className='metadataItemTitle'>Source:</td>
-									<td className='metadataItemValue'>{this.props.planning_grid_metadata.source}</td>
-								</tr>
-								<tr style={{display:(this.state.expanded) ? 'table-row' : 'none'}}>
-									<td className='metadataItemTitle'>aoi_id:</td>
-									<td className='metadataItemValue'>{this.props.planning_grid_metadata.aoi_id}</td>
-								</tr>
-								<tr style={{display:(this.state.expanded) ? 'table-row' : 'none'}}>
-									<td className='metadataItemTitle'>country_id:</td>
-									{country_idTD}
-								</tr>
-								<tr style={{display:(this.state.expanded) ? 'table-row' : 'none'}}>
-									<td className='metadataItemTitle'>guid:</td>
-									<td className='metadataItemValue'>{this.props.planning_grid_metadata.feature_class_name}</td>
-								</tr>
-								<tr style={{display:(this.state.expanded) ? 'table-row' : 'none'}}>
-									<td className='metadataItemTitle'>tilesetid:</td>
-									<td className='metadataItemValue'>{this.props.planning_grid_metadata.tilesetid}</td>
-								</tr>
+								<tbody>
+									<tr>
+										<td colSpan='2' className='metadataItemTitle'>Description:</td>
+									</tr>
+									<tr>
+										<td colSpan='2' className='metadataItemValue2'>{this.props.planning_grid_metadata.description}</td>
+									</tr>
+									<tr>
+										<td className='metadataItemTitle'>Country:</td>
+										<td className='metadataItemValue'>{this.props.planning_grid_metadata.country}</td>
+									</tr>
+									<tr>
+										<td className='metadataItemTitle'>Domain:</td>
+										<td className='metadataItemValue'>{this.props.planning_grid_metadata.domain}</td>
+									</tr>
+									<tr>
+										<td className='metadataItemTitle'>Area:</td>
+										{areaTD}
+									</tr>
+									<tr>
+										<td className='metadataItemTitle'>Unit count:</td>
+										<td className='metadataItemValue'>{this.props.planning_grid_metadata.planning_unit_count}</td>
+									</tr>
+									<tr>
+										<td className='metadataItemTitle'>Author:</td>
+										<td className='metadataItemValue'>{this.props.planning_grid_metadata.created_by}</td>
+									</tr>
+									<tr>
+										<td className='metadataItemTitle'>Created:</td>
+										<td className='metadataItemValue'>{this.props.planning_grid_metadata.creation_date}</td>
+									</tr>
+									<tr>
+										<td className='metadataItemTitle'>Source:</td>
+										<td className='metadataItemValue'>{this.props.planning_grid_metadata.source}</td>
+									</tr>
+									<tr style={{display:(this.state.expanded) ? 'table-row' : 'none'}}>
+										<td className='metadataItemTitle'>aoi_id:</td>
+										<td className='metadataItemValue'>{this.props.planning_grid_metadata.aoi_id}</td>
+									</tr>
+									<tr style={{display:(this.state.expanded) ? 'table-row' : 'none'}}>
+										<td className='metadataItemTitle'>country_id:</td>
+										{country_idTD}
+									</tr>
+									<tr style={{display:(this.state.expanded) ? 'table-row' : 'none'}}>
+										<td className='metadataItemTitle'>guid:</td>
+										<td className='metadataItemValue'>{this.props.planning_grid_metadata.feature_class_name}</td>
+									</tr>
+									<tr style={{display:(this.state.expanded) ? 'table-row' : 'none'}}>
+										<td className='metadataItemTitle'>tilesetid:</td>
+										<td className='metadataItemValue'>{this.props.planning_grid_metadata.tilesetid}</td>
+									</tr>
+								</tbody>
 							</table>
 							<FontAwesomeIcon icon={(this.state.expanded) ? faAngleUp : faAngleDown} onClick={this.expand.bind(this)} title={(this.state.expanded) ? "Show less details" : "Show more details"} className={'appBarIcon'} style={{fontSize: '20px'}}/>
 							<div>You may need to zoom in to see the planning grid units</div>
