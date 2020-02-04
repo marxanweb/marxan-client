@@ -10,16 +10,16 @@ import { faDraftingCompass } from '@fortawesome/free-solid-svg-icons';
 class Welcome extends React.Component {
     constructor(props) {
       super(props);
-      this.state = {checked:true};
+      this.state = { checked: true };
     }
     toggleShowWelcomeScreen(evt, isInputChecked) {
-      this.setState({checked: isInputChecked});
+      this.setState({ checked: isInputChecked });
     }
-    onOk(){
-      this.props.saveOptions({"SHOWWELCOMESCREEN": this.state.checked});
-      this.props.onOk(); 
+    onOk() {
+      this.props.saveOptions({ "SHOWWELCOMESCREEN": this.state.checked });
+      this.props.onOk();
     }
-    openNewProjectDialog(){
+    openNewProjectDialog() {
       this.onOk();
       this.props.openNewProjectDialog();
     }
@@ -47,21 +47,30 @@ class Welcome extends React.Component {
         children={
           <React.Fragment key={'welcomeKey'}>
             <div className={'welcomeContent'}>
-            <div style={{verticalAlign:'middle'}}>
-                <span className={'tabTitle'} style={{verticalAlign:'middle'}}>Notifications</span>
-                <FlatButton icon={<FontAwesomeIcon icon={faSync}/>}  title={"Reset notifications"} onClick={this.props.resetNotifications} style={{minWidth:'24px',height:'24px',lineHeight:'24px',color:'rgba(0,0,0,0.67)'}}/>
-              </div>
-              <div className={'notifications'}>
-                {notificationsPanel}
-              </div>
-              <div className={'tabTitle tabTitleTopMargin'}>What do you want to do?</div>
-              <div className={'task'}>
-                <ToolbarButton icon={<FontAwesomeIcon icon={faDraftingCompass}/>}  title={"Design/extend a protected area network"} onClick={this.openNewProjectDialog.bind(this)} className={"resetNotifications"}/>
-                <span>Create a new project to design/extend a protected area network for a country</span>
-              </div>
-            </div>
+                <div className={'tabTitle'}>What do you want to do?</div>
+                <div className={'task'}>
+                  <div className={'taskItem'}>
+                    <ToolbarButton icon={<FontAwesomeIcon icon={faDraftingCompass}/>}  title={"Design a protected area network"} onClick={this.openNewProjectDialog.bind(this)} className={"resetNotifications"}/>
+                    <span>Create a new protected area network for a country</span>
+                  </div>
+                  <div className={'taskItem'}>
+                    <ToolbarButton icon={<FontAwesomeIcon icon={faDraftingCompass}/>}  title={"Extend a protected area network"} onClick={this.openNewProjectDialog.bind(this)} className={"resetNotifications"}/>
+                    <span>Extend an existing protected area network for a country</span>
+                  </div>
+                  <div className={'taskItem'}>
+                    <ToolbarButton icon={<FontAwesomeIcon icon={faDraftingCompass}/>}  title={"Do a gap analysis"} onClick={this.openNewProjectDialog.bind(this)} className={"resetNotifications"}/>
+                    <span>Do a national gap analysis</span>
+                  </div>
+                </div>
+                <div style={{verticalAlign:'middle'}}>
+                    <FlatButton icon={<FontAwesomeIcon icon={faSync}/>}  title={"Reset notifications"} onClick={this.props.resetNotifications} style={{minWidth:'24px',height:'24px',lineHeight:'24px',color:'rgba(0,0,0,0.67)',position:'absolute',bottom:'10px'}}/>
+                  </div>
+                  <div className={'notifications'}>
+                    {notificationsPanel}
+                  </div>
 					  <div className="welcomeToolbar">
 						  <Checkbox label="Show at startup" style={{fontSize:'12px'}} checked={this.state.checked} onCheck={this.toggleShowWelcomeScreen.bind(this)} className={'showAtStartupChk'}/>
+            </div>
             </div>
           </React.Fragment>
         }

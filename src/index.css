@@ -703,7 +703,7 @@ div.rt-tbody>div>div>div>div[contenteditable="true"] {
 }
 
 .notifications {
-  height: 290px;
+  height: 230px;
   overflow: auto;
 }
 
@@ -716,13 +716,17 @@ div.rt-tbody>div>div>div>div[contenteditable="true"] {
 
 .notificationType {
   font-weight: bold;
+  display:inline;
 }
 
 .notification {
   padding: 5px;
   border: 1px solid whitesmoke;
 }
-
+.notificationText{
+  font-size:11px;
+  font-weight:300;
+}
 .removeNotification {
   float: right;
   cursor: pointer;
@@ -1011,7 +1015,7 @@ a {
 }
 
 .welcomeContent {
-  height: 500px;
+  height: 400px;
   padding: 5px;
   font-size: 12px;
 }
@@ -1028,7 +1032,9 @@ a {
 .task {
   margin: 15px;
 }
-
+.taskItem{
+  margin:14px;
+}
 .newNationalProjectContent {
   height: 400px;
   color: rgba(0, 0, 0, 0.67);
