@@ -455,8 +455,8 @@ class App extends React.Component {
       case 'Finished': //from asynchronous queries, marxan runs and feature imports
         //reset the pid
         this.setState({pid: 0});
-        //remove the WebSocketOpen messages which show the processing spinner
-        this.removeMessageFromLog("WebSocketOpen");
+        //remove the Preprocessing messages which show the processing spinner
+        this.removeMessageFromLog("Preprocessing");
         break;
       default:
         break;

@@ -15,7 +15,7 @@ class Log extends React.Component {
 				case 'Uploading':
 					className = 'logItem logStart';
 					break;
-				case "RunningQuery":
+				case "Preprocessing":
 				case "Downloading":
 				case "Updating WDPA":
 				case "Downloaded":

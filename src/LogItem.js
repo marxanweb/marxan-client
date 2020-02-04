@@ -10,8 +10,8 @@ class Log extends React.Component {
 	render() {
     	return (
     	    <div className={this.props.className}>
-    	    	<Sync className='spin' style={{display: (this.props.message.preprocessing) ? 'inline' : 'none', height: '16px', width: '16px', verticalAlign: 'sub', color: 'rgb(255, 64, 129)', marginRight:'6px'}} title={'Preprocessing..'}/>
-    	        <div style={{display: (this.props.message.preprocessing) ? 'inline' : 'none'}}>Preprocessing..</div>
+    	    	<Sync className='spin' style={{display: (this.props.message.status === "Preprocessing") ? 'inline' : 'none', height: '16px', width: '16px', verticalAlign: 'sub', color: 'rgb(255, 64, 129)', marginRight:'6px'}} title={'Preprocessing..'}/>
+    	        <div style={{display: (this.props.message.status === "Preprocessing") ? 'inline' : 'none'}}>Preprocessing..</div>
     	    	<FontAwesomeIcon icon={faCheckCircle} style={{display: ((this.props.message.status === 'Finished')&&(!this.props.message.hasOwnProperty('error'))) ? 'inline' : 'none', color:'green', marginRight:'6px'}} title={'Preprocessing completed'}/>
     	    	<FontAwesomeIcon icon={faArrowAltCircleRight} style={{display: (this.props.message.status === 'UploadComplete') ? 'inline' : 'none', color:'green', marginRight:'6px'}} title={'Upload complete'}/>
     	        <FontAwesomeIcon icon={faExclamationTriangle} style={{color:'red', display:(this.props.message.hasOwnProperty('error') ? 'inline' : 'none'), marginRight:'6px'}} title={this.props.message.info}/>

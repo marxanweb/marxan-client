@@ -2,6 +2,10 @@ import React from 'react';
 import mapboxgl from 'mapbox-gl';
 
 class MapContainer extends React.Component {
+    constructor(props){
+        super(props);
+        this.resultsRendered = false;
+    }
     componentDidMount() {
         this.map = new mapboxgl.Map({
             container: this.mapContainer,
@@ -10,7 +14,7 @@ class MapContainer extends React.Component {
             zoom: this.props.mapZoom,
             attributionControl: false,
             interactive: false
-        }); 
+        });
         this.map.on("load", (evt) => {
             evt.target.addLayer({
                 'id': this.props.RESULTS_LAYER_NAME,
@@ -20,10 +24,9 @@ class MapContainer extends React.Component {
                     'url': "mapbox://" + this.props.tileset.id
                 },
                 'source-layer': this.props.tileset.name,
-                'paint': {
-                    'fill-color': "rgba(0, 0, 0, 0)", 
-                    'fill-outline-color': "rgba(0, 0, 0, 0)"
-                }
+                "layout": {
+                    "visibility": "none"
+                },
             });
             this.map.setCenter(this.props.mapCentre);
             this.setMapZoom();
@@ -34,29 +37,32 @@ class MapContainer extends React.Component {
 
     componentDidUpdate(prevProps, prevState) {
         if (this.props.paintProperty !== prevProps.paintProperty) {
-            if (this.props.paintProperty.length === 0){
-                //resetting the paint property
-                this.map.setPaintProperty(this.props.RESULTS_LAYER_NAME, "fill-color", "rgba(0, 0, 0, 0)");
-                this.map.setPaintProperty(this.props.RESULTS_LAYER_NAME, "fill-outline-color", "rgba(0, 0, 0, 0)");
-            }else{
+            if (this.props.paintProperty.length === 0) {
+                //resetting the layout property
+                this.map.setLayoutProperty(this.props.RESULTS_LAYER_NAME, 'visibility', 'none');
+            }
+            else {
                 //the solution has been loaded and the paint properties have been calculated - if the results layer (i.e. the planning unit grid layer) is loaded then render the results
                 if (this.map.getLayer(this.props.RESULTS_LAYER_NAME)) {
                     this.renderResults();
-                }else{
+                }
+                else {
                     this.resultsRendered = false;
                 }
             }
         }
-        if (this.props.mapCentre !== prevProps.mapCentre){
+        if (this.props.mapCentre !== prevProps.mapCentre) {
             this.map.setCenter(this.props.mapCentre);
         }
-        if (this.props.mapZoom !== prevProps.mapZoom){
+        if (this.props.mapZoom !== prevProps.mapZoom) {
             this.setMapZoom();
         }
     }
 
     //the results layer has been loaded and so the results can be rendered
-    renderResults(){
+    renderResults() {
+        if (this.props.paintProperty.length === 0) return;
+        this.map.setLayoutProperty(this.props.RESULTS_LAYER_NAME, 'visibility', 'visible');
         this.map.setPaintProperty(this.props.RESULTS_LAYER_NAME, "fill-color", this.props.paintProperty.fillColor);
         this.map.setPaintProperty(this.props.RESULTS_LAYER_NAME, "fill-outline-color", this.props.paintProperty.oulineColor);
         this.map.setPaintProperty(this.props.RESULTS_LAYER_NAME, "fill-opacity", 0.5);
@@ -66,12 +72,12 @@ class MapContainer extends React.Component {
         //remove the map and free all resources
         if (this.map) this.map.remove();
     }
-    
-    setMapZoom(){
+
+    setMapZoom() {
         // this.map.setZoom(this.props.mapZoom - 3);
         this.map.setZoom(this.props.mapZoom);
     }
-    
+
     render() {
         return (
             <div style={{display:'inline-block', margin:'5px'}} onClick={(this.props.disabled) ? null : this.props.selectBlm.bind(this, this.props.blmValue)}>

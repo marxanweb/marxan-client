@@ -154,9 +154,9 @@ class FeaturesDialog extends React.Component {
                          <ToolbarButton show={ (!this.props.metadata.OLDVERSION) && (!this.props.addingRemovingFeatures) && (this.props.userRole !== "ReadOnly") } icon={<Import style={{height:'20px',width:'20px'}}/>} title="Create new features from existing data" disabled={ this.props.loading }  onClick={ this.showImportFeaturePopover.bind(this) } label={ "Import" }/>
                          <Popover open={ this.props.importFeaturePopoverOpen } anchorEl={ this.state.importFeatureAnchor } anchorOrigin={ { horizontal: 'left', vertical: 'bottom' } } targetOrigin={ { horizontal: 'left', vertical: 'top' } } onRequestClose={ this.props.hideImportFeaturePopover }>
                            <Menu desktop={ true }>
-                             <MenuItem primaryText="Import features from a shapefile" title="Import one or more features from a shapefile" onClick={this._openImportFeaturesDialog.bind(this)} />
-                             <MenuItem primaryText="Import species from the Global Biodiversity Information Facility" title="Add data by importing it from GBIF" onClick={ this.openImportGBIFDialog.bind(this) } />
-                             <MenuItem primaryText="Import species from the IUCN Red List of Threatened Species" disabled={ true } />
+                             <MenuItem primaryText="From a shapefile" title="Import one or more features from a shapefile" onClick={this._openImportFeaturesDialog.bind(this)} />
+                             <MenuItem primaryText="From the Global Biodiversity Information Facility" title="The worlds largest provider of species observations" onClick={ this.openImportGBIFDialog.bind(this) } />
+                             <MenuItem primaryText="From the IUCN Red List of Threatened Species" disabled={ true } />
                            </Menu>
                          </Popover>
                          <ToolbarButton show={ (this.props.userRole === "Admin") && (!this.props.metadata.OLDVERSION) && (!this.props.addingRemovingFeatures) } icon={ <FontAwesomeIcon icon={ faTrashAlt } color='rgb(255, 64, 129)' /> } title="Delete feature" disabled={ this.state.selectedFeature === undefined || this.props.loading  || (this.state.selectedFeature && this.state.selectedFeature.created_by === 'global admin')} onClick={ this._delete.bind(this) } label={ "Delete" }/>
