@@ -71,6 +71,8 @@ class GapAnalysisDialog extends React.PureComponent {
 					let returnval = (a.current_protected_percent < b.current_protected_percent) ? -1 : 1;
 					return returnval;
 				});
+				//get the data only for those features which occur in the country
+				_data = _data.filter(item => item.country_area >0);
 				//create the charts and get the count of features that have met the target
 				let targetsMetCount = 0;
 				let charts = _data.map((item, index) => {
@@ -109,15 +111,15 @@ class GapAnalysisDialog extends React.PureComponent {
 								<YAxis tick={{fontSize:11}} >
 									<Label value='Percent Protected' angle={-90} position='insideBottomLeft' style={{fontSize:'11px',color:'#222222'}} offset={30}/>
 								</YAxis>
-    						<Tooltip content={<CustomTooltip />} />
+    							<Tooltip content={<CustomTooltip />} />
 								<Bar dataKey="current_protected_percent" fill="#8884d8">
-								{
-								_data.map((entry, index) => {
-									return <Cell fill={entry.color} key={entry.color}/>;
-								})
-								}
-							</Bar>
-    					<ReferenceLine y={(_data.length) ? _data[0].target_value : 0} stroke="#7C7C7C" strokeDasharray="3 3" style={{display: (_data.length) ? 'inline' : 'none'}}/>
+									{
+									_data.map((entry, index) => {
+										return <Cell fill={entry.color} key={entry.color}/>;
+									})
+									}
+								</Bar>
+    							<ReferenceLine y={(_data.length) ? _data[0].target_value : 0} stroke="#7C7C7C" strokeDasharray="3 3" style={{display: (_data.length) ? 'inline' : 'none'}}/>
 							</ComposedChart >
 							<div className={'gapAnalysisStatsPanel'}>
 								<table><tbody><tr>
