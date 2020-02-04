@@ -47,6 +47,17 @@ module.exports = {
   zoomToBounds: function (map, bounds) {
   	//if the bounds span the dateline, then we can force the map to fit the bounds of a polygon from [[179,minLat],[180,maxLat]]
     let minLng = (bounds[0] === -180) ? 179 : bounds[0];
-    map.fitBounds([minLng, bounds[1], bounds[2], bounds[3]], { padding: { top: 10, bottom: 10, left: 10, right: 10 }, easing: (num) => { return 1; } });
+    let maxLng = bounds[2];
+    if (bounds[0] < 0  && bounds[2] > 0){
+    	//if the bounds are from -1xx to 1xx then see if the range is bigger from -1xx to 1xx or from 1xx to -1xx
+    	let lngSpanAcrossMeridian = (bounds[2]) - bounds[0];
+    	let lngSpanAcrossDateline = (bounds[0] + 180) + (180 - bounds[2]);
+    	//if the lng range is smaller across the dateline, then set the minLng and maxLng
+    	if (lngSpanAcrossMeridian > lngSpanAcrossDateline){
+    		minLng = bounds[2];
+    		maxLng = bounds[0] + 360;
+    	}
+    }
+    map.fitBounds([minLng, bounds[1], maxLng, bounds[3]], { padding: { top: 10, bottom: 10, left: 10, right: 10 }, easing: (num) => { return 1; } });
   }
 };
