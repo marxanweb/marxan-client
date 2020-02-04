@@ -45,10 +45,8 @@ module.exports = {
     },
   //zooms the passed map to the passed bounds
   zoomToBounds: function (map, bounds) {
-    let minLng = (bounds[0] < -180) ? -180 : bounds[0];
-    let minLat = (bounds[1] < -90) ? -90 : bounds[1];
-    let maxLng = (bounds[2] > 180) ? 180 : bounds[2];
-    let maxLat = (bounds[3] > 90) ? 90 : bounds[3];
-    map.fitBounds([minLng, minLat, maxLng, maxLat], { padding: { top: 10, bottom: 10, left: 10, right: 10 }, easing: (num) => { return 1; } });
+  	//if the bounds span the dateline, then we can force the map to fit the bounds of a polygon from [[179,minLat],[180,maxLat]]
+    let minLng = (bounds[0] === -180) ? 179 : bounds[0];
+    map.fitBounds([minLng, bounds[1], bounds[2], bounds[3]], { padding: { top: 10, bottom: 10, left: 10, right: 10 }, easing: (num) => { return 1; } });
   }
 };
