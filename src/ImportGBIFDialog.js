@@ -1,14 +1,15 @@
 import React from "react";
-import MarxanDialog from "./MarxanDialog";
+import MarxanImportFeatureDialog from "./MarxanImportFeatureDialog";
 import TextField from 'material-ui/TextField';
 
 class ImportGBIFDialog extends React.Component {
     constructor(props) {
         super(props);
-        this.state = { searchText: '','gbifID': 0, 'suggestions':[], clicked:false, selectedItem: {} };
+        this.state = { searchText: '','gbifID': 0, 'suggestions':[], clicked:false };
     }
     onOk() {
         this.props.importGBIFData(this.state.selectedItem).then(response => {
+            
             this.props.onCancel();
         }).catch(error => {
             this.props.onCancel();
@@ -21,7 +22,7 @@ class ImportGBIFDialog extends React.Component {
                 this.setState({suggestions: response});
             });
         }
-        this.setState({searchText: value, clicked: false});
+        this.setState({searchText: value, clicked: false, selectedItem:undefined});
     }
     onClick(item, evt){
         this.setState({clicked: true}, ()=>{
@@ -33,14 +34,15 @@ class ImportGBIFDialog extends React.Component {
             return <div key={item.key} className={'suggestion'} onClick={this.onClick.bind(this, item)}>{item.scientificName}</div>;
         });
         return (
-            <MarxanDialog
+            <MarxanImportFeatureDialog
                 {...this.props}
                 contentWidth={540}
                 offsetY={80}
                 title="Import GBIF data"
                 helpLink={"docs_user.html#import-gbif-data"}
                 onOk={this.onOk.bind(this)}
-                showCancelButton={false}
+                okDisabled={this.state.selectedItem===undefined}
+                showCancelButton={true}
         		autoDetectWindowHeight={false}
                 children={
                   <React.Fragment key={'importGBIFKey'}>

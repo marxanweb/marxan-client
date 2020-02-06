@@ -173,6 +173,7 @@ class App extends React.Component {
       toolsMenuOpen: false,
       userMenuOpen: false,
       helpMenuOpen: false,
+      addToProject: true,
       users: [],
       user: '', 
       password: '',
@@ -2866,11 +2867,11 @@ class App extends React.Component {
   }
   
   //adds a feature to the selectedFeatureIds array
-  addFeature(feature){
+  addFeature(feature, callback){
     let ids = this.state.selectedFeatureIds;
     //add the feautre to the selected feature array
     ids.push(feature.id);
-    this.setState({ selectedFeatureIds: ids });
+    this.setState({ selectedFeatureIds: ids }, callback);
   }
   
   //starts a digitising session
@@ -2911,7 +2912,7 @@ class App extends React.Component {
     this.setState({selectedFeatureIds: ids});
   }
 
-  //updates the allFeatures to set the various properties based on which features have been selected in the FeaturesDialog
+  //updates the allFeatures to set the various properties based on which features have been selected in the FeaturesDialog or programmatically
   updateSelectedFeatures(){
     let allFeatures = this.state.allFeatures;
     allFeatures.forEach((feature) => {
@@ -3090,17 +3091,18 @@ class App extends React.Component {
   }
   
   //gets the new feature information and updates the state
-  newFeatureCreated(id){
-    this.getInterestFeature(id);
-  }
-  
-  getInterestFeature(id) {
+  newFeatureCreated(id) {
     //load the interest feature from the marxan web database
     this._get("getFeature?oid=" + id + "&format=json").then((response) => {
+      let feature = response.data[0];
       //add the required attributes to use it in Marxan Web
-      this.addFeatureAttributes(response.data[0]);
+      this.addFeatureAttributes(feature);
       //update the allFeatures array
-      this.addNewFeature(response.data[0]);
+      this.addNewFeature(feature);
+      //if add to project is set then add the feature to the project, wait for the selectedFeatureIds state to be updated and then call updateSelectedFeatures
+      if (this.state.addToProject) this.addFeature(feature, () => {
+        this.updateSelectedFeatures();
+      });
     });
   }
 
@@ -3832,6 +3834,10 @@ class App extends React.Component {
     
   }
   
+  setAddToProject(addToProject){
+    this.setState({addToProject: addToProject});
+  }
+  
   render() {
     const message = (<span id="snackbar-message-id" dangerouslySetInnerHTML={{ __html: this.state.snackbarMessage }} />);    
     return (
@@ -4155,6 +4161,8 @@ class App extends React.Component {
             loading={this.state.loading || this.state.preprocessing || this.state.uploading}
             importGBIFData={this.importGBIFData.bind(this)}
             gbifSpeciesSuggest={this.gbifSpeciesSuggest.bind(this)}
+            addToProject={this.state.addToProject}
+            setAddToProject={this.setAddToProject.bind(this)}
           />
           <PlanningGridsDialog
             open={this.state.planningGridsDialogOpen}

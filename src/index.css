@@ -716,17 +716,19 @@ div.rt-tbody>div>div>div>div[contenteditable="true"] {
 
 .notificationType {
   font-weight: bold;
-  display:inline;
+  display: inline;
 }
 
 .notification {
   padding: 5px;
   border: 1px solid whitesmoke;
 }
-.notificationText{
-  font-size:11px;
-  font-weight:300;
+
+.notificationText {
+  font-size: 11px;
+  font-weight: 300;
 }
+
 .removeNotification {
   float: right;
   cursor: pointer;
@@ -1032,9 +1034,11 @@ a {
 .task {
   margin: 15px;
 }
-.taskItem{
-  margin:14px;
+
+.taskItem {
+  margin: 14px;
 }
+
 .newNationalProjectContent {
   height: 400px;
   color: rgba(0, 0, 0, 0.67);
@@ -1054,11 +1058,17 @@ a {
   top: 112px;
   background: white;
   border: 1px solid rgba(0, 0, 0, 0.1);
+  z-index: 10;
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 10px, rgba(0, 0, 0, 0.23) 0px 3px 10px;
 }
 
 .suggestion {
   padding-left: 10px;
   padding-right: 10px;
+  font-family: Roboto, sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  color: rgba(0, 0, 0, 0.7);
 }
 
 .suggestion:hover {
