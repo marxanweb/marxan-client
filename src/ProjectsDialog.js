@@ -7,12 +7,12 @@ import Import from 'material-ui/svg-icons/action/get-app';
 import Clone from 'material-ui/svg-icons/content/content-copy';
 import ToolbarButton from './ToolbarButton';
 import MarxanDialog from './MarxanDialog';
-import ReactTable from "react-table";
+import MarxanTable from "./MarxanTable";
 
 class ProjectsDialog extends React.Component { 
 		constructor(props) {
 			super(props);
-			this.state = { selectedProject: undefined };
+			this.state = { searchText: "",selectedProject: undefined };
 		}
 		_delete() {
 			this.props.deleteProject(this.state.selectedProject.user, this.state.selectedProject.name);
@@ -64,6 +64,9 @@ class ProjectsDialog extends React.Component {
 		renderName(row){
 			return <div style={{width: '100%',height: '100%',backgroundColor: '#dadada',borderRadius: '2px'}} title={row.original.name}>{row.original.name}</div>;        
 		}
+	    searchTextChanged(value){
+	      this.setState({searchText: value});
+	    }
 		render() {
 				let tableColumns = [];
 				if (['Admin', 'ReadOnly'].includes(this.props.userRole)) {
@@ -86,26 +89,25 @@ class ProjectsDialog extends React.Component {
 					autoDetectWindowHeight={false}
 					bodyStyle={{ padding:'0px 24px 0px 24px'}}
 					title="Projects"  
+					showSearchBox={true} 
+					searchTextChanged={this.searchTextChanged.bind(this)}
 					children={
 						<React.Fragment key="k2">
-							<div style={{marginBottom:'5px'}}>There are a total of {this.props.projects.length} projects:</div>
 								<div id="projectsTable">
-									<ReactTable 
-									  pageSize={ this.props.projects.length }
-										className={'projectsReactTable noselect'}
-										showPagination={false} 
-										minRows={0}
-										noDataText=''
+									<MarxanTable 
 										data={this.props.projects}
-										thisRef={this} 
 										columns={tableColumns}
+			                            searchColumns={['user','name','description']}
+			                            searchText={this.state.searchText}
+			                            selectedProject={this.state.selectedProject}
+			                            changeProject={this.changeProject.bind(this)}
 										getTrProps={(state, rowInfo, column) => {
 											return {
 												style: {
-													background: ((rowInfo.original.user === (state.thisRef.state.selectedProject&&state.thisRef.state.selectedProject.user))&&(rowInfo.original.name === (state.thisRef.state.selectedProject&&state.thisRef.state.selectedProject.name))) ? "aliceblue" : ""
+													background: ((rowInfo.original.user === (state.selectedProject&&state.selectedProject.user))&&(rowInfo.original.name === (state.selectedProject&&state.selectedProject.name))) ? "aliceblue" : ""
 												},
 												onClick: (e) => {
-													state.thisRef.changeProject(e, rowInfo.original);
+													state.changeProject(e, rowInfo.original);
 												}
 											};
 										}}

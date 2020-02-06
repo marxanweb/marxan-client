@@ -6,12 +6,12 @@ import { faTrashAlt } from '@fortawesome/free-regular-svg-icons';
 import Import from 'material-ui/svg-icons/action/get-app';
 import ToolbarButton from './ToolbarButton';
 import MarxanDialog from './MarxanDialog';
-import ReactTable from "react-table";
+import MarxanTable from "./MarxanTable";
 
 class PlanningGridsDialog extends React.Component { 
 	constructor(props) {
 		super(props);
-		this.state = {selectedPlanningGrid: undefined};
+		this.state = {searchText: "", selectedPlanningGrid: undefined};
 	}
 	_delete() {
 		this.props.deletePlanningGrid(this.state.selectedPlanningGrid.feature_class_name);
@@ -50,6 +50,9 @@ class PlanningGridsDialog extends React.Component {
 	renderPreview(row){
 		return <div style={{width: '100%',height: '100%',backgroundColor: '#dadada',borderRadius: '2px'}} title='Click to preview'>..</div>;        
 	}
+    searchTextChanged(value){
+      this.setState({searchText: value});
+    }
 	render() {
 		let tableColumns = [];
 		tableColumns = [
@@ -70,26 +73,25 @@ class PlanningGridsDialog extends React.Component {
 				autoDetectWindowHeight={false}
 				bodyStyle={{ padding:'0px 24px 0px 24px'}}
 				title="Planning grids"  
+				showSearchBox={true} 
+				searchTextChanged={this.searchTextChanged.bind(this)}
 				children={
 					<React.Fragment key="k2">
-						<div style={{marginBottom:'5px'}}>There are a total of {this.props.planningGrids.length} planning grids:</div>
 							<div id="projectsTable">
-								<ReactTable 
-								  pageSize={ this.props.planningGrids.length }
-									className={'projectsReactTable noselect'}
-									showPagination={false} 
-									minRows={0}
-									noDataText=''
+								<MarxanTable 
 									data={this.props.planningGrids}
-									thisRef={this} 
 									columns={tableColumns}
+		                            searchColumns={['country','domain','alias','description']}
+		                            searchText={this.state.searchText}
+		                            selectedPlanningGrid={this.state.selectedPlanningGrid}
+		                            changePlanningGrid={this.changePlanningGrid.bind(this)}
 									getTrProps={(state, rowInfo) => {
 										return {
 											style: {
-												background: (rowInfo.original.alias === (state.thisRef.state.selectedPlanningGrid && state.thisRef.state.selectedPlanningGrid.alias)) ? "aliceblue" : ""
+												background: (rowInfo.original.alias === (state.selectedPlanningGrid && state.selectedPlanningGrid.alias)) ? "aliceblue" : ""
 											},
 											onClick: (e) => {
-												state.thisRef.changePlanningGrid(e, rowInfo.original);
+												state.changePlanningGrid(e, rowInfo.original);
 											}
 										};
 									}}

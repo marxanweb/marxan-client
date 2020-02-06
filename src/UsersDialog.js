@@ -6,14 +6,14 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrashAlt } from '@fortawesome/free-regular-svg-icons';
 import ToolbarButton from './ToolbarButton';
 import MarxanDialog from './MarxanDialog';
-import ReactTable from "react-table";
+import MarxanTable from "./MarxanTable";
 import Checkbox from 'material-ui/Checkbox';
 
 let USER_ROLES = ["User","ReadOnly","Admin"];
 class UsersDialog extends React.Component { 
 			constructor(props) {
 					super(props);
-					this.state = { selectedUser: undefined };
+					this.state = {searchText: "", selectedUser: undefined };
 			}
 			changeRole(user, oldRole, evt, key, newRole){
 				this.props.changeRole(user, newRole);
@@ -32,6 +32,9 @@ class UsersDialog extends React.Component {
 					this.setState({ selectedUser: undefined });
 					this.props.onOk();
 			}
+		    searchTextChanged(value){
+		      this.setState({searchText: value});
+		    }
 			render() {
 					if (this.props.users) {
 							return (
@@ -44,19 +47,18 @@ class UsersDialog extends React.Component {
 							autoDetectWindowHeight={false}
 							bodyStyle={{ padding:'0px 24px 0px 24px'}}
 							title="Users"   
+							showSearchBox={true} 
+							searchTextChanged={this.searchTextChanged.bind(this)}
 							children={
 									<React.Fragment key="k2">
-											<div style={{marginBottom:'5px'}}>There are a total of {this.props.users.length} users:</div>
 													<div id="usersTable">
 														{(this.props.users&&this.props.users.length>0) ? 
-															<ReactTable 
-																	pageSize={this.props.users.length}
-																	className={'projectsReactTable noselect'}
-																	showPagination={false} 
-																	minRows={0}
-																	noDataText=''
+															<MarxanTable 
 																	data={this.props.users}
-																	thisRef={this} 
+																	selectedUser={this.state.selectedUser}
+										                            searchColumns={['user','NAME','EMAIL','ROLE']}
+										                            searchText={this.state.searchText}
+																	changeUser={this.changeUser.bind(this)}
 																	columns={[{ Header: 'User', accessor: 'user', width: 90, headerStyle: { 'textAlign': 'left' } }, 
 																	{ Header: 'Name', accessor: 'NAME', width: 173, headerStyle: { 'textAlign': 'left' } }, 
 																	{ Header: 'email', accessor: 'EMAIL', width: 135, headerStyle: { 'textAlign': 'left' } }, 
@@ -88,10 +90,10 @@ class UsersDialog extends React.Component {
 																	getTrProps={(state, rowInfo, column) => {
 																			return {
 																					style: {
-																							background: (rowInfo.original.user === (state.thisRef.state.selectedUser&&state.thisRef.state.selectedUser.user)) ? "aliceblue" : ""
+																							background: (rowInfo.original.user === (state.selectedUser&&state.selectedUser.user)) ? "aliceblue" : ""
 																					},
 																					onClick: (e) => {
-																						if (USER_ROLES.indexOf(e.target.textContent)===-1) state.thisRef.changeUser(e, rowInfo.original);
+																						if (USER_ROLES.indexOf(e.target.textContent)===-1) state.changeUser(e, rowInfo.original);
 																					}
 																			};
 																	}}

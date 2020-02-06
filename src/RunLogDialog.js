@@ -1,7 +1,6 @@
 import React from 'react';
 import ToolbarButton from './ToolbarButton';
 import MarxanDialog from './MarxanDialog';
-import ReactTable from "react-table";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheckCircle } from '@fortawesome/free-solid-svg-icons';
 import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
@@ -9,11 +8,12 @@ import { faTimesCircle } from '@fortawesome/free-solid-svg-icons';
 import { faRedoAlt } from '@fortawesome/free-solid-svg-icons';
 import { faEraser } from '@fortawesome/free-solid-svg-icons';
 import Sync from 'material-ui/svg-icons/notification/sync';
+import MarxanTable from "./MarxanTable";
 
 class RunLogDialog extends React.Component { 
 	constructor(props) {
 		super(props);
-		this.state = {selectedRun: undefined, runningJobs: false};
+		this.state = {searchText: "",selectedRun: undefined, runningJobs: false};
 	}
 	componentDidUpdate(prevProps, prevState) {
 		//if this browser isnt running a marxan job (i.e. this.props.preprocessing === false) but there are jobs which are running then we still want to be able to stop those jobs - here we set a flag to allow the STOP button to be enabled even if this.props.preprocessing === false
@@ -84,6 +84,9 @@ class RunLogDialog extends React.Component {
 			return '';
 		}
 	}
+    searchTextChanged(value){
+      this.setState({searchText: value});
+    }
 	render() {
 		let tableColumns = [];
 		tableColumns = [
@@ -107,26 +110,25 @@ class RunLogDialog extends React.Component {
 				autoDetectWindowHeight={false}
 				bodyStyle={{ padding:'0px 24px 0px 24px'}}
 				title="Runs"  
+				showSearchBox={true} 
+				searchTextChanged={this.searchTextChanged.bind(this)}
 				children={
 					<React.Fragment key="k2">
-						<div style={{marginBottom:'5px'}}>There are a total of {this.props.runLogs.length} runs in the log:</div>
 							<div id="projectsTable">
-								<ReactTable 
-								  pageSize={ this.props.runLogs.length }
-									className={'projectsReactTable noselect'}
-									showPagination={false} 
-									minRows={0}
-									noDataText=''
+								<MarxanTable 
 									data={this.props.runLogs}
-									thisRef={this} 
 									columns={tableColumns}
+		                            searchColumns={['user','project','status','runs','runtime']}
+		                            searchText={this.state.searchText}
+		                            selectedRun={this.state.selectedRun}
+		                            changeSelectedRun={this.changeSelectedRun.bind(this)}
 									getTrProps={(state, rowInfo, column) => {
 										return {
 											style: {
-												background: (rowInfo.original.pid === (state.thisRef.state.selectedRun && state.thisRef.state.selectedRun.pid)) ? "aliceblue" : ""
+												background: (rowInfo.original.pid === (state.selectedRun && state.selectedRun.pid)) ? "aliceblue" : ""
 											},
 											onClick: (e) => {
-												state.thisRef.changeSelectedRun(e, rowInfo.original);
+												state.changeSelectedRun(e, rowInfo.original);
 											}
 										};
 									}}

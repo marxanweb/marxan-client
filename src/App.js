@@ -1104,6 +1104,7 @@ class App extends React.Component {
       item['old_version'] = oldVersion; //true if the current project is an project imported from marxan for DOS
       item['occurs_in_planning_grid'] = false; //does the feature occur in the planning grid
       item['color'] = window.colors[item.id % window.colors.length]; //color for the map layer and analysis outputs
+      item['in_filter'] = true; //true if the feature is currently visible in the features dialog
   }
 
   //resets various variables and state in between users
