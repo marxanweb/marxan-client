@@ -468,6 +468,8 @@ class App extends React.Component {
     //log the message from the websocket
     if (message.status === 'SocketClosedUnexpectedly'){ //server closed WebSocket unexpectedly - uncaught server error, server crash or WebSocket timeout)
       this.log({method:message.method, status:'Finished', error:"The WebSocket connection closed unexpectedly"});
+      //remove the Preprocessing messages which show the processing spinner
+      this.removeMessageFromLog("Preprocessing");
     }else{
       //see if the message has a pid and if it does then see if the status has changed from the last message - if it has then log the message
       if (message.hasOwnProperty('pid')) {
