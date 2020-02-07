@@ -131,6 +131,7 @@ class InfoPanel extends React.Component {
 									toggleFeatureLayer={this.props.toggleFeatureLayer}
 									toggleFeaturePUIDLayer={this.props.toggleFeaturePUIDLayer}
 									useFeatureColors={this.props.useFeatureColors}
+									smallLinearGauge={this.props.smallLinearGauge}
 								/>
 							</Tab>
 							<Tab label="Planning units" onActive={this.props.pu_tab_active} value="planning_units">

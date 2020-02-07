@@ -374,12 +374,12 @@ input:-webkit-autofill {
 }
 
 .percentBar {
-  height: 18px;
   color: white;
   display: inline-block;
   font-size: 11px;
   text-align: center;
-  line-height: 20px;
+  line-height: 21px;
+  /*text-shadow: 2px 2px #eeeeee;*/
 }
 
 .unprotectedPercentBar {

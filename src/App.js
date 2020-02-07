@@ -174,6 +174,7 @@ class App extends React.Component {
       userMenuOpen: false,
       helpMenuOpen: false,
       addToProject: true,
+      smallLinearGauge: true,
       users: [],
       user: '', 
       password: '',
@@ -3986,6 +3987,7 @@ class App extends React.Component {
             toggleFeatureLayer={this.toggleFeatureLayer.bind(this)}
             toggleFeaturePUIDLayer={this.toggleFeaturePUIDLayer.bind(this)}
             useFeatureColors={this.state.userData.USEFEATURECOLORS}
+            smallLinearGauge={this.state.smallLinearGauge}
             iucn_categories={IUCN_CATEGORIES}
           />
           <ResultsPanel

@@ -67,6 +67,8 @@ class FeaturesList extends React.Component {
 										visible={(item.pu_area!==0)}
 										color={item.color}
 										useFeatureColors={this.props.useFeatureColors}
+										style={{height: (this.props.smallLinearGauge) ? '3px' : 'unset'}}
+										smallLinearGauge={this.props.smallLinearGauge}
 									/>
 								} 
 								key={item.id} 
@@ -75,12 +77,12 @@ class FeaturesList extends React.Component {
 								rightIconButton={this.props.simple ?
 									<div />
 									:
-									<IconButton touch={true} tooltipPosition="bottom-left" onClick={this.iconClick.bind(this, item)}>
-										<MoreVertIcon color={grey400} />
+									<IconButton touch={true} tooltipPosition="bottom-left" onClick={this.iconClick.bind(this, item)} style={{width:'18',height:'18',padding:'10',top:'10px'}} iconStyle={{width:'18',height:'18'}}>
+										<MoreVertIcon color={grey400}/>
 									</IconButton>
 								}
-								innerDivStyle={{padding: (this.props.simple) ? '5px 5px 5px 5px' : '9px 5px 11px 53px' }}
-								style={{borderRadius:'3px',fontSize:'14px', color: 'rgba(0,0,0,0.8)'}}
+								innerDivStyle={{padding: (this.props.simple) ? '5px 5px 5px 5px' : '6px 5px 2px 40px' }}
+								style={{borderRadius:'3px',fontSize:'13px', color: 'rgba(0,0,0,0.8)'}}
 							/>
 						)}
 					)
