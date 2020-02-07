@@ -8,7 +8,7 @@ import Checkbox from 'material-ui/Checkbox';
 class NewProjectWizardDialog extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {steps: ['Country', 'Planning units', 'Habitats','Species', 'Existing PAs'],  stepIndex: 0, stepComplete: false, iso3:'', country: '', domain:'', shape:'Hexagon', areakm2: 50, worldEcosystems:false, allSpecies:false, endemicSpecies:false, endangeredSpecies:false,includeExistingPAs:false, iucn_category:'None'};
+        this.state = {domainEnabled: true, steps: ['Country', 'Planning units', 'Habitats','Species', 'Existing PAs'],  stepIndex: 0, stepComplete: false, iso3:'', country: '', domain:'', shape:'Hexagon', areakm2: 50, worldEcosystems:false, allSpecies:false, endemicSpecies:false, endangeredSpecies:false,includeExistingPAs:false, iucn_category:'None'};
     }
     //moves to the next step of the wizard
 	handleNext = () => {
@@ -18,6 +18,7 @@ class NewProjectWizardDialog extends React.Component {
 	handlePrev = () => {
 		this.setState({stepIndex: this.state.stepIndex - 1});
 	};
+	//function to return true if the inputs are complete
 	getComplete(){
 	    let complete = false;
 	    switch (this.state.stepIndex) {
@@ -33,6 +34,14 @@ class NewProjectWizardDialog extends React.Component {
 	    this.setState({stepComplete: complete});
 	}
 	changeCountry(evt, value) {
+		//set the value of the domain to terrestrial only if the country has no marine area
+		if (!this.props.countries[value].has_marine) {
+			this.changeDomain(null, 1);
+			this.setState({ domainEnabled: false });
+		}
+		else {
+			this.setState({ domainEnabled: true });
+		}
 		this.setState({iso3: this.props.countries[value].iso3, country: this.props.countries[value].name_iso31}, () => this.getComplete());
 	}
 	changeDomain(evt, value) {
@@ -90,7 +99,7 @@ class NewProjectWizardDialog extends React.Component {
         								})}
         							</SelectField> 
         							<br/>
-        							<SelectField menuItemStyle={{ fontSize: "12px" }} labelStyle={{ fontSize: "12px" }} onChange={this.changeDomain.bind(this)} value={this.state.domain} style={dropDownStyle} floatingLabelText="Domain" floatingLabelFixed={true}>
+        							<SelectField menuItemStyle={{ fontSize: "12px" }} labelStyle={{ fontSize: "12px" }} onChange={this.changeDomain.bind(this)} value={this.state.domain} style={dropDownStyle} floatingLabelText="Domain" floatingLabelFixed={true} disabled={!this.state.domainEnabled}>
         								{this.props.domains.map(item => {
         									return (
         										<MenuItem style={{ fontSize: "12px" }} value={item} primaryText={item} key={item} />

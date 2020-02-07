@@ -59,7 +59,7 @@ class MarxanDialog extends React.Component {
 					(this.props.titleBarIcon) ? <FontAwesomeIcon icon={this.props.titleBarIcon} style={{position: 'absolute', top: '18px', left: '24px'}} key="k1"/> : null,
 					(this.props.showSearchBox) ? 
 						<div style={{right: '70px',position: "absolute",top: "13px"}} title={"search"} key="k27">
-							<input value={this.state.searchText} onChange={this.searchTextChange.bind(this)} style={{border: "1px solid rgba(0,0,0,0.2)", borderRadius: "30px", width:"80px", height: "22px",fontFamily:"Roboto, sans-serif",fontSize:"12px", fontWeight:"400",color:"rgba(0,0,0,0.7)",paddingLeft:"10px"}}/>
+							<input value={this.state.searchText} onChange={this.searchTextChange.bind(this)} style={{border: "1px solid rgba(0,0,0,0.1)", borderRadius: "30px", width:"80px", height: "22px",fontFamily:"Roboto, sans-serif",fontSize:"12px", fontWeight:"400",color:"rgba(0,0,0,0.7)",paddingLeft:"10px"}}/>
 							<FontAwesomeIcon icon={faSearch} className={'appBarIcon docs'} style={{fontSize: "13px",position: "absolute",top: "1px",right: "2px", color: (this.state.searchText === "") ? "rgba(0, 0, 0, 0.6)" : "rgb(255, 64, 129)"}}/>
 						</div> : null,
 					<Sync className='spin' style={{display: (this.props.loading || this.props.showSpinner) ? "inline-block" : "none", color: 'rgb(255, 64, 129)', position: 'absolute', top: '15px', right: '41px',height:"22px",width:"22px"}} key={"spinner"}/>, this.props.children,

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import MarxanDialog from './MarxanDialog';
+import MarxanImportFeatureDialog from './MarxanImportFeatureDialog';
 import TextField from 'material-ui/TextField';
 
 class NewFeatureDialog extends React.Component {
@@ -25,7 +25,7 @@ class NewFeatureDialog extends React.Component {
 				</div>
 			</React.Fragment>;
 		return (
-			<MarxanDialog  
+			<MarxanImportFeatureDialog  
 				{...this.props} 
 				onOk={this.createNewFeature.bind(this)}
 				okDisabled={!(this.state.name!=='' && this.state.description!=='' && this.props.loading===false)}

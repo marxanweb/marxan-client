@@ -4140,6 +4140,8 @@ class App extends React.Component {
             onCancel={this.closeNewFeatureDialog.bind(this)}
             loading={this.state.loading || this.state.uploading}
             createNewFeature={this.createNewFeature.bind(this)}
+            addToProject={this.state.addToProject}
+            setAddToProject={this.setAddToProject.bind(this)}
           />
           <ImportFeaturesDialog
             open={this.state.importFeaturesDialogOpen} 
