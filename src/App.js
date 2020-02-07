@@ -4327,6 +4327,7 @@ class App extends React.Component {
             open={this.state.gapAnalysisDialogOpen}
             showCancelButton={true}
             onOk={this.closeGapAnalysisDialog.bind(this)}
+            onCancel={this.closeGapAnalysisDialog.bind(this)}
             closeGapAnalysisDialog={this.closeGapAnalysisDialog.bind(this)}
             gapAnalysis={this.state.gapAnalysis}
             preprocessing={this.state.preprocessing}
