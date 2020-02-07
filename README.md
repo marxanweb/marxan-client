@@ -10,4 +10,4 @@ Git clone into the web root directory (e.g. for Apache2 on Ubuntu - /var/www/htm
 git clone https://github.com/andrewcottam/marxan-client.git
 ```
 The Marxan Client will be available at:  
-https://\<host>/marxan-client/build/index.html  
+https://\<host>:8080/index.html  
