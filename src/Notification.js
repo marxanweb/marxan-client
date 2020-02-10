@@ -14,7 +14,7 @@ class Notification extends React.Component {
 				break;
 			case 'Data Update':
 			case 'Software Update':
-				icon = <FontAwesomeIcon icon={faCloudDownloadAlt} style={{color:'red', paddingRight:'5px',fontSize:'18px'}}/>;
+				icon = <FontAwesomeIcon icon={faCloudDownloadAlt} style={{color:'rgba(255,0,0,0.7)', paddingRight:'5px',fontSize:'18px'}}/>;
 				break;
 			case 'Training':
 				icon = <FontAwesomeIcon icon={faChalkboardTeacher} style={{paddingRight:'5px',fontSize:'18px'}}/>;

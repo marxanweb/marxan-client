@@ -6,7 +6,11 @@ class MarxanTable extends React.Component {
     filterData(){
         if (this.props.searchText === "") return this.props.data;
         return this.props.data.filter(item => {
-            return Object.keys(item).some(key => (this.props.searchColumns.includes(key))&&(item[key] && item[key].includes(this.props.searchText)));
+            if (this.props.searchText.startsWith("!")){ //does not contain search 
+                return !(Object.keys(item).some(key => (this.props.searchColumns.includes(key))&&(item[key] && item[key].includes(this.props.searchText.substring(1)))));
+            }else{ //contains search - this will exit the some loop (and return true) if there are any matching items
+                return Object.keys(item).some(key => (this.props.searchColumns.includes(key))&&(item[key] && item[key].includes(this.props.searchText)));
+            }
         });
     }
     render() {
