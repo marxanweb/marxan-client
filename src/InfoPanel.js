@@ -176,6 +176,7 @@ class InfoPanel extends React.Component {
 									<Checkbox
 										label="Show costs"
 										style={{fontSize:'12px'}}
+										checked={this.props.showCosts}
 										onCheck={this.toggleCosts.bind(this)}
 									/>
 								</div>  

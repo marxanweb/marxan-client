@@ -236,7 +236,8 @@ class App extends React.Component {
       wdpaAttribution: "",
       shareableLinkUrl: "",
       notifications:[],
-      gapAnalysis: []
+      gapAnalysis: [],
+      showCosts: false
     };
   }
 
@@ -1117,7 +1118,7 @@ class App extends React.Component {
     this.runMarxanResponse = {};
     //reset the cost data
     this.cost_data = undefined;
-    this.setState({ solutions: []});
+    this.setState({ solutions: [], showCosts: false});
     //reset any feature layers that are shown
     this.hideFeatureLayer();
     //reset the puvspr layer
@@ -2292,7 +2293,8 @@ class App extends React.Component {
   }
 
   toggleCosts(show){
-    //show/hide the planning units cost layer 
+    //show/hide the planning units cost layer
+    this.setState({showCosts: show});
     if (show){
       this.getPlanningUnitsCostData().then((cost_data)=>{
         this.renderPuCostLayer(cost_data);
@@ -3981,6 +3983,7 @@ class App extends React.Component {
             useFeatureColors={this.state.userData.USEFEATURECOLORS}
             smallLinearGauge={this.state.smallLinearGauge}
             iucn_categories={IUCN_CATEGORIES}
+            showCosts={this.state.showCosts}
           />
           <ResultsPanel
             open={this.state.resultsPanelOpen}
