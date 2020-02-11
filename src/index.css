@@ -1042,6 +1042,7 @@ a {
 .newNationalProjectContent {
   height: 400px;
   color: rgba(0, 0, 0, 0.67);
+  padding:20px;
 }
 
 .speciesList {

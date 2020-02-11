@@ -106,6 +106,7 @@ let PUVSPR_LAYER_LINE_WIDTH = 1.5;
 let RESULTS_LAYER_FILL_OPACITY_ACTIVE = 0.9;
 let RESULTS_LAYER_FILL_OPACITY_INACTIVE = 0;
 let WDPA_FILL_LAYER_OPACITY = 0.2;
+let COST_COLORS = ['rgba(255,255,204,0.8)','rgba(255,237,160,0.8)','rgba(254,217,118,0.8)','rgba(254,178,76,0.8)','rgba(253,141,60,0.8)','rgba(252,78,42,0.8)','rgba(227,26,28,0.8)','rgba(189,0,38,0.8)','rgba(128,0,38,0.8)'];
 let timers = []; //array of timers for seeing when asynchronous calls have finished
 
 //an array of feature property information that is used in the Feature Information dialog box - showForOld sets whether that property is shown for old versions of marxan
@@ -1114,6 +1115,8 @@ class App extends React.Component {
   //resets various variables and state in between users
   resetResults() {
     this.runMarxanResponse = {};
+    //reset the cost data
+    this.cost_data = undefined;
     this.setState({ solutions: []});
     //reset any feature layers that are shown
     this.hideFeatureLayer();
@@ -1816,26 +1819,10 @@ class App extends React.Component {
     if (cost_data.length > 0) {
       //build an expression to get the matching puids with different costs
       expression = ["match", ["get", "puid"]];
-      // the rest service sends the data grouped by the cost, e.g. [2000000,[23,34,36,43,98]],[4744616,[16,19]],[4932674,[21,233]]
+      //iterate through the cost data and set the expressions
       cost_data.forEach((row, index) => {
-        var color;
-        //get the status
-        switch (row[0]) {
-          case 2000000: 
-            color = "rgba(63, 191, 63, 1)";
-            break;
-          case 4744616: 
-            color = "rgba(63, 63, 191, 1)";
-            break;
-          case 4932674: 
-            color = "rgba(191, 63, 63, 1)";
-            break;
-          default:
-            color = "rgba(191, 63, 63, 0)";
-            break;
-        }
-        //add the color to the expression 
-        expression.push(row[1], color);
+        //add the color to the expression with the puids
+        expression.push(row[1], COST_COLORS[index]);
       });
       // Last value is the default
       expression.push("rgba(150, 150, 150, 0)");
@@ -1846,7 +1833,6 @@ class App extends React.Component {
     }
     //set the render paint property
     this.map.setPaintProperty(COSTS_LAYER_NAME, "fill-color", expression);
-    // this.map.setPaintProperty(COSTS_LAYER_NAME, "fill-outline-color", STATUS_LAYER_LINE_WIDTH);
   }
 
   mouseMove(e) {
@@ -2158,6 +2144,20 @@ class App extends React.Component {
         'fill-outline-color': "rgba(0, 0, 0, 0)"
       }
     }, beforeLayer);
+    //add the planning units costs layer
+    this.map.addLayer({
+      'id': COSTS_LAYER_NAME,
+      'type': "fill",
+      'source': PLANNING_UNIT_SOURCE_NAME,
+      "layout": {
+        "visibility": "none"
+      },
+      'source-layer': tileset.name,
+      'paint': {
+        'fill-color': "rgba(255, 0, 0, 0)",
+        'fill-outline-color': "rgba(150, 150, 150, 0)"
+      }
+    }, beforeLayer);
     //set the result layer in app state so that it can update the Legend component and its opacity control
     this.setState({resultsLayer: this.map.getLayer(RESULTS_LAYER_NAME)});
     //add the planning unit layer 
@@ -2186,20 +2186,6 @@ class App extends React.Component {
       'paint': {
         'line-color': "rgba(150, 150, 150, 0)",
         'line-width': STATUS_LAYER_LINE_WIDTH
-      }
-    }, beforeLayer);
-    //add the planning units costs layer
-    this.map.addLayer({
-      'id': COSTS_LAYER_NAME,
-      'type': "fill",
-      'source': PLANNING_UNIT_SOURCE_NAME,
-      "layout": {
-        "visibility": "none"
-      },
-      'source-layer': tileset.name,
-      'paint': {
-        'fill-color': "rgba(255, 0, 0, 0)",
-        'fill-outline-color': "rgba(150, 150, 150, 0)"
       }
     }, beforeLayer);
     //add the puvspr planning unit layer - this layer shows the planning unit distribution of a feature from the puvspr file
@@ -2305,14 +2291,13 @@ class App extends React.Component {
     }
   }
 
-
   toggleCosts(show){
     //show/hide the planning units cost layer 
     if (show){
       this.getPlanningUnitsCostData().then((cost_data)=>{
         this.renderPuCostLayer(cost_data);
         this.showLayer(COSTS_LAYER_NAME);
-      })
+      });
     }else{
       this.hideLayer(COSTS_LAYER_NAME);
     }
@@ -2579,11 +2564,18 @@ class App extends React.Component {
   
   getPlanningUnitsCostData(){
     return new Promise((resolve, reject) => {
-      this._get("getPlanningUnitsCostData?user=" + this.state.owner + "&project=" + this.state.project).then((response) => {
-        resolve(response.data);
-      }).catch((error) => {
-        //do something
-      });
+      //if the cost data has already been loaded
+      if (this.cost_data) {
+        resolve(this.cost_data);
+      }else{
+        this._get("getPlanningUnitsCostData?user=" + this.state.owner + "&project=" + this.state.project).then((response) => {
+          //save the cost data to a local variable
+          this.cost_data = response.data;
+          resolve(response.data);
+        }).catch((error) => {
+          //do something
+        });
+      }
     });
   }
 
