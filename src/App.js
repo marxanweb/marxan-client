@@ -1038,6 +1038,8 @@ class App extends React.Component {
         this.previousIucnCategory = response.metadata.IUCN_CATEGORY;
         //initialise all the interest features with the interest features for this project
         this.initialiseInterestFeatures(response.metadata.OLDVERSION, response.features);
+        //activate the project tab
+        this.project_tab_active();
       }).catch((error) => {
           if (error.indexOf('Logged on as read-only guest user')>-1){
             this.setState({loggedIn: true});
