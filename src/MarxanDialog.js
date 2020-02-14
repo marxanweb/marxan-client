@@ -32,6 +32,9 @@ class MarxanDialog extends React.Component {
 		this.setState({searchText: evt.target.value});
 		if (this.props.searchTextChanged) this.props.searchTextChanged(evt.target.value);
 	}
+	clearSearch(){
+		this.searchTextChange({target: {value: ''}});
+	}
 	render() {
 		//if the offsetX or rightX is set, then make this into a style
 		let offsetX = (this.props.offsetX) ? {marginLeft: this.props.offsetX + 'px', width: '400px'} : (this.props.rightX) ? {right: this.props.rightX + 'px', width: '400px', left:null} : {};
@@ -60,7 +63,7 @@ class MarxanDialog extends React.Component {
 					(this.props.showSearchBox) ? 
 						<div style={{right: '70px',position: "absolute",top: "13px"}} title={"search"} key="k27">
 							<input value={this.state.searchText} onChange={this.searchTextChange.bind(this)} style={{border: "1px solid rgba(0,0,0,0.1)", borderRadius: "30px", width:"90px", height: "22px",fontFamily:"Roboto, sans-serif",fontSize:"12px", fontWeight:"400",color:"rgba(0,0,0,0.7)",paddingLeft:"10px"}}/>
-							<FontAwesomeIcon icon={faSearch} className={'appBarIcon docs'} style={{fontSize: "13px",position: "absolute",top: "1px",right: "2px", color: (this.state.searchText === "") ? "rgba(0, 0, 0, 0.6)" : "rgb(255, 64, 129)"}}/>
+							<FontAwesomeIcon onClick={this.clearSearch.bind(this)} icon={faSearch} className={'appBarIcon docs'} style={{fontSize: "13px",position: "absolute",top: "1px",right: "2px", color: (this.state.searchText === "") ? "rgba(0, 0, 0, 0.6)" : "rgb(255, 64, 129)"}} title={(this.state.searchText === "") ? 'Search' : 'Clear search'}/>
 						</div> : null,
 					<Sync className='spin' style={{display: (this.props.loading || this.props.showSpinner) ? "inline-block" : "none", color: 'rgb(255, 64, 129)', position: 'absolute', top: '15px', right: '41px',height:"22px",width:"22px"}} key={"spinner"}/>, this.props.children,
 					(this.props.helpLink) ? <FontAwesomeIcon icon={faQuestionCircle} onClick={this.openDocumentation.bind(this)} title={"Open documentation for this window"} className={'appBarIcon docs'} style={{fontSize: '18px'}} key="helpLink"/> : null

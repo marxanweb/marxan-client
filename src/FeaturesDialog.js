@@ -114,6 +114,9 @@ class FeaturesDialog extends React.Component {
     renderTitle(row) {
       return <div style={{width: '100%',height: '100%',backgroundColor: '#dadada',borderRadius: '2px'}} title={row.original.description}>{row.original.description}</div>;
     }
+    renderSource(row) {
+      return <div style={{width: '100%',height: '100%',backgroundColor: '#dadada',borderRadius: '2px'}} title={row.original.source}>{row.original.source}</div>;
+    }
     renderPreview(row) {
       return <div style={{width: '100%',height: '100%',backgroundColor: '#dadada',borderRadius: '2px'}} title='Click to preview'>..</div>;
     }
@@ -128,14 +131,18 @@ class FeaturesDialog extends React.Component {
                         <div id="projectsTable">
                           <MarxanTable 
                             data={this.props.allFeatures} 
-                            searchColumns={['alias','description']}
+                            searchColumns={['alias','description','source']}
                             searchText={this.state.searchText}
                             addingRemovingFeatures={this.props.addingRemovingFeatures}
                             selectedFeatureIds={this.props.selectedFeatureIds}
                             selectedFeature={this.state.selectedFeature}
                             clickFeature={this.clickFeature.bind(this)}
                             preview={this.preview.bind(this)}
-                            columns={[{Header: 'Name', accessor: 'alias', width: 215, headerStyle: {'textAlign': 'left'}},  {Header: 'Description', accessor: 'description', width: 355, headerStyle: {'textAlign': 'left'}, Cell: this.renderTitle.bind(this)}, {Header: 'Date', accessor: 'creation_date', width: 115, headerStyle: {'textAlign': 'left'}, sortMethod: this.sortDate.bind(this)},{Header: '', width: 8, headerStyle: {'textAlign': 'center'}, Cell: this.renderPreview.bind(this)}]}
+                            columns={[{Header: 'Name', accessor: 'alias', width: 193, headerStyle: {'textAlign': 'left'}},  
+                            {Header: 'Description', accessor: 'description', width: 246, headerStyle: {'textAlign': 'left'}, Cell: this.renderTitle.bind(this)},
+                            {Header: 'Source', accessor: 'source', width: 120, headerStyle: {'textAlign': 'left'}, Cell: this.renderSource.bind(this)}, 
+                            {Header: 'Date', accessor: 'creation_date', width: 115, headerStyle: {'textAlign': 'left'}, sortMethod: this.sortDate.bind(this)},
+                            {Header: '', width: 8, headerStyle: {'textAlign': 'center'}, Cell: this.renderPreview.bind(this)}]}
                             getTrProps={(state, rowInfo, column) => {
                               return {
                                 style: {background: ((state.addingRemovingFeatures && state.selectedFeatureIds.includes(rowInfo.original.id)) || (!state.addingRemovingFeatures && state.selectedFeature && state.selectedFeature.id === rowInfo.original.id)) ? "aliceblue" : ""},
