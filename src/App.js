@@ -342,7 +342,7 @@ class App extends React.Component {
         }
       }, (err) => {//TODO - If the request is unauthorised it returns the Status Code of 200 with the error: "HTTP 403: Forbidden (The 'ReadOnly' role does not have permission to access the 'updateSpecFile' service)" - but for some reason this error handling is used
         this.setState({loading: false});
-        this.setSnackBar(err.message);
+        if (err.message !== 'Network Error') this.setSnackBar(err.message);
         reject(err);
       });
     });
@@ -1838,11 +1838,17 @@ class App extends React.Component {
     this.map.setPaintProperty(COSTS_LAYER_NAME, "fill-color", expression);
   }
 
+  //convenience method to get the rendered features safely and not to show and error message if the layer doesnt exist in the map style
+  getRenderedFeatures(pt, layers){
+    let features = [];
+    if (this.map.getLayer(layers[0])) features = this.map.queryRenderedFeatures(pt, { layers: layers });
+    return features;
+  }
   mouseMove(e) {
     //hide the popup feature list if it is visible
     if (this.state.puFeatures && this.state.puFeatures.length > 0) this.setState({puFeatures:[]});
     //get the features under the mouse
-    var features = this.map.queryRenderedFeatures(e.point, { layers: [RESULTS_LAYER_NAME] });
+    var features = this.getRenderedFeatures(e.point, [RESULTS_LAYER_NAME]);
     //see if there are any features under the mouse
     if (features.length) {
       //set the location for the popup
@@ -1980,7 +1986,7 @@ class App extends React.Component {
   //
   mapClick(e){
     if ((!this.state.puEditing)&&(!this.map.getSource('mapbox-gl-draw-cold'))){ //if the user is not editing planning units or creating a new feature then show what features were in the planning unit for the clicked point
-      var features = this.map.queryRenderedFeatures(e.point, { layers: [RESULTS_LAYER_NAME] });
+      var features = this.getRenderedFeatures(e.point, [RESULTS_LAYER_NAME]);
       //set the popup point
       this.setState({ popup_point: e.point });
       //see if there are any planning unit features under the mouse
@@ -2450,7 +2456,7 @@ class App extends React.Component {
 
   changeStatus(e, direction) {
     //get the feature that the user has clicked 
-    var features = this.map.queryRenderedFeatures(e.point, { layers: [PU_LAYER_NAME] });
+    var features = this.getRenderedFeatures(e.point, [PU_LAYER_NAME]);
     //get the featureid
     if (features.length > 0) {
       //get the puid
