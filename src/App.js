@@ -4210,7 +4210,7 @@ class App extends React.Component {
             open={this.state.settingsDialogOpen}
             onOk={this.closeRunSettingsDialog.bind(this)}
             onCancel={this.closeRunSettingsDialog.bind(this)}
-            loading={this.state.loading}
+            loading={this.state.loading || this.state.preprocessing}
             updateRunParams={this.updateRunParams.bind(this)}
             runParams={this.state.runParams}
             showClumpingDialog={this.showClumpingDialog.bind(this)}

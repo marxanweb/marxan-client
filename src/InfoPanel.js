@@ -101,7 +101,7 @@ class InfoPanel extends React.Component {
 							<Tab label="Project" onActive={this.props.project_tab_active} value="project" disabled={(this.props.puEditing) ? true : false}>
 								<div>
 									<div className={'tabTitle'}>Description</div>
-									{(this.props.userRole === "ReadOnly") ? null : <Textarea minRows='5' id="descriptionEdit" style={{'display': (this.state.editingDescription) ? 'block' : 'none'}} className={'descriptionEditBox'} onKeyPress={this.onKeyPress.bind(this)} onBlur={this.onBlur.bind(this)}/>}
+									{(this.props.userRole === "ReadOnly") ? null : <Textarea minRows={5} id="descriptionEdit" style={{'display': (this.state.editingDescription) ? 'block' : 'none'}} className={'descriptionEditBox'} onKeyPress={this.onKeyPress.bind(this)} onBlur={this.onBlur.bind(this)}/>}
 									{(this.props.userRole === "ReadOnly") ? <div className={'description'} title={this.props.metadata.DESCRIPTION} dangerouslySetInnerHTML={{__html: this.props.metadata.DESCRIPTION}}/> : <div className={'description'} onClick={this.startEditingDescription.bind(this)} style={{'display': (!this.state.editingDescription) ? 'block' : 'none'}} title="Click to edit" dangerouslySetInnerHTML={{__html: this.props.metadata.DESCRIPTION}}/>}
 									<div className={'tabTitle tabTitleTopMargin'}>Created</div>
 									<div className={'createDate'}>{this.props.metadata.CREATEDATE}</div>
