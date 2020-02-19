@@ -1844,6 +1844,7 @@ class App extends React.Component {
     if (this.map.getLayer(layers[0])) features = this.map.queryRenderedFeatures(pt, { layers: layers });
     return features;
   }
+  //no longer called
   mouseMove(e) {
     //hide the popup feature list if it is visible
     if (this.state.puFeatures && this.state.puFeatures.length > 0) this.setState({puFeatures:[]});
@@ -1921,7 +1922,7 @@ class App extends React.Component {
   
   startTimer(e){
     this.timerCancelled = false;  
-    this.mouseLeavePA(5);
+    this.mouseLeavePA(1000);
   }
   
   //shows the list of protected areas that the user is mousing over
@@ -1952,7 +1953,7 @@ class App extends React.Component {
       },
       defaultMode: 'draw_polygon'
     });
-    this.map.on("mousemove", this.mouseMove.bind(this));
+    // this.map.on("mousemove", this.mouseMove.bind(this)); //no longer needed
     this.map.on("moveend", (evt) => {
       if (this.state.clumpingDialogOpen) this.updateMapCentreAndZoom(); //only update the state if the clumping dialog is open
     });
