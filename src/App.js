@@ -1844,39 +1844,9 @@ class App extends React.Component {
     if (this.map.getLayer(layers[0])) features = this.map.queryRenderedFeatures(pt, { layers: layers });
     return features;
   }
-  //no longer called
   mouseMove(e) {
     //hide the popup feature list if it is visible
     if (this.state.puFeatures && this.state.puFeatures.length > 0) this.setState({puFeatures:[]});
-    //get the features under the mouse
-    var features = this.getRenderedFeatures(e.point, [RESULTS_LAYER_NAME]);
-    //see if there are any features under the mouse
-    if (features.length) {
-      //set the location for the popup
-      if (!this.state.active_pu || (this.state.active_pu && this.state.active_pu.puid !== features[0].properties.puid)) this.setState({ popup_point: e.point });
-      //get the properties from the vector tile
-      let vector_tile_properties = features[0].properties;
-      //get the properties from the marxan results - these will include the number of solutions that that planning unit is found in
-      let marxan_results = this.runMarxanResponse && this.runMarxanResponse.ssoln ? this.runMarxanResponse.ssoln.filter(item => item[1].indexOf(vector_tile_properties.puid) > -1)[0] : {};
-      if (marxan_results) {
-        //convert the marxan results from an array to an object
-        // let marxan_results_dict = { "puid": vector_tile_properties.puid, "Number": marxan_results[0] };
-        //combine the 2 sets of properties
-        // let active_pu = Object.assign(marxan_results_dict, vector_tile_properties);
-        //set the state to re-render the popup
-        // this.setState({ active_pu: active_pu });
-      }
-      else {
-        this.hidePopup();
-      }
-    }
-    else {
-      this.hidePopup();
-    }
-  }
-
-  hidePopup() {
-    this.setState({ active_pu: undefined });
   }
 
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1953,7 +1923,7 @@ class App extends React.Component {
       },
       defaultMode: 'draw_polygon'
     });
-    // this.map.on("mousemove", this.mouseMove.bind(this)); //no longer needed
+    this.map.on("mousemove", this.mouseMove.bind(this)); 
     this.map.on("moveend", (evt) => {
       if (this.state.clumpingDialogOpen) this.updateMapCentreAndZoom(); //only update the state if the clumping dialog is open
     });

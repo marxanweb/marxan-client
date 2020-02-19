@@ -1,7 +1,7 @@
 import * as React from 'react';
 import MarxanDialog from './MarxanDialog';
 import MetChart from "./MetChart";
-import { Cell, ReferenceLine, ComposedChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Label } from 'recharts';
+import { Cell, ReferenceLine, ComposedChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Label, Text } from 'recharts';
 import Toggle from 'material-ui/Toggle';
 import { getArea } from './genericFunctions.js';
 
@@ -17,6 +17,13 @@ const CustomTooltip = ({ active, payload, label }) => {
 
 	return null;
 };
+
+class CustomizedAxisTick extends React.Component {
+  render () {
+    const {x, y, payload} = this.props;
+   	return <Text x={x} y={y} width={75} textAnchor="middle" verticalAnchor="start" className={'gapAnalysisXAxisLabels'}>{payload.value}</Text>;
+  }
+}
 
 class GapAnalysisDialog extends React.PureComponent {
 		constructor(props) {
@@ -104,9 +111,9 @@ class GapAnalysisDialog extends React.PureComponent {
 							<div className={'analysisChartsDiv'} style={{display: (this.state.showChart) ? 'none' : 'block'}}>
 								{charts}
 							</div>
-							<ComposedChart  width={550} height={350} data={_data} margin={{bottom:80, top:20}} style={{display: (this.state.showChart) ? 'block' : 'none', margin:'auto'}}>
+							<ComposedChart  width={550} height={350} data={_data} margin={{bottom:20, top:20}} style={{display: (this.state.showChart) ? 'block' : 'none', margin:'auto'}}>
 								<CartesianGrid strokeDasharray="1" stroke="#f4f4f4"/>
-								<XAxis dataKey="_alias" angle={-45} textAnchor="end" interval={0}>
+								<XAxis dataKey="_alias" interval={0} tick={<CustomizedAxisTick />} height={100}>
 								</XAxis> 
 								<YAxis tick={{fontSize:11}} >
 									<Label value='Percent Protected' angle={-90} position='insideBottomLeft' style={{fontSize:'11px',color:'#222222'}} offset={30}/>
@@ -121,13 +128,15 @@ class GapAnalysisDialog extends React.PureComponent {
 								</Bar>
     							<ReferenceLine y={(_data.length) ? _data[0].target_value : 0} stroke="#7C7C7C" strokeDasharray="3 3" style={{display: (_data.length) ? 'inline' : 'none'}}/>
 							</ComposedChart >
-							<div className={'gapAnalysisStatsPanel'}>
-								<table><tbody><tr>
-									<td>Features meeting targets:</td><td className={'score'}>{targetsMetCount}/{charts.length}</td></tr><tr>
-									<td>Representation score:</td><td className={'score'}>{score}</td></tr>
-								</tbody></table>
+							<div className={'gapAnalysisBtmPanel'}>
+								<div className={'gapAnalysisStatsPanel'}>
+									<table><tbody><tr>
+										<td>Features meeting targets:</td><td className={'score'}>{targetsMetCount}/{charts.length}</td></tr><tr>
+										<td>Representation score:</td><td className={'score'}>{score}</td></tr>
+									</tbody></table>
+								</div>
+								<Toggle label="Show as a chart" onToggle={this.toggleView.bind(this)} style={{width:'unset',float:'right',paddingTop:'2px'}} labelStyle={{fontSize:'14px',width:'100px',color:'rgba(0, 0, 0, 0.6)'}} toggled={this.state.showChart}/>
 							</div>
-							<Toggle label="Show as a chart" onToggle={this.toggleView.bind(this)} style={{width:'unset',float:'right',paddingTop:'2px'}} labelStyle={{fontSize:'14px',width:'100px',color:'rgba(0, 0, 0, 0.6)'}} toggled={this.state.showChart}/>
 						</div>
 					</div>
                 </React.Fragment>
