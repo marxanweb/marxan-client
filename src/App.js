@@ -2714,6 +2714,8 @@ class App extends React.Component {
     this.setState({ welcomeDialogOpen: true });
   }
   openFeaturesDialog(showClearSelectAll) {
+    //refresh the features list if we are using a hosted service - other users could have created/deleted items
+    if (this.state.marxanServer.system !== "Windows") this.refreshFeatures();
     this.setState({ featuresDialogOpen: true, addingRemovingFeatures: showClearSelectAll});
     if (showClearSelectAll) this.getSelectedFeatureIds();
   }
@@ -2741,6 +2743,8 @@ class App extends React.Component {
     this.setState({ importGBIFDialogOpen: false});
   }
   openPlanningGridsDialog(){
+    //refresh the planning grids if we are using a hosted service - other users could have created/deleted items
+    if (this.state.marxanServer.system !== "Windows") this.getPlanningUnitGrids();
     this.setState({planningGridsDialogOpen: true});
   }
   closePlanningGridsDialog(){
@@ -3069,10 +3073,8 @@ class App extends React.Component {
     //load the interest feature from the marxan web database
     this._get("getFeature?oid=" + id + "&format=json").then((response) => {
       let feature = response.data[0];
-      //add the required attributes to use it in Marxan Web
-      this.addFeatureAttributes(feature);
-      //update the allFeatures array
-      this.addNewFeature(feature);
+      //add the required attributes to use it in Marxan Web and update the allFeatures array
+      this.initialiseNewFeature(feature);
       //if add to project is set then add the feature to the project, wait for the selectedFeatureIds state to be updated and then call updateSelectedFeatures
       if (this.state.addToProject) this.addFeature(feature, () => {
         this.updateSelectedFeatures();
@@ -3080,6 +3082,13 @@ class App extends React.Component {
     });
   }
 
+  //adds the required attributes to use it in Marxan Web and update the allFeatures array
+  initialiseNewFeature(feature){
+      //add the required attributes
+      this.addFeatureAttributes(feature);
+      //update the allFeatures array
+      this.addNewFeature(feature);
+  }
   //adds a new feature to the allFeatures array
   addNewFeature(feature){
     //update the allFeatures array
@@ -3126,19 +3135,61 @@ class App extends React.Component {
     this.setState({allFeatures: featuresCopy});
   }
   
-  //gets all the features 
-  getAllFeatures(){
+  //makes a call to get the features from the server and returns them
+  getFeatures(){
     return new Promise((resolve, reject) => {
       this._get("getAllSpeciesData").then((response) => {
-        //set the allfeatures state
-        this.setState({allFeatures: response.data});
-        resolve("Features returned");
+        resolve(response);
       }).catch((error) => {
         //do something
       });
     });
   }
 
+  //gets all the features from the server and updates the state
+  getAllFeatures(){
+    return new Promise((resolve, reject) => {
+      this.getFeatures().then((response) => {
+        //set the allfeatures state
+        this.setState({allFeatures: response.data}, () => {
+          resolve("Features returned");
+        });
+      }).catch((error) => {
+        //do something
+      });
+    });
+  }
+  
+  //gets the feature ids as a set from the allFeatures array
+  getFeatureIds(_features){
+    return new Set(_features.map(item => {return item.id}));
+  }
+
+  //refreshes the allFeatures state
+  refreshFeatures(){
+    //refresh all features
+    this.getFeatures().then((response)=>{
+      //get the existing feature ids
+      let existingIds = this.getFeatureIds(this.state.allFeatures);
+      //get the new feature ids
+      let newIds = this.getFeatureIds(response.data);
+      //get the features that have been removed as a set
+      let removedIds = new Set([...existingIds].filter(x => !newIds.has(x)));
+      removedIds.forEach(item => {
+        //remove it from the allFeatures array
+        this.removeFeatureFromAllFeatures({id: item});
+      });
+      //get the features that have been added as a set
+      let addedIds = new Set([...newIds].filter(x => !existingIds.has(x)));
+      //iterate through the new features and initialise them
+      let addedFeatures = response.data.filter(item => addedIds.has(item.id));
+      addedFeatures.forEach(item => {
+        this.initialiseNewFeature(item);
+      });
+      console.log(addedIds);
+      console.log(removedIds);
+    });
+  }
   openFeatureMenu(evt, feature){
     this.setState({featureMenuOpen: true, currentFeature: feature, menuAnchor: evt.currentTarget});
   }
@@ -4100,6 +4151,8 @@ class App extends React.Component {
             showImportFeaturePopover={this.showImportFeaturePopover.bind(this)}
             previewFeature={this.previewFeature.bind(this)} 
             openImportGBIFDialog={this.openImportGBIFDialog.bind(this)}
+            marxanServer={this.state.marxanServer}
+            refreshFeatures={this.refreshFeatures.bind(this)}
           />
           <FeatureDialog
             open={this.state.featureDialogOpen}
@@ -4154,6 +4207,7 @@ class App extends React.Component {
             openImportPlanningGridDialog={this.openImportPlanningGridDialog.bind(this)}
             deletePlanningGrid={this.deletePlanningUnitGrid.bind(this)}
             previewPlanningGrid={this.previewPlanningGrid.bind(this)}
+            marxanServer={this.state.marxanServer}
           />
           <FailedToDeleteDialog
             open={this.state.FailedToDeleteDialogOpen} 

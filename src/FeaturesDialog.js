@@ -4,6 +4,7 @@ import { faPlusCircle } from '@fortawesome/free-solid-svg-icons';
 import { faCircle } from '@fortawesome/free-regular-svg-icons';
 import { faCheckCircle } from '@fortawesome/free-regular-svg-icons';
 import { faTrashAlt } from '@fortawesome/free-regular-svg-icons';
+// import { faSync } from '@fortawesome/free-solid-svg-icons';
 import Import from 'material-ui/svg-icons/action/get-app';
 import ToolbarButton from './ToolbarButton';
 import MarxanDialog from './MarxanDialog';
@@ -177,6 +178,14 @@ class FeaturesDialog extends React.Component {
                            </Menu>
                          </Popover>
                          <ToolbarButton show={ (this.props.userRole === "Admin") && (!this.props.metadata.OLDVERSION) && (!this.props.addingRemovingFeatures) } icon={ <FontAwesomeIcon icon={ faTrashAlt } color='rgb(255, 64, 129)' /> } title="Delete feature" disabled={ this.state.selectedFeature === undefined || this.props.loading  || (this.state.selectedFeature && this.state.selectedFeature.created_by === 'global admin')} onClick={ this._delete.bind(this) } label={ "Delete" }/>
+             							{/*<ToolbarButton  
+            								show={(this.props.marxanServer&&this.props.marxanServer.system !== "Windows")&&(!this.props.addingRemovingFeatures)}
+            								icon={<FontAwesomeIcon icon={faSync} color='rgb(51, 153, 51)'/>} 
+            								title="Refresh features" 
+            								disabled={this.props.loading}
+            								label={"Refresh"}
+            								onClick={ this.props.refreshFeatures }
+            							/>*/}
                          <ToolbarButton show={ this.props.addingRemovingFeatures } icon={ <FontAwesomeIcon icon={ faCircle } /> } title="Clear all features" onClick={ this.props.clearAllFeatures } label={ "Clear all" } />
                          <ToolbarButton show={ this.props.addingRemovingFeatures } icon={ <FontAwesomeIcon icon={ faCheckCircle } /> } title="Select all features" onClick={ this.props.selectAllFeatures } label={ "Select all" } />
                        </div>

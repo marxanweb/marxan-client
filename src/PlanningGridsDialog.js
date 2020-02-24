@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 // import { faBookOpen } from '@fortawesome/free-solid-svg-icons';
 import { faPlusCircle } from '@fortawesome/free-solid-svg-icons';
 import { faTrashAlt } from '@fortawesome/free-regular-svg-icons';
+// import { faSync } from '@fortawesome/free-solid-svg-icons';
 import Import from 'material-ui/svg-icons/action/get-app';
 import ToolbarButton from './ToolbarButton';
 import MarxanDialog from './MarxanDialog';
@@ -127,6 +128,14 @@ class PlanningGridsDialog extends React.Component {
 								onClick={this._delete.bind(this)} 
 								label={"Delete"}
 							/>
+							{/*<ToolbarButton  
+								show={(this.props.marxanServer.system !== "Windows")}
+								icon={<FontAwesomeIcon icon={faSync} color='rgb(51, 153, 51)'/>} 
+								title="Refresh planning grids" 
+								disabled={this.props.loading}
+								onClick={this.props.getPlanningUnitGrids} 
+								label={"Refresh"}
+							/>*/}
 						</div>
 					</React.Fragment>
 				} 
