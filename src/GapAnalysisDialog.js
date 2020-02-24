@@ -37,7 +37,7 @@ class GapAnalysisDialog extends React.PureComponent {
 			if (features.length) {
 				if (features[0].hasOwnProperty('current_protected_area')) {
 					amount_under_protection_property = 'current_protected_area';
-					total_amount_property = 'country_area';
+					total_amount_property = 'total_area'; //should this be total_area or country_area?
 				}
 				else {
 					amount_under_protection_property = 'protected_area';

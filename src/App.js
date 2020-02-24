@@ -475,8 +475,8 @@ class App extends React.Component {
       //remove the Preprocessing messages which show the processing spinner
       this.removeMessageFromLog("Preprocessing");
     }else{
-      //see if the message has a pid and if it does then see if the status has changed from the last message - if it has then log the message
-      if (message.hasOwnProperty('pid')) {
+      //see if the message has a pid and if it does then see if the status has changed since the last message - if it has then log the message - this does not apply to RunningMarxan messages as all of these need to be logged
+      if (message.hasOwnProperty('pid') && (message.status !=='RunningMarxan')) {
         //get the existing status
         let _messages = this.state.logMessages.filter((_message) => {
           if (_message.hasOwnProperty('pid')) {
