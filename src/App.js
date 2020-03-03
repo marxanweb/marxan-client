@@ -496,12 +496,8 @@ class App extends React.Component {
           this.log(message);
         }
       }else{
-        //if the message is downloaded then remove the downloading messages
-        if (message.status === 'Downloaded'){
-          this.removeMessageFromLog('Downloading');
-        }else{ //remove duplicate messages from the log (unless they are from the marxan run)
-          if (message.status !== 'RunningMarxan') this.removeMessageFromLog(message.status);
-        }
+        //remove duplicate messages from the log (unless they are from the marxan run)
+        if (message.status !== 'RunningMarxan') this.removeMessageFromLog(message.status);
         //log the message
         this.log(message);
       }

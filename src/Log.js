@@ -16,8 +16,6 @@ class Log extends React.Component {
 					className = 'logItem logStart';
 					break;
 				case "Preprocessing":
-				case "Downloading":
-				case "Downloaded":
 				case "FeatureCreated":
 					className = 'logItem logMessageBlock';
 					break;
