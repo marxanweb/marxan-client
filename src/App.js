@@ -442,11 +442,10 @@ class App extends React.Component {
   wsMessageCallback(message){
     //dont log any clumping projects
     if (this.state.clumpingRunning) return;
-    //log the message if necessary
+    //log the message 
     this.logMessage(message);
     switch (message.status) {
-      case 'Started': //from asynchronous queries, marxan runs and feature imports
-      case "Updating WDPA":
+      case 'Started': //from the open method of all MarxanWebSocketHandler subclasses
         //set the processing state when the websocket starts
         this.setState({preprocessing: true});
         break;
@@ -456,10 +455,10 @@ class App extends React.Component {
       case "FeatureCreated":
         this.newFeatureCreated(message.id);
         break;
-      case 'Finished': //from asynchronous queries, marxan runs and feature imports
+      case 'Finished': //from the close method of all MarxanWebSocketHandler subclasses
         //reset the pid
         this.setState({pid: 0});
-        //remove the Preprocessing messages which show the processing spinner
+        //remove all preprocessing messages
         this.removeMessageFromLog("Preprocessing");
         break;
       default:
@@ -497,19 +496,14 @@ class App extends React.Component {
           this.log(message);
         }
       }else{
-        //for downloading we dont want to show every downloading message
-        if (message.status === 'Downloading'){
-          //see if we already have a message which is downloading 
-          let _messages = this.state.logMessages.filter((_message) => {
-            return (_message.status === 'Downloading');
-          });
-          if (_messages.length === 0) this.log(message);
-        }else{
-          //if the message is downloaded then remove the downloading message
-          if (message.status === 'Downloaded') this.removeMessageFromLog('Downloading');
-          //log all other messages
-          this.log(message);
+        //if the message is downloaded then remove the downloading messages
+        if (message.status === 'Downloaded'){
+          this.removeMessageFromLog('Downloading');
+        }else{ //remove duplicate messages from the log (unless they are from the marxan run)
+          if (message.status !== 'RunningMarxan') this.removeMessageFromLog(message.status);
         }
+        //log the message
+        this.log(message);
       }
     }
   }
