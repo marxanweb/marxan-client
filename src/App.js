@@ -453,6 +453,8 @@ class App extends React.Component {
         this.setState({pid: message.pid});
         break;
       case "FeatureCreated":
+        //remove all preprocessing messages
+        this.removeMessageFromLog("Preprocessing");
         this.newFeatureCreated(message.id);
         break;
       case 'Finished': //from the close method of all MarxanWebSocketHandler subclasses
@@ -496,8 +498,8 @@ class App extends React.Component {
           this.log(message);
         }
       }else{
-        //remove duplicate messages from the log (unless they are from the marxan run)
-        if (message.status !== 'RunningMarxan') this.removeMessageFromLog(message.status);
+        //remove duplicate messages from the log (unless they are from the marxan run or where a feature has been created)
+        if (!(message.status === 'RunningMarxan' || message.status !== 'FeatureCreated')) this.removeMessageFromLog(message.status);
         //log the message
         this.log(message);
       }

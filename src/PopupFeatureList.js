@@ -3,6 +3,9 @@ import ReactTable from "react-table";
 import Sync from 'material-ui/svg-icons/notification/sync';
 
 class PopupFeatureList extends React.Component {
+	renderAmount(row){
+		return <div>{(Number(row.original.amount)/1000000).toFixed(1)} Km2</div>;        
+	}
 	render() {
 		let left = this.props.xy.x + 25 + 'px';
 		let top = this.props.xy.y - 25 + 'px';
@@ -17,10 +20,16 @@ class PopupFeatureList extends React.Component {
 					noDataText=''
 					data={this.props.features}
 					columns={[{
-						 Header: 'Feature',
+						 Header: 'Name',
 						 accessor: 'alias',
 						 width: 220,
-						 headerStyle: { display:'none'}
+						 headerStyle:{'textAlign':'left'}
+					},{
+						 Header: 'Amount',
+						 accessor: 'amount',
+						 width: 220,
+						 headerStyle:{'textAlign':'left'},
+						 Cell: this.renderAmount.bind(this)
 					}]}
 				/>
 			</div>
