@@ -684,7 +684,6 @@ div.rt-tbody>div>div>div>div[contenteditable="true"] {
   position: absolute;
   background-color: white;
   box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 10px, rgba(0, 0, 0, 0.23) 0px 3px 10px;
-  padding: 2px;
   border-radius: 3px;
 }
 
@@ -1084,4 +1083,7 @@ a {
 .suggestion:hover {
   background-color: aliceblue;
   cursor: pointer;
+}
+.identifyPopup{
+  min-width:200px;
 }

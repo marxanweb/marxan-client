@@ -65,9 +65,7 @@ import RunLogDialog from './RunLogDialog';
 import ServerDetailsDialog from './ServerDetailsDialog';
 import AlertDialog from './AlertDialog';
 import ChangePasswordDialog from './ChangePasswordDialog';
-import Popup from './Popup';
-import PopupFeatureList from './PopupFeatureList';
-import PopupPAList from './PopupPAList';
+import IdentifyPopup from './IdentifyPopup';
 import TargetDialog from './TargetDialog';
 import ShareableLinkDialog from './ShareableLinkDialog';
 import GapAnalysisDialog from './GapAnalysisDialog';
@@ -90,15 +88,15 @@ let DOMAINS = ["Marine", "Terrestrial"];
 let SHAPES = ['Hexagon', 'Square'];
 let AREAKM2S = [10, 20, 30, 40, 50];
 //layer source names
-let PLANNING_UNIT_SOURCE_NAME = "planning_units_source";
-let WDPA_SOURCE_NAME = "wdpa_source";
+let PLANNING_UNIT_SOURCE_NAME = "marxan_planning_units_source";
+let WDPA_SOURCE_NAME = "marxan_wdpa_source";
 //layer names
-let PU_LAYER_NAME = "planning_units_layer"; //layer showing the planning units
-let STATUS_LAYER_NAME = "planning_units_status_layer"; //layer showing the status of planning units 
-let COSTS_LAYER_NAME = "costs_layer"; //layer showing the cost of planning units
-let PUVSPR_LAYER_NAME = "planning_units_puvspr_layer"; //layer showing the planning units for a particular feature
-let RESULTS_LAYER_NAME = "results_layer"; //layer for either the sum of solutions or the individual solutions
-let WDPA_LAYER_NAME = "wdpa"; //layer showing the protected areas from the WDPA
+let PU_LAYER_NAME = "marxan_pu_layer"; //layer showing the planning units
+let STATUS_LAYER_NAME = "marxan_pu_status_layer"; //layer showing the status of planning units 
+let COSTS_LAYER_NAME = "marxan_pu_costs_layer"; //layer showing the cost of planning units
+let PUVSPR_LAYER_NAME = "marxan_pu_puvspr_layer"; //layer showing the planning units for a particular feature
+let RESULTS_LAYER_NAME = "marxan_pu_results_layer"; //layer for either the sum of solutions or the individual solutions
+let WDPA_LAYER_NAME = "marxan_wdpa_polygon_layer"; //layer showing the protected areas from the WDPA
 //layer default styles
 let PU_LAYER_OPACITY = 0.4;
 let STATUS_LAYER_LINE_WIDTH = 1.5;
@@ -194,11 +192,13 @@ class App extends React.Component {
       snackbarOpen: false,
       snackbarMessage: '',
       tilesets: [],
-      puFeatures: [],
-      paFeatures: [],
+      identifyPlanningUnits: {},
+      identifyProtectedAreas: [],
+      identifyFeatures: [],
       loading: false, //true when GET/POST requests are ongoing
       preprocessing: false, //true when a WebSocket is ongoing
       uploading: false, //true when an upload to Mapbox is ongoing
+      identifyVisible: false,
       pa_layer_visible: false,
       currentFeature:{},
       featureDatasetFilename: '',
@@ -1383,8 +1383,6 @@ class App extends React.Component {
   //calls the marxan executeable and runs it getting the output streamed through websockets
   startMarxanJob(user, project) {
     return new Promise((resolve, reject) => {
-      //update the ui to reflect the fact that a job is running
-      this.setState({active_pu: undefined});
       //make the request to get the marxan data
       this._ws("runMarxan?user=" + user + "&project=" + project, this.wsMessageCallback.bind(this)).then((message) => {
         resolve(message);
@@ -1836,10 +1834,6 @@ class App extends React.Component {
     if (this.map.getLayer(layers[0])) features = this.map.queryRenderedFeatures(pt, { layers: layers });
     return features;
   }
-  mouseMove(e) {
-    //hide the popup feature list if it is visible
-    if (this.state.puFeatures && this.state.puFeatures.length > 0) this.setState({puFeatures:[]});
-  }
 
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   ///MAP INSTANTIATION, LAYERS ADDING/REMOVING AND INTERACTION
@@ -1857,48 +1851,6 @@ class App extends React.Component {
     this.map.on("load", this.mapLoaded.bind(this));
     this.map.on("error", this.mapError.bind(this));
     this.map.on("click", this.mapClick.bind(this));
-    this.map.on('mouseenter', WDPA_LAYER_NAME, this.mouseEnterPA.bind(this));
-    this.map.on('mouseleave', WDPA_LAYER_NAME, this.mouseLeavePA.bind(this,2500));
-  }
-  mouseEnterPA(e) {
-    this.map.getCanvas().style.cursor = 'pointer';
-    var coordinates = e.lngLat;
-    while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
-      coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
-    }
-    this.showProtectedAreasPopup(e.features, e);
-  }
-
- mouseLeavePA(ms, e) {
-    setTimeout(()=>{
-      if (!this.timerCancelled){
-        this.map.getCanvas().style.cursor = '';
-        this.setState({paFeatures:[]});
-      }
-    }, ms);            
-  }
-
-  cancelTimer(e){
-    this.timerCancelled = true;  
-  }
-  
-  startTimer(e){
-    this.timerCancelled = false;  
-    this.mouseLeavePA(1000);
-  }
-  
-  //shows the list of protected areas that the user is mousing over
-  showProtectedAreasPopup(features, e){
-    let paFeatures =[];
-    let wdpaIds = [];
-    features.forEach((feature) => {
-      //to get unique protected areas
-      if (wdpaIds.indexOf(feature.properties.wdpaid) < 0){
-         paFeatures.push(feature.properties);
-         wdpaIds.push(feature.properties.wdpaid);
-      }
-    });  
-    this.setState({paFeatures: paFeatures, popup_point: e.point});
   }
 
   mapLoaded(e) {
@@ -1915,7 +1867,6 @@ class App extends React.Component {
       },
       defaultMode: 'draw_polygon'
     });
-    this.map.on("mousemove", this.mouseMove.bind(this)); 
     this.map.on("moveend", (evt) => {
       if (this.state.clumpingDialogOpen) this.updateMapCentreAndZoom(); //only update the state if the clumping dialog is open
     });
@@ -1948,20 +1899,78 @@ class App extends React.Component {
   
   //
   mapClick(e){
-    if ((!this.state.puEditing)&&(!this.map.getSource('mapbox-gl-draw-cold'))){ //if the user is not editing planning units or creating a new feature then show what features were in the planning unit for the clicked point
-      var features = this.getRenderedFeatures(e.point, [RESULTS_LAYER_NAME]);
+    if ((!this.state.puEditing)&&(!this.map.getSource('mapbox-gl-draw-cold'))){ //if the user is not editing planning units or creating a new feature then show the identify features for the clicked point
+      //get a list of the layers that we want to query for features
+      var layers = this.map.getStyle().layers;
+      //get all the marxan feature layers
+      var featureLayers = layers.filter(item=>{
+        return item.id.substr(0,7) === 'marxan_'; 
+      });
+      //get the feature layer ids
+      let featureLayerIds = featureLayers.map(item=>item.id);
+      var clickedFeatures = this.getRenderedFeatures(e.point, featureLayerIds);
       //set the popup point
       this.setState({ popup_point: e.point });
-      //see if there are any planning unit features under the mouse
-      if (features.length && features[0].properties.puid) this.getPUFeatureList(features[0].properties.puid);
+      //get any planning unit features under the mouse
+      let planningUnitFeatures = this.getFeaturesByLayerStartsWith(clickedFeatures, "marxan_pu_");
+      if (planningUnitFeatures.length && planningUnitFeatures[0].properties.puid) {
+        this.getPUData(planningUnitFeatures[0].properties.puid);
+      }else{
+        //reset the existing puData
+        this.setState({identifyPlanningUnits:{}});
+      }
+      //get any conservation features under the mouse
+      let identifyFeatures = this.getFeaturesByLayerStartsWith(clickedFeatures, "marxan_feature_layer_");
+      //there may be dupliate conservation features (e.g. with GBIF data) so get a unique list of sourceLayers
+      let sourceLayers = identifyFeatures.map(item=>item.sourceLayer);
+      let uniqueSourceLayers = Array.from(new Set(sourceLayers));
+      //get the full features data from the state.projectFeatures array
+      identifyFeatures = uniqueSourceLayers.map(item=>{
+        let matchingItem = this.state.projectFeatures.filter(item2=>{
+          return item2.feature_class_name===item; //the features feature_class_name is the name of the sourcelayer in the vector tile
+        })[0];
+        return matchingItem;
+      });
+      //get any protected area features under the mouse
+      let identifyProtectedAreas = this.getFeaturesByLayerStartsWith(clickedFeatures, "marxan_wdpa_");
+      //set the state to populate the identify popup
+      this.setState({identifyVisible: true, identifyFeatures: identifyFeatures, identifyProtectedAreas:identifyProtectedAreas});
     }
   }
   
-  //gets a list of features for the planning unit
-  getPUFeatureList(puid){
-    this._get("getPUSpeciesList?user=" + this.state.owner + "&project=" + this.state.project + "&puid=" + puid).then((response) => {
-      this.setState({puFeatures: response.data});
+  //gets a set of features that have a layerid that starts with the passed text
+  getFeaturesByLayerStartsWith(features, startsWith){
+    let matchedFeatures = features.filter(item=>{
+      return item.layer.id.substr(0,(startsWith.length)) === startsWith;
     });
+    return matchedFeatures;
+  }
+  
+  //gets a list of features for the planning unit
+  getPUData(puid){
+    this._get("getPUData?user=" + this.state.owner + "&project=" + this.state.project + "&puid=" + puid).then((response) => {
+      if (response.data.features.length){ //if there are some features for the planning unit join the ids onto the full feature data from the state.projectFeatures array
+        this.joinArrays(response.data.features, this.state.projectFeatures,"species","id");
+      }
+      //set the state to update the identify popup
+      this.setState({identifyPlanningUnits:{puData: response.data.pu_data, features: response.data.features}});
+    });
+  }
+  
+  //joins a set of data from one object array to another 
+  joinArrays(arr1,arr2,leftId,rightId){
+    let outputArr = [];
+    arr1.forEach(item=>{
+      //get the matching item in the second array
+      let matchingItem = arr2.filter(arr2item=>arr2item[rightId] === item[leftId]);
+      if (matchingItem.length) outputArr.push(Object.assign(item, matchingItem[0]));
+    });
+    return outputArr;
+  }
+  
+  //hides the identify popup
+  hideIdentifyPopup(e){
+    this.setState({identifyVisible:false});
   }
   
   //gets a Mapbox Style Specification JSON object from the passed ESRI style endpoint
@@ -3204,13 +3213,14 @@ class App extends React.Component {
     }
     // this.closeFeatureMenu();
     let layerName = feature.tilesetid.split(".")[1];
-    if (this.map.getLayer(layerName)){
-      this.map.removeLayer(layerName);
-      this.map.removeSource(layerName);
+    let layerId = "marxan_feature_layer_" + layerName;
+    if (this.map.getLayer(layerId)){
+      this.map.removeLayer(layerId);
+      this.map.removeSource(layerId);
       this.updateFeature(feature, {feature_layer_loaded: false});
     }else{
       this.map.addLayer({
-        'id': layerName,
+        'id': layerId,
         'type': "fill",
         'source': {
           'type': "vector",
@@ -4040,21 +4050,14 @@ class App extends React.Component {
             FEATURE_PROPERTIES={FEATURE_PROPERTIES}
             userRole={this.state.userData.ROLE}
           />
-          <Popup
-            active_pu={this.state.active_pu} 
+          <IdentifyPopup
+            visible={this.state.identifyVisible}
             xy={this.state.popup_point}
-          />
-          <PopupFeatureList
-            xy={this.state.popup_point}
-            features={this.state.puFeatures}
+            identifyPlanningUnits={this.state.identifyPlanningUnits}
+            identifyProtectedAreas={this.state.identifyProtectedAreas}
+            identifyFeatures={this.state.identifyFeatures}
             loading={this.state.loading}
-          />
-          <PopupPAList
-            xy={this.state.popup_point}
-            features={this.state.paFeatures}
-            loading={this.state.loading}
-            onMouseEnter={this.cancelTimer.bind(this)}
-            onMouseLeave={this.startTimer.bind(this)}
+            hideIdentifyPopup={this.hideIdentifyPopup.bind(this)}
           />
           <ProjectsDialog 
             open={this.state.projectsDialogOpen} 
