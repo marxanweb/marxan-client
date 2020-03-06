@@ -4,6 +4,7 @@ import Sync from 'material-ui/svg-icons/notification/sync';
 import { Tabs, Tab } from 'material-ui/Tabs';
 const TITLE_LINK = "Click to open in the Protected Planet website";
 const URL_PP = "https://www.protectedplanet.net/";
+const DEFAULT_PAGE_SIZE = 10;
 
 class IdentifyPopup extends React.Component {
 
@@ -79,7 +80,7 @@ class IdentifyPopup extends React.Component {
 				<ReactTable
 					style={{display: this.props.identifyPlanningUnits && this.props.identifyPlanningUnits.features && this.props.identifyPlanningUnits.features.length ? "block" : "none"}}
 					showPagination={false}
-					pageSize={(this.props.loading) ? 0 : this.props.identifyPlanningUnits && this.props.identifyPlanningUnits.features && this.props.identifyPlanningUnits.features.length}
+					pageSize={(this.props.loading) ? 0 : DEFAULT_PAGE_SIZE}
 					minRows={0}
 					noDataText=''
 					data={this.props.identifyPlanningUnits.features}
@@ -101,7 +102,7 @@ class IdentifyPopup extends React.Component {
 			<Tab label="Features" value="features" key="features">
 				<ReactTable
 					showPagination={false}
-					pageSize={this.props.identifyFeatures && this.props.identifyFeatures.length}
+					pageSize={DEFAULT_PAGE_SIZE}
 					minRows={0}
 					noDataText=''
 					data={this.props.identifyFeatures}
@@ -117,7 +118,7 @@ class IdentifyPopup extends React.Component {
 			<Tab label="Protected areas" value="pas" key="pas">
 				<ReactTable
 					showPagination={false}
-					pageSize={this.props.identifyProtectedAreas && this.props.identifyProtectedAreas.length}
+					pageSize={DEFAULT_PAGE_SIZE}
 					minRows={0}
 					noDataText=''
 					data={this.props.identifyProtectedAreas}
