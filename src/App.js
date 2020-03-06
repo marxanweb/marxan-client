@@ -1895,7 +1895,7 @@ class App extends React.Component {
       this.setSnackBar("MapError: " + message);
       console.error(message);
     }  
-  }
+  } 
   
   //
   mapClick(e){
@@ -1913,12 +1913,7 @@ class App extends React.Component {
       this.setState({ popup_point: e.point });
       //get any planning unit features under the mouse
       let planningUnitFeatures = this.getFeaturesByLayerStartsWith(clickedFeatures, "marxan_pu_");
-      if (planningUnitFeatures.length && planningUnitFeatures[0].properties.puid) {
-        this.getPUData(planningUnitFeatures[0].properties.puid);
-      }else{
-        //reset the existing puData
-        this.setState({identifyPlanningUnits:{}});
-      }
+      if (planningUnitFeatures.length && planningUnitFeatures[0].properties.puid) this.getPUData(planningUnitFeatures[0].properties.puid);
       //get any conservation features under the mouse
       let identifyFeatures = this.getFeaturesByLayerStartsWith(clickedFeatures, "marxan_feature_layer_");
       //there may be dupliate conservation features (e.g. with GBIF data) so get a unique list of sourceLayers
@@ -1970,7 +1965,7 @@ class App extends React.Component {
   
   //hides the identify popup
   hideIdentifyPopup(e){
-    this.setState({identifyVisible:false});
+    this.setState({identifyVisible:false, identifyPlanningUnits:{}});
   }
   
   //gets a Mapbox Style Specification JSON object from the passed ESRI style endpoint

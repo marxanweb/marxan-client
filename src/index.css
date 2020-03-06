@@ -207,7 +207,18 @@ body {
   width: 400px;
   height: 302px;
 }
-
+.identifyPUFeaturesInfoTable{
+  width: 400px;
+  max-height: 300px;
+}
+.identifyFeaturesInfoTable{
+  width: 400px;
+  max-height: 300px;
+}
+.identifyProtectedAreasInfoTable{
+  width: 450px;
+  max-height: 300px;
+}
 .infoTable {
   width: 337px;
   height: 212px;
@@ -1086,4 +1097,9 @@ a {
 }
 .identifyPopup{
   min-width:200px;
+}
+.identifyPlanningUnitsHeader{
+  font-size:12px;
+  width: 400px;
+  padding-bottom:8px;
 }
