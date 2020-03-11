@@ -11,7 +11,7 @@ class MetChart extends React.Component {
         let protected_area = getArea(this.props.current_protected_area, this.props.units);
         let total_area = getArea(this.props.total_area, this.props.units);
         let titleText = "Total area: " +  total_area + ' ' + this.props.units + "\nCountry area: " + country_area + ' ' + this.props.units + "\nProtected area: " + protected_area + ' ' + this.props.units;
-        const data = (this.props.showCountryArea) ? [{ name: 'Protected area', value: protected_area},{ name: 'Country area', value: (country_area - protected_area) }, { name: 'Total area', value: (total_area - country_area) }] : [{ name: 'Protected area', value: protected_area}, { name: 'Total area', value: (total_area - protected_area) }];
+        const data = (this.props.showCountryArea) ? [{ name: 'Protected area', value: protected_area},{ name: 'Country area', value: (country_area - protected_area) }, { name: 'Total area', value: (total_area - country_area) }] : [{ name: 'Protected area', value: protected_area}, { name: 'Total area', value: (country_area - protected_area) }];
         const colors = ['#D9D9D9', this.props.color];
         return (
             <React.Fragment>
