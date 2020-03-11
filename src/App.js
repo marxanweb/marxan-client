@@ -2888,6 +2888,8 @@ class App extends React.Component {
 
   //updates the allFeatures to set the various properties based on which features have been selected in the FeaturesDialog or programmatically
   updateSelectedFeatures(){
+    //delete the gap analysis as the features within the project have changed
+    this.deleteGapAnalysis();
     let allFeatures = this.state.allFeatures;
     allFeatures.forEach((feature) => {
       if (this.state.selectedFeatureIds.includes(feature.id)) {
@@ -3182,8 +3184,6 @@ class App extends React.Component {
       addedFeatures.forEach(item => {
         this.initialiseNewFeature(item);
       });
-      console.log(addedIds);
-      console.log(removedIds);
     });
   }
   openFeatureMenu(evt, feature){
@@ -3854,6 +3854,13 @@ class App extends React.Component {
       });
     });
     
+  }
+  
+  //deletes a stored gap analysis on the server
+  deleteGapAnalysis(){
+    this._get("deleteGapAnalysis?user=" + this.state.owner + "&project=" + this.state.project).then((response) => {
+      console.log(response);
+    });
   }
   
   setAddToProject(addToProject){
