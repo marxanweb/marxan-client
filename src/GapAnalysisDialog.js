@@ -108,7 +108,7 @@ class GapAnalysisDialog extends React.PureComponent {
 							</div>
 							<ComposedChart  width={550} height={350} data={_data} margin={{bottom:20, top:20}} style={{display: (this.state.showChart) ? 'block' : 'none', margin:'auto'}}>
 								<CartesianGrid strokeDasharray="1" stroke="#f4f4f4"/>
-								<XAxis dataKey="_alias" interval={0} height={100} angle={-90} textAnchor="end" dx={-5}>
+								<XAxis dataKey="_alias" height={100} angle={-90} textAnchor="end" dx={-5}>
 								</XAxis> 
 								<YAxis tick={{fontSize:11}} >
 									<Label value='Percent Protected' angle={-90} position='insideBottomLeft' style={{fontSize:'11px',color:'#222222'}} offset={30}/>
