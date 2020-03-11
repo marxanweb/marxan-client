@@ -1,7 +1,7 @@
 import * as React from 'react';
 import MarxanDialog from './MarxanDialog';
 import MetChart from "./MetChart";
-import { Cell, ReferenceLine, ComposedChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Label, Text } from 'recharts';
+import { Cell, ReferenceLine, ComposedChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Label } from 'recharts';
 import Toggle from 'material-ui/Toggle';
 import { getArea } from './genericFunctions.js';
 
@@ -9,7 +9,9 @@ const CustomTooltip = ({ active, payload, label }) => {
 	if (active && payload) {
 		return (
 			<div className="custom-tooltip">
-        <div className="tooltip">Area: {getArea(payload[0].payload.total_area,'km2')} km2</div>
+        <div className="tooltip">{payload[0].payload._alias}</div>
+        <div className="tooltip">Total area: {getArea(payload[0].payload.total_area,'km2')} km2</div>
+        <div className="tooltip">Country area: {getArea(payload[0].payload.country_area,'km2')} km2</div>
         <div className="tooltip">Protected area: {getArea(payload[0].payload.current_protected_area,'km2')} km2</div>
       </div>
 		);
@@ -17,13 +19,6 @@ const CustomTooltip = ({ active, payload, label }) => {
 
 	return null;
 };
-
-class CustomizedAxisTick extends React.Component {
-  render () {
-    const {x, y, payload} = this.props;
-   	return <Text x={x} y={y} width={75} textAnchor="middle" verticalAnchor="start" className={'gapAnalysisXAxisLabels'}>{payload.value}</Text>;
-  }
-}
 
 class GapAnalysisDialog extends React.PureComponent {
 		constructor(props) {
@@ -113,7 +108,7 @@ class GapAnalysisDialog extends React.PureComponent {
 							</div>
 							<ComposedChart  width={550} height={350} data={_data} margin={{bottom:20, top:20}} style={{display: (this.state.showChart) ? 'block' : 'none', margin:'auto'}}>
 								<CartesianGrid strokeDasharray="1" stroke="#f4f4f4"/>
-								<XAxis dataKey="_alias" interval={0} tick={<CustomizedAxisTick />} height={100}>
+								<XAxis dataKey="_alias" interval={0} height={100} angle={-90} textAnchor="end" dx={-5}>
 								</XAxis> 
 								<YAxis tick={{fontSize:11}} >
 									<Label value='Percent Protected' angle={-90} position='insideBottomLeft' style={{fontSize:'11px',color:'#222222'}} offset={30}/>
