@@ -86,7 +86,7 @@ let IUCN_CATEGORIES = ['None','IUCN I-II','IUCN I-IV','IUCN I-V','IUCN I-VI','Al
 //constants for creating new planning grids
 let DOMAINS = ["Marine", "Terrestrial"];
 let SHAPES = ['Hexagon', 'Square'];
-let AREAKM2S = [10, 20, 30, 40, 50];
+let AREAKM2S = [10, 20, 30, 40, 50, 100];
 //layer source names
 let PLANNING_UNIT_SOURCE_NAME = "marxan_planning_units_source";
 let WDPA_SOURCE_NAME = "marxan_wdpa_source";
