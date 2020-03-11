@@ -41,7 +41,7 @@ module.exports = {
             default:
                 // code
         }
-        return Number((value * scale).toFixed(1));
+        return Number((value * scale).toFixed(6)); //to 6 decimal places for m2
     },
   //zooms the passed map to the passed bounds
   zoomToBounds: function (map, bounds) {
