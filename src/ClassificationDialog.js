@@ -24,7 +24,7 @@ class ClassificationDialog extends React.Component {
 				rightX={0}
 				offsetY={80}
 				showCancelButton={false}
-				helpLink={"docs_user.html#changing-how-the-results-are-displayed"}
+				helpLink={"user.html#changing-how-the-results-are-displayed"}
 				title="Classification" 
 				children={
 					<div style={{height:'275px'}} key="k6">

@@ -25,7 +25,7 @@ class LoginDialog extends React.Component {
 					showCancelButton={true}
 					cancelLabel={"Register"}
 					cancelDisabled={((this.props.marxanServer===undefined) || this.props.loading || (this.props.marxanServer&&this.props.marxanServer.offline) || (this.props.marxanServer&&!this.props.marxanServer.corsEnabled)) ? true : false} 
-					helpLink={"docs_user.html#log-in-window"}
+					helpLink={"user.html#log-in-window"}
 					contentWidth={358}
 					offsetY={200}
 					children={[

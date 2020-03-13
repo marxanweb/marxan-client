@@ -70,7 +70,7 @@ class PlanningGridsDialog extends React.Component {
 				// titleBarIcon={faBookOpen}
 				onOk={this.closeDialog.bind(this)}
 				showCancelButton={false}
-				helpLink={"docs_user.html#the-planning-grids-window"}
+				helpLink={"user.html#the-planning-grids-window"}
 				autoDetectWindowHeight={false}
 				bodyStyle={{ padding:'0px 24px 0px 24px'}}
 				title="Planning grids"  

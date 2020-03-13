@@ -59,7 +59,7 @@ class RunSettingsDialog extends React.Component {
 				offsetX={80}
 				offsetY={260}
 				onOk={this.updateRunParams.bind(this)}
-				helpLink={"docs_user.html#run-settings"}
+				helpLink={"user.html#run-settings"}
 				title="Run settings" 
 				children={
 					<div style={{height:'275px'}} key="k16">

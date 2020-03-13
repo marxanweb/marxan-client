@@ -56,7 +56,7 @@ class NewPlanningGridDialog extends React.Component {
 				okDisabled={ !this.state.iso3 ||!this.state.domain ||!this.state.areakm2 ||this.props.loading}
 				cancelLabel={"Cancel"}
 				showCancelButton={true}
-				helpLink={"docs_user.html#creating-new-planning-grids-using-marxan-web"}
+				helpLink={"user.html#creating-new-planning-grids-using-marxan-web"}
 				title="New planning grid"
 				contentWidth={358}
 				children={

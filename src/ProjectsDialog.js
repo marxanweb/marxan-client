@@ -85,7 +85,7 @@ class ProjectsDialog extends React.Component {
 					onCancel={this.closeDialog.bind(this)}
 					okDisabled={!this.state.selectedProject}
 					showCancelButton={true}
-					helpLink={"docs_user.html#the-projects-window"}
+					helpLink={"user.html#the-projects-window"}
 					autoDetectWindowHeight={false}
 					bodyStyle={{ padding:'0px 24px 0px 24px'}}
 					title="Projects"  

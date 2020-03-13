@@ -95,7 +95,7 @@ class GapAnalysisDialog extends React.PureComponent {
                 {...this.props}
                 contentWidth={680}
                 title="Gap Analysis"
-                helpLink={"docs_user.html#gap-analysis-window"}
+                helpLink={"user.html#gap-analysis-window"}
                 onRequestClose={this.props.closeGapAnalysisDialog}
                 showCancelButton={false}
                 children={

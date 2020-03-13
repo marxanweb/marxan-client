@@ -42,7 +42,7 @@ class ServerDetailsDialog extends React.Component {
         contentWidth={445}
         offsetY={80}
         title="Server Details"
-        helpLink={"docs_user.html#server-details"}
+        helpLink={"user.html#server-details"}
         children={[
 						<ReactTable 
 							showPagination={false} 

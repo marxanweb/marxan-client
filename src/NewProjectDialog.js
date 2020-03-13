@@ -194,7 +194,7 @@ class NewProjectDialog extends React.Component {
 							onOk={this.onOk.bind(this)}
 							onCancel={this.onOk.bind(this)}
 							onRequestClose={this.onOk.bind(this)} 
-							helpLink={"docs_user.html#creating-new-projects"}
+							helpLink={"user.html#creating-new-projects"}
 					/>
 						<FeaturesDialog
 							open={this.state.featuresDialogOpen}

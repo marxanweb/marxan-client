@@ -22,7 +22,7 @@ class PlanningGridDialog extends React.Component {
 				onRequestClose={this.props.onCancel}
 				showCancelButton={false}
 				title={this.props.planning_grid_metadata.alias}
-				helpLink={"docs_user.html#the-planning-grid-details-window"}
+				helpLink={"user.html#the-planning-grid-details-window"}
 				contentWidth={768}
 				children={
 					<React.Fragment key="k26">

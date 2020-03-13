@@ -43,7 +43,7 @@ class UsersDialog extends React.Component {
 							onOk={this.closeDialog.bind(this)}
 							onRequestClose={this.closeDialog.bind(this)}
 							showCancelButton={false}
-							helpLink={"docs_user.html#the-users-window-admin-users-only"}
+							helpLink={"user.html#the-users-window-admin-users-only"}
 							autoDetectWindowHeight={false}
 							bodyStyle={{ padding:'0px 24px 0px 24px'}}
 							title="Users"   

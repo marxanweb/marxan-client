@@ -39,7 +39,7 @@ class ImportGBIFDialog extends React.Component {
                 contentWidth={540}
                 offsetY={80}
                 title="Import GBIF data"
-                helpLink={"docs_user.html#import-gbif-data"}
+                helpLink={"user.html#import-gbif-data"}
                 onOk={this.onOk.bind(this)}
                 okDisabled={this.state.selectedItem===undefined}
                 showCancelButton={true}

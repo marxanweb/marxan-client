@@ -168,7 +168,7 @@ class NewProjectWizardDialog extends React.Component {
 				showCancelButton={true}
 				onCancel={this.props.closeNewProjectWizardDialog}
 				onRequestClose={this.props.closeNewProjectWizardDialog} 
-				helpLink={"docs_user.html#creating-new-projects"}
+				helpLink={"user.html#creating-new-projects"}
 				actions={actions}
 				children={children}
 			/>

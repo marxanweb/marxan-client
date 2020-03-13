@@ -20,7 +20,7 @@ class FeatureDialog extends React.Component {
 				onRequestClose={this.props.onCancel}
 				showCancelButton={false}
 				title={this.props.feature_metadata.alias}
-				helpLink={"docs_user.html#the-feature-details-window"}
+				helpLink={"user.html#the-feature-details-window"}
 				contentWidth={768}
 				children={
 					<React.Fragment key="k26">

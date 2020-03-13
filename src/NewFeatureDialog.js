@@ -34,7 +34,7 @@ class NewFeatureDialog extends React.Component {
 				title="Create new feature" 
 				children={c} 
 				onRequestClose={this.props.onOk} 
-				helpLink={"docs_user.html#drawing-features-on-screen"}
+				helpLink={"user.html#drawing-features-on-screen"}
 			/>
 		);
 	}

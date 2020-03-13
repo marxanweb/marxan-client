@@ -39,7 +39,7 @@ class Welcome extends React.Component {
         contentWidth={768}
         offsetY={80}
         title="Welcome"
-        helpLink={"docs_user.html#welcome"}
+        helpLink={"user.html#welcome"}
         onOk={this.onOk.bind(this)}
         showCancelButton={false}
 				autoDetectWindowHeight={false}

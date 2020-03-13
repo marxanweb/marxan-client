@@ -134,7 +134,7 @@ class ImportFeaturesDialog extends React.Component {
 				children={children} 
 				actions={actions}  
 				onRequestClose={this.closeDialog.bind(this)} 
-				helpLink={"docs_user.html#importing-existing-features"}
+				helpLink={"user.html#importing-existing-features"}
 			/>
 		);
 	}

@@ -106,7 +106,7 @@ class RunLogDialog extends React.Component {
 				onOk={this.closeDialog.bind(this)}
 				onCancel={this.closeDialog.bind(this)}
 				showCancelButton={false}
-				helpLink={"docs_user.html#the-run-log"}
+				helpLink={"user.html#the-run-log"}
 				autoDetectWindowHeight={false}
 				bodyStyle={{ padding:'0px 24px 0px 24px'}}
 				title="Runs"  

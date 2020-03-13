@@ -42,7 +42,7 @@ class ChangePasswordDialog extends React.Component {
         onOk={this.onOk.bind(this)}
         showCancelButton={true}
         onCancel={this.props.onOk}
-        helpLink={"docs_user.html#change-password"}
+        helpLink={"user.html#change-password"}
         contentWidth={358}
         offsetY={80}
         title="Change Password"
