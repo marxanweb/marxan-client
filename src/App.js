@@ -74,7 +74,7 @@ import ImportGBIFDialog from './ImportGBIFDialog';
 
 //CONSTANTS
 let MARXAN_CLIENT_VERSION = packageJson.version; //TODO UPDATE PACKAGE.JSON WHEN THERE IS A NEW VERSION
-let DOCS_ROOT = "https://andrewcottam.github.io/marxan-web/documentation/";
+let DOCS_ROOT = "https://docs.marxanweb.org/";
 let ERRORS_PAGE = DOCS_ROOT + "docs_errors.html";
 let SEND_CREDENTIALS = true; //if true all post requests will send credentials
 let TORNADO_PATH = "/marxan-server/";

@@ -18,7 +18,7 @@ import {faSearch} from '@fortawesome/free-solid-svg-icons';
 //helpLink - a relative url to the bookmark in the user documentation that describes the particular dialog box
 //showSearchBox - true to show a search box
 
-let DOCS_ROOT = "https://andrewcottam.github.io/marxan-web/documentation/";
+let DOCS_ROOT = "https://docs.marxanweb.org/";
 
 class MarxanDialog extends React.Component {
 	constructor(props){
