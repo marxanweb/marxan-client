@@ -12,7 +12,7 @@ import MapboxDraw from '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.js';
 import mapboxgl from 'mapbox-gl';
 import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css'; 
 import 'mapbox-gl/dist/mapbox-gl.css';
-import HomeButton from './HomeButton.js'; 
+import HomeButton from './HomeButton.js';  
 import jsonp from 'jsonp-promise';
 import classyBrew from 'classybrew';
 import { getMaxNumberOfClasses,zoomToBounds } from './genericFunctions.js';
