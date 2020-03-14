@@ -1,5 +1,6 @@
 # marxan-client
 See also [marxan-server](https://github.com/marxanweb/marxan-server).  
+Hosted version at [https://app.marxanweb.org](https://app.marxanweb.org)
 
 ## Architecture
 ![marxan-client architecture](architecture_client.png)
