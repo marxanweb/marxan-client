@@ -1,5 +1,5 @@
 # marxan-client
-See also [marxan-web](https://github.com/andrewcottam/marxan-web) and [marxan-server](https://github.com/andrewcottam/marxan-server).  
+See also [marxan-server](https://github.com/marxanweb/marxan-server).  
 
 ## Architecture
 ![marxan-client architecture](architecture_client.png)
