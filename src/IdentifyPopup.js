@@ -88,6 +88,7 @@ class IdentifyPopup extends React.Component {
 			default:
 				// code
 		}
+		let feature_text = (this.props.identifyPlanningUnits.features&&this.props.identifyPlanningUnits.features.length === 1) ? "One feature:" : (this.props.identifyPlanningUnits.features&&this.props.identifyPlanningUnits.features.length) + " features:";
 		//get the tabs which are needed
 		let puTab = (this.props.identifyPlanningUnits && this.props.identifyPlanningUnits.puData) ?
 			<Tab label="Planning units" value="pu" key="pu">
@@ -98,7 +99,7 @@ class IdentifyPopup extends React.Component {
 					<span>Cost: {this.props.identifyPlanningUnits&&this.props.identifyPlanningUnits.puData&&this.props.identifyPlanningUnits.puData.cost}</span>
 				</div>
 				<div style={{display: this.props.identifyPlanningUnits && this.props.identifyPlanningUnits.features && this.props.identifyPlanningUnits.features.length ? "block" : "none"}}>
-					<div>Features summary:</div>
+					<div>{feature_text}</div>
 					<ReactTable
 						showPagination={false}
 						className={'identifyPUFeaturesInfoTable'}
