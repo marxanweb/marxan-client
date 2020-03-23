@@ -22,7 +22,7 @@ class ServerDetailsDialog extends React.Component {
       {key:'Name',value:this.props.marxanServer.name},
       {key:'Description',value:this.props.marxanServer.description},
       {key:'Host',value:this.props.marxanServer.host},
-      {key:'Port',value:this.props.marxanServer.port},
+    //   {key:'Port',value:this.props.marxanServer.port},
       {key:'System',value:this.props.marxanServer.system},
       {key:'Processors',value:this.props.marxanServer.processor_count},
       {key:'Disk space',value:this.props.marxanServer.disk_space},
@@ -30,6 +30,7 @@ class ServerDetailsDialog extends React.Component {
       {key:'Marxan Server version',value:this.props.marxanServer.server_version},
       {key:'WDPA version',value:this.props.marxanServer.wdpa_version},
       {key:'Planning grid units limit',value:this.props.marxanServer.planning_grid_units_limit},
+      {key:'Shutdown',value: (this.props.marxanServer.shutdowntime) ? new Date(this.props.marxanServer.shutdowntime).toLocaleString() : "Never"},
     ] 
     : [];
     // add the following if necessary
