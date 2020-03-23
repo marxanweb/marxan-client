@@ -611,6 +611,8 @@ class App extends React.Component {
   }
   //programatically selects a server
   _selectServer(servername){
+    //remove the search part of the url
+    window.history.replaceState({}, document.title, "/" );
     //get the server object from the name  
     let server = this.state.marxanServers.filter(item=>item.name===servername);
     if (server.length) this.selectServer(server[0]);
