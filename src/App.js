@@ -242,17 +242,16 @@ class App extends React.Component {
   }
 
   componentDidMount() {
+    //get the query parameters
+    var searchParams = new URLSearchParams(window.location.search);
     //if this is a shareable link, then dont show the login form
-    if (window.location.search !== "") this.setState({loggedIn:true, shareableLink:true});
+    if (searchParams.has("project")) this.setState({loggedIn:true, shareableLink:true});
     //parse the application level variables from the Marxan Registry
     this.getGlobalVariables().then(()=>{
       //automatically login if this is a shareable link
-      if (window.location.search !== "") {
-        //get the query parameters
-        var searchParams = new URLSearchParams(window.location.search);
-        //open the shareable link
-        this.openShareableLink(searchParams);
-      }
+      if (searchParams.has("project")) this.openShareableLink(searchParams);
+      //select a server if it is passed
+      if (searchParams.has("server")) this._selectServer(searchParams.get("server"));
     });
     //instantiate the classybrew to get the color ramps for the renderers
     this.setState({ brew: new classyBrew() });
@@ -609,6 +608,12 @@ class App extends React.Component {
           resolve(server);
       });
     });
+  }
+  //programatically selects a server
+  _selectServer(servername){
+    //get the server object from the name  
+    let server = this.state.marxanServers.filter(item=>item.name===servername);
+    if (server.length) this.selectServer(server[0]);
   }
   
   //sets the layer name for the WDPA vector tiles based on the WDPA version
