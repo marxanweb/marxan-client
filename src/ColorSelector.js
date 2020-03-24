@@ -1,7 +1,7 @@
 import React from 'react';
 import SelectField from 'material-ui/SelectField';
 import MenuItem from 'material-ui/MenuItem';
-import { getMaxNumberOfClasses } from './genericFunctions.js';
+import { getMaxNumberOfClasses } from './Helpers.js';
 
 class ColorSelector extends React.Component {
 	handleChange(event, index, value) {

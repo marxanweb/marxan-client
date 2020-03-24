@@ -15,7 +15,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import HomeButton from './HomeButton.js';  
 import jsonp from 'jsonp-promise';
 import classyBrew from 'classybrew';
-import { getMaxNumberOfClasses,zoomToBounds } from './genericFunctions.js';
+import { getMaxNumberOfClasses,zoomToBounds } from './Helpers.js';
 //material-ui components and icons
 import Popover from 'material-ui/Popover'; 
 import Menu from 'material-ui/Menu';
@@ -237,7 +237,8 @@ class App extends React.Component {
       shareableLinkUrl: "",
       notifications:[],
       gapAnalysis: [],
-      showCosts: false
+      showCosts: false,
+      reportUnits: "km2"
     };
   }
 
@@ -4064,6 +4065,7 @@ class App extends React.Component {
             updateFeature={this.updateFeature.bind(this)}
             FEATURE_PROPERTIES={FEATURE_PROPERTIES}
             userRole={this.state.userData.ROLE}
+            reportUnits={this.state.reportUnits}
           />
           <IdentifyPopup
             visible={this.state.identifyVisible}
@@ -4073,6 +4075,7 @@ class App extends React.Component {
             identifyFeatures={this.state.identifyFeatures}
             loading={this.state.loading}
             hideIdentifyPopup={this.hideIdentifyPopup.bind(this)}
+            reportUnits={this.state.reportUnits}
           />
           <ProjectsDialog 
             open={this.state.projectsDialogOpen} 
@@ -4172,6 +4175,7 @@ class App extends React.Component {
             feature_metadata={this.state.feature_metadata}
             getTilesetMetadata={this.getMetadata.bind(this)}
             setSnackBar={this.setSnackBar.bind(this)}
+            reportUnits={this.state.reportUnits}
           />
           <NewFeatureDialog
             open={this.state.NewFeatureDialogOpen} 
@@ -4372,6 +4376,7 @@ class App extends React.Component {
             projectFeatures={this.state.projectFeatures}
             metadata={this.state.metadata}
             marxanServer={this.state.marxanServer}
+            reportUnits={this.state.reportUnits}
           />
           <ShareableLinkDialog
             open={this.state.shareableLinkDialogOpen}

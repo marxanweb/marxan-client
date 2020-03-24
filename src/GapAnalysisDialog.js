@@ -3,22 +3,7 @@ import MarxanDialog from './MarxanDialog';
 import MetChart from "./MetChart";
 import { Cell, ReferenceLine, ComposedChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Label } from 'recharts';
 import Toggle from 'material-ui/Toggle';
-import { getArea } from './genericFunctions.js';
-
-const CustomTooltip = ({ active, payload, label }) => {
-	if (active && payload) {
-		return (
-			<div className="custom-tooltip">
-        <div className="tooltip">{payload[0].payload._alias}</div>
-        <div className="tooltip">Total area: {getArea(payload[0].payload.total_area,'km2')} km2</div>
-        <div className="tooltip">Country area: {getArea(payload[0].payload.country_area,'km2')} km2</div>
-        <div className="tooltip">Protected area: {getArea(payload[0].payload.current_protected_area,'km2')} km2</div>
-      </div>
-		);
-	}
-
-	return null;
-};
+import CustomTooltip from './CustomTooltip.js';
 
 class GapAnalysisDialog extends React.PureComponent {
 		constructor(props) {
@@ -80,7 +65,7 @@ class GapAnalysisDialog extends React.PureComponent {
 				let charts = _data.map((item, index) => {
 					if (item.country_area > 0) {
 						if (item.current_protected_percent >= item.target_value) targetsMetCount = targetsMetCount + 1;
-						return <MetChart {...item} title={item._alias} color={item.color} key={item._feature_class_name} units={'km2'} showCountryArea={false} dataKey={item._feature_class_name}/>;
+						return <MetChart {...item} title={item._alias} color={item.color} key={item._feature_class_name} reportUnits={this.props.reportUnits} showCountryArea={false} dataKey={item._feature_class_name}/>;
 					}
 					else {
 						return null;
@@ -113,7 +98,7 @@ class GapAnalysisDialog extends React.PureComponent {
 								<YAxis tick={{fontSize:11}} >
 									<Label value='Percent Protected' angle={-90} position='insideBottomLeft' style={{fontSize:'11px',color:'#222222'}} offset={30}/>
 								</YAxis>
-    							<Tooltip content={<CustomTooltip />} />
+    							<Tooltip content={<CustomTooltip reportUnits={this.props.reportUnits}/>} />
 								<Bar dataKey="current_protected_percent" fill="#8884d8">
 									{
 									_data.map((entry, index) => {

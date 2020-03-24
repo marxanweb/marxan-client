@@ -1,17 +1,17 @@
 import * as React from 'react';
 import { PieChart, Pie, Cell } from 'recharts';
 import Divider from 'material-ui/Divider';
-import { getArea } from './genericFunctions.js';
+import { getArea } from './Helpers.js';
 // import star from './images/star.png';
 
 class MetChart extends React.Component {
     render() {
         let rounded = Number(this.props.current_protected_percent.toFixed(1));
-        let country_area = getArea(this.props.country_area, this.props.units);
-        let protected_area = getArea(this.props.current_protected_area, this.props.units);
-        let total_area = getArea(this.props.total_area, this.props.units);
-        let titleText = "Total area: " +  total_area + ' ' + this.props.units + "\nCountry area: " + country_area + ' ' + this.props.units + "\nProtected area: " + protected_area + ' ' + this.props.units;
-        const data = (this.props.showCountryArea) ? [{ name: 'Protected area', value: protected_area},{ name: 'Country area', value: (country_area - protected_area) }, { name: 'Total area', value: (total_area - country_area) }] : [{ name: 'Protected area', value: protected_area}, { name: 'Total area', value: (country_area - protected_area) }];
+        let country_area = getArea(this.props.country_area, this.props.reportUnits, false);
+        let protected_area = getArea(this.props.current_protected_area, this.props.reportUnits, false);
+        let total_area = getArea(this.props.total_area, this.props.reportUnits, false);
+        let titleText = "Total area: " +  total_area + "\nCountry area: " + country_area + "\nProtected area: " + protected_area;
+        const data = (this.props.showCountryArea) ? [{ name: 'Protected area', value: this.props.current_protected_area},{ name: 'Country area', value: (this.props.country_area - this.props.current_protected_area) }, { name: 'Total area', value: (this.props.total_area - this.props.country_area) }] : [{ name: 'Protected area', value: this.props.current_protected_area}, { name: 'Total area', value: (this.props.country_area - this.props.current_protected_area) }];
         const colors = ['#D9D9D9', this.props.color];
         return (
             <React.Fragment>

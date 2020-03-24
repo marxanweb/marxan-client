@@ -1,6 +1,6 @@
 import * as React from 'react';
 import TransparencyControl from './TransparencyControl';
-import { getMaxNumberOfClasses } from './genericFunctions.js';
+import { getMaxNumberOfClasses } from './Helpers.js';
 
 class Legend extends React.Component {
 	 getPlanningUnitsLegend(colorCode) {

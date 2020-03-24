@@ -2,6 +2,8 @@ import React from 'react';
 import ReactTable from "react-table";
 import Sync from 'material-ui/svg-icons/notification/sync';
 import { Tabs, Tab } from 'material-ui/Tabs';
+import { getArea } from './Helpers.js';
+
 const TITLE_LINK = "Click to open in the Protected Planet website";
 const URL_PP = "https://www.protectedplanet.net/";
 
@@ -17,7 +19,7 @@ class IdentifyPopup extends React.Component {
 		if ((this.props.xy.x !== prevProps.xy.x)) this.restartTimer();
 	}
 	renderAmount(row) {
-		return <div title={row.original.amount}>{(Number(row.original.amount)/1000000).toFixed(3)} Km2</div>;
+		return <div title={row.original.amount}>{getArea(row.original.amount, this.props.reportUnits, true)}</div>;
 	}
 	renderName(row) {
 		return <div title={row.original.alias}>{row.original.alias}</div>;

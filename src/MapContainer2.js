@@ -1,6 +1,6 @@
 import * as React from 'react';
 import mapboxgl from 'mapbox-gl';
-import {zoomToBounds } from './genericFunctions.js';
+import {zoomToBounds } from './Helpers.js';
 //TODO: Combine this with MapContainer.js as they do similar things
 class MapContainer2 extends React.Component {
 	componentDidMount() {

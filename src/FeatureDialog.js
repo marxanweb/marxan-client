@@ -4,6 +4,7 @@ import MapContainer2 from './MapContainer2';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faAngleDown } from '@fortawesome/free-solid-svg-icons';
 import { faAngleUp } from '@fortawesome/free-solid-svg-icons';
+import { getArea } from './Helpers.js';
 
 class FeatureDialog extends React.Component { 
 	constructor (props){
@@ -42,7 +43,7 @@ class FeatureDialog extends React.Component {
 									</tr>
 									<tr>
 										<td className='metadataItemTitle'>Area:</td>
-										<td className='metadataItemValue'>{this.props.feature_metadata.area}m<span className='superscript'>2</span></td>
+										<td className='metadataItemValue'>{getArea(this.props.feature_metadata.area, this.props.reportUnits, true)}</td>
 									</tr>
 									<tr>
 										<td className='metadataItemTitle'>Author:</td>

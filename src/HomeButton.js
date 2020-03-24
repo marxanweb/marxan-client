@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {zoomToBounds } from './genericFunctions.js';
+import {zoomToBounds } from './Helpers.js';
 
 class HomeButton extends React.Component {
     zoom() {

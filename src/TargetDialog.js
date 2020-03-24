@@ -1,7 +1,7 @@
 import * as React from 'react';
 import MarxanDialog from './MarxanDialog';
 import TextField from 'material-ui/TextField';
-import { isValidTargetValue } from './genericFunctions.js';
+import { isValidTargetValue } from './Helpers.js';
 
 class TargetDialog extends React.PureComponent {
     constructor(props) {
