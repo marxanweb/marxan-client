@@ -1115,16 +1115,21 @@ class App extends React.Component {
 
   //resets various variables and state in between users
   resetResults() {
-    this.runMarxanResponse = {};
+    //reset the run
+    this.resetRun();
     //reset the cost data
     this.cost_data = undefined;
-    this.setState({ solutions: [], showCosts: false});
+    this.setState({ showCosts: false});
     //reset any feature layers that are shown
     this.hideFeatureLayer();
     //reset the puvspr layer
     this.hideLayer(PUVSPR_LAYER_NAME);
   }
-
+  //resets state in between runs
+  resetRun(){
+    this.runMarxanResponse = {};
+    this.setState({ solutions: []});
+  }
   //create a new user on the server
   createNewUser(user, password, name, email) {
     let formData = new FormData();
@@ -1267,6 +1272,8 @@ class App extends React.Component {
     this.startLogging();
     //reset all of the protected and target areas for all features
     this.resetProtectedAreas();
+    //reset the run results
+    this.resetRun();
     //update the spec.dat file with any that have been added or removed or changed target or spf
     this.updateSpecFile().then((value)=> {
       //when the species file has been updated, update the planning unit file 
