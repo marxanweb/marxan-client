@@ -1,8 +1,8 @@
 /*global fetch*/
 /*global URLSearchParams*/
+/*global AbortController*/
 import React from 'react';
 import packageJson from '../package.json';
-import fetchJsonp from 'fetch-jsonp';
 /*eslint-disable no-unused-vars*/ 
 import axios, { post } from 'axios';
 /*eslint-enable no-unused-vars*/
@@ -564,50 +564,49 @@ class App extends React.Component {
   }  
 
   //gets the capabilities of all servers
-  getAllServerCapabilities(marxanServers){
-    let promiseArray = [];
-    //iterate through the servers and get their capabilities
-    for (var i = 0; i < marxanServers.length; ++i) {
-      promiseArray.push(this.getServerCapabilities(marxanServers[i]));
-    }
-    //return a promise
-    return Promise.all(promiseArray);
+  async getAllServerCapabilities(marxanServers) {
+    let promises = await marxanServers.map(async server=>{
+      await this.getServerCapabilities(server);
+    });
+    await Promise.all(promises);
   }
 
   //gets the capabilities of the server by making a request to the getServerData method
-  getServerCapabilities(server){
-    return new Promise((resolve, reject) => {
-      //get the endpoint for all http/https requests
-      let endpoint = server.protocol + "//" + server.host + ":" + server.port + TORNADO_PATH;
-      //get the WebService endpoint
-      let websocketEndpoint = (server.protocol ==='http:') ? "ws://" + server.host + ":" + server.port + TORNADO_PATH : "wss://" + server.host + ":" + server.port + TORNADO_PATH;
-      //set the default properties for the server - by default the server is offline, has no guest access and CORS is not enabled
-      server = Object.assign(server, {endpoint: endpoint, websocketEndpoint: websocketEndpoint, offline: true, guestUserEnabled: false, corsEnabled: false});
-      //poll the server to make sure tornado is running - this uses fetchJsonp which can catch http errors
-      fetchJsonp(endpoint + "getServerData",{timeout: 1000}).then((response) => {
-        return response.json();
-      }).then((json) => {
-        if (json.hasOwnProperty('info')){
-          //see if CORS is enabled from this domain - either the domain has been added as an allowable domain on the server, or the client and server are on the same machine
-          let corsEnabled = ((json.serverData.PERMITTED_DOMAINS.indexOf(window.location.hostname)>-1)||(server.host === window.location.hostname)) ? true : false;
-          //set the flags for the server capabilities
-          server = Object.assign(server, {guestUserEnabled: json.serverData.ENABLE_GUEST_USER, corsEnabled: corsEnabled, offline: false, machine: json.serverData.MACHINE, client_version: json.serverData.MARXAN_CLIENT_VERSION, server_version: json.serverData.MARXAN_SERVER_VERSION, node: json.serverData.NODE, processor: json.serverData.PROCESSOR, processor_count: json.serverData.PROCESSOR_COUNT,ram: json.serverData.RAM, release: json.serverData.RELEASE, system:json.serverData.SYSTEM, version: json.serverData.VERSION, wdpa_version: json.serverData.WDPA_VERSION, planning_grid_units_limit: Number(json.serverData.PLANNING_GRID_UNITS_LIMIT), disk_space: json.serverData.DISK_FREE_SPACE, shutdowntime: json.serverData.SHUTDOWNTIME});
-          //if the server defines its own name then set it 
-          if(json.serverData.SERVER_NAME!=="") {
-            server = Object.assign(server, {name:json.serverData.SERVER_NAME});
-          }
-          //if the server defines its own description then set it 
-          if(json.serverData.SERVER_DESCRIPTION!=="") {
-            server = Object.assign(server, {description:json.serverData.SERVER_DESCRIPTION});
-          }
+  async getServerCapabilities(server){
+    //get the endpoint for all http/https requests
+    let endpoint = server.protocol + "//" + server.host + ":" + server.port + TORNADO_PATH;
+    //get the WebService endpoint
+    let websocketEndpoint = (server.protocol ==='http:') ? "ws://" + server.host + ":" + server.port + TORNADO_PATH : "wss://" + server.host + ":" + server.port + TORNADO_PATH;
+    //set the default properties for the server - by default the server is offline, has no guest access and CORS is not enabled
+    server = Object.assign(server, {endpoint: endpoint, websocketEndpoint: websocketEndpoint, offline: true, guestUserEnabled: false, corsEnabled: false});
+    //poll the server to make sure tornado is running 
+    try{
+      const controller = new AbortController();
+      const signal = controller.signal;   
+      const timeoutId = setTimeout(() => controller.abort(), 1000);
+      const response = await fetch(endpoint + "getServerData", { signal });
+      clearTimeout(timeoutId);
+      if (!response.ok) {
+        throw Error("fetch returned a 404 or 500 error: " + response.statusText);
+      }
+      const json = await response.json();
+      if (json.hasOwnProperty('info')){
+        //see if CORS is enabled from this domain - either the domain has been added as an allowable domain on the server, or the client and server are on the same machine
+        let corsEnabled = ((json.serverData.PERMITTED_DOMAINS.indexOf(window.location.hostname)>-1)||(server.host === window.location.hostname)) ? true : false;
+        //set the flags for the server capabilities
+        server = Object.assign(server, {guestUserEnabled: json.serverData.ENABLE_GUEST_USER, corsEnabled: corsEnabled, offline: false, machine: json.serverData.MACHINE, client_version: json.serverData.MARXAN_CLIENT_VERSION, server_version: json.serverData.MARXAN_SERVER_VERSION, node: json.serverData.NODE, processor: json.serverData.PROCESSOR, processor_count: json.serverData.PROCESSOR_COUNT,ram: json.serverData.RAM, release: json.serverData.RELEASE, system:json.serverData.SYSTEM, version: json.serverData.VERSION, wdpa_version: json.serverData.WDPA_VERSION, planning_grid_units_limit: Number(json.serverData.PLANNING_GRID_UNITS_LIMIT), disk_space: json.serverData.DISK_FREE_SPACE, shutdowntime: json.serverData.SHUTDOWNTIME});
+        //if the server defines its own name then set it 
+        if(json.serverData.SERVER_NAME!=="") {
+          server = Object.assign(server, {name:json.serverData.SERVER_NAME});
         }
-        //return the server capabilities
-        resolve(server);
-        }).catch((ex) => {
-          //the server does not exist or did not respond before the timeout - return the default properties
-          resolve(server);
-      });
-    });
+        //if the server defines its own description then set it 
+        if(json.serverData.SERVER_DESCRIPTION!=="") {
+          server = Object.assign(server, {description:json.serverData.SERVER_DESCRIPTION});
+        }
+      }
+    }catch(error){
+      console.log("fetch failed with: " + error);
+    }
   }
   //programatically selects a server
   _selectServer(servername){
