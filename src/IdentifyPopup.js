@@ -6,7 +6,10 @@ const TITLE_LINK = "Click to open in the Protected Planet website";
 const URL_PP = "https://www.protectedplanet.net/";
 
 class IdentifyPopup extends React.Component {
-
+	constructor(props){
+		super(props);
+		this.state = {selectedValue: "pu"};
+	}
 	componentDidUpdate(prevProps, prevState) {
 		//if the popup is shown, start the timer
 		if (this.props.visible && !prevProps.visible) this.startTimer();
@@ -37,10 +40,13 @@ class IdentifyPopup extends React.Component {
 	renderPALink(row) {
 		return <span className={"ppLink underline"}><a href={URL_PP + row.original.properties.wdpaid} target='_blank'  rel="noopener noreferrer" title={TITLE_LINK}>{row.original.properties.wdpaid}</a></span>;
 	}
-
+	changeTab(value){
+		this.setState({selectedValue: value});
+	}
 	mouseLeave(e) {
 		this.clearTimeout();
 		this.props.hideIdentifyPopup();
+		this.setState({selectedValue: "pu"});
 	}
 	mouseEnter(e) {
 		this.cancelTimer();
@@ -72,6 +78,7 @@ class IdentifyPopup extends React.Component {
 		let left = this.props.xy.x + 25 + 'px';
 		let top = this.props.xy.y - 25 + 'px';
 		let puType = '';
+		//get the status for the planning unit
 		switch (this.props.identifyPlanningUnits && this.props.identifyPlanningUnits.puData && this.props.identifyPlanningUnits.puData.status) {
 			case 0:
 				puType = "Normal planning unit";
@@ -88,6 +95,7 @@ class IdentifyPopup extends React.Component {
 			default:
 				// code
 		}
+		//get the text for how many features there are in the planning
 		let feature_text = (this.props.identifyPlanningUnits.features&&this.props.identifyPlanningUnits.features.length === 1) ? "One feature:" : (this.props.identifyPlanningUnits.features&&this.props.identifyPlanningUnits.features.length) + " features:";
 		//get the tabs which are needed
 		let puTab = (this.props.identifyPlanningUnits && this.props.identifyPlanningUnits.puData) ?
@@ -188,7 +196,7 @@ class IdentifyPopup extends React.Component {
 		if (!puTab && !featuresTab && !protectedAreasTab) tabs = [];
 		return (
 			<div style={{'display': this.props.visible && tabs.length ? 'block' : 'none','left': left,'top':top}} id="popup" onMouseLeave={this.mouseLeave.bind(this)} onMouseEnter={this.mouseEnter.bind(this)}>
-				<Tabs contentContainerStyle={{'margin':'20px'}} className={'identifyPopup'}>
+				<Tabs contentContainerStyle={{'margin':'20px'}} className={'identifyPopup'} value={this.state.selectedValue} onChange={this.changeTab.bind(this)}>
 					{tabs}
 				</Tabs>
 			</div>
