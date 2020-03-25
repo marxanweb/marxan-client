@@ -182,7 +182,7 @@ class App extends React.Component {
       owner: '', // the owner of the project - may be different to the user, e.g. if logged on as guest (user) and accessing someone elses project (owner)
       loggedIn: false,
       shareableLink: false,
-      userData: {'SHOWWELCOMESCREEN': true},
+      userData: {'SHOWWELCOMESCREEN': true, 'REPORTUNITS': "Ha"},
       unauthorisedMethods: [],
       metadata: {},
       renderer: {},
@@ -237,8 +237,7 @@ class App extends React.Component {
       shareableLinkUrl: "",
       notifications:[],
       gapAnalysis: [],
-      showCosts: false,
-      reportUnits: "km2"
+      showCosts: false
     };
   }
 
@@ -4066,7 +4065,7 @@ class App extends React.Component {
             updateFeature={this.updateFeature.bind(this)}
             FEATURE_PROPERTIES={FEATURE_PROPERTIES}
             userRole={this.state.userData.ROLE}
-            reportUnits={this.state.reportUnits}
+            reportUnits={this.state.userData.REPORTUNITS}
           />
           <IdentifyPopup
             visible={this.state.identifyVisible}
@@ -4076,7 +4075,7 @@ class App extends React.Component {
             identifyFeatures={this.state.identifyFeatures}
             loading={this.state.loading}
             hideIdentifyPopup={this.hideIdentifyPopup.bind(this)}
-            reportUnits={this.state.reportUnits}
+            reportUnits={this.state.userData.REPORTUNITS}
           />
           <ProjectsDialog 
             open={this.state.projectsDialogOpen} 
@@ -4176,7 +4175,7 @@ class App extends React.Component {
             feature_metadata={this.state.feature_metadata}
             getTilesetMetadata={this.getMetadata.bind(this)}
             setSnackBar={this.setSnackBar.bind(this)}
-            reportUnits={this.state.reportUnits}
+            reportUnits={this.state.userData.REPORTUNITS}
           />
           <NewFeatureDialog
             open={this.state.NewFeatureDialogOpen} 
@@ -4377,7 +4376,7 @@ class App extends React.Component {
             projectFeatures={this.state.projectFeatures}
             metadata={this.state.metadata}
             marxanServer={this.state.marxanServer}
-            reportUnits={this.state.reportUnits}
+            reportUnits={this.state.userData.REPORTUNITS}
           />
           <ShareableLinkDialog
             open={this.state.shareableLinkDialogOpen}

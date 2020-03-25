@@ -3,7 +3,7 @@ import {zoomToBounds } from './Helpers.js';
 
 class HomeButton extends React.Component {
     zoom() {
-        let tileset = this.map.getSource("planning_units_source");
+        let tileset = this.map.getSource("marxan_planning_units_source");
         if (tileset && tileset.bounds) zoomToBounds(this.map, tileset.bounds);
     }
     onAdd(map){

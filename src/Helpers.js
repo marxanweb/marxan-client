@@ -31,10 +31,10 @@ export function getArea(value, units, asHtml, sf = 3, addcommas = true) {
         case 'm2':
             scale = 1;
             break;
-        case 'ha':
+        case 'Ha':
             scale = 0.0001;
             break;
-        case 'km2':
+        case 'Km2':
             scale = 0.000001;
             break;
         default:

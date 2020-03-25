@@ -3,6 +3,7 @@ import MarxanDialog from './MarxanDialog';
 import SelectField from 'material-ui/SelectField';
 import MenuItem from 'material-ui/MenuItem';
 import Checkbox from 'material-ui/Checkbox';
+import { RadioButton, RadioButtonGroup } from 'material-ui/RadioButton';
 
 class UserSettingsDialog extends React.Component {
         constructor(props){
@@ -28,6 +29,9 @@ class UserSettingsDialog extends React.Component {
         }
         toggleShowWelcomeScreen(evt, isInputChecked){
                 this.setOption("SHOWWELCOMESCREEN", isInputChecked);
+        }
+        setReportUnit(event, value){
+                this.setOption("REPORTUNITS", value);
         }
         render() {
                 return (
@@ -60,6 +64,14 @@ class UserSettingsDialog extends React.Component {
                                                                 />;
                                                         })}
                                                 />
+					<div style={{paddingBottom:'10px'}}>
+					    <div className={'userSetting'}>Area units</div>
+					    <RadioButtonGroup name="reportUnitType" defaultSelected={this.props.userData.REPORTUNITS} onChange={this.setReportUnit.bind(this)}>
+					      <RadioButton value="m2" label="m2" className={'radioButton'} style={{width: '60px', display:'inline-block'}} inputStyle={{width: '40px'}} labelStyle={{width: '40px'}} iconStyle={{marginRight:'3px'}}/>
+					      <RadioButton value="Ha" label="Ha" className={'radioButton'} style={{width: '60px', display:'inline-block'}} inputStyle={{width: '40px'}} labelStyle={{width: '40px'}} iconStyle={{marginRight:'3px'}}/>
+					      <RadioButton value="Km2" label="Km2" className={'radioButton'} style={{width: '60px', display:'inline-block'}} inputStyle={{width: '40px'}} labelStyle={{width: '40px'}} iconStyle={{marginRight:'3px'}}/>
+					    </RadioButtonGroup>
+					</div>
 						<Checkbox label="Use feature colours" style={{fontSize:'12px'}} checked={this.props.userData.USEFEATURECOLORS} onCheck={this.toggleUseFeatureColors.bind(this)} />
 						<Checkbox label="Show welcome screen at startup" style={{fontSize:'12px'}} checked={this.props.userData.SHOWWELCOMESCREEN} onCheck={this.toggleShowWelcomeScreen.bind(this)} />
                                         </div>
