@@ -25,7 +25,7 @@ export function getMaxNumberOfClasses(brew, colorCode) {
     });
     return colorSchemeLength;
 }
-export function getArea(value, units, asHtml) {
+export function getArea(value, units, asHtml, sf = 3, addcommas = true) {
     let scale;
     switch (units) {
         case 'm2':
@@ -40,7 +40,8 @@ export function getArea(value, units, asHtml) {
         default:
             // code
     }
-    let _value = Number((value * scale).toFixed(6)); //to 6 decimal places for m2
+    let _value = Number((value * scale).toPrecision(sf)); 
+    _value = (addcommas && _value > 1000) ? _value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") : _value.toString();
     let _units = (units.indexOf('2') !== -1) ? <span>{units.substr(0, units.indexOf('2'))}<span className='superscript'>2</span></span> : <span>{units}</span>;
     if (asHtml){
         return <span>{_value} {_units}</span>;

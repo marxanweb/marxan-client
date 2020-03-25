@@ -585,7 +585,8 @@ class App extends React.Component {
       const controller = new AbortController();
       const signal = controller.signal;   
       const timeoutId = setTimeout(() => controller.abort(), 1000);
-      const response = await fetch(endpoint + "getServerData", { signal });
+      const response = await fetch(endpoint + "getServerData", { credentials:"include", signal: signal });
+      console.log(response);
       clearTimeout(timeoutId);
       if (!response.ok) {
         throw Error("fetch returned a 404 or 500 error: " + response.statusText);

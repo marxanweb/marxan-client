@@ -19,10 +19,8 @@ class FeatureInfoDialog extends React.Component {
 	getAreaHTML(props){
 		//set the font color to red if the area protected is less than the target area
 		let color = (this.props.feature.protected_area < this.props.feature.target_area) && (props.row.key === 'Area protected') ? "red" : "rgba(0, 0, 0, 0.6)";
-		//rounded to 1 dp
-		// let roundedText = ((Number(props.row.value/1000000).toFixed(1) === "0.0") && (props.row.value > 0)) ? " (approx.)" : "";
-		// let html = <div title={props.row.value/1000000 + ' Km2'} style={{color:color}}>{String(Number(props.row.value/1000000).toFixed(1)).replace(/\B(?=(\d{3})+(?!\d))/g, ",")} Km<span style={{verticalAlign: 'super', fontSize: 'smaller'}}>2</span>{roundedText}</div>;
-		let html = <div title={getArea(props.row.value, this.props.reportUnits, true)} style={{color:color}}>{getArea(props.row.value, this.props.reportUnits, true)}</div>;
+		//rounded to 6 sf in the hint
+		let html = <div title={getArea(props.row.value, this.props.reportUnits, false, 6)} style={{color:color}}>{getArea(props.row.value, this.props.reportUnits, true)}</div>;
 		return html;   
 	}
 	renderKeyCell(props){
