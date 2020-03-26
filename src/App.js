@@ -3141,6 +3141,14 @@ class App extends React.Component {
     //update the allFeatures array
     var featuresCopy = this.state.allFeatures;
     featuresCopy.push(feature);
+    //sort the features alphabetically
+    featuresCopy.sort((a, b) => {
+      if (a.alias.toLowerCase() < b.alias.toLowerCase())
+        return -1;
+      if (a.alias.toLowerCase() > b.alias.toLowerCase())
+        return 1;
+      return 0;
+    });
     this.setState({allFeatures: featuresCopy});
   }
   
