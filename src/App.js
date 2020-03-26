@@ -237,7 +237,8 @@ class App extends React.Component {
       shareableLinkUrl: "",
       notifications:[],
       gapAnalysis: [],
-      showCosts: false
+      showCosts: false,
+      costsLoading: false
     };
   }
 
@@ -1822,24 +1823,29 @@ class App extends React.Component {
 
   //renders the planning units cost layer according to the cost for each planning unit
   renderPuCostLayer(cost_data) {
-    let expression;
-    if (cost_data.length > 0) {
-      //build an expression to get the matching puids with different costs
-      expression = ["match", ["get", "puid"]];
-      //iterate through the cost data and set the expressions
-      cost_data.forEach((row, index) => {
-        //add the color to the expression with the puids
-        expression.push(row[1], COST_COLORS[index]);
-      });
-      // Last value is the default
-      expression.push("rgba(150, 150, 150, 0)");
-    }
-    else {
-      //there are no costs apart from the default 0 status so have a single renderer
-      expression = "rgba(150, 150, 150, 0.7)";
-    }
-    //set the render paint property
-    this.map.setPaintProperty(COSTS_LAYER_NAME, "fill-color", expression);
+    return new Promise((resolve, reject) => {
+      let expression;
+      if (cost_data.length > 0) {
+        //build an expression to get the matching puids with different costs
+        expression = ["match", ["get", "puid"]];
+        //iterate through the cost data and set the expressions
+        cost_data.forEach((row, index) => {
+          //add the color to the expression with the puids
+          expression.push(row[1], COST_COLORS[index]);
+        });
+        // Last value is the default
+        expression.push("rgba(150, 150, 150, 0)");
+      }
+      else {
+        //there are no costs apart from the default 0 status so have a single renderer
+        expression = "rgba(150, 150, 150, 0.7)";
+      }
+      //set the render paint property
+      this.map.setPaintProperty(COSTS_LAYER_NAME, "fill-color", expression);
+      //show the layer
+      this.showLayer(COSTS_LAYER_NAME);
+      resolve("Costs rendered");
+    });
   }
 
   //convenience method to get the rendered features safely and not to show and error message if the layer doesnt exist in the map style
@@ -2285,9 +2291,11 @@ class App extends React.Component {
     //show/hide the planning units cost layer
     this.setState({showCosts: show});
     if (show){
+      this.setState({costsLoading: true});
       this.getPlanningUnitsCostData().then((cost_data)=>{
-        this.renderPuCostLayer(cost_data);
-        this.showLayer(COSTS_LAYER_NAME);
+        this.renderPuCostLayer(cost_data).then(()=>{
+          this.setState({costsLoading: false});
+        });
       });
     }else{
       this.hideLayer(COSTS_LAYER_NAME);
@@ -4032,6 +4040,7 @@ class App extends React.Component {
             smallLinearGauge={this.state.smallLinearGauge}
             iucn_categories={IUCN_CATEGORIES}
             showCosts={this.state.showCosts}
+            costsLoading={this.state.costsLoading}
           />
           <ResultsPanel
             open={this.state.resultsPanelOpen}

@@ -7,6 +7,7 @@ import SelectFeatures from './SelectFeatures';
 import MenuItem from 'material-ui/MenuItem';
 import Settings from 'material-ui/svg-icons/action/settings';
 import ToolbarButton from './ToolbarButton';
+import LoadingCheckbox from './LoadingCheckbox';
 import Checkbox from 'material-ui/Checkbox';
 import Textarea from 'react-textarea-autosize';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -172,9 +173,10 @@ class InfoPanel extends React.Component {
 											/>
 										</div>
 									</div>
-									<div className={'tabTitle'}>Costs</div>
-									<Checkbox
+									<div className={'tabTitle tabTitleTopMargin'}>Costs</div>
+									<LoadingCheckbox
 										label="Show costs"
+										loading={this.props.costsLoading}
 										style={{fontSize:'12px'}}
 										checked={this.props.showCosts}
 										onCheck={this.toggleCosts.bind(this)}
