@@ -2057,12 +2057,39 @@ class App extends React.Component {
   //gets the style JSON either as a valid TileJSON object or as a url to a valid TileJSON object
   getValidStyle(basemap){
     return new Promise((resolve, reject) => {
-      if (basemap.provider !== 'esri'){ // the style is a url - just return the url
-        resolve(MAPBOX_STYLE_PREFIX + basemap.id);
-      }else{ //the style json will be loaded dynamically from an esri endpoint and parsed to produce a valid TileJSON object
-        this.getESRIStyle(basemap.id).then((styleJson)=>{
-          resolve(styleJson);
-        });  
+      switch (basemap.provider) {
+        case 'esri':
+          //the style json will be loaded dynamically from an esri endpoint and parsed to produce a valid TileJSON object
+          this.getESRIStyle(basemap.id).then((styleJson)=>{
+            resolve(styleJson);
+          });  
+          break;
+        case 'mapbox':
+          // the style is a url - just return the url
+          resolve(MAPBOX_STYLE_PREFIX + basemap.id);
+          break;
+        case 'local':
+          //blank background
+          resolve({
+            "version": 8,
+            "name": "blank",
+            "sources": {
+              "openmaptiles": {
+                "type": "vector",
+                "url": ""
+              }
+            },
+            "layers": [{
+              "id": "background",
+              "type": "background",
+              "paint": {
+                "background-color": "#ffffff"
+              }
+            }]
+          });
+          break;
+        default:
+          // code
       }
     });
   }
