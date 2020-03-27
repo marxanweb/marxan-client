@@ -207,18 +207,22 @@ body {
   width: 400px;
   height: 302px;
 }
-.identifyPUFeaturesInfoTable{
+
+.identifyPUFeaturesInfoTable {
   width: 400px;
   max-height: 300px;
 }
-.identifyFeaturesInfoTable{
+
+.identifyFeaturesInfoTable {
   width: 400px;
   max-height: 300px;
 }
-.identifyProtectedAreasInfoTable{
+
+.identifyProtectedAreasInfoTable {
   width: 450px;
   max-height: 300px;
 }
+
 .infoTable {
   width: 337px;
   height: 212px;
@@ -1021,15 +1025,19 @@ a {
   padding-top: 10px;
   float: left;
 }
-.gapAnalysisBtmPanel{
+
+.gapAnalysisBtmPanel {
   padding-top: 10px;
 }
-.gapAnalysisXAxisLabels{
+
+.gapAnalysisXAxisLabels {
   font-size: 11px;
 }
-.gapAnalysisXAxisLabels tspan{
-    fill: rgba(0,0,0,0.7);
+
+.gapAnalysisXAxisLabels tspan {
+  fill: rgba(0, 0, 0, 0.7);
 }
+
 .homeIcon {
   background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MDAgODAwIiBjb2xvcj0icmdiYSgwLCAwLCAwLCAwLjcpIiBzdHlsZT0ibWFyZ2luLWxlZnQ6NnB4O21hcmdpbi10b3A6NXB4Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik0wIDE4MFY1NmMwLTEzLjMgMTAuNy0yNCAyNC0yNGgxMjRjNi42IDAgMTIgNS40IDEyIDEydjQwYzAgNi42LTUuNCAxMi0xMiAxMkg2NHY4NGMwIDYuNi01LjQgMTItMTIgMTJIMTJjLTYuNiAwLTEyLTUuNC0xMi0xMnpNMjg4IDQ0djQwYzAgNi42IDUuNCAxMiAxMiAxMmg4NHY4NGMwIDYuNiA1LjQgMTIgMTIgMTJoNDBjNi42IDAgMTItNS40IDEyLTEyVjU2YzAtMTMuMy0xMC43LTI0LTI0LTI0SDMwMGMtNi42IDAtMTIgNS40LTEyIDEyem0xNDggMjc2aC00MGMtNi42IDAtMTIgNS40LTEyIDEydjg0aC04NGMtNi42IDAtMTIgNS40LTEyIDEydjQwYzAgNi42IDUuNCAxMiAxMiAxMmgxMjRjMTMuMyAwIDI0LTEwLjcgMjQtMjRWMzMyYzAtNi42LTUuNC0xMi0xMi0xMnpNMTYwIDQ2OHYtNDBjMC02LjYtNS40LTEyLTEyLTEySDY0di04NGMwLTYuNi01LjQtMTItMTItMTJIMTJjLTYuNiAwLTEyIDUuNC0xMiAxMnYxMjRjMCAxMy4zIDEwLjcgMjQgMjQgMjRoMTI0YzYuNiAwIDEyLTUuNCAxMi0xMnoiPjwvcGF0aD48L3N2Zz4=);
   background-repeat: no-repeat;
@@ -1061,7 +1069,7 @@ a {
 .newNationalProjectContent {
   height: 400px;
   color: rgba(0, 0, 0, 0.67);
-  padding:20px;
+  padding: 20px;
 }
 
 .speciesList {
@@ -1095,19 +1103,29 @@ a {
   background-color: aliceblue;
   cursor: pointer;
 }
-.identifyPopup{
-  min-width:200px;
+
+.identifyPopup {
+  min-width: 200px;
 }
-.identifyPlanningUnitsHeader{
-  font-size:12px;
+
+.identifyPlanningUnitsHeader {
+  font-size: 12px;
   width: 400px;
-  padding-bottom:8px;
+  padding-bottom: 8px;
 }
-.radioButton{
+
+.radioButton {
   display: inline-block;
   font-size: 12px;
 }
-.userSetting{
+
+.userSetting {
   font-size: 12px;
   color: rgba(0, 0, 0, 0.5);
+}
+
+.textHyperlink {
+  font-size:12px;
+  color: blue;
+  text-decoration-line: underline;
 }

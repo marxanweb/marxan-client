@@ -47,7 +47,7 @@ import FeatureInfoDialog from './FeatureInfoDialog';
 import ProjectsDialog from './ProjectsDialog';
 import NewProjectDialog from './NewProjectDialog';
 import NewProjectWizardDialog from './NewProjectWizardDialog';
-import FailedToDeleteDialog from './FailedToDeleteDialog';
+import ProjectsListDialog from './ProjectsListDialog';
 import PlanningGridDialog from './PlanningGridDialog';
 import PlanningGridsDialog from './PlanningGridsDialog';
 import NewPlanningGridDialog from './NewPlanningGridDialog';
@@ -152,7 +152,7 @@ class App extends React.Component {
       resendPasswordDialogOpen: false,
       NewPlanningGridDialogOpen: false, 
       importPlanningGridDialogOpen: false,
-      FailedToDeleteDialogOpen: false,
+      ProjectsListDialogOpen: false,
       changePasswordDialogOpen: false,
       importFeaturesDialogOpen: false,
       serverDetailsDialogOpen: false,
@@ -178,7 +178,7 @@ class App extends React.Component {
       user: '', 
       password: '',
       project: '',
-      failedToDeleteProjects: [],
+      projectList: [],
       owner: '', // the owner of the project - may be different to the user, e.g. if logged on as guest (user) and accessing someone elses project (owner)
       loggedIn: false,
       shareableLink: false,
@@ -225,7 +225,8 @@ class App extends React.Component {
       map3_paintProperty: [],
       map4_paintProperty: [],
       clumpingRunning: false,
-      deleteWhat:'',
+      projectListDialogTitle:'',
+      projectListDialogHeading: '',
       pid: 0,
       basemaps: [],
       basemap: 'North Star',
@@ -2668,15 +2669,13 @@ class App extends React.Component {
       this.deletePlanningGrid(feature_class_name, true);
     }else{
       //get a list of the projects for the planning grid
-      this._get("listProjectsForPlanningGrid?feature_class_name=" + feature_class_name).then((response)=>{
+      this.getProjectsForPlanningGrid(feature_class_name).then((projects)=>{
         //if the planning grid is not being used then delete it
-        if (response.projects.length === 0){
+        if (projects.length === 0){
           this.deletePlanningGrid(feature_class_name, false);
         }else{
-          //show the failed to delete dialog
-          this.setState({failedToDeleteProjects: response.projects, deleteWhat: 'planning grid'}, ()=> {
-            this.openFailedToDeleteDialog();
-          });
+          //show the projects list dialog
+          this.showProjectListDialog(projects, 'Failed to delete planning grid', "The planning grid is used in the following projects");
         }
       });
     }
@@ -2693,6 +2692,16 @@ class App extends React.Component {
       });
   }
   
+  //gets a list of projects that use a particular planning grid
+  getProjectsForPlanningGrid(feature_class_name){
+    return new Promise((resolve, reject) => {
+      //get a list of the projects for the planning grid
+      this._get("listProjectsForPlanningGrid?feature_class_name=" + feature_class_name).then((response)=>{
+        resolve(response.projects);
+      });
+    });
+  }
+
   getCountries() {
     this._get("getCountries").then((response) => {
       this.setState({ countries: response.records });
@@ -3154,13 +3163,11 @@ class App extends React.Component {
   
   //attempts to delete a feature - if the feature is in use in a project then it will not be deleted and the list of projects will be shown
   deleteFeature(feature) {
-    this._get("listProjectsForFeature?feature_class_id=" + feature.id).then((response) => {
-      if (response.projects.length === 0){
+    this.getProjectsForFeature(feature).then((projects)=>{
+      if (projects.length === 0){
         this._deleteFeature(feature);
       }else{
-        this.setState({failedToDeleteProjects: response.projects, deleteWhat: 'feature'}, ()=> {
-          this.openFailedToDeleteDialog();
-        });
+        this.showProjectListDialog(projects, 'Failed to delete planning feature', "The feature is used in the following projects");
       }
     });
   }
@@ -3174,11 +3181,6 @@ class App extends React.Component {
       //remove it from the allFeatures array
       this.removeFeatureFromAllFeatures(feature);
     });
-  }
-
-  //shows the failed to delete feature dialog
-  showFailedToDeleteDialog(feature, projects){
-    console.log(projects)  ;
   }
   
   //removes a feature from the allFeatures array
@@ -3339,6 +3341,28 @@ class App extends React.Component {
     let nums = points.map((item) => {return Number(item)});
     //zoom to the feature
     this.map.fitBounds([[nums[0], nums[1]],[nums[2], nums[3]]], { padding: 100});
+  }
+  
+  //gets a list of projects for a feature
+  getProjectsForFeature(feature){
+    return new Promise((resolve, reject) => {
+      this._get("listProjectsForFeature?feature_class_id=" + feature.id).then((response) => {
+          resolve(response.projects);
+        });
+    });
+  }
+  
+  //gets a list of projects for either a feature or a planning grid
+  getProjectList(obj, _type){
+    if (_type === "feature"){
+      this.getProjectsForFeature(obj).then((projects)=>{
+        this.showProjectListDialog(projects,"Projects list", "The feature is used in the following projects:");  
+      });
+    }else{
+      this.getProjectsForPlanningGrid(obj.feature_class_name).then((projects)=>{
+        this.showProjectListDialog(projects,"Projects list", "The feature is used in the following projects:");  
+      });
+    } 
   }
   
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3518,11 +3542,16 @@ class App extends React.Component {
     this.setState({changePasswordDialogOpen: false});
   }
   
-  openFailedToDeleteDialog(){
-    this.setState({FailedToDeleteDialogOpen: true});
+  showProjectListDialog(projectList, projectListDialogTitle, projectListDialogHeading){
+    this.setState({projectList: projectList, projectListDialogTitle: projectListDialogTitle, projectListDialogHeading: projectListDialogHeading}, ()=> {
+      this.openProjectsListDialog();
+    });
   }
-  closeFailedToDeleteDialog(){
-    this.setState({FailedToDeleteDialogOpen: false});
+  openProjectsListDialog(){
+    this.setState({ProjectsListDialogOpen: true});
+  }
+  closeProjectsListDialog(){
+    this.setState({ProjectsListDialogOpen: false});
   }
   openTargetDialog(){
     this.setState({targetDialogOpen:true});
@@ -4220,6 +4249,7 @@ class App extends React.Component {
             getTilesetMetadata={this.getMetadata.bind(this)}
             setSnackBar={this.setSnackBar.bind(this)}
             reportUnits={this.state.userData.REPORTUNITS}
+            getProjectList={this.getProjectList.bind(this)}
           />
           <NewFeatureDialog
             open={this.state.NewFeatureDialogOpen} 
@@ -4267,13 +4297,6 @@ class App extends React.Component {
             previewPlanningGrid={this.previewPlanningGrid.bind(this)}
             marxanServer={this.state.marxanServer}
           />
-          <FailedToDeleteDialog
-            open={this.state.FailedToDeleteDialogOpen} 
-            projects={this.state.failedToDeleteProjects}
-            userRole={this.state.userData.ROLE}
-            onOk={this.closeFailedToDeleteDialog.bind(this)}
-            deleteWhat={this.state.deleteWhat}
-          />
           <PlanningGridDialog
             open={this.state.planningGridDialogOpen}
             onOk={this.closePlanningGridDialog.bind(this)}
@@ -4282,6 +4305,15 @@ class App extends React.Component {
             planning_grid_metadata={this.state.planning_grid_metadata}
             getTilesetMetadata={this.getMetadata.bind(this)}
             setSnackBar={this.setSnackBar.bind(this)}
+            getProjectList={this.getProjectList.bind(this)}
+          />
+          <ProjectsListDialog
+            open={this.state.ProjectsListDialogOpen} 
+            projects={this.state.projectList}
+            userRole={this.state.userData.ROLE}
+            onOk={this.closeProjectsListDialog.bind(this)}
+            title={this.state.projectListDialogTitle}
+            heading={this.state.projectListDialogHeading}
           />
           <CostsDialog
             open={this.state.CostsDialogOpen}

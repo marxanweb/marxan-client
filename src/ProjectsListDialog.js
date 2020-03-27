@@ -2,7 +2,7 @@ import React from 'react';
 import MarxanDialog from './MarxanDialog';
 import ReactTable from "react-table";
 
-class FailedToDeleteDialog extends React.Component { 
+class ProjectsListDialog extends React.Component { 
 		renderName(row){
 			return <div style={{width: '100%',height: '100%',backgroundColor: '#dadada',borderRadius: '2px'}} title={row.original.name}>{row.original.name}</div>;        
 		}
@@ -22,12 +22,12 @@ class FailedToDeleteDialog extends React.Component {
 					showCancelButton={false}
 					autoDetectWindowHeight={false}
 					bodyStyle={{ padding:'0px 24px 0px 24px'}}
-					title= {"Failed to delete " + this.props.deleteWhat} 
+					title= {this.props.title} 
 					contentWidth={500}
 					helpLink={"user.html#deleting-features"}
 					children={
 						<React.Fragment key="k24">
-							<div style={{marginBottom:'5px'}}>{"The " + this.props.deleteWhat + " is used in the following projects:"}</div>
+							<div style={{marginBottom:'5px'}}>{this.props.heading}</div>
 								<div id="failedProjectsTable">
 									<ReactTable 
 									  pageSize={ this.props.projects.length }
@@ -50,4 +50,4 @@ class FailedToDeleteDialog extends React.Component {
 	}
 }
 
-export default FailedToDeleteDialog;
+export default ProjectsListDialog;

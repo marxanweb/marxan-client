@@ -1,9 +1,7 @@
 import React from 'react';
 import MarxanDialog from './MarxanDialog';
 import MapContainer2 from './MapContainer2';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faAngleDown } from '@fortawesome/free-solid-svg-icons';
-import { faAngleUp } from '@fortawesome/free-solid-svg-icons';
+import FontAwesome from 'react-fontawesome';
 
 class PlanningGridDialog extends React.Component { 
 	constructor (props){
@@ -13,9 +11,12 @@ class PlanningGridDialog extends React.Component {
 	expand(){
 		this.setState({expanded: !this.state.expanded});
 	}
+	getProjectList(){
+		this.props.getProjectList(this.props.planning_grid_metadata, "planning_grid");
+	}
 	render() {
 		let areaTD = (this.props.planning_grid_metadata._area) ? <td className='metadataItemValue'>{this.props.planning_grid_metadata._area}Km<span className='superscript'>2</span></td> : <td/>;
-		let country_idTD = (this.props.planning_grid_metadata.country_id) ? <td className='metadataItemValue'>{this.props.planning_grid_metadata.country_id}</td> : <td/>;
+		// let country_idTD = (this.props.planning_grid_metadata.country_id) ? <td className='metadataItemValue'>{this.props.planning_grid_metadata.country_id}</td> : <td/>;
 		return (
 			<MarxanDialog
 				{...this.props}
@@ -72,21 +73,25 @@ class PlanningGridDialog extends React.Component {
 										<td className='metadataItemTitle'>aoi_id:</td>
 										<td className='metadataItemValue'>{this.props.planning_grid_metadata.aoi_id}</td>
 									</tr>
-									<tr style={{display:(this.state.expanded) ? 'table-row' : 'none'}}>
+									{/*<tr style={{display:(this.state.expanded) ? 'table-row' : 'none'}}>
 										<td className='metadataItemTitle'>country_id:</td>
 										{country_idTD}
 									</tr>
 									<tr style={{display:(this.state.expanded) ? 'table-row' : 'none'}}>
 										<td className='metadataItemTitle'>guid:</td>
 										<td className='metadataItemValue'>{this.props.planning_grid_metadata.feature_class_name}</td>
-									</tr>
+									</tr>*/}
 									<tr style={{display:(this.state.expanded) ? 'table-row' : 'none'}}>
 										<td className='metadataItemTitle'>tilesetid:</td>
 										<td className='metadataItemValue'>{this.props.planning_grid_metadata.tilesetid}</td>
 									</tr>
+									<tr style={{display:(this.state.expanded) ? 'table-row' : 'none'}}>
+										<td className='metadataItemTitle'>Projects:</td>
+										<td className='metadataItemValue'><FontAwesome name='external-link-alt' onClick={this.getProjectList.bind(this)} title='View a list of projects that this planning grid is used in' style={{'cursor':'pointer', 'paddingTop':'6px'}}/></td>
+									</tr>
 								</tbody>
 							</table>
-							<FontAwesomeIcon icon={(this.state.expanded) ? faAngleUp : faAngleDown} onClick={this.expand.bind(this)} title={(this.state.expanded) ? "Show less details" : "Show more details"} className={'appBarIcon'} style={{fontSize: '20px'}}/>
+							<div onClick={this.expand.bind(this)} title={(this.state.expanded) ? "Show less details" : "Show more details"} className={'textHyperlink'}>{(this.state.expanded) ? 'less' : 'more..'}</div>
 							<div>You may need to zoom in to see the planning grid units</div>
 						</div>
 					</React.Fragment>
