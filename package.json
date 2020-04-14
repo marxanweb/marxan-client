@@ -20,7 +20,7 @@
     "react": "^16.12.0",
     "react-dom": "^16.12.0",
     "react-fontawesome": "^1.7.1",
-    "react-scripts": "^3.3.0",
+    "react-scripts": "^3.4.1",
     "react-stay-scrolled": "^3.0.0",
     "react-table": "^6.11.5",
     "react-textarea-autosize": "^7.1.2",
