@@ -2065,10 +2065,6 @@ class App extends React.Component {
             resolve(styleJson);
           });  
           break;
-        case 'mapbox':
-          // the style is a url - just return the url
-          resolve(MAPBOX_STYLE_PREFIX + basemap.id);
-          break;
         case 'local':
           //blank background
           resolve({
@@ -2090,7 +2086,9 @@ class App extends React.Component {
           });
           break;
         default:
-          // code
+          // the style is a url - just return the url - either mapbox or jrc provided
+          resolve(MAPBOX_STYLE_PREFIX + basemap.id);
+          break;
       }
     });
   }
