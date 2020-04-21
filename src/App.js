@@ -825,7 +825,9 @@ class App extends React.Component {
   toggleEnableGuestUser(){
     this._get("toggleEnableGuestUser").then((response) => {
       //if succesfull set the state
-      this.setState({ guestUserEnabled: response.enabled });
+      let _marxanServer = this.state.marxanServer;
+      _marxanServer = Object.assign(_marxanServer, {guestUserEnabled: response.enabled});
+      this.setState({ marxanServer: _marxanServer });
     });
   }
   
@@ -4049,7 +4051,7 @@ class App extends React.Component {
             users={this.state.users}
             deleteUser={this.deleteUser.bind(this)}
             changeRole={this.changeRole.bind(this)}
-            guestUserEnabled={this.state.guestUserEnabled}
+            guestUserEnabled={this.state.marxanServer.guestUserEnabled}
             toggleEnableGuestUser={this.toggleEnableGuestUser.bind(this)}
           />
           <ProfileDialog 
