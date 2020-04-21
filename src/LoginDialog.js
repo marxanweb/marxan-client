@@ -20,7 +20,7 @@ class LoginDialog extends React.Component {
 				<MarxanDialog 
 					{...this.props} 
 					showOverlay={true}
-					okDisabled={(!this.props.user || !this.props.password || this.props.loading ||!this.props.marxanServer||(this.props.marxanServer&&this.props.marxanServer.offline)||(this.props.marxanServer&&!this.props.marxanServer.guestUserEnabled)) ? true : false} 
+					okDisabled={(!this.props.user || !this.props.password || this.props.loading ||!this.props.marxanServer||(this.props.marxanServer&&this.props.marxanServer.offline)) ? true : false} 
 					okLabel={(this.props.marxanServer&&!this.props.marxanServer.offline&&!this.props.marxanServer.corsEnabled&&this.props.marxanServer.guestUserEnabled) ? "Login (Read-Only)" : "Login"}
 					showCancelButton={true}
 					cancelLabel={"Register"}
