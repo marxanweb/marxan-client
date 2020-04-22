@@ -71,10 +71,6 @@ class FeatureDialog extends React.Component {
 										<td className='metadataItemValue'>{this.props.feature_metadata.tilesetid}</td>
 									</tr>
 									<tr style={{display:(this.state.expanded) ? 'table-row' : 'none'}}>
-										<td className='metadataItemTitle'>tileset:</td>
-										<td className='metadataItemValue'>{this.props.feature_metadata.tilesetid}</td>
-									</tr>
-									<tr style={{display:(this.state.expanded) ? 'table-row' : 'none'}}>
 										<td className='metadataItemTitle'>Projects:</td>
 										<td className='metadataItemValue'><FontAwesome name='external-link-alt' onClick={this.getProjectList.bind(this)} title='View a list of projects that this feature is used in' style={{'cursor':'pointer', 'paddingTop':'6px'}}/></td>
 									</tr>
