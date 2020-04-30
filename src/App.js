@@ -2026,7 +2026,7 @@ class App extends React.Component {
     });
   }
 
-  //sets the basemap
+  //sets the basemap either on project load, or if the user changes it
   setBasemap(basemap){
     return new Promise((resolve, reject) => {
       //change the state
@@ -2042,7 +2042,7 @@ class App extends React.Component {
           if (this.state.tileset) {
             this.addPlanningGridLayers(this.state.tileset);
             //get the results, if any
-            this.getResults(this.state.owner, this.state.project);
+            if (this.state.owner) this.getResults(this.state.owner, this.state.project);
             //filter the wdpa vector tiles
             this.filterWdpaByIucnCategory(this.state.metadata.IUCN_CATEGORY);
             //turn on/off layers depending on which tab is selected
