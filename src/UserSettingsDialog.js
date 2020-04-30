@@ -2,7 +2,6 @@ import React from 'react';
 import MarxanDialog from './MarxanDialog';
 import SelectField from 'material-ui/SelectField';
 import MenuItem from 'material-ui/MenuItem';
-import Checkbox from 'material-ui/Checkbox';
 import { RadioButton, RadioButtonGroup } from 'material-ui/RadioButton';
 
 class UserSettingsDialog extends React.Component {
@@ -72,8 +71,8 @@ class UserSettingsDialog extends React.Component {
 					      <RadioButton value="Km2" label="Km2" className={'radioButton'} style={{width: '60px', display:'inline-block'}} inputStyle={{width: '40px'}} labelStyle={{width: '40px'}} iconStyle={{marginRight:'3px'}}/>
 					    </RadioButtonGroup>
 					</div>
-						<Checkbox label="Use feature colours" style={{fontSize:'12px'}} checked={this.props.userData.USEFEATURECOLORS} onCheck={this.toggleUseFeatureColors.bind(this)} />
-						<Checkbox label="Show welcome screen at startup" style={{fontSize:'12px'}} checked={this.props.userData.SHOWWELCOMESCREEN} onCheck={this.toggleShowWelcomeScreen.bind(this)} />
+					{/*	<Checkbox label="Use feature colours" style={{fontSize:'12px'}} checked={this.props.userData.USEFEATURECOLORS} onCheck={this.toggleUseFeatureColors.bind(this)} />
+						<Checkbox label="Show welcome screen at startup" style={{fontSize:'12px'}} checked={this.props.userData.SHOWWELCOMESCREEN} onCheck={this.toggleShowWelcomeScreen.bind(this)} />*/}
                                         </div>
                                 } 
                         />

@@ -587,7 +587,6 @@ class App extends React.Component {
       const signal = controller.signal;   
       const timeoutId = setTimeout(() => controller.abort(), 1000);
       const response = await fetch(endpoint + "getServerData", { credentials:"include", signal: signal });
-      console.log(response);
       clearTimeout(timeoutId);
       if (!response.ok) {
         throw Error("fetch returned a 404 or 500 error: " + response.statusText);
@@ -708,7 +707,7 @@ class App extends React.Component {
       this._get("getUser?user=" + this.state.user).then((response) => {
         this.setState({userData: response.userData, unauthorisedMethods: response.unauthorisedMethods, project: response.userData.LASTPROJECT, dismissedNotifications: (response.dismissedNotifications ? response.dismissedNotifications : [])}, ()=>{
           //show the welcome dialog
-          this.openWelcomeDialog();
+        //   this.openWelcomeDialog();
         });
         //set the basemap
         var basemap = this.state.basemaps.filter((item) => {return (item.name === response.userData.BASEMAP);})[0];
