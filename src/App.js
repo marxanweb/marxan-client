@@ -4384,6 +4384,7 @@ class App extends React.Component {
             getRunLogs={this.getRunLogs.bind(this)}
             clearRunLogs={this.clearRunLogs.bind(this)}
             stopMarxan={this.stopProcess.bind(this)}
+            userRole={this.state.userData.ROLE}
           />
           <ServerDetailsDialog  
             open={this.state.serverDetailsDialogOpen}

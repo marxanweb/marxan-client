@@ -134,7 +134,7 @@ class RunLogDialog extends React.Component {
 									}}
 								/>
 							</div>
-							<div id="projectsToolbar" style={{display: (this.props.userRole === "ReadOnly") ? 'none' : 'block'}}>
+							<div id="projectsToolbar" style={{display: (this.props.userRole !== "Admin") ? 'none' : 'block'}}>
 							<ToolbarButton  
 								show={!this.props.unauthorisedMethods.includes("stopMarxan")}
 								title="Stop run" 
