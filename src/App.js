@@ -3514,9 +3514,11 @@ class App extends React.Component {
   
   openRunLogDialog(){
     this.getRunLogs();
+    this.startPollingRunLogs();
     this.setState({runLogDialogOpen: true});
   }
   closeRunLogDialog(){
+    this.stopPollingRunLogs();
     this.setState({runLogDialogOpen: false});
   }
   openGapAnalysisDialog(){
@@ -3902,6 +3904,17 @@ class App extends React.Component {
   ////////////////////////// MANAGING RUNS
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+  //called when the run log dialog opens and starts polling the run log
+  startPollingRunLogs(){
+    this.runlogTimer = setInterval(() => {
+       this.getRunLogs();
+    }, 5000);
+  }
+
+  //called when the run log dialog closes and stops polling the run log
+  stopPollingRunLogs(){
+    clearInterval(this.runlogTimer);    
+  }
   //returns the log of all of the runs from the server
   getRunLogs(){
     if (!this.state.unauthorisedMethods.includes("getRunLogs")){
