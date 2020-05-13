@@ -629,6 +629,8 @@ class App extends React.Component {
   //called when the user selects a server
   selectServer(value){
     this.setState({marxanServer: value});
+    //see if there is a new version of the wdpa
+    (value.wdpa_version !== window.WDPA.latest_version) ? this.setState({newWDPAVersion: true}) : this.setState({newWDPAVersion: false});
     //set the link to the WDPA vector tiles based on the version that is included in the server in the PostGIS database
     this.setWDPAVectorTilesLayerName(value.wdpa_version);
     //if the server is ready only then change the user/password to the guest user
@@ -844,12 +846,7 @@ class App extends React.Component {
       this.addNotifications(window.NOTIFICATIONS);
     }
     //see if there is a new version of the wdpa data - this comes from the Marxan Registry WDPA object - if there is then show a notification to admin users
-    if (this.state.marxanServer.wdpa_version !== window.WDPA.latest_version) {
-      this.setState({newWDPAVersion: true});
-      this.addNotifications([{id:'wdpa_update_' + window.WDPA.latest_version, html:"A new version of the WDPA is available. Go to Help | Server Details for more information.", type:"Data Update", showForRoles: ["Admin"]}]);
-    }else{
-      this.setState({newWDPAVersion: false});
-    }
+    if (this.state.newWDPAVersion) this.addNotifications([{id:'wdpa_update_' + window.WDPA.latest_version, html:"A new version of the WDPA is available. Go to Help | Server Details for more information.", type:"Data Update", showForRoles: ["Admin"]}]);
     //see if there is a new version of the marxan-client software
     if (MARXAN_CLIENT_VERSION !== window.CLIENT_VERSION) this.addNotifications([{id:'marxan_client_update_' + window.CLIENT_VERSION, html:"A new version of marxan-client is available (" + window.CLIENT_VERSION + "). Go to Help | About for more information.", type:"Software Update", showForRoles: ["Admin"]}]);
     //see if there is a new version of the marxan-server software
