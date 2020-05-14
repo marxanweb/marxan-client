@@ -587,7 +587,7 @@ class App extends React.Component {
     try{
       const controller = new AbortController();
       const signal = controller.signal;   
-      const timeoutId = setTimeout(() => controller.abort(), 3000);
+      const timeoutId = setTimeout(() => controller.abort(), 2000);
       const response = await fetch(endpoint + "getServerData", { credentials:"include", signal: signal });
       clearTimeout(timeoutId);
       if (!response.ok) {
@@ -4309,12 +4309,14 @@ class App extends React.Component {
             unzipShapefile={this.unzipShapefile.bind(this)}
             getShapefileFieldnames={this.getShapefileFieldnames.bind(this)}
             deleteShapefile={this.deleteShapefile.bind(this)}
+            addToProject={this.state.addToProject}
           />
           <ImportFromWebDialog
             open={this.state.importFromWebDialogOpen} 
             onCancel={this.closeImportFromWebDialog.bind(this)}
             loading={this.state.loading || this.state.preprocessing || this.state.uploading}
             importFeatures={this.importFeaturesFromWeb.bind(this)}
+            addToProject={this.state.addToProject}
           />
           <ImportGBIFDialog
             open={this.state.importGBIFDialogOpen} 

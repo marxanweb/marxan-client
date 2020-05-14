@@ -1,6 +1,6 @@
 import * as React from 'react';
 import MarxanDialog from './MarxanDialog';
-import TextField from 'material-ui/TextField';
+import MarxanTextField from './MarxanTextField';
 import ToolbarButton from './ToolbarButton';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faClipboard } from '@fortawesome/free-solid-svg-icons';
@@ -25,15 +25,7 @@ class ShareableLinkDialog extends React.PureComponent {
                 title="Shareable link"
                 children={
                 <React.Fragment>
-                    <TextField 
-                        multiLine={true} rows={2} 
-                        floatingLabelFixed={true} 
-                        onChange = {(event,newValue) => this.setState({"target_value":newValue})} 
-                        defaultValue ={this.props.shareableLinkUrl} 
-                        floatingLabelShrinkStyle={{fontSize:'16px'}} 
-                        floatingLabelFocusStyle={{fontSize:'16px'}} 
-                        style={{fontSize:'13px',width:'550px'}} 
-                    /> 
+                    <MarxanTextField style={{fontSize:'13px',width:'550px'}} multiLine={true} rows={2} onChange = {(event,newValue) => this.setState({"target_value":newValue})} defaultValue ={this.props.shareableLinkUrl} floatingLabelShrinkStyle={{fontSize:'16px'}} floatingLabelFocusStyle={{fontSize:'16px'}} /> 
 					<ToolbarButton   
 						icon={<FontAwesomeIcon icon={faClipboard}/>} 
 						title="Copy"

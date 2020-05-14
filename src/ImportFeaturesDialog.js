@@ -1,6 +1,6 @@
 import * as React from 'react';
-import MarxanDialog from './MarxanDialog';
-import TextField from 'material-ui/TextField';
+import MarxanImportFeatureDialog from './MarxanImportFeatureDialog';
+import MarxanTextField from './MarxanTextField';
 import ShapefileUpload from './ShapefileUpload.js';
 import SelectField from "material-ui/SelectField";
 import MenuItem from "material-ui/MenuItem";
@@ -110,8 +110,8 @@ class ImportFeaturesDialog extends React.Component {
 				{(stepIndex === 2) ? 
 				(this.state.fieldnames.length === 0) ?
 					<div className={'importFeaturesContent'}> 
-						<TextField value={this.state.name} onChange={this.changeName.bind(this)} style={{display:'block'}} floatingLabelText="Enter a name" floatingLabelFixed={true}/>
-						<TextField value={this.state.description} onChange={this.changeDescription.bind(this)} style={{display:'block'}} multiLine={true} rows={2} floatingLabelText="Enter a description" floatingLabelFixed={true}/>
+						<MarxanTextField value={this.state.name} onChange={this.changeName.bind(this)} floatingLabelText="Enter a name" />
+						<MarxanTextField value={this.state.description} onChange={this.changeDescription.bind(this)} multiLine={true} rows={2} floatingLabelText="Enter a description"/>
 					</div> :
 					<div className={'importFeaturesContent'}> 
 						<SelectField menuItemStyle={{ fontSize: "12px" }} labelStyle={{ fontSize: "12px" }} onChange={this.changeSplitField.bind(this)} value={this.state.splitField} floatingLabelText="Split features by" floatingLabelFixed={true}>
@@ -125,11 +125,11 @@ class ImportFeaturesDialog extends React.Component {
 				: null}
 			</div>;
 		return (
-			<MarxanDialog  
+			<MarxanImportFeatureDialog  
 				{...this.props} 
 				onOk={this.closeDialog.bind(this)}
 				okLabel={"Cancel"}
-				contentWidth={420}
+				contentWidth={540}
 				title= {"Import features"}
 				children={children} 
 				actions={actions}  

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import TextField from 'material-ui/TextField';
+import MarxanTextField from './MarxanTextField';
 import MarxanDialog from "./MarxanDialog";
 import ShapefileUpload from './ShapefileUpload';
 
@@ -43,8 +43,8 @@ class ImportPlanningGridDialog extends React.Component {
 							checkForErrors={this.props.checkForErrors} 
 							label="Shapefile" 
 						/> 
-						<TextField value={this.state.planning_grid_name} onChange={this.changeName.bind(this)} floatingLabelText="Name" floatingLabelFixed={true} />
-						<TextField value={this.state.description} onChange={this.changeDescription.bind(this)} style={{display:'block'}} multiLine={true} rows={2} floatingLabelText="Enter a description" floatingLabelFixed={true}/>
+						<MarxanTextField value={this.state.planning_grid_name} onChange={this.changeName.bind(this)} floatingLabelText="Name"/>
+						<MarxanTextField value={this.state.description} onChange={this.changeDescription.bind(this)} multiLine={true} rows={2} floatingLabelText="Enter a description"/>
 					</React.Fragment>
 				} 
 				showCancelButton={true}

@@ -1,6 +1,6 @@
 import React from "react";
 import MarxanImportFeatureDialog from "./MarxanImportFeatureDialog";
-import TextField from 'material-ui/TextField';
+import MarxanTextField from './MarxanTextField';
 
 class ImportGBIFDialog extends React.Component {
     constructor(props) {
@@ -46,7 +46,7 @@ class ImportGBIFDialog extends React.Component {
                 children={
                   <React.Fragment key={'importGBIFKey'}>
                     <div className={'importGBIFContent'}>
-                        <TextField value={this.state.searchText} onChange={this.changeSearchText.bind(this)} floatingLabelText="Search" floatingLabelFixed={true} style={{width:'350px'}}/>
+                        <MarxanTextField value={this.state.searchText} onChange={this.changeSearchText.bind(this)} floatingLabelText="Search" style={{width:'350px'}}/>
                         <div className={'suggestions'} style={{display:(this.state.searchText.length>2 && !this.state.clicked) ? 'block' : 'none'}}>{suggestions}</div>
                     </div>
                     </React.Fragment>

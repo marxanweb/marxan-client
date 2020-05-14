@@ -1,6 +1,6 @@
 import * as React from 'react';
 import MarxanImportFeatureDialog from './MarxanImportFeatureDialog';
-import TextField from 'material-ui/TextField';
+import MarxanTextField from './MarxanTextField';
 
 class NewFeatureDialog extends React.Component {
 	constructor(props){
@@ -20,8 +20,8 @@ class NewFeatureDialog extends React.Component {
 		let c = 
 			<React.Fragment key="k12">
 				<div> 
-					<TextField value={this.state.name} onChange={this.changeName.bind(this)} style={{display:'block'}} floatingLabelText="Enter a name" floatingLabelFixed={true}/>
-					<TextField value={this.state.description} onChange={this.changeDescription.bind(this)} style={{display:'block'}} multiLine={true} rows={2} floatingLabelText="Enter a description" floatingLabelFixed={true}/>
+					<MarxanTextField value={this.state.name} onChange={this.changeName.bind(this)} floatingLabelText="Enter a name"/>
+					<MarxanTextField value={this.state.description} onChange={this.changeDescription.bind(this)} multiLine={true} rows={2} floatingLabelText="Enter a description"/>
 				</div>
 			</React.Fragment>;
 		return (

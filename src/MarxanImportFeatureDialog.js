@@ -10,7 +10,7 @@ class MarxanImportFeatureDialog extends React.Component {
         return (
             <MarxanDialog
                 {...this.props}
-                actions={[
+                actions={[this.props.actions,
             			<div style={{width: '100%', maxWidth: '500px', textAlign:'left'}}>
         					<Checkbox
         						label="Add to project"

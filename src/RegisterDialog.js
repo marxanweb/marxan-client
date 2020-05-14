@@ -1,6 +1,6 @@
 import React from 'react';
 import MarxanDialog from './MarxanDialog';
-import TextField from 'material-ui/TextField';
+import MarxanTextField from './MarxanTextField';
 
 class RegisterDialog extends React.Component {
 	constructor(props) {
@@ -36,10 +36,10 @@ class RegisterDialog extends React.Component {
 
 	render() {
 		let c = [<div key="RegisterDialogDiv">
-					<TextField floatingLabelText="Username" floatingLabelFixed={true} onChange = {(event,newValue) => this.setState({user:newValue})}/>
-					<TextField floatingLabelText="Password" floatingLabelFixed={true} type="password" onChange = {(event,newValue) => this.setState({password:newValue})}/>
-					<TextField floatingLabelText="Full name" floatingLabelFixed={true} onChange = {(event,newValue) => this.setState({name:newValue})}/>
-					<TextField floatingLabelText="Email address" floatingLabelFixed={true} errorText={this.state.validEmail ?  '' : "Invalid email address"} onChange = {(event,newValue) => this.setState({email:newValue})}/>
+					<MarxanTextField floatingLabelText="Username" onChange = {(event,newValue) => this.setState({user:newValue})}/>
+					<MarxanTextField floatingLabelText="Password" type="password" onChange = {(event,newValue) => this.setState({password:newValue})}/>
+					<MarxanTextField floatingLabelText="Full name" onChange = {(event,newValue) => this.setState({name:newValue})}/>
+					<MarxanTextField floatingLabelText="Email address" errorText={this.state.validEmail ?  '' : "Invalid email address"} onChange = {(event,newValue) => this.setState({email:newValue})}/>
 				</div>];
 		return (
 			<MarxanDialog 

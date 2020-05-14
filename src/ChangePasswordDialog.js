@@ -1,6 +1,6 @@
 import React from "react";
 import MarxanDialog from "./MarxanDialog";
-import TextField from 'material-ui/TextField';
+import MarxanTextField from './MarxanTextField';
 
 class ChangePasswordDialog extends React.Component {
   constructor(props){
@@ -48,9 +48,9 @@ class ChangePasswordDialog extends React.Component {
         title="Change Password"
         children={
           <div key="k5">
-						<TextField floatingLabelText="Current password" floatingLabelFixed={true} onChange = {this.setCurrentPassword.bind(this)} floatingLabelShrinkStyle={{fontSize:'16px'}} floatingLabelFocusStyle={{fontSize:'16px'}} style={{fontSize:'13px'}} type="password"/>
-						<TextField floatingLabelText="New password" floatingLabelFixed={true} onChange = {this.setNewPassword1.bind(this)} floatingLabelShrinkStyle={{fontSize:'16px'}} floatingLabelFocusStyle={{fontSize:'16px'}} style={{fontSize:'13px'}} type="password"/>
-						<TextField floatingLabelText="Repeat password" floatingLabelFixed={true} onChange = {this.setNewPassword2.bind(this)} floatingLabelShrinkStyle={{fontSize:'16px'}} floatingLabelFocusStyle={{fontSize:'16px'}} style={{fontSize:'13px'}} type="password"/>
+						<MarxanTextField floatingLabelText="Current password" onChange = {this.setCurrentPassword.bind(this)} floatingLabelShrinkStyle={{fontSize:'16px'}} floatingLabelFocusStyle={{fontSize:'16px'}} type="password"/>
+						<MarxanTextField floatingLabelText="New password" onChange = {this.setNewPassword1.bind(this)} floatingLabelShrinkStyle={{fontSize:'16px'}} floatingLabelFocusStyle={{fontSize:'16px'}} type="password"/>
+						<MarxanTextField floatingLabelText="Repeat password" onChange = {this.setNewPassword2.bind(this)} floatingLabelShrinkStyle={{fontSize:'16px'}} floatingLabelFocusStyle={{fontSize:'16px'}} type="password"/>
           </div>
         }
       />

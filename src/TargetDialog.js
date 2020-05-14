@@ -1,6 +1,6 @@
 import * as React from 'react';
 import MarxanDialog from './MarxanDialog';
-import TextField from 'material-ui/TextField';
+import MarxanTextField from './MarxanTextField';
 import { isValidTargetValue } from './Helpers.js';
 
 class TargetDialog extends React.PureComponent {
@@ -33,17 +33,7 @@ class TargetDialog extends React.PureComponent {
                 onOk={this.onOk.bind(this)}
                 children={
                 <React.Fragment>
-                    <TextField 
-                        id={"commonTarget"}
-                        floatingLabelFixed={true} 
-                        onChange = {(event,newValue) => this.setState({"target_value":newValue})} 
-                        defaultValue ={this.state.target_value} 
-                        onKeyPress={this.handleKeyPress.bind(this)}
-                        floatingLabelShrinkStyle={{fontSize:'16px'}} 
-                        floatingLabelFocusStyle={{fontSize:'16px'}} 
-                        style={{fontSize:'13px',width:'70px'}} 
-                        errorText={this.state.validTarget ?  '' : "Invalid target"} 
-                    /> 
+                    <MarxanTextField style={{fontSize:'13px',width:'70px'}} id={"commonTarget"} onChange = {(event,newValue) => this.setState({"target_value":newValue})} defaultValue ={this.state.target_value} onKeyPress={this.handleKeyPress.bind(this)} floatingLabelShrinkStyle={{fontSize:'16px'}} floatingLabelFocusStyle={{fontSize:'16px'}} errorText={this.state.validTarget ?  '' : "Invalid target"} /> 
                 </React.Fragment>
         }
         />

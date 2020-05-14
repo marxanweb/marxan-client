@@ -1,8 +1,8 @@
 /*global fetch*/
 /*global DOMParser*/
 import * as React from 'react';
-import MarxanDialog from './MarxanDialog';
-import TextField from 'material-ui/TextField';
+import MarxanImportFeatureDialog from './MarxanImportFeatureDialog';
+import MarxanTextField from './MarxanTextField';
 import SelectField from "material-ui/SelectField";
 import MenuItem from "material-ui/MenuItem";
 import ToolbarButton from './ToolbarButton';
@@ -149,7 +149,7 @@ class ImportFromWebDialog extends React.Component {
 				: null}
 				{stepIndex === 1 ? 
 					<div className={'importFeaturesContent'}>
-						<TextField value={this.state.endpoint} errorText={(this.state.validendpoint ? '' : 'Invalid WFS endpoint')} onChange={this.changeEndpoint.bind(this)} style={{display:'block'}} floatingLabelText="Enter the WFS endpoint" floatingLabelFixed={true}/>
+						<MarxanTextField value={this.state.endpoint} errorText={(this.state.validendpoint ? '' : 'Invalid WFS endpoint')} onChange={this.changeEndpoint.bind(this)} floatingLabelText="Enter the WFS endpoint"/>
 					</div>
 				: null}
 				{(stepIndex === 2) ? 
@@ -165,18 +165,18 @@ class ImportFromWebDialog extends React.Component {
 				: null}
 				{stepIndex === 3 ? 
 					<div className={'importFeaturesContent'}>
-						<TextField value={this.state.name} onChange={this.changeName.bind(this)} style={{display:'block'}} floatingLabelText="Enter a name" floatingLabelFixed={true}/>
-						<TextField value={this.state.description} onChange={this.changeDescription.bind(this)} style={{display:'block'}} multiLine={true} rows={2} floatingLabelText="Enter a description" floatingLabelFixed={true}/>
+						<MarxanTextField value={this.state.name} onChange={this.changeName.bind(this)} floatingLabelText="Enter a name"/>
+						<MarxanTextField value={this.state.description} onChange={this.changeDescription.bind(this)} multiLine={true} rows={2} floatingLabelText="Enter a description"/>
 					</div>
 				: null}
 			</div>;
 		return (
-			<MarxanDialog  
+			<MarxanImportFeatureDialog  
 				{...this.props} 
 				onOk={this.closeDialog.bind(this)}
 				okLabel={"Cancel"}
 				loading={this.props.loading || this.state.loading}
-				contentWidth={420}
+				contentWidth={540}
 				title= {"Import from web"}
 				children={children} 
 				actions={actions}  

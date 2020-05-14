@@ -2,7 +2,7 @@ import React from 'react';
 import MarxanDialog from './MarxanDialog';
 import ToolbarButton from './ToolbarButton';
 import MapContainer from './MapContainer.js';
-import TextField from 'material-ui/TextField';
+import MarxanTextField from './MarxanTextField';
 
 let CLUMP_COUNT = 5;
 
@@ -103,9 +103,9 @@ class ClumpingDialog extends React.Component {
 								<div>Move and zoom the main map to preview the clumping</div>
 								<div style={{'paddingTop':'30px'}}>
 									<span>BLM from </span>
-									<TextField value={this.state.blmMin} onChange={this.changeBlmMin.bind(this)} style={{width:'36px'}} inputStyle={{'textAlign':'center', 'fontSize':'14px'}} id="blmmin" disabled={this.props.clumpingRunning}/>
+									<MarxanTextField value={this.state.blmMin} onChange={this.changeBlmMin.bind(this)} style={{width:'36px'}} inputStyle={{'textAlign':'center', 'fontSize':'14px'}} id="blmmin" disabled={this.props.clumpingRunning}/>
 									<span> to </span>
-									<TextField value={this.state.blmMax} onChange={this.changeBlmMax.bind(this)} style={{width:'36px'}} inputStyle={{'textAlign':'center', 'fontSize':'14px'}} id="blmmax" disabled={this.props.clumpingRunning}/>
+									<MarxanTextField value={this.state.blmMax} onChange={this.changeBlmMax.bind(this)} style={{width:'36px'}} inputStyle={{'textAlign':'center', 'fontSize':'14px'}} id="blmmax" disabled={this.props.clumpingRunning}/>
 								</div>
 						</div>
 					</div>

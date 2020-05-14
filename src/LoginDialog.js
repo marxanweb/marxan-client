@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUnlink } from '@fortawesome/free-solid-svg-icons';
 import { faLock } from '@fortawesome/free-solid-svg-icons';
 import MarxanDialog from './MarxanDialog';
-import TextField from 'material-ui/TextField';
+import MarxanTextField from './MarxanTextField';
 import SelectField from 'material-ui/SelectField';
 import MenuItem from 'material-ui/MenuItem';
 
@@ -54,26 +54,8 @@ class LoginDialog extends React.Component {
 							})}
 						/>
 						<div style={{height:'124px'}} id="logindiv" key="logindiv">
-							<TextField 
-								floatingLabelText="Username" 
-								floatingLabelFixed={true} 
-								onChange = {(event, value)=>this.props.changeUserName(value)} 
-								inputStyle={{fontSize:'12px'}} 
-								value={this.props.user} 
-								className='loginUserField' 
-								disabled = {(this.props.loading||(this.props.marxanServer&&!this.props.marxanServer.corsEnabled)) ? true : false} 
-								onKeyPress={this.handleKeyPress.bind(this)}
-							/>
-							<span><TextField 
-								floatingLabelText="Password" 
-								floatingLabelFixed={true} 
-								type="password" 
-								onChange = {(event, value)=>this.props.changePassword(value)} 
-								value={this.props.password} 
-								className='loginUserField' 
-								disabled = {this.props.loading||(this.props.marxanServer&&!this.props.marxanServer.corsEnabled) ? true : false} 
-								onKeyPress={this.handleKeyPress.bind(this)}
-							/></span>
+							<MarxanTextField floatingLabelText="Username" onChange = {(event, value)=>this.props.changeUserName(value)} value={this.props.user} disabled = {(this.props.loading||(this.props.marxanServer&&!this.props.marxanServer.corsEnabled)) ? true : false} onKeyPress={this.handleKeyPress.bind(this)}/>
+							<MarxanTextField floatingLabelText="Password" type="password" onChange = {(event, value)=>this.props.changePassword(value)} value={this.props.password} disabled = {this.props.loading||(this.props.marxanServer&&!this.props.marxanServer.corsEnabled) ? true : false} onKeyPress={this.handleKeyPress.bind(this)}/>
 							{/*<span onClick={this.props.openResendPasswordDialog.bind(this)} className="forgotLink" title="Click to resend password">Forgot</span>*/}
 						</div>
 					</div>
