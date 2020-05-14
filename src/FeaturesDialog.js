@@ -44,6 +44,12 @@ class FeaturesDialog extends React.Component {
       //show the new feature dialog
       this.props.openImportFeaturesDialog("import");
     }
+    _openImportFromWebDialog(){
+      //close the dialog
+      this.props.onCancel();
+      //show the new feature dialog
+      this.props.openImportFromWebDialog();
+    }
     _newByDigitising() {
       //hide this dialog
       this.onOk();
@@ -173,6 +179,7 @@ class FeaturesDialog extends React.Component {
                          <Popover open={ this.props.importFeaturePopoverOpen } anchorEl={ this.state.importFeatureAnchor } anchorOrigin={ { horizontal: 'left', vertical: 'bottom' } } targetOrigin={ { horizontal: 'left', vertical: 'top' } } onRequestClose={ this.props.hideImportFeaturePopover }>
                            <Menu desktop={ true }>
                              <MenuItem primaryText="From a shapefile" title="Import one or more features from a shapefile" onClick={this._openImportFeaturesDialog.bind(this)} />
+                             <MenuItem primaryText="From the web" title="Import one or more features from a web resource" onClick={this._openImportFromWebDialog.bind(this)} />
                              <MenuItem primaryText="From the Global Biodiversity Information Facility" title="The worlds largest provider of species observations" onClick={ this.openImportGBIFDialog.bind(this) } />
                              <MenuItem primaryText="From the IUCN Red List of Threatened Species" disabled={ true } />
                            </Menu>

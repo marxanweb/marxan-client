@@ -9,7 +9,6 @@ class ImportGBIFDialog extends React.Component {
     }
     onOk() {
         this.props.importGBIFData(this.state.selectedItem).then(response => {
-            
             this.props.onCancel();
         }).catch(error => {
             this.props.onCancel();

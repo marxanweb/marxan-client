@@ -26,7 +26,7 @@ class PlanningGridDialog extends React.Component {
 				helpLink={"user.html#the-planning-grid-details-window"}
 				contentWidth={768}
 				children={
-					<React.Fragment key="k26">
+					<React.Fragment key="k27">
 						<MapContainer2
 							planning_grid_metadata={this.props.planning_grid_metadata}
 							getTilesetMetadata={this.props.getTilesetMetadata}

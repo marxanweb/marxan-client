@@ -56,6 +56,7 @@ import FeatureDialog from './FeatureDialog';
 import FeaturesDialog from './FeaturesDialog';
 import NewFeatureDialog from './NewFeatureDialog';
 import ImportFeaturesDialog from './ImportFeaturesDialog';
+import ImportFromWebDialog from './ImportFromWebDialog';
 import CostsDialog from './CostsDialog';
 import RunSettingsDialog from './RunSettingsDialog';
 import ClassificationDialog from './ClassificationDialog';
@@ -155,6 +156,7 @@ class App extends React.Component {
       ProjectsListDialogOpen: false,
       changePasswordDialogOpen: false,
       importFeaturesDialogOpen: false,
+      importFromWebDialogOpen: false,
       serverDetailsDialogOpen: false,
       planningGridsDialogOpen: false,
       planningGridDialogOpen: false,
@@ -585,7 +587,7 @@ class App extends React.Component {
     try{
       const controller = new AbortController();
       const signal = controller.signal;   
-      const timeoutId = setTimeout(() => controller.abort(), 1000);
+      const timeoutId = setTimeout(() => controller.abort(), 3000);
       const response = await fetch(endpoint + "getServerData", { credentials:"include", signal: signal });
       clearTimeout(timeoutId);
       if (!response.ok) {
@@ -2780,6 +2782,12 @@ class App extends React.Component {
     //finalise digitising 
     this.finaliseDigitising();
   }
+  openImportFromWebDialog() {
+    this.setState({ importFromWebDialogOpen: true});
+  }
+  closeImportFromWebDialog() {
+    this.setState({ importFromWebDialogOpen: false});
+  }
   openImportFeaturesDialog() {
     this.setState({ importFeaturesDialogOpen: true});
   }
@@ -3064,6 +3072,24 @@ class App extends React.Component {
     }); //return
   }
 
+  //imports features from a web resource
+  importFeaturesFromWeb(name, description, endpoint, srs, featureType){
+    //start the logging
+    this.startLogging();
+    return new Promise((resolve, reject) => {
+      //get the request url
+      this._ws("createFeaturesFromWFS?name=" + name + "&description=" + description + "&endpoint=" + endpoint + "&srs=" + srs + "&featuretype=" + featureType, this.wsMessageCallback.bind(this)).then((message) => {
+        //get the uploadId
+        let uploadId = message.uploadId;
+          this.pollMapbox(uploadId).then((response) => {
+            resolve(response);
+          });
+      }).catch((error) => {
+        reject(error);
+      });
+    }); //return
+  }
+  
   //import features from GBIF
   importGBIFData(item){
     //start the logging
@@ -4230,6 +4256,7 @@ class App extends React.Component {
             allFeatures={this.state.allFeatures}
             deleteFeature={this.deleteFeature.bind(this)}
             openImportFeaturesDialog={this.openImportFeaturesDialog.bind(this)}
+            openImportFromWebDialog={this.openImportFromWebDialog.bind(this)}
             selectAllFeatures={this.selectAllFeatures.bind(this)}
             clearAllFeatures={this.clearAllFeatures.bind(this)}
             selectFeatures={this.selectFeatures.bind(this)}
@@ -4282,6 +4309,12 @@ class App extends React.Component {
             unzipShapefile={this.unzipShapefile.bind(this)}
             getShapefileFieldnames={this.getShapefileFieldnames.bind(this)}
             deleteShapefile={this.deleteShapefile.bind(this)}
+          />
+          <ImportFromWebDialog
+            open={this.state.importFromWebDialogOpen} 
+            onCancel={this.closeImportFromWebDialog.bind(this)}
+            loading={this.state.loading || this.state.preprocessing || this.state.uploading}
+            importFeatures={this.importFeaturesFromWeb.bind(this)}
           />
           <ImportGBIFDialog
             open={this.state.importGBIFDialogOpen} 
