@@ -149,7 +149,7 @@ class ImportFromWebDialog extends React.Component {
 				: null}
 				{stepIndex === 1 ? 
 					<div className={'importFeaturesContent'}>
-						<MarxanTextField value={this.state.endpoint} errorText={(this.state.validendpoint ? '' : 'Invalid WFS endpoint')} onChange={this.changeEndpoint.bind(this)} floatingLabelText="Enter the WFS endpoint"/>
+						<MarxanTextField style={{'width':'450px'}} value={this.state.endpoint} errorText={(this.state.validendpoint ? '' : 'Invalid WFS endpoint')} onChange={this.changeEndpoint.bind(this)} floatingLabelText="Enter the WFS endpoint"/>
 					</div>
 				: null}
 				{(stepIndex === 2) ? 

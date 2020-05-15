@@ -70,6 +70,7 @@ import IdentifyPopup from './IdentifyPopup';
 import TargetDialog from './TargetDialog';
 import ShareableLinkDialog from './ShareableLinkDialog';
 import GapAnalysisDialog from './GapAnalysisDialog';
+import ResetDialog from './ResetDialog';
 import UpdateWDPADialog from './UpdateWDPADialog';
 import ImportGBIFDialog from './ImportGBIFDialog';
 
@@ -166,6 +167,7 @@ class App extends React.Component {
       gapAnalysisDialogOpen: false,
       featureDialogOpen: false,
       runLogDialogOpen: false,
+      resetDialogOpen: false,
       infoPanelOpen: false,
       resultsPanelOpen: false,
       targetDialogOpen: false,
@@ -598,7 +600,7 @@ class App extends React.Component {
         //see if CORS is enabled from this domain - either the domain has been added as an allowable domain on the server, or the client and server are on the same machine
         let corsEnabled = ((json.serverData.PERMITTED_DOMAINS.indexOf(window.location.hostname)>-1)||(server.host === window.location.hostname)) ? true : false;
         //set the flags for the server capabilities
-        server = Object.assign(server, {guestUserEnabled: json.serverData.ENABLE_GUEST_USER, corsEnabled: corsEnabled, offline: false, machine: json.serverData.MACHINE, client_version: json.serverData.MARXAN_CLIENT_VERSION, server_version: json.serverData.MARXAN_SERVER_VERSION, node: json.serverData.NODE, processor: json.serverData.PROCESSOR, processor_count: json.serverData.PROCESSOR_COUNT,ram: json.serverData.RAM, release: json.serverData.RELEASE, system:json.serverData.SYSTEM, version: json.serverData.VERSION, wdpa_version: json.serverData.WDPA_VERSION, planning_grid_units_limit: Number(json.serverData.PLANNING_GRID_UNITS_LIMIT), disk_space: json.serverData.DISK_FREE_SPACE, shutdowntime: json.serverData.SHUTDOWNTIME});
+        server = Object.assign(server, {guestUserEnabled: json.serverData.ENABLE_GUEST_USER, corsEnabled: corsEnabled, offline: false, machine: json.serverData.MACHINE, client_version: json.serverData.MARXAN_CLIENT_VERSION, server_version: json.serverData.MARXAN_SERVER_VERSION, node: json.serverData.NODE, processor: json.serverData.PROCESSOR, processor_count: json.serverData.PROCESSOR_COUNT,ram: json.serverData.RAM, release: json.serverData.RELEASE, system:json.serverData.SYSTEM, version: json.serverData.VERSION, wdpa_version: json.serverData.WDPA_VERSION, planning_grid_units_limit: Number(json.serverData.PLANNING_GRID_UNITS_LIMIT), disk_space: json.serverData.DISK_FREE_SPACE, shutdowntime: json.serverData.SHUTDOWNTIME, enable_reset: json.serverData.ENABLE_RESET});
         //if the server defines its own name then set it 
         if(json.serverData.SERVER_NAME!=="") {
           server = Object.assign(server, {name:json.serverData.SERVER_NAME});
@@ -3544,6 +3546,12 @@ class App extends React.Component {
     this.stopPollingRunLogs();
     this.setState({runLogDialogOpen: false});
   }
+  openResetDialog(){
+    this.setState({resetDialogOpen: true});
+  }
+  closeResetDialog(){
+    this.setState({resetDialogOpen: false});
+  }
   openGapAnalysisDialog(){
     this.setState({gapAnalysisDialogOpen: true, gapAnalysis: []});
     this.runGapAnalysis();
@@ -3988,6 +3996,22 @@ class App extends React.Component {
     this.setState({addToProject: addToProject});
   }
   
+  //restores the database back to its original state and runs a git reset on the file system
+  resetServer(){
+    return new Promise((resolve, reject) => {
+      //switches the results pane to the log tab
+      this.log_tab_active();
+      //call the websocket 
+      this._ws("resetDatabase", this.wsMessageCallback.bind(this)).then((message) => {
+        //websocket has finished
+        resolve(message);
+        this.closeResetDialog();
+      }).catch((error) => {
+        reject(error);
+        this.closeResetDialog();
+      });
+    });
+  }
   render() {
     const message = (<span id="snackbar-message-id" dangerouslySetInnerHTML={{ __html: this.state.snackbarMessage }} />);    
     return (
@@ -4043,7 +4067,9 @@ class App extends React.Component {
             openUsersDialog={this.openUsersDialog.bind(this)}
             openRunLogDialog={this.openRunLogDialog.bind(this)}
             openGapAnalysisDialog={this.openGapAnalysisDialog.bind(this)}
+            openResetDialog={this.openResetDialog.bind(this)}
             userRole={this.state.userData.ROLE}
+            marxanServer={this.state.marxanServer}
             metadata={this.state.metadata}
           />
           <UserMenu 
@@ -4417,6 +4443,13 @@ class App extends React.Component {
             checkForErrors={this.checkForErrors.bind(this)} 
             log={this.log.bind(this)}
             setSnackBar={this.setSnackBar.bind(this)}
+          />
+          <ResetDialog
+            open={this.state.resetDialogOpen}
+            onOk={this.resetServer.bind(this)}
+            onCancel={this.closeResetDialog.bind(this)}
+            onRequestClose={this.closeResetDialog.bind(this)}
+            loading={this.state.loading}
           />
           <RunLogDialog
             open={this.state.runLogDialogOpen}
