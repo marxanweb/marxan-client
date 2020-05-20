@@ -62,6 +62,7 @@ import RunSettingsDialog from './RunSettingsDialog';
 import ClassificationDialog from './ClassificationDialog';
 import ClumpingDialog from './ClumpingDialog';
 import ImportProjectDialog from './ImportProjectDialog';
+import ImportMXWDialog from './ImportMXWDialog';
 import RunLogDialog from './RunLogDialog';
 import ServerDetailsDialog from './ServerDetailsDialog';
 import AlertDialog from './AlertDialog';
@@ -163,6 +164,7 @@ class App extends React.Component {
       planningGridDialogOpen: false,
       updateWDPADialogOpen: false,
       NewFeatureDialogOpen: false,
+      importMXWDialogOpen: false,
       featuresDialogOpen: false,
       gapAnalysisDialogOpen: false,
       featureDialogOpen: false,
@@ -1221,6 +1223,21 @@ class App extends React.Component {
     });
   }
 
+  //exports the project on the server and returns the *.mxw file
+  exportProject(user, project){
+    return new Promise((resolve, reject) => {
+      //switches the results pane to the log tab
+      this.log_tab_active();
+      //call the websocket 
+      this._ws("exportProject?user=" + user + "&project=" + project, this.wsMessageCallback.bind(this)).then((message) => {
+        //websocket has finished
+        resolve(this.state.marxanServer.endpoint + "exports/" + message.filename);
+      }).catch((error) => {
+        reject(error);
+      });
+    });
+  }
+
   cloneProject(user, project) {
     this._get("cloneProject?user=" + user + "&project=" + project).then((response) => {
       //refresh the projects list
@@ -1566,6 +1583,20 @@ class App extends React.Component {
     return s;
   }
 
+  //imports a project from an mxd file
+  importMXWProject(project, description, filename){
+    return new Promise((resolve, reject) => {
+      this.startLogging();
+      this._ws("importProject?user=" + this.state.user + "&project=" + project + "&filename=" + filename, this.wsMessageCallback.bind(this)).then((message) => {
+        //websocket has finished 
+        resolve(message);
+      }).catch((error) => {
+        //do something
+        reject(error);
+      });
+    });
+  }
+  
   //load a specific solution for the current project
   loadSolution(solution) {
     if (solution === "Sum") {
@@ -2834,6 +2865,12 @@ class App extends React.Component {
   hideImportFeaturePopover(){
     this.setState({ importFeaturePopoverOpen: false });
   }
+  showImportProjectPopover(){
+    this.setState({ importProjectPopoverOpen: true });
+  }
+  hideImportProjectPopover(){
+    this.setState({ importProjectPopoverOpen: false });
+  }
   openCostsDialog() {
     this.setState({ CostsDialogOpen: true });
   }
@@ -3431,7 +3468,7 @@ class App extends React.Component {
     this.getProjects();
   }
   closeProjectsDialog() {
-    this.setState({ projectsDialogOpen: false });
+    this.setState({ projectsDialogOpen: false, importProjectPopoverOpen:false });
   }
   openNewProjectDialog() {
     this.setState({ newProjectDialogOpen: true });
@@ -3512,6 +3549,12 @@ class App extends React.Component {
   }
   closeImportDialog() {
     this.setState({ importProjectDialogOpen: false });
+  }
+  openImportMXWDialog() {
+    this.setState({ importMXWDialogOpen: true });
+  }
+  closeImportMXWDialog() {
+    this.setState({ importMXWDialogOpen: false });
   }
   openUsersDialog() {
     this.getUsers();
@@ -4220,12 +4263,19 @@ class App extends React.Component {
             oldVersion={this.state.metadata.OLDVERSION}
             deleteProject={this.deleteProject.bind(this)}
             loadProject={this.loadProject.bind(this)}
+            exportProject={this.exportProject.bind(this)}
             cloneProject={this.cloneProject.bind(this)}
             openNewProjectDialog={this.openNewProjectDialog.bind(this)}
             openImportProjectDialog={this.openImportProjectDialog.bind(this)}
             unauthorisedMethods={this.state.unauthorisedMethods}
             userRole={this.state.userData.ROLE}
             getAllFeatures={this.getAllFeatures.bind(this)}
+            importProjectPopoverOpen={this.state.importProjectPopoverOpen}
+            showImportProjectPopover={this.showImportProjectPopover.bind(this)}
+            hideImportProjectPopover={this.hideImportProjectPopover.bind(this)}
+            openImportMXWDialog={this.openImportMXWDialog.bind(this)}
+            closeImportMXWDialog={this.closeImportMXWDialog.bind(this)}
+            importMXWDialogOpen={this.state.importMXWDialogOpen}
           />
           <NewProjectDialog
             open={this.state.newProjectDialogOpen}
@@ -4440,6 +4490,17 @@ class App extends React.Component {
             requestEndpoint={this.state.marxanServer.endpoint}
             SEND_CREDENTIALS={SEND_CREDENTIALS}
             importProject={this.importProject.bind(this)}
+            checkForErrors={this.checkForErrors.bind(this)} 
+            log={this.log.bind(this)}
+            setSnackBar={this.setSnackBar.bind(this)}
+          />
+          <ImportMXWDialog
+            open={this.state.importMXWDialogOpen}
+            onOk={this.closeImportMXWDialog.bind(this)}
+            loading={this.state.loading || this.state.uploading}
+            requestEndpoint={this.state.marxanServer.endpoint}
+            SEND_CREDENTIALS={SEND_CREDENTIALS}
+            importMXWProject={this.importMXWProject.bind(this)}
             checkForErrors={this.checkForErrors.bind(this)} 
             log={this.log.bind(this)}
             setSnackBar={this.setSnackBar.bind(this)}

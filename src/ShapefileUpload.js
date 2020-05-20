@@ -13,6 +13,8 @@ class ShapefileUpload extends React.Component {
 		this.state = { loading: false,active:false };
 		this.onChange = this.onChange.bind(this);
 		this.fileUpload = this.fileUpload.bind(this);
+		//the destination folder on the server where the file will be uploaded
+		this.destFolder = (props.hasOwnProperty('destFolder')) ? props.destFolder : '';
 	}
  
 	onClick(e){
@@ -35,6 +37,7 @@ class ShapefileUpload extends React.Component {
 		formData.append('filename', this.filename);
 		formData.append('name', this.props.name);
 		formData.append('description', this.props.description); 
+		formData.append('destFolder', this.destFolder);
 		post(url, formData, {withCredentials: this.props.SEND_CREDENTIALS}).then(function(response){
 			this.finishedLoading(response);
 		}.bind(this));
@@ -55,7 +58,7 @@ class ShapefileUpload extends React.Component {
 				<div className='uploadFileField'>
 					<div className='uploadFileFieldIcon'>
 						<label htmlFor={this.id}><FontAwesome name='file' title='Click to upload a file' style={{'cursor':'pointer'}}/></label>
-						<input type="file" onChange={this.onChange} onClick={this.onClick.bind(this)} accept=".zip" style={{'display':'none', 'width':'10px'}} id={this.id} />
+						<input type="file" onChange={this.onChange} onClick={this.onClick.bind(this)} accept=".zip,.mxw" style={{'display':'none', 'width':'10px'}} id={this.id} />
 					</div>
 					<div className='mandatoryIcon'>
 						<FontAwesome name='exclamation-circle' title='Required field' style={{ color: 'darkslateblue', 'display': (this.props.filename  === '' && this.props.mandatory) ? 'block' : 'none'}}/>

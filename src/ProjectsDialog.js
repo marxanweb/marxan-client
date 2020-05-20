@@ -4,10 +4,14 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlusCircle } from '@fortawesome/free-solid-svg-icons';
 import { faTrashAlt } from '@fortawesome/free-regular-svg-icons';
 import Import from 'material-ui/svg-icons/action/get-app';
+import Export from 'material-ui/svg-icons/editor/publish';
 import Clone from 'material-ui/svg-icons/content/content-copy';
 import ToolbarButton from './ToolbarButton';
 import MarxanDialog from './MarxanDialog';
 import MarxanTable from "./MarxanTable";
+import Popover from 'material-ui/Popover';
+import Menu from 'material-ui/Menu';
+import MenuItem from 'material-ui/MenuItem';
 
 class ProjectsDialog extends React.Component { 
 		constructor(props) {
@@ -34,6 +38,10 @@ class ProjectsDialog extends React.Component {
 			this.props.loadProject(this.state.selectedProject.name, this.state.selectedProject.user);
 			this.closeDialog();
 		}
+	    showImportProjectPopover(event) {
+	      this.setState({ importProjectAnchor: event.currentTarget });
+	      this.props.showImportProjectPopover();
+	    }
 		_new() {
 			//get all the features again otherwise the allFeatures state may be bound to an old version of marxans features
 			this.props.getAllFeatures().then(function() {
@@ -44,8 +52,18 @@ class ProjectsDialog extends React.Component {
 		cloneProject() {
 			this.props.cloneProject(this.state.selectedProject.user, this.state.selectedProject.name);
 		}
+		exportProject(){
+			this.props.exportProject(this.state.selectedProject.user, this.state.selectedProject.name).then(url=>{
+				window.location = url;
+			});
+			this.closeDialog();
+		}
 		openImportProjectDialog() {
 			this.props.openImportProjectDialog();
+			this.closeDialog();
+		}
+		openImportMXWDialog(){
+			this.props.openImportMXWDialog();
 			this.closeDialog();
 		}
 		changeProject(event, project) {
@@ -122,12 +140,27 @@ class ProjectsDialog extends React.Component {
 									label={"New"}
 								/>
 								<ToolbarButton 
-									show={!this.props.unauthorisedMethods.includes("createImportProject")}
+									show={!(this.props.userRole === "ReadOnly")}
 									icon={<Import style={{height:'20px',width:'20px'}}/>} 
-									title="Import an existing Marxan project from the local machine"
-									onClick={this.openImportProjectDialog.bind(this)} 
+									title="Import a project from Marxan Web or Marxan DOS"
+									onClick={ this.showImportProjectPopover.bind(this) }
+									disabled={ this.props.loading }  
 									label={"Import"}
 								/>
+		                         <Popover open={ this.props.importProjectPopoverOpen } anchorEl={ this.state.importProjectAnchor } anchorOrigin={ { horizontal: 'left', vertical: 'bottom' } } targetOrigin={ { horizontal: 'left', vertical: 'top' } } onRequestClose={ this.props.hideImportProjectPopover }>
+		                           <Menu desktop={ true }>
+		                             <MenuItem style={{display: (!this.props.unauthorisedMethods.includes("importProject")) ? 'inline-block' : 'none'}} primaryText="From Marxan Web" title="Import a project from a Marxan Web *.mxw file" onClick={this.openImportMXWDialog.bind(this)} />
+		                             <MenuItem style={{display: (!this.props.unauthorisedMethods.includes("createImportProject")) ? 'inline-block' : 'none'}} primaryText="From Marxan DOS" title="Import a project from a Marxan DOS" onClick={this.openImportProjectDialog.bind(this)} />
+		                           </Menu>
+		                         </Popover>
+								<ToolbarButton 
+									show={!this.props.unauthorisedMethods.includes("exportProject")}
+									icon={<Export style={{height:'20px',width:'20px'}}/>} 
+									title="Export project" 
+									onClick={this.exportProject.bind(this)} 
+									disabled={!this.state.selectedProject || this.props.loading || this.state.selectedProject.oldVersion}
+									label={"Export"}
+								/> 
 								<ToolbarButton 
 									show={!this.props.unauthorisedMethods.includes("cloneProject")}
 									icon={<Clone style={{height:'20px',width:'20px'}}/>} 
