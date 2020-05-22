@@ -1590,6 +1590,8 @@ class App extends React.Component {
       this._ws("importProject?user=" + this.state.user + "&project=" + project + "&filename=" + filename, this.wsMessageCallback.bind(this)).then((message) => {
         //websocket has finished 
         resolve(message);
+        //refresh the project features as there may be new ones
+        this.refreshFeatures();
       }).catch((error) => {
         //do something
         reject(error);

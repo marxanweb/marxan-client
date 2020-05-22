@@ -44,7 +44,7 @@ class ImportMXWDialog extends React.Component {
 	}
 	onOk(){
 		//return the wizard back to zero
-		this.setState({loading: false, stepIndex: 0 });
+		this.setState({loading: false, stepIndex: 0, zipFilename:'' });
 		this.props.onOk();
 	}
 	render() {
