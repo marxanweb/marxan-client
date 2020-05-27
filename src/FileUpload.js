@@ -3,10 +3,11 @@ import React from 'react';
 import axios, { post } from 'axios';
 /*eslint-enable no-unused-vars*/
 import FontAwesome from 'react-fontawesome';
+import Sync from 'material-ui/svg-icons/notification/sync'; 
 
 //From AshikNesin https://gist.github.com/AshikNesin/e44b1950f6a24cfcd85330ffc1713513
 
-class ShapefileUpload extends React.Component {
+class FileUpload extends React.Component {
 
 	constructor(props) {
 		super(props);
@@ -30,13 +31,11 @@ class ShapefileUpload extends React.Component {
 
 	fileUpload(value) {
 		this.setState({ loading: true });
-		const url = this.props.requestEndpoint + "uploadShapefile";
+		const url = this.props.requestEndpoint + "uploadFileToFolder";
 		const formData = new FormData();
 		this.filename = value['name']; //from the open file dialog
 		formData.append('value', value); 
 		formData.append('filename', this.filename);
-		formData.append('name', this.props.name);
-		formData.append('description', this.props.description); 
 		formData.append('destFolder', this.destFolder);
 		post(url, formData, {withCredentials: this.props.SEND_CREDENTIALS}).then(function(response){
 			this.finishedLoading(response);
@@ -60,15 +59,12 @@ class ShapefileUpload extends React.Component {
 						<label htmlFor={this.id}><FontAwesome name='file' title='Click to upload a file' style={{'cursor':'pointer'}}/></label>
 						<input type="file" onChange={this.onChange} onClick={this.onClick.bind(this)} accept=".zip,.mxw" style={{'display':'none', 'width':'10px'}} id={this.id} />
 					</div>
-					<div className='mandatoryIcon'>
-						<FontAwesome name='exclamation-circle' title='Required field' style={{ color: 'darkslateblue', 'display': (this.props.filename  === '' && this.props.mandatory) ? 'block' : 'none'}}/>
-					</div>
 					<div className='uploadFileFieldLabel' style={{width:'168px'}}>{this.props.filename}</div>
 				</div>
-				<FontAwesome name='sync' spin style={{'display': (this.state.loading ? 'inline-block' : 'none'), 'marginLeft':'6px'}}/>
+				<Sync className='spin' style={{'display': (this.state.loading ? "inline-block" : "none"), 'marginLeft':'6px',color: 'rgb(255, 64, 129)', height:"22px",width:"22px",'verticalAlign':'middle'}} key={"spinner"}/>
 			</form>
 		);
 	}
 }
 
-export default ShapefileUpload;
+export default FileUpload;

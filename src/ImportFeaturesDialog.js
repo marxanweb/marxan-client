@@ -1,7 +1,7 @@
 import * as React from 'react';
 import MarxanImportFeatureDialog from './MarxanImportFeatureDialog';
 import MarxanTextField from './MarxanTextField';
-import ShapefileUpload from './ShapefileUpload.js';
+import FileUpload from './FileUpload.js';
 import SelectField from "material-ui/SelectField";
 import MenuItem from "material-ui/MenuItem";
 import ToolbarButton from './ToolbarButton';
@@ -96,7 +96,7 @@ class ImportFeaturesDialog extends React.Component {
 			<div key="k12" style={{height:'120px',maxHeight:'120px'}}>
 				{stepIndex === 0 ? 
 					<div className={'importFeaturesContent'}>
-						<ShapefileUpload SEND_CREDENTIALS={this.props.SEND_CREDENTIALS} requestEndpoint={this.props.requestEndpoint} checkForErrors={this.props.checkForErrors} mandatory={true} filename={this.props.filename} setFilename={this.props.setFilename} label="Shapefile" style={{'paddingTop':'10px'}}/> 
+						<FileUpload SEND_CREDENTIALS={this.props.SEND_CREDENTIALS} requestEndpoint={this.props.requestEndpoint} checkForErrors={this.props.checkForErrors} mandatory={true} filename={this.props.filename} setFilename={this.props.setFilename} label="Shapefile" style={{'paddingTop':'10px'}}/> 
 					</div>
 				: null}
 				{stepIndex === 1 ? 

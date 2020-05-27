@@ -159,7 +159,7 @@ class NewProjectDialog extends React.Component {
 					</div>
 			];
 			let c = <div key="k3">
-									{stepIndex === 0 ? <Metadata name={this.state.name} description={this.state.description} setName={this.setName.bind(this)} setDescription={this.setDescription.bind(this)} paddingBottom={'198px'}/> : null}
+									{stepIndex === 0 ? <Metadata name={this.state.name} description={this.state.description} setName={this.setName.bind(this)} setDescription={this.setDescription.bind(this)}/> : null}
 									{stepIndex === 1 ? <PlanningUnitsDialog 
 										getPlanningUnitGrids={this.props.getPlanningUnitGrids} 
 										planning_unit_grids={this.props.planning_unit_grids} 

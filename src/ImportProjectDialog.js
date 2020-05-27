@@ -79,7 +79,7 @@ class ImportProjectDialog extends React.Component {
 							setPlanningGridName={this.setPlanningGridName.bind(this)}
 							planning_grid_name={this.state.planning_grid_name}
 						/> : null}
-						{stepIndex === 1 ? <Metadata name={this.state.name} description={this.state.description} setName={this.setName.bind(this)} setDescription={this.setDescription.bind(this)} paddingBottom={'50px'}/> : null}
+						{stepIndex === 1 ? <Metadata name={this.state.name} description={this.state.description} setName={this.setName.bind(this)} setDescription={this.setDescription.bind(this)}/> : null}
 					</div>
 				</React.Fragment>;
 		return (

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import MarxanTextField from './MarxanTextField';
 import MarxanDialog from "./MarxanDialog";
-import ShapefileUpload from './ShapefileUpload';
+import FileUpload from './FileUpload';
 
 class ImportPlanningGridDialog extends React.Component {
 	constructor(props) {
@@ -34,7 +34,7 @@ class ImportPlanningGridDialog extends React.Component {
 				contentWidth={420}
 				children={
 					<React.Fragment key="22">
-						<ShapefileUpload 
+						<FileUpload 
 							requestEndpoint={this.props.requestEndpoint} 
 							SEND_CREDENTIALS={this.props.SEND_CREDENTIALS} 
 							mandatory={true} 

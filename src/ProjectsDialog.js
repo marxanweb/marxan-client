@@ -164,10 +164,10 @@ class ProjectsDialog extends React.Component {
 								<ToolbarButton 
 									show={!this.props.unauthorisedMethods.includes("cloneProject")}
 									icon={<Clone style={{height:'20px',width:'20px'}}/>} 
-									title="Duplicate project" 
+									title="Clone project" 
 									onClick={this.cloneProject.bind(this)} 
 									disabled={!this.state.selectedProject || this.props.loading}
-									label={"Duplicate"}
+									label={"Clone"}
 								/> 
 								<ToolbarButton  
 									show={!this.props.unauthorisedMethods.includes("deleteProject")}

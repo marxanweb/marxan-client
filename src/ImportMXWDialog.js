@@ -2,7 +2,7 @@ import React from 'react';
 import MarxanDialog from './MarxanDialog';
 import ToolbarButton from './ToolbarButton';
 import Metadata from './Metadata';
-import ShapefileUpload from './ShapefileUpload';
+import FileUpload from './FileUpload';
 
 //some of the code in this component should be moved up to app.js like the POSTs but I have limited time
 
@@ -55,23 +55,27 @@ class ImportMXWDialog extends React.Component {
 				<div style={contentStyle}>
 					<div style={{marginTop: 12}}>
 						<ToolbarButton label="Back" disabled={stepIndex === 0} onClick={this.handlePrev} />
-						<ToolbarButton label={stepIndex === (this.state.steps.length-1) ? 'Finish' : 'Next'} onClick={this.handleNext.bind(this)} primary={true} disabled={this.state.loading} />
+						<ToolbarButton label={stepIndex === (this.state.steps.length-1) ? 'Finish' : 'Next'} onClick={this.handleNext.bind(this)} primary={true} disabled={this.state.loading || this.state.zipFilename==='' || (stepIndex===1 && (this.state.name==='' || this.state.description===''))} />
 					</div>
 				</div>
 			</div>
 		];
 		let c = <React.Fragment key="k4">
 					<div>
-						{stepIndex === 0 ? <div>
-						    <ShapefileUpload requestEndpoint={this.props.requestEndpoint} 
+						{stepIndex === 0 ? 
+						<div>
+						    <FileUpload 
+						    requestEndpoint={this.props.requestEndpoint} 
 						    destFolder='imports/' 
 						    SEND_CREDENTIALS={this.props.SEND_CREDENTIALS} 
 						    mandatory={true} 
 						    filename={this.state.zipFilename} 
 						    setFilename={this.setZipFilename.bind(this)} 
-						    checkForErrors={this.props.checkForErrors} label="Select Marxan Web *.mxw file" style={{'paddingTop':'20px'}}/> 
+						    checkForErrors={this.props.checkForErrors} 
+						    label="Select *.mxw file" 
+						    style={{'paddingTop':'20px'}}/> 
 						</div> : null}
-						{stepIndex === 1 ? <Metadata name={this.state.name} description={this.state.description} setName={this.setName.bind(this)} setDescription={this.setDescription.bind(this)} paddingBottom={'50px'}/> : null}
+						{stepIndex === 1 ? <Metadata name={this.state.name} description={this.state.description} setName={this.setName.bind(this)} setDescription={this.setDescription.bind(this)}/> : null}
 					</div>
 				</React.Fragment>;
 		return (

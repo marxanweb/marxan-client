@@ -1549,7 +1549,7 @@ class App extends React.Component {
       });
     });
   }
-  
+   
   //uploads a list of files
   async uploadFiles(files, project) {
     var file, filepath;
@@ -1587,11 +1587,13 @@ class App extends React.Component {
   importMXWProject(project, description, filename){
     return new Promise((resolve, reject) => {
       this.startLogging();
-      this._ws("importProject?user=" + this.state.user + "&project=" + project + "&filename=" + filename, this.wsMessageCallback.bind(this)).then((message) => {
+      this._ws("importProject?user=" + this.state.user + "&project=" + project + "&filename=" + filename + "&description=" + description, this.wsMessageCallback.bind(this)).then((message) => {
         //websocket has finished 
         resolve(message);
         //refresh the project features as there may be new ones
         this.refreshFeatures();
+        //load the project
+        this.loadProject(project,this.state.user);
       }).catch((error) => {
         //do something
         reject(error);
@@ -4499,7 +4501,7 @@ class App extends React.Component {
           <ImportMXWDialog
             open={this.state.importMXWDialogOpen}
             onOk={this.closeImportMXWDialog.bind(this)}
-            loading={this.state.loading || this.state.uploading}
+            loading={this.state.loading || this.state.preprocessing}
             requestEndpoint={this.state.marxanServer.endpoint}
             SEND_CREDENTIALS={SEND_CREDENTIALS}
             importMXWProject={this.importMXWProject.bind(this)}

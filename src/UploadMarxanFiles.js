@@ -1,6 +1,6 @@
 import * as React from 'react';
 import UploadFolder from './UploadFolder';
-import ShapefileUpload from './ShapefileUpload';
+import FileUpload from './FileUpload';
 import MarxanTextField from './MarxanTextField';
 
 class UploadMarxanFiles extends React.Component { 
@@ -17,7 +17,7 @@ class UploadMarxanFiles extends React.Component {
 			<React.Fragment>
 				<div style={{marginTop:'14px'}}>
 					<UploadFolder label="Marxan project folder" filesListed={this.props.filesListed}/> 
-					<ShapefileUpload requestEndpoint={this.props.requestEndpoint} SEND_CREDENTIALS={this.props.SEND_CREDENTIALS} mandatory={true} filename={this.state.zipFilename} setFilename={this.setzipFilename.bind(this)} checkForErrors={this.props.checkForErrors} label="Planning grid zipped shapefile" style={{'paddingTop':'20px'}}/> 
+					<FileUpload requestEndpoint={this.props.requestEndpoint} SEND_CREDENTIALS={this.props.SEND_CREDENTIALS} mandatory={true} filename={this.state.zipFilename} setFilename={this.setzipFilename.bind(this)} checkForErrors={this.props.checkForErrors} label="Planning grid zipped shapefile" style={{'paddingTop':'20px'}}/> 
 					<MarxanTextField value={this.props.planning_grid_name} onChange={this.props.setPlanningGridName} floatingLabelText="Planning grid name"/>
 				</div>
 			</React.Fragment>
