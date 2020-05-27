@@ -178,6 +178,7 @@ class NewProjectDialog extends React.Component {
 												simple={true}
 												showTargetButton={false}
 												leftmargin={'0px'}
+												maxheight={'356px'}
 											/>
 										</div>
 									: null}

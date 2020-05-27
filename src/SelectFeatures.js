@@ -13,10 +13,10 @@ class SelectFeatures extends React.Component {
 			<React.Fragment>
 				<div className={'newPUDialogPane'}>   
 					<FeaturesList 
+						{...this.props} 
 						features={this.props.features}  
 						openFeatureMenu={this.props.openFeatureMenu}
 						simple={this.props.simple} 
-						maxheight={'409px'}
 						updateFeature={this.props.updateFeature}
 						userRole={this.props.userRole}
 						toggleFeatureLayer={this.props.toggleFeatureLayer}

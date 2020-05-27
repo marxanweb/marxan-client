@@ -125,6 +125,7 @@ class InfoPanel extends React.Component {
 									metadata={this.props.metadata}
 									updateFeature={this.props.updateFeature}
 									leftmargin={'10px'}
+									maxheight={'409px'}
 									simple={false}
 									showTargetButton={true}
 									openTargetDialog={this.props.openTargetDialog}
