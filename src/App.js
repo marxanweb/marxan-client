@@ -3154,10 +3154,13 @@ class App extends React.Component {
     //requests matching species names in GBIF
   gbifSpeciesSuggest(q) {
     return new Promise((resolve, reject) => {
+      this.setState({loading:true});
       jsonp("https://api.gbif.org/v1/species/suggest?q=" + q + "&rank=SPECIES").promise.then((response) => {
         resolve(response);
+        this.setState({loading:false});
       }, (err) => {
         reject(err);
+        this.setState({loading:false});
       });
     });
   }
@@ -4039,8 +4042,8 @@ class App extends React.Component {
     });
   }
   
-  setAddToProject(addToProject){
-    this.setState({addToProject: addToProject});
+  setAddToProject(evt, isChecked){
+    this.setState({addToProject: isChecked});
   }
   
   //restores the database back to its original state and runs a git reset on the file system
@@ -4390,6 +4393,7 @@ class App extends React.Component {
             getShapefileFieldnames={this.getShapefileFieldnames.bind(this)}
             deleteShapefile={this.deleteShapefile.bind(this)}
             addToProject={this.state.addToProject}
+            setAddToProject={this.setAddToProject.bind(this)}
           />
           <ImportFromWebDialog
             open={this.state.importFromWebDialogOpen} 
@@ -4397,11 +4401,12 @@ class App extends React.Component {
             loading={this.state.loading || this.state.preprocessing || this.state.uploading}
             importFeatures={this.importFeaturesFromWeb.bind(this)}
             addToProject={this.state.addToProject}
+            setAddToProject={this.setAddToProject.bind(this)}
           />
           <ImportGBIFDialog
             open={this.state.importGBIFDialogOpen} 
             onCancel={this.closeImportGBIFDialog.bind(this)}
-            loading={this.state.loading || this.state.preprocessing || this.state.uploading}
+            loading={this.state.loading || this.state.preprocessing}
             importGBIFData={this.importGBIFData.bind(this)}
             gbifSpeciesSuggest={this.gbifSpeciesSuggest.bind(this)}
             addToProject={this.state.addToProject}

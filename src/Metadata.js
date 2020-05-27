@@ -17,9 +17,9 @@ class Metadata extends React.Component {
 	render() {
 		return (
 			<React.Fragment>
-				<div style={{marginBottom:this.props.paddingBottom}}> 
-					<MarxanTextField errorText={this.state.validName === false ? 'Required field' : ''} value={this.props.name} onChange={this.changeName.bind(this)} floatingLabelText="Enter a name for the project"/>
-					<MarxanTextField value={this.props.description} onChange={this.changeDescription.bind(this)} multiLine={true} rows={3} floatingLabelText="Enter a description for the project"/>
+				<div style={{'marginTop':'-13px'}}> 
+					<MarxanTextField style={{width:"310px"}} errorText={this.state.validName === false ? 'Required field' : ''} value={this.props.name} onChange={this.changeName.bind(this)} floatingLabelText="Enter a name for the project"/>
+					<MarxanTextField style={{width:"310px"}} value={this.props.description} onChange={this.changeDescription.bind(this)} multiLine={true} rows={3} floatingLabelText="Enter a description for the project"/>
 				</div>
 			</React.Fragment>
 		);

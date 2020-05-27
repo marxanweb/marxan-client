@@ -31,7 +31,7 @@ class ImportPlanningGridDialog extends React.Component {
 			<MarxanDialog 
 				{...this.props} 
 				title={'Import planning grid'}
-				contentWidth={420}
+				contentWidth={390}
 				children={
 					<React.Fragment key="22">
 						<FileUpload 
@@ -43,13 +43,13 @@ class ImportPlanningGridDialog extends React.Component {
 							checkForErrors={this.props.checkForErrors} 
 							label="Shapefile" 
 						/> 
-						<MarxanTextField value={this.state.planning_grid_name} onChange={this.changeName.bind(this)} floatingLabelText="Name"/>
-						<MarxanTextField value={this.state.description} onChange={this.changeDescription.bind(this)} multiLine={true} rows={2} floatingLabelText="Enter a description"/>
+						<MarxanTextField style={{width:'310px'}} value={this.state.planning_grid_name} onChange={this.changeName.bind(this)} floatingLabelText="Name"/>
+						<MarxanTextField style={{width:'310px'}} value={this.state.description} onChange={this.changeDescription.bind(this)} multiLine={true} rows={2} floatingLabelText="Enter a description"/>
 					</React.Fragment>
 				} 
 				showCancelButton={true}
 				onOk={this.onOk.bind(this)}
-				okDisabled={this.props.loading}
+				okDisabled={this.props.loading || this.state.planning_grid_name==='' || this.state.zipFilename==='' || this.state.description===""}
 				onRequestClose={this.props.onCancel.bind(this)} 
 				helpLink={"user.html#importing-existing-planning-grids"}
 			/>

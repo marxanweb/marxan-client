@@ -1,11 +1,12 @@
 /*global fetch*/
 /*global DOMParser*/
 import * as React from 'react';
-import MarxanImportFeatureDialog from './MarxanImportFeatureDialog';
+import MarxanDialog from './MarxanDialog';
 import MarxanTextField from './MarxanTextField';
 import SelectField from "material-ui/SelectField";
 import MenuItem from "material-ui/MenuItem";
 import ToolbarButton from './ToolbarButton';
+import Checkbox from 'material-ui/Checkbox';
 
 let INITIAL_STATE = { steps: ['type', 'endpoint', 'layer','metadata'], stepIndex: 0, name: "", description: "", sourceType: "", endpoint: "", srs: "", featureTypes: [], featureType: "", validendpoint: true, loading: false };
 let SOURCE_TYPES = ['Web Feature Service'];
@@ -135,9 +136,9 @@ class ImportFromWebDialog extends React.Component {
 			</div>
 		];
 		let children =
-			<div key="k28" style={{height:'120px',maxHeight:'120px'}}>
+			<div key="k28">
 				{stepIndex === 0 ? 
-					<div className={'importFeaturesContent'}>
+					<div>
 						<SelectField menuItemStyle={{ fontSize: "12px" }} labelStyle={{ fontSize: "12px" }} onChange={this.changeSourceType.bind(this)} value={this.state.sourceType} floatingLabelText="Select source type" floatingLabelFixed={true}>
 							{SOURCE_TYPES.map(item => {
 								return (
@@ -148,12 +149,12 @@ class ImportFromWebDialog extends React.Component {
 					</div>
 				: null}
 				{stepIndex === 1 ? 
-					<div className={'importFeaturesContent'}>
-						<MarxanTextField style={{'width':'450px'}} value={this.state.endpoint} errorText={(this.state.validendpoint ? '' : 'Invalid WFS endpoint')} onChange={this.changeEndpoint.bind(this)} floatingLabelText="Enter the WFS endpoint"/>
+					<div>
+						<MarxanTextField style={{'width':'330px'}} value={this.state.endpoint} errorText={(this.state.validendpoint ? '' : 'Invalid WFS endpoint')} onChange={this.changeEndpoint.bind(this)} floatingLabelText="Enter the WFS endpoint"/>
 					</div>
 				: null}
 				{(stepIndex === 2) ? 
-					<div className={'importFeaturesContent'}> 
+					<div> 
 						<SelectField menuItemStyle={{ fontSize: "12px" }} autoWidth={true} labelStyle={{ fontSize: "12px" }} onChange={this.changeFeatureType.bind(this)} value={this.state.featureType} floatingLabelText="Select feature type" floatingLabelFixed={true}>
 							{this.state.featureTypes.map(item => {
 								return (
@@ -164,19 +165,20 @@ class ImportFromWebDialog extends React.Component {
 					</div> 
 				: null}
 				{stepIndex === 3 ? 
-					<div className={'importFeaturesContent'}>
+					<div>
 						<MarxanTextField value={this.state.name} onChange={this.changeName.bind(this)} floatingLabelText="Enter a name"/>
 						<MarxanTextField value={this.state.description} onChange={this.changeDescription.bind(this)} multiLine={true} rows={2} floatingLabelText="Enter a description"/>
+						<Checkbox label="Add to project" style={{fontSize:'12px', width:'200px',display:'inline-block', 'marginTop':'10px'}} onCheck={this.props.setAddToProject} checked={this.props.addToProject} />					
 					</div>
 				: null}
 			</div>;
 		return (
-			<MarxanImportFeatureDialog  
+			<MarxanDialog  
 				{...this.props} 
 				onOk={this.closeDialog.bind(this)}
 				okLabel={"Cancel"}
 				loading={this.props.loading || this.state.loading}
-				contentWidth={540}
+				contentWidth={390}
 				title= {"Import from web"}
 				children={children} 
 				actions={actions}  

@@ -63,7 +63,7 @@ class ImportProjectDialog extends React.Component {
 				<div style={contentStyle}>
 					<div style={{marginTop: 12}}>
 						<ToolbarButton label="Back" disabled={stepIndex === 0} onClick={this.handlePrev} />
-						<ToolbarButton label={stepIndex === (this.state.steps.length-1) ? 'Finish' : 'Next'} onClick={this.handleNext.bind(this)} primary={true} disabled={this.state.loading} />
+						<ToolbarButton label={stepIndex === (this.state.steps.length-1) ? 'Finish' : 'Next'} onClick={this.handleNext.bind(this)} primary={true} disabled={this.state.loading || (stepIndex === 0 && (this.state.files.length===0 || this.state.zipFilename==='' || this.state.planning_grid_name==='')) || (stepIndex===1 && (this.state.name==='' || this.state.description===''))} />
 					</div>
 				</div>
 			</div>

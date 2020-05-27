@@ -1,6 +1,7 @@
 import React from "react";
-import MarxanImportFeatureDialog from "./MarxanImportFeatureDialog";
+import MarxanDialog from "./MarxanDialog";
 import MarxanTextField from './MarxanTextField';
+import Checkbox from 'material-ui/Checkbox';
 
 class ImportGBIFDialog extends React.Component {
     constructor(props) {
@@ -33,9 +34,9 @@ class ImportGBIFDialog extends React.Component {
             return <div key={item.key} className={'suggestion'} onClick={this.onClick.bind(this, item)}>{item.scientificName}</div>;
         });
         return (
-            <MarxanImportFeatureDialog
+            <MarxanDialog
                 {...this.props}
-                contentWidth={540}
+                contentWidth={390}
                 offsetY={80}
                 title="Import GBIF data"
                 helpLink={"user.html#import-gbif-data"}
@@ -46,8 +47,9 @@ class ImportGBIFDialog extends React.Component {
                 children={
                   <React.Fragment key={'importGBIFKey'}>
                     <div className={'importGBIFContent'}>
-                        <MarxanTextField value={this.state.searchText} onChange={this.changeSearchText.bind(this)} floatingLabelText="Search" style={{width:'350px'}}/>
+                        <MarxanTextField value={this.state.searchText} onChange={this.changeSearchText.bind(this)} floatingLabelText="Search" style={{width:'330px'}}/>
                         <div className={'suggestions'} style={{display:(this.state.searchText.length>2 && !this.state.clicked) ? 'block' : 'none'}}>{suggestions}</div>
+                        <Checkbox label="Add to project" style={{fontSize:'12px', width:'200px',display:'inline-block', 'marginTop':'10px'}} onCheck={this.props.setAddToProject} checked={this.props.addToProject} />					
                     </div>
                     </React.Fragment>
                 }

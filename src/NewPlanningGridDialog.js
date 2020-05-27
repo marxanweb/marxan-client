@@ -2,9 +2,9 @@ import * as React from "react";
 import MarxanDialog from "./MarxanDialog";
 import SelectField from "material-ui/SelectField";
 import MenuItem from "material-ui/MenuItem";
-import ToolbarButton from "./ToolbarButton";
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowAltCircleUp } from '@fortawesome/free-regular-svg-icons';
+// import ToolbarButton from "./ToolbarButton";
+// import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+// import { faArrowAltCircleUp } from '@fortawesome/free-regular-svg-icons';
 
 class NewPlanningGridDialog extends React.Component {
 		constructor(props) {
@@ -74,7 +74,7 @@ class NewPlanningGridDialog extends React.Component {
 									);
 								})}
 							</SelectField> 
-							<ToolbarButton icon={<FontAwesomeIcon icon={faArrowAltCircleUp} />} title="Load a custom area of interest from a shapefile (not currently implemented)" style={{position: 'absolute', top: '83px', right: '32px'}}/>
+							{/*<ToolbarButton icon={<FontAwesomeIcon icon={faArrowAltCircleUp} />} title="Load a custom area of interest from a shapefile (not currently implemented)" style={{position: 'absolute', top: '83px', right: '32px'}}/>*/}
 						</div>
 						<div>
 							<SelectField menuItemStyle={{ fontSize: "12px" }} labelStyle={{ fontSize: "12px" }} onChange={this.changeDomain.bind(this)} value={this.state.domain} style={dropDownStyle} floatingLabelText="Domain" floatingLabelFixed={true} disabled={!this.state.domainEnabled}>

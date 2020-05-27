@@ -1,6 +1,7 @@
 import * as React from 'react';
-import MarxanImportFeatureDialog from './MarxanImportFeatureDialog';
+import MarxanDialog from './MarxanDialog';
 import MarxanTextField from './MarxanTextField';
+import Checkbox from 'material-ui/Checkbox';
 
 class NewFeatureDialog extends React.Component {
 	constructor(props){
@@ -22,15 +23,16 @@ class NewFeatureDialog extends React.Component {
 				<div> 
 					<MarxanTextField value={this.state.name} onChange={this.changeName.bind(this)} floatingLabelText="Enter a name"/>
 					<MarxanTextField value={this.state.description} onChange={this.changeDescription.bind(this)} multiLine={true} rows={2} floatingLabelText="Enter a description"/>
+					<Checkbox label="Add to project" style={{fontSize:'12px', width:'200px',display:'inline-block', 'marginTop':'10px'}} onCheck={this.props.setAddToProject} checked={this.props.addToProject} />					
 				</div>
 			</React.Fragment>;
 		return (
-			<MarxanImportFeatureDialog  
+			<MarxanDialog  
 				{...this.props} 
 				onOk={this.createNewFeature.bind(this)}
 				okDisabled={!(this.state.name!=='' && this.state.description!=='' && this.props.loading===false)}
 				showCancelButton={true}
-				contentWidth={420}
+				contentWidth={390}
 				title="Create new feature" 
 				children={c} 
 				onRequestClose={this.props.onOk} 

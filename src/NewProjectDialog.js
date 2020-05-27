@@ -11,7 +11,7 @@ class NewProjectDialog extends React.Component {
 	constructor(props) {
 			super(props);
 			this.state = {
-					steps: ['Info', 'Planning units', 'Features', 'Costs'],
+					steps: ['Info', 'Planning units', 'Features'],
 					loadingFeatures: false,
 					finished: false,
 					stepIndex: 0,
@@ -153,6 +153,10 @@ class NewProjectDialog extends React.Component {
 													label={stepIndex === (this.state.steps.length-1) ? 'Finish' : 'Next'} 
 													onClick={stepIndex === (this.state.steps.length-1) ? this.createNewProject.bind(this) : this.handleNext} 
 													primary={true} 
+													disabled={(stepIndex===0 && (this.state.name==='' || this.state.description==='')) || 
+														(stepIndex===1 && this.state.pu==='') || 
+														(stepIndex===2 && this.state.selectedFeatureIds.length===0)
+													}
 											/>
 									</div>
 							</div>
