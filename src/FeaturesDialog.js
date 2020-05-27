@@ -25,6 +25,8 @@ class FeaturesDialog extends React.Component {
         previousRow: undefined,
         searchText: "",
       };
+      //initialise the filteredRows variable
+      this.filteredRows = [];
     }
     _delete() {
       this.props.deleteFeature(this.state.selectedFeature);
@@ -82,11 +84,14 @@ class FeaturesDialog extends React.Component {
 
     //gets the features ids between the two passed rows and toggles their selection state
     getFeaturesBetweenRows(previousRow, thisRow) {
+      //get the existing selectedids
       let selectedIds = this.props.selectedFeatureIds;
+      //get the index position of the previous row that was clicked
       let idx1 = (previousRow.index < thisRow.index) ? previousRow.index + 1 : thisRow.index;
+      //get the index position of this row that was clicked
       let idx2 = (previousRow.index < thisRow.index) ? thisRow.index + 1 : previousRow.index;
-      //get the features between the two indices
-      let spannedFeatures = this.props.allFeatures.slice(idx1, idx2);
+      //get the features between the two indices - if we have filtered rows then use them, otherwise all features
+      let spannedFeatures = (this.filteredRows.length) ? this.filteredRows.slice(idx1, idx2) : this.props.allFeatures.slice(idx1, idx2);
       //iterate through the spanned features and toggle their selected state
       spannedFeatures.forEach((feature) => {
         if (selectedIds.includes(feature.id)) {
@@ -130,6 +135,11 @@ class FeaturesDialog extends React.Component {
     searchTextChanged(value){
       this.setState({searchText: value});
     }
+    //called when the data in the marxantable is filtered
+    dataFiltered(filteredRows){
+      //set the local filteredRows variable which is used to get filtered features between clicked rows
+      this.filteredRows = filteredRows;
+    }
     render() {
         if (this.props.allFeatures) {
           return (
@@ -140,6 +150,7 @@ class FeaturesDialog extends React.Component {
                             data={this.props.allFeatures} 
                             searchColumns={['alias','description','source']}
                             searchText={this.state.searchText}
+                            dataFiltered={this.dataFiltered.bind(this)}
                             addingRemovingFeatures={this.props.addingRemovingFeatures}
                             selectedFeatureIds={this.props.selectedFeatureIds}
                             selectedFeature={this.state.selectedFeature}

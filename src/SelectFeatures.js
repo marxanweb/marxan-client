@@ -16,7 +16,7 @@ class SelectFeatures extends React.Component {
 						features={this.props.features}  
 						openFeatureMenu={this.props.openFeatureMenu}
 						simple={this.props.simple} 
-						maxheight={'387px'}
+						maxheight={'409px'}
 						updateFeature={this.props.updateFeature}
 						userRole={this.props.userRole}
 						toggleFeatureLayer={this.props.toggleFeatureLayer}
