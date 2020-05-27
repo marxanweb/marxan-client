@@ -1957,15 +1957,17 @@ class App extends React.Component {
   
   //
   mapClick(e){
-    if ((!this.state.puEditing)&&(!this.map.getSource('mapbox-gl-draw-cold'))){ //if the user is not editing planning units or creating a new feature then show the identify features for the clicked point
+    //if the user is not editing planning units or creating a new feature then show the identify features for the clicked point
+    if ((!this.state.puEditing)&&(!this.map.getSource('mapbox-gl-draw-cold'))){ 
       //get a list of the layers that we want to query for features
       var layers = this.map.getStyle().layers;
-      //get all the marxan feature layers
+      //get all the marxan feature layers which are prefixed with marxan_
       var featureLayers = layers.filter(item=>{
         return item.id.substr(0,7) === 'marxan_'; 
       });
       //get the feature layer ids
       let featureLayerIds = featureLayers.map(item=>item.id);
+      //get a list of all of the rendered features that were clicked on - these will be planning units, features and protected areas
       var clickedFeatures = this.getRenderedFeatures(e.point, featureLayerIds);
       //set the popup point
       this.setState({ popup_point: e.point });

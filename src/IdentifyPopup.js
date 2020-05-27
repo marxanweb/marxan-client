@@ -48,6 +48,7 @@ class IdentifyPopup extends React.Component {
 	mouseLeave(e) {
 		this.clearTimeout();
 		this.props.hideIdentifyPopup();
+		//return to the default state
 		this.setState({selectedValue: "pu"});
 	}
 	mouseEnter(e) {
@@ -196,9 +197,11 @@ class IdentifyPopup extends React.Component {
 			</Tab> : null;
 		let tabs = [puTab, featuresTab, protectedAreasTab];
 		if (!puTab && !featuresTab && !protectedAreasTab) tabs = [];
+		//if the user has clicked on a pa outside the planning grid then select the pas tab
+		let onlyPA = (!puTab && !featuresTab && protectedAreasTab);
 		return (
 			<div style={{'display': this.props.visible && tabs.length ? 'block' : 'none','left': left,'top':top}} id="popup" onMouseLeave={this.mouseLeave.bind(this)} onMouseEnter={this.mouseEnter.bind(this)}>
-				<Tabs contentContainerStyle={{'margin':'20px'}} className={'identifyPopup'} value={this.state.selectedValue} onChange={this.changeTab.bind(this)}>
+				<Tabs contentContainerStyle={{'margin':'20px'}} className={'identifyPopup'} value={(onlyPA) ? "pas" : this.state.selectedValue} onChange={this.changeTab.bind(this)}>
 					{tabs}
 				</Tabs>
 			</div>
