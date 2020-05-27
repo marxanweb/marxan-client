@@ -82,17 +82,11 @@ class FeaturesDialog extends React.Component {
       }
     }
 
-    //gets the features ids between the two passed rows and toggles their selection state
-    getFeaturesBetweenRows(previousRow, thisRow) {
-      //get the existing selectedids
-      let selectedIds = this.props.selectedFeatureIds;
-      //get the index position of the previous row that was clicked
-      let idx1 = (previousRow.index < thisRow.index) ? previousRow.index + 1 : thisRow.index;
-      //get the index position of this row that was clicked
-      let idx2 = (previousRow.index < thisRow.index) ? thisRow.index + 1 : previousRow.index;
-      //get the features between the two indices - if we have filtered rows then use them, otherwise all features
-      let spannedFeatures = (this.filteredRows.length) ? this.filteredRows.slice(idx1, idx2) : this.props.allFeatures.slice(idx1, idx2);
-      //iterate through the spanned features and toggle their selected state
+    //toggles the selection state of the features between the first and last indices and returns an array of the selected featureIds
+    toggleSelectionState(selectedIds, features, first, last){
+      //get the features between the first and last positions
+      let spannedFeatures = features.slice(first, last);
+      //iterate through them and toggle their selected state
       spannedFeatures.forEach((feature) => {
         if (selectedIds.includes(feature.id)) {
           selectedIds.splice(selectedIds.indexOf(feature.id), 1);
@@ -102,6 +96,35 @@ class FeaturesDialog extends React.Component {
         }
       });
       return selectedIds;
+    }
+    //gets the features ids between the two passed rows and toggles their selection state
+    getFeaturesBetweenRows(previousRow, thisRow) {
+      let selectedIds;
+      //get the index position of the previous row that was clicked
+      let idx1 = (previousRow.index < thisRow.index) ? previousRow.index + 1 : thisRow.index;
+      //get the index position of this row that was clicked
+      let idx2 = (previousRow.index < thisRow.index) ? thisRow.index + 1 : previousRow.index;
+      //toggle the selected features depending on if the current features are filtered
+      if (this.filteredRows.length<this.props.allFeatures.length){
+        selectedIds = this.toggleSelectionState(this.props.selectedFeatureIds, this.filteredRows, idx1, idx2);
+      }else{
+        selectedIds = this.toggleSelectionState(this.props.selectedFeatureIds, this.props.allFeatures, idx1, idx2);
+      }
+      return selectedIds;
+    }
+    //selects all feature depending on whether the data is filtered or not
+    selectAllFeatures(){
+      let selectedIds = [];
+      //if the table is filtered then select only the filtered rows
+      if (this.filteredRows.length<this.props.allFeatures.length){
+        this.filteredRows.forEach((feature) => {
+            selectedIds.push(feature.id);
+        });
+        this.props.selectFeatures(selectedIds);
+      }else{
+        //select all features
+        this.props.selectAllFeatures();
+      }
     }
     onOk(evt) {
       if (this.props.addingRemovingFeatures) {
@@ -205,7 +228,7 @@ class FeaturesDialog extends React.Component {
             								onClick={ this.props.refreshFeatures }
             							/>*/}
                          <ToolbarButton show={ this.props.addingRemovingFeatures } icon={ <FontAwesomeIcon icon={ faCircle } /> } title="Clear all features" onClick={ this.props.clearAllFeatures } label={ "Clear all" } />
-                         <ToolbarButton show={ this.props.addingRemovingFeatures } icon={ <FontAwesomeIcon icon={ faCheckCircle } /> } title="Select all features" onClick={ this.props.selectAllFeatures } label={ "Select all" } />
+                         <ToolbarButton show={ this.props.addingRemovingFeatures } icon={ <FontAwesomeIcon icon={ faCheckCircle } /> } title="Select all features" onClick={ this.selectAllFeatures.bind(this) } label={ "Select all" } />
                        </div>
                      </React.Fragment> } />
         );
