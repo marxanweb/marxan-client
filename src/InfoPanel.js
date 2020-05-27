@@ -176,7 +176,7 @@ class InfoPanel extends React.Component {
 									<div className={'tabTitle tabTitleTopMargin'}>Costs</div>
 									<LoadingCheckbox
 										label="Show costs"
-										loading={this.props.costsLoading}
+										loading={this.props.loading}
 										style={{fontSize:'12px'}}
 										checked={this.props.showCosts}
 										onCheck={this.toggleCosts.bind(this)}

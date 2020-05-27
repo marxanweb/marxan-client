@@ -244,8 +244,7 @@ class App extends React.Component {
       shareableLinkUrl: "",
       notifications:[],
       gapAnalysis: [],
-      showCosts: false,
-      costsLoading: false
+      showCosts: false
     };
   }
 
@@ -2356,10 +2355,9 @@ class App extends React.Component {
     //show/hide the planning units cost layer
     this.setState({showCosts: show});
     if (show){
-      this.setState({costsLoading: true});
       this.getPlanningUnitsCostData().then((cost_data)=>{
         this.renderPuCostLayer(cost_data).then(()=>{
-          this.setState({costsLoading: false});
+          //do something
         });
       });
     }else{
@@ -4217,7 +4215,7 @@ class App extends React.Component {
             smallLinearGauge={this.state.smallLinearGauge}
             iucn_categories={IUCN_CATEGORIES}
             showCosts={this.state.showCosts}
-            costsLoading={this.state.costsLoading}
+            loading={this.state.loading}
           />
           <ResultsPanel
             open={this.state.resultsPanelOpen}
