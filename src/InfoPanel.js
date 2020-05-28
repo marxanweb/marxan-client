@@ -80,11 +80,17 @@ class InfoPanel extends React.Component {
 		this.props.changeIucnCategory(this.props.iucn_categories[key]);
 	}
 	changeCostname(event,key,payload){
-		//update the cost profile
-		this.props.changeCostname(this.props.costnames[key]).then(_=>{
-			//load the costs 
-			this.props.loadCostsLayer(true);
-		});
+		//get the costname
+		let costname = this.costnames[key];
+		if (costname==='Custom..'){
+			this.props.openCostsDialog();
+		}else{
+			//update the cost profile on the server
+			this.props.changeCostname(costname).then(_=>{
+				//load the costs 
+				this.props.loadCostsLayer(true);
+			});
+		}
 	}
 	toggleProjectPrivacy(evt, isInputChecked){
 		let checkedString = (isInputChecked) ? "True" : "False";
@@ -97,6 +103,12 @@ class InfoPanel extends React.Component {
 		this.props.stopProcess(this.props.pid);
 	}
 	render() {
+		this.costnames = [];
+		//add a custom item to the end of the cost profiles
+		if (this.props.costnames){
+			this.costnames = this.props.costnames.slice();
+			this.costnames.push("Custom..");
+		}
 		return (
 			<React.Fragment>  
 				<div className={'infoPanel'} style={{display: this.props.open ? 'block' : 'none'}}>
@@ -197,7 +209,7 @@ class InfoPanel extends React.Component {
 										style={{marginTop:'-15px',width:'230px'}}
 										value={this.props.costname} 
 										onChange={this.changeCostname.bind(this)}
-										children= {this.props.costnames.map((item)=> {
+										children= {this.costnames.map((item)=> {
 											return  <MenuItem 
 												value={item} 
 												key={item} 

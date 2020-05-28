@@ -140,7 +140,6 @@ class App extends React.Component {
       helpDialogOpen: false,
       importProjectDialogOpen: false,
       UserSettingsDialogOpen: false,
-      CostsDialogOpen: false,
       welcomeDialogOpen: false,
       registerDialogOpen: false,
       clumpingDialogOpen: false,
@@ -170,6 +169,7 @@ class App extends React.Component {
       featureDialogOpen: false,
       runLogDialogOpen: false,
       resetDialogOpen: false,
+      costsDialogOpen: false,
       infoPanelOpen: false,
       resultsPanelOpen: false,
       targetDialogOpen: false,
@@ -215,7 +215,6 @@ class App extends React.Component {
       addingRemovingFeatures: false,
       results_layer_opacity: RESULTS_LAYER_FILL_OPACITY_ACTIVE, //initial value
       wdpa_layer_opacity: WDPA_FILL_LAYER_OPACITY, //initial value
-      costs: [],
       costnames: [],
       selectedCosts: [],
       countries: [],
@@ -2844,10 +2843,10 @@ class App extends React.Component {
     this.setState({ importProjectPopoverOpen: false });
   }
   openCostsDialog() {
-    this.setState({ CostsDialogOpen: true });
+    this.setState({ costsDialogOpen: true });
   }
   closeCostsDialog() {
-    this.setState({ CostsDialogOpen: false });
+    this.setState({ costsDialogOpen: false });
   }
   openWDPAUpdateDialog(){
     this.setState({ updateWDPADialogOpen: true });
@@ -3609,7 +3608,6 @@ class App extends React.Component {
   closeTargetDialog(){
     this.setState({targetDialogOpen:false});
   }
-
   openShareableLinkDialog(){
     this.setState({shareableLinkDialogOpen: true});
   }
@@ -4077,6 +4075,21 @@ class App extends React.Component {
     });
   }
 
+  //deletes a cost file on the server
+  deleteCost(costname){
+    return new Promise((resolve, reject) => {
+      this._get("deleteCost?user=" + this.state.owner + "&project=" + this.state.project + "&costname=" + costname).then((response) => {
+        //update the state
+        let _costnames = this.state.costnames;
+        //remove the deleted cost profile
+        _costnames = _costnames.filter(item=>item!==costname);
+        this.setState({ costnames: _costnames});
+        resolve();
+      }).catch((error) => {
+        reject(error);
+      });
+    });
+  }
   //restores the database back to its original state and runs a git reset on the file system
   resetServer(){
     return new Promise((resolve, reject) => {
@@ -4253,6 +4266,7 @@ class App extends React.Component {
             loadCostsLayer={this.loadCostsLayer.bind(this)}
             loading={this.state.loading}
             costsLoading={this.state.costsLoading}
+            openCostsDialog={this.openCostsDialog.bind(this)}
           />
           <ResultsPanel
             open={this.state.resultsPanelOpen}
@@ -4482,10 +4496,13 @@ class App extends React.Component {
             heading={this.state.projectListDialogHeading}
           />
           <CostsDialog
-            open={this.state.CostsDialogOpen}
+            open={this.state.costsDialogOpen}
             onOk={this.closeCostsDialog.bind(this)}
             onCancel={this.closeCostsDialog.bind(this)}
-            costs={this.state.costs}
+            unauthorisedMethods={this.state.unauthorisedMethods}
+            costname={this.state.metadata.COSTS}
+            deleteCost={this.deleteCost.bind(this)}
+            data={this.state.costnames}
           />
           <RunSettingsDialog
             open={this.state.settingsDialogOpen}
