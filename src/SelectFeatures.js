@@ -25,7 +25,7 @@ class SelectFeatures extends React.Component {
 						smallLinearGauge={this.props.smallLinearGauge}
 					/>
 					<ToolbarButton onClick={this.props.openTargetDialog} show={(this.props.userRole!=="ReadOnly")&&(this.props.showTargetButton)}  icon={ <FontAwesomeIcon icon={ faCrosshairs }/>} style={{marginLeft:this.props.leftmargin,width:'30px', marginTop:'5px'}} title={'Set a target for all features'}/>
-					<ToolbarButton label="+/-" onClick={this.openFeaturesDialog.bind(this)} show={!((this.props.metadata && this.props.metadata.OLDVERSION)||(this.props.userRole === "ReadOnly"))} style={{marginLeft:this.props.leftmargin,width:'30px', marginTop:'5px'}} title={'Add/remove features from the project'}/>
+					<ToolbarButton labelStyle={{paddingLeft:'6px',paddingRight:'6px'}} label="+/-" onClick={this.openFeaturesDialog.bind(this)} show={!((this.props.metadata && this.props.metadata.OLDVERSION)||(this.props.userRole === "ReadOnly"))} style={{marginLeft:this.props.leftmargin,width:'30px', marginTop:'5px'}} title={'Add/remove features from the project'}/>
 				</div>
 			</React.Fragment>
 		);

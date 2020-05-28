@@ -216,6 +216,7 @@ class App extends React.Component {
       results_layer_opacity: RESULTS_LAYER_FILL_OPACITY_ACTIVE, //initial value
       wdpa_layer_opacity: WDPA_FILL_LAYER_OPACITY, //initial value
       costs: [],
+      costnames: [],
       selectedCosts: [],
       countries: [],
       planning_units: [],
@@ -244,7 +245,8 @@ class App extends React.Component {
       shareableLinkUrl: "",
       notifications:[],
       gapAnalysis: [],
-      showCosts: false
+      showCosts: false,
+      costsLoading: false
     };
   }
 
@@ -1024,7 +1026,7 @@ class App extends React.Component {
       this.resetResults();
       this._get("getProject?user=" + user + "&project=" + project).then((response) => {
         //set the state for the app based on the data that is returned from the server
-        this.setState({ loggedIn: true, project: response.project, owner: user, runParams: response.runParameters, files: Object.assign(response.files), metadata: response.metadata, renderer: response.renderer, planning_units: response.planning_units, infoPanelOpen: true, resultsPanelOpen: true  });
+        this.setState({ loggedIn: true, project: response.project, owner: user, runParams: response.runParameters, files: Object.assign(response.files), metadata: response.metadata, renderer: response.renderer, planning_units: response.planning_units, costnames: response.costnames,infoPanelOpen: true, resultsPanelOpen: true  });
         //if there is a PLANNING_UNIT_NAME passed then change to this planning grid and load the results if there are any available
         if (response.metadata.PLANNING_UNIT_NAME) {
           this.changePlanningGrid(MAPBOX_USER + "." + response.metadata.PLANNING_UNIT_NAME).then(()=>{
@@ -2351,20 +2353,6 @@ class App extends React.Component {
     }
   }
 
-  toggleCosts(show){
-    //show/hide the planning units cost layer
-    this.setState({showCosts: show});
-    if (show){
-      this.getPlanningUnitsCostData().then((cost_data)=>{
-        this.renderPuCostLayer(cost_data).then(()=>{
-          //do something
-        });
-      });
-    }else{
-      this.hideLayer(COSTS_LAYER_NAME);
-    }
-  }
-  
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   ///ACTIVATION/DEACTIVATION OF TABS
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2619,26 +2607,6 @@ class App extends React.Component {
       if (new_array.length === 0) statuses.splice(position, 1);
     }
     return statuses;
-  }
-  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  //ROUTINES FOR WORKING WITH COSTS
-  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  
-  getPlanningUnitsCostData(){
-    return new Promise((resolve, reject) => {
-      //if the cost data has already been loaded
-      if (this.cost_data) {
-        resolve(this.cost_data);
-      }else{
-        this._get("getPlanningUnitsCostData?user=" + this.state.owner + "&project=" + this.state.project).then((response) => {
-          //save the cost data to a local variable
-          this.cost_data = response.data;
-          resolve(response.data);
-        }).catch((error) => {
-          //do something
-        });
-      }
-    });
   }
 
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -4046,6 +4014,69 @@ class App extends React.Component {
     this.setState({addToProject: isChecked});
   }
   
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  ////////////////////////// COSTS
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  //changes the cost profile for a project
+  changeCostname(costname){
+    return new Promise((resolve, reject) => {
+      this._get("updateCosts?user=" + this.state.owner + "&project=" + this.state.project + "&costname=" + costname).then((response) => {
+        //update the state
+        this.setState({ metadata: Object.assign(this.state.metadata, { COSTS: costname })});
+        resolve();
+      }).catch((error) => {
+        reject(error);
+      });
+    });
+  }
+  
+  //show/hide the planning units cost layer
+  toggleCosts(show){
+    //set the state and wait for it to update
+    this.setState({showCosts: show}, ()=>{
+      if (show){
+        //load the costs layer
+        this.loadCostsLayer();
+      }else{
+        //hide the costs layer
+        this.hideLayer(COSTS_LAYER_NAME);
+      }
+    });
+  }
+  
+  //loads the costs layer
+  loadCostsLayer(forceReload=false){
+    //if the costs layer is visible
+    if (this.state.showCosts){
+      this.setState({costsLoading:true});
+      this.getPlanningUnitsCostData(forceReload).then((cost_data)=>{
+        this.renderPuCostLayer(cost_data).then(()=>{
+          this.setState({costsLoading:false});
+          //do something
+        });
+      });
+    }
+  }
+
+  //gets the cost data either from cache (if it has already been loaded) or from the server
+  getPlanningUnitsCostData(forceReload){
+    return new Promise((resolve, reject) => {
+      //if the cost data has already been loaded
+      if (this.cost_data && !forceReload) {
+        resolve(this.cost_data);
+      }else{
+        this._get("getPlanningUnitsCostData?user=" + this.state.owner + "&project=" + this.state.project).then((response) => {
+          //save the cost data to a local variable
+          this.cost_data = response.data;
+          resolve(response.data);
+        }).catch((error) => {
+          //do something
+        });
+      }
+    });
+  }
+
   //restores the database back to its original state and runs a git reset on the file system
   resetServer(){
     return new Promise((resolve, reject) => {
@@ -4216,7 +4247,12 @@ class App extends React.Component {
             smallLinearGauge={this.state.smallLinearGauge}
             iucn_categories={IUCN_CATEGORIES}
             showCosts={this.state.showCosts}
+            costname={this.state.metadata.COSTS}
+            costnames={this.state.costnames}
+            changeCostname={this.changeCostname.bind(this)}
+            loadCostsLayer={this.loadCostsLayer.bind(this)}
             loading={this.state.loading}
+            costsLoading={this.state.costsLoading}
           />
           <ResultsPanel
             open={this.state.resultsPanelOpen}

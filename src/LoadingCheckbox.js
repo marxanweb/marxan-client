@@ -9,8 +9,8 @@ class LoadingCheckbox extends React.Component {
                 <div style={{position:'relative'}}>
         			<Checkbox
         			    {...this.props}
-        			    labelStyle={{width:'100%'}}
-        				style={{fontSize:'13px'}}
+        			    labelStyle={{width: '0px'}}
+        				style={{fontSize:'12px',width:'24px'}}
         			/>
         			<Sync className='spin' style={{display: (this.props.loading) ? 'inline-block' : 'none', color: 'rgb(255, 64, 129)', position: 'absolute', top: '5px', left: '19px',height:"16px",width:"22px"}} key={"spinner"}/>
     			</div>
