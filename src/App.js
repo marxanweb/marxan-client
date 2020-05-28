@@ -4084,6 +4084,7 @@ class App extends React.Component {
             marxanServers={this.state.marxanServers}
             selectServer={this.selectServer.bind(this)}
             marxanServer={this.state.marxanServer}
+            marxanClientReleaseVersion={MARXAN_CLIENT_VERSION}
           />
           <RegisterDialog 
             open={this.state.registerDialogOpen} 
