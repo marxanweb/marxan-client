@@ -58,6 +58,7 @@ import NewFeatureDialog from './NewFeatureDialog';
 import ImportFeaturesDialog from './ImportFeaturesDialog';
 import ImportFromWebDialog from './ImportFromWebDialog';
 import CostsDialog from './CostsDialog';
+import ImportCostsDialog from './ImportCostsDialog';
 import RunSettingsDialog from './RunSettingsDialog';
 import ClassificationDialog from './ClassificationDialog';
 import ClumpingDialog from './ClumpingDialog';
@@ -170,6 +171,7 @@ class App extends React.Component {
       runLogDialogOpen: false,
       resetDialogOpen: false,
       costsDialogOpen: false,
+      importCostsDialogOpen: false,
       infoPanelOpen: false,
       resultsPanelOpen: false,
       targetDialogOpen: false,
@@ -1550,7 +1552,7 @@ class App extends React.Component {
     });
   }
    
-  //uploads a list of files
+  //uploads a list of files to the current project
   async uploadFiles(files, project) {
     var file, filepath;
     for (var i = 0; i < files.length; i++) {
@@ -1565,17 +1567,44 @@ class App extends React.Component {
         formData.append('filename', filepath);
         formData.append('value', file);
         this.log({method:'uploadFiles',status:'Uploading',info:"Uploading: " + file.webkitRelativePath});
-        await this.uploadFile(formData);
+        return this._post("uploadFile", formData);
       }
     }
     return 'All files uploaded';
   }
-  
-  //uploads a single file
-  uploadFile(formData){
-    return this._post("uploadFile", formData);
+
+  //uploads a single file to the current projects input folder
+  uploadFileToProject(value, filename, project){
+    return new Promise((resolve, reject) => {
+      const formData = new FormData();
+      formData.append('user', this.state.owner);
+      formData.append('project', this.state.project);
+      formData.append('filename', 'input/' + filename);
+      formData.append('value', value);
+  		this._post("uploadFile", formData).then(function(response){
+  		  resolve(response);
+  		});
+    });
   }
   
+  //uploads a single file to a specific folder - value is the filename
+  uploadFileToFolder(value, filename, destFolder){
+    return new Promise((resolve, reject) => {
+  		this.setState({ loading: true });
+  		const formData = new FormData();
+  		//the binary data for the file
+  		formData.append('value', value); 
+  		//the filename
+  		formData.append('filename', filename);
+  		//the folder to upload to 
+  		formData.append('destFolder', destFolder);
+  		this._post("uploadFileToFolder", formData).then(function(response){
+  		  resolve(response);
+  		});
+    });
+	}
+
+
   //pads a number with zeros to a specific size, e.g. pad(9,5) => 00009
   pad(num, size) {
     var s = num + "";
@@ -2847,6 +2876,12 @@ class App extends React.Component {
   }
   closeCostsDialog() {
     this.setState({ costsDialogOpen: false });
+  }
+  openImportCostsDialog() {
+    this.setState({ importCostsDialogOpen: true });
+  }
+  closeImportCostsDialog() {
+    this.setState({ importCostsDialogOpen: false });
   }
   openWDPAUpdateDialog(){
     this.setState({ updateWDPADialogOpen: true });
@@ -4377,9 +4412,7 @@ class App extends React.Component {
             onOk={this.importPlanningUnitGrid.bind(this)}
             onCancel={this.closeImportPlanningGridDialog.bind(this)}
             loading={this.state.loading || this.state.uploading}
-            requestEndpoint={this.state.marxanServer.endpoint}
-            SEND_CREDENTIALS={SEND_CREDENTIALS}
-            checkForErrors={this.checkForErrors.bind(this)} 
+            fileUpload={this.uploadFileToFolder.bind(this)}            
           />
           <FeaturesDialog
             open={this.state.featuresDialogOpen}
@@ -4436,10 +4469,8 @@ class App extends React.Component {
             onCancel={this.closeImportFeaturesDialog.bind(this)}
             loading={this.state.loading || this.state.preprocessing || this.state.uploading}
             setFilename={this.setNewFeatureDatasetFilename.bind(this)}
-            SEND_CREDENTIALS={SEND_CREDENTIALS}
             filename={this.state.featureDatasetFilename}
-            checkForErrors={this.checkForErrors.bind(this)} 
-            requestEndpoint={this.state.marxanServer.endpoint}
+            fileUpload={this.uploadFileToFolder.bind(this)}
             unzipShapefile={this.unzipShapefile.bind(this)}
             getShapefileFieldnames={this.getShapefileFieldnames.bind(this)}
             deleteShapefile={this.deleteShapefile.bind(this)}
@@ -4501,8 +4532,16 @@ class App extends React.Component {
             onCancel={this.closeCostsDialog.bind(this)}
             unauthorisedMethods={this.state.unauthorisedMethods}
             costname={this.state.metadata.COSTS}
+            openImportCostsDialog={this.openImportCostsDialog.bind(this)}
             deleteCost={this.deleteCost.bind(this)}
             data={this.state.costnames}
+          />
+          <ImportCostsDialog
+            open={this.state.importCostsDialogOpen}
+            onOk={this.closeImportCostsDialog.bind(this)}
+            onCancel={this.closeImportCostsDialog.bind(this)}
+            closeImportCostsDialog={this.closeImportCostsDialog.bind(this)}
+            fileUpload={this.uploadFileToProject.bind(this)}            
           />
           <RunSettingsDialog
             open={this.state.settingsDialogOpen}
@@ -4550,10 +4589,8 @@ class App extends React.Component {
             open={this.state.importProjectDialogOpen}
             onOk={this.closeImportDialog.bind(this)}
             loading={this.state.loading || this.state.uploading}
-            requestEndpoint={this.state.marxanServer.endpoint}
-            SEND_CREDENTIALS={SEND_CREDENTIALS}
             importProject={this.importProject.bind(this)}
-            checkForErrors={this.checkForErrors.bind(this)} 
+            fileUpload={this.uploadFileToFolder.bind(this)}            
             log={this.log.bind(this)}
             setSnackBar={this.setSnackBar.bind(this)}
           />
@@ -4561,10 +4598,8 @@ class App extends React.Component {
             open={this.state.importMXWDialogOpen}
             onOk={this.closeImportMXWDialog.bind(this)}
             loading={this.state.loading || this.state.preprocessing}
-            requestEndpoint={this.state.marxanServer.endpoint}
-            SEND_CREDENTIALS={SEND_CREDENTIALS}
             importMXWProject={this.importMXWProject.bind(this)}
-            checkForErrors={this.checkForErrors.bind(this)} 
+            fileUpload={this.uploadFileToFolder.bind(this)}
             log={this.log.bind(this)}
             setSnackBar={this.setSnackBar.bind(this)}
           />

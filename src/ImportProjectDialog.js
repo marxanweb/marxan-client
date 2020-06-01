@@ -71,11 +71,9 @@ class ImportProjectDialog extends React.Component {
 		let c = <React.Fragment key="k4">
 					<div>
 						{stepIndex === 0 ? <UploadMarxanFiles 
+							{...this.props}
 							filesListed={this.filesListed.bind(this)}
 							setZipFilename={this.setZipFilename.bind(this)}
-							requestEndpoint={this.props.requestEndpoint}  
-							SEND_CREDENTIALS={this.props.SEND_CREDENTIALS}
-							checkForErrors={this.props.checkForErrors} 
 							setPlanningGridName={this.setPlanningGridName.bind(this)}
 							planning_grid_name={this.state.planning_grid_name}
 						/> : null}

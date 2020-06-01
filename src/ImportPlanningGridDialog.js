@@ -35,12 +35,11 @@ class ImportPlanningGridDialog extends React.Component {
 				children={
 					<React.Fragment key="22">
 						<FileUpload 
-							requestEndpoint={this.props.requestEndpoint} 
-							SEND_CREDENTIALS={this.props.SEND_CREDENTIALS} 
+							{...this.props} 
+							destFolder='imports' 
 							mandatory={true} 
 							filename={this.state.zipFilename} 
 							setFilename={this.setzipFilename.bind(this)} 
-							checkForErrors={this.props.checkForErrors} 
 							label="Shapefile" 
 						/> 
 						<MarxanTextField style={{width:'310px'}} value={this.state.planning_grid_name} onChange={this.changeName.bind(this)} floatingLabelText="Name"/>

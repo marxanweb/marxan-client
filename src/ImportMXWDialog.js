@@ -65,13 +65,11 @@ class ImportMXWDialog extends React.Component {
 						{stepIndex === 0 ? 
 						<div>
 						    <FileUpload 
-						    requestEndpoint={this.props.requestEndpoint} 
-						    destFolder='imports/' 
-						    SEND_CREDENTIALS={this.props.SEND_CREDENTIALS} 
+						    {...this.props} 
+						    destFolder='imports' 
 						    mandatory={true} 
 						    filename={this.state.zipFilename} 
 						    setFilename={this.setZipFilename.bind(this)} 
-						    checkForErrors={this.props.checkForErrors} 
 						    label="Select *.mxw file" 
 						    style={{'paddingTop':'20px'}}/> 
 						</div> : null}

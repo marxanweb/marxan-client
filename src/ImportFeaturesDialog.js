@@ -102,7 +102,15 @@ class ImportFeaturesDialog extends React.Component {
 			<div key="k12">
 				{stepIndex === 0 ? 
 					<div>
-						<FileUpload SEND_CREDENTIALS={this.props.SEND_CREDENTIALS} requestEndpoint={this.props.requestEndpoint} checkForErrors={this.props.checkForErrors} mandatory={true} filename={this.props.filename} setFilename={this.props.setFilename} label="Shapefile" style={{'paddingTop':'10px'}}/> 
+						<FileUpload 
+						{...this.props} 
+						mandatory={true} 
+						filename={this.props.filename} 
+						setFilename={this.props.setFilename} 
+						destFolder={'imports'}
+						label="Shapefile" 
+						style={{'paddingTop':'10px'}} 
+						/> 
 					</div>
 				: null}
 				{stepIndex === 1 ? 

@@ -17,7 +17,14 @@ class UploadMarxanFiles extends React.Component {
 			<React.Fragment>
 				<div>
 					<UploadFolder label="Marxan project folder" filesListed={this.props.filesListed}/> 
-					<FileUpload requestEndpoint={this.props.requestEndpoint} SEND_CREDENTIALS={this.props.SEND_CREDENTIALS} mandatory={true} filename={this.state.zipFilename} setFilename={this.setzipFilename.bind(this)} checkForErrors={this.props.checkForErrors} label="Planning grid zipped shapefile" style={{'paddingTop':'15px'}}/> 
+					<FileUpload 
+					{...this.props} 
+					destFolder='imports' 
+					mandatory={true} 
+					filename={this.state.zipFilename} 
+					setFilename={this.setzipFilename.bind(this)} 
+					label="Planning grid zipped shapefile" 
+					style={{'paddingTop':'15px'}}/> 
 					<MarxanTextField style={{width:"310px"}} value={this.props.planning_grid_name} onChange={this.props.setPlanningGridName} floatingLabelText="Planning grid name"/>
 				</div>
 			</React.Fragment>

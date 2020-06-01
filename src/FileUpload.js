@@ -13,7 +13,6 @@ class FileUpload extends React.Component {
 		super(props);
 		this.state = { loading: false,active:false };
 		this.onChange = this.onChange.bind(this);
-		this.fileUpload = this.fileUpload.bind(this);
 		//the destination folder on the server where the file will be uploaded
 		this.destFolder = (props.hasOwnProperty('destFolder')) ? props.destFolder : '';
 	}
@@ -23,32 +22,20 @@ class FileUpload extends React.Component {
 	}
 	onChange(e) {
 		if (e.target.files.length) {
-			this.fileUpload(e.target.files[0]);
+			//set the loading state 
+			this.setState({ loading: true });
+			//get the filename
+			this.filename = e.target.files[0].name;
+			//upload the file
+			this.props.fileUpload(e.target.files[0], this.filename, this.destFolder).then(response=>{
+				this.setState({ loading: false,active:false});
+				this.props.setFilename(this.filename);
+			});
 			//reset the file selector
 			document.getElementById(this.id).value = "";
 		}
 	}
 
-	fileUpload(value) {
-		this.setState({ loading: true });
-		const url = this.props.requestEndpoint + "uploadFileToFolder";
-		const formData = new FormData();
-		this.filename = value['name']; //from the open file dialog
-		formData.append('value', value); 
-		formData.append('filename', this.filename);
-		formData.append('destFolder', this.destFolder);
-		post(url, formData, {withCredentials: this.props.SEND_CREDENTIALS}).then(function(response){
-			this.finishedLoading(response);
-		}.bind(this));
-	}
-
-	finishedLoading(response) {
-		if (!this.props.checkForErrors(response.data)){
-			this.setState({ loading: false });
-			this.props.setFilename(this.filename);
-		}
-		this.setState({active:false});
-	} 
 	render() {
 		this.id = "upload" + this.props.parameter;
 		return (
