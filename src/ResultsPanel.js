@@ -108,6 +108,7 @@ class ResultsPanel extends React.Component {
 							<Tab label="Legend" value="legend" onActive={this.props.legend_tab_active} >
 								<div>
 									<Legend
+										{...this.props}
 										brew={this.props.brew}
 										resultsLayer={ this.props.resultsLayer }
 										wdpaLayer={ this.props.wdpaLayer }

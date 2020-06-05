@@ -16,7 +16,7 @@ class CostsDialog extends React.Component {
 	}
 	_delete(){
 		this.props.deleteCost(this.state.selectedCost.name);
-		this.setState({ selectedCost: false });
+		this.setState({ selectedCost: undefined });
 	}
 	render() {
 		let _data = this.props.data.map(item=>{
@@ -26,6 +26,8 @@ class CostsDialog extends React.Component {
 			<MarxanDialog
 			{...this.props} 
 			contentWidth={390}
+			autoDetectWindowHeight={ false } 
+			bodyStyle={ { padding: '0px 24px 0px 24px' } }
 			offsetY={80}
 			title="Costs" 
 			onRequestClose={this.props.closeCostsDialog}
@@ -35,7 +37,7 @@ class CostsDialog extends React.Component {
 	            <ReactTable 
 	                {...this.props}
 	                pageSize={_data.length} 
-                    columns={[{Header: 'Name', accessor: 'name'}]}
+                    columns={[{Header: 'Name', accessor: 'name', headerStyle: {'textAlign': 'left'}}]}
 	                className={'projectsReactTable noselect'} 
 	                showPagination={false} 
 	                minRows={0} 
@@ -54,9 +56,10 @@ class CostsDialog extends React.Component {
 					}}
 	                
 	            />
+	            <div id='costsToolbar'>
             	<ToolbarButton show={(this.props.userRole !== "ReadOnly") } icon={<Import style={{height:'20px',width:'20px'}}/>} title="Upload a new costs file" disabled={ this.props.loading }  onClick={ this.props.openImportCostsDialog.bind(this) } label={ "Import" }/>
-				<ToolbarButton show={!this.props.unauthorisedMethods.includes("deletePlanningUnitGrid")} icon={<FontAwesomeIcon icon={faTrashAlt}  color='rgb(255, 64, 129)'/>} title="Delete cost profile" disabled={!this.state.selectedCost || (this.state.selectedCost && this.state.selectedCost.name === this.props.costname)} onClick={this._delete.bind(this)} label={"Delete"}/>
-	            
+				<ToolbarButton show={!this.props.unauthorisedMethods.includes("deletePlanningUnitGrid")} icon={<FontAwesomeIcon icon={faTrashAlt}  color='rgb(255, 64, 129)'/>} title="Delete cost profile" disabled={!this.state.selectedCost || (this.state.selectedCost && this.state.selectedCost.name === this.props.costname) || (this.state.selectedCost && this.state.selectedCost.name === this.props.uniformCostname)} onClick={this._delete.bind(this)} label={"Delete"}/>
+	            </div>
 			</React.Fragment>}/>
 		);
 	}

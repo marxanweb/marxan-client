@@ -5,6 +5,7 @@ import { faPlusCircle } from '@fortawesome/free-solid-svg-icons';
 import { faTrashAlt } from '@fortawesome/free-regular-svg-icons';
 // import { faSync } from '@fortawesome/free-solid-svg-icons';
 import Import from 'material-ui/svg-icons/action/get-app';
+import Export from 'material-ui/svg-icons/editor/publish';
 import ToolbarButton from './ToolbarButton';
 import MarxanDialog from './MarxanDialog';
 import MarxanTable from "./MarxanTable";
@@ -24,6 +25,12 @@ class PlanningGridsDialog extends React.Component {
 	}
 	openImportDialog() {
 		this.props.openImportPlanningGridDialog();
+		this.closeDialog();
+	}
+	exportPlanningGrid(){
+		this.props.exportPlanningGrid(this.state.selectedPlanningGrid.feature_class_name).then(url=>{
+			window.location = url;
+		});
 		this.closeDialog();
 	}
 	changePlanningGrid(event, planningGrid) {
@@ -120,6 +127,14 @@ class PlanningGridsDialog extends React.Component {
 								onClick={this.openImportDialog.bind(this)} 
 								label={"Import"}
 							/>
+							<ToolbarButton 
+								show={!this.props.unauthorisedMethods.includes("exportPlanningUnitGrid")}
+								icon={<Export style={{height:'20px',width:'20px'}}/>} 
+								title="Export planning grid" 
+								onClick={this.exportPlanningGrid.bind(this)} 
+								disabled={!this.state.selectedPlanningGrid || this.props.loading}
+								label={"Export"}
+							/> 
 							<ToolbarButton  
 								show={!this.props.unauthorisedMethods.includes("deletePlanningUnitGrid")}
 								icon={<FontAwesomeIcon icon={faTrashAlt}  color='rgb(255, 64, 129)'/>} 

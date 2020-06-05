@@ -110,6 +110,7 @@ let RESULTS_LAYER_FILL_OPACITY_INACTIVE = 0;
 let WDPA_FILL_LAYER_OPACITY = 0.2;
 let COST_COLORS = ['rgba(255,255,204,0.8)','rgba(255,237,160,0.8)','rgba(254,217,118,0.8)','rgba(254,178,76,0.8)','rgba(253,141,60,0.8)','rgba(252,78,42,0.8)','rgba(227,26,28,0.8)','rgba(189,0,38,0.8)','rgba(128,0,38,0.8)'];
 let timers = []; //array of timers for seeing when asynchronous calls have finished
+let UNIFORM_COST_NAME = 'Equal area';
 
 //an array of feature property information that is used in the Feature Information dialog box - showForOld sets whether that property is shown for old versions of marxan
 let FEATURE_PROPERTIES = [{ name: 'id', key: 'ID',hint: 'The unique identifier for the feature', showForOld: false, showForNew: false},
@@ -2723,6 +2724,17 @@ class App extends React.Component {
       });
   }
   
+  //exports a planning grid to a zipped shapefile
+  exportPlanningGrid(feature_class_name){
+    return new Promise((resolve, reject) => {
+      this._get("exportPlanningUnitGrid?name=" + feature_class_name).then((response) => {
+        resolve(this.state.marxanServer.endpoint + "exports/" + response.filename);
+      }).catch((error) => {
+        reject();
+      });
+    });
+  }
+  
   //gets a list of projects that use a particular planning grid
   getProjectsForPlanningGrid(feature_class_name){
     return new Promise((resolve, reject) => {
@@ -4113,12 +4125,16 @@ class App extends React.Component {
   //after clicking cancel in the ImportCostsDialog
   deleteCostFileThenClose(costname){
     return new Promise((resolve, reject) => {
-      //delete the cost file
-      this.deleteCost(costname).then(()=>{
-        //close the import costs dialog
-        this.closeImportCostsDialog();
+      if (costname){
+        //delete the cost file
+        this.deleteCost(costname).then( _ =>{
+          //close the import costs dialog
+          this.closeImportCostsDialog();
+          resolve();
+        });
+      }else{
         resolve();
-      });
+      }
     });
   }
   //adds a cost in application state
@@ -4304,7 +4320,6 @@ class App extends React.Component {
             updateFeature={this.updateFeature.bind(this)}
             userRole={this.state.userData.ROLE}
             toggleProjectPrivacy={this.toggleProjectPrivacy.bind(this)}
-            toggleCosts={this.toggleCosts.bind(this)}
             openTargetDialog={this.openTargetDialog.bind(this)}
             getShareableLink={this.getShareableLink.bind(this)}
             marxanServer={this.state.marxanServer}
@@ -4313,13 +4328,11 @@ class App extends React.Component {
             useFeatureColors={this.state.userData.USEFEATURECOLORS}
             smallLinearGauge={this.state.smallLinearGauge}
             iucn_categories={IUCN_CATEGORIES}
-            showCosts={this.state.showCosts}
             costname={this.state.metadata.COSTS}
             costnames={this.state.costnames}
             changeCostname={this.changeCostname.bind(this)}
             loadCostsLayer={this.loadCostsLayer.bind(this)}
             loading={this.state.loading}
-            costsLoading={this.state.costsLoading}
             openCostsDialog={this.openCostsDialog.bind(this)}
           />
           <ResultsPanel
@@ -4344,6 +4357,9 @@ class App extends React.Component {
             results_layer_opacity={this.state.results_layer_opacity}
             wdpa_layer_opacity={this.state.wdpa_layer_opacity}
             userRole={this.state.userData.ROLE}
+            showCosts={this.state.showCosts}
+            costsLoading={this.state.costsLoading}
+            toggleCosts={this.toggleCosts.bind(this)}
           />
           <FeatureInfoDialog
             open={this.state.openInfoDialogOpen}
@@ -4523,6 +4539,7 @@ class App extends React.Component {
             planningGrids={this.state.planning_unit_grids}
             openNewPlanningGridDialog={this.openNewPlanningGridDialog.bind(this)}
             openImportPlanningGridDialog={this.openImportPlanningGridDialog.bind(this)}
+            exportPlanningGrid={this.exportPlanningGrid.bind(this)}
             deletePlanningGrid={this.deletePlanningUnitGrid.bind(this)}
             previewPlanningGrid={this.previewPlanningGrid.bind(this)}
             marxanServer={this.state.marxanServer}
@@ -4554,6 +4571,7 @@ class App extends React.Component {
             openImportCostsDialog={this.openImportCostsDialog.bind(this)}
             deleteCost={this.deleteCost.bind(this)}
             data={this.state.costnames}
+            uniformCostname={UNIFORM_COST_NAME}
           />
           <ImportCostsDialog
             open={this.state.importCostsDialogOpen}

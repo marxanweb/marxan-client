@@ -7,7 +7,6 @@ import SelectFeatures from './SelectFeatures';
 import MenuItem from 'material-ui/MenuItem';
 import Settings from 'material-ui/svg-icons/action/settings';
 import ToolbarButton from './ToolbarButton';
-import LoadingCheckbox from './LoadingCheckbox';
 import Checkbox from 'material-ui/Checkbox';
 import Textarea from 'react-textarea-autosize';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -96,9 +95,6 @@ class InfoPanel extends React.Component {
 		let checkedString = (isInputChecked) ? "True" : "False";
 		this.props.toggleProjectPrivacy(checkedString);
 	}
-	toggleCosts(event, isInputChecked){
-		this.props.toggleCosts(isInputChecked);
-	}
 	stopProcess(){
 		this.props.stopProcess(this.props.pid);
 	}
@@ -161,7 +157,7 @@ class InfoPanel extends React.Component {
 									<div className={'description'}>{this.props.metadata.pu_alias}</div>
 									<div className={'tabTitle tabTitleTopMargin'}>Protected areas</div>
 									<SelectField 
-										floatingLabelText={'Include'} 
+										floatingLabelText={'Lock in'} 
 										floatingLabelFixed={true} 
 										underlineShow={false}
 										disabled={(this.props.preprocessing)||(this.props.userRole === "ReadOnly")}
@@ -171,6 +167,26 @@ class InfoPanel extends React.Component {
 										value={this.props.metadata.IUCN_CATEGORY} 
 										onChange={this.changeIucnCategory.bind(this)}
 										children= {this.props.iucn_categories.map((item)=> {
+											return  <MenuItem 
+												value={item} 
+												key={item} 
+												primaryText={item}
+												style={{fontSize:'12px'}}
+												/>; 
+										})}
+									/> 
+									<div className={'tabTitle'}>Costs</div>
+									<SelectField 
+										floatingLabelText={'Use cost surface'} 
+										floatingLabelFixed={true} 
+										underlineShow={false}
+										disabled={(this.props.preprocessing)||(this.props.userRole === "ReadOnly")}
+										menuItemStyle={{fontSize:'12px'}} 
+										labelStyle={{fontSize:'12px'}} 
+										style={{marginTop:'-15px',width:'230px'}}
+										value={this.props.costname} 
+										onChange={this.changeCostname.bind(this)}
+										children= {this.costnames.map((item)=> {
 											return  <MenuItem 
 												value={item} 
 												key={item} 
@@ -193,31 +209,6 @@ class InfoPanel extends React.Component {
 											/>
 										</div>
 									</div>
-									<div className={'tabTitle tabTitleTopMargin'}>Costs</div>
-									<LoadingCheckbox
-										loading={this.props.costsLoading}
-										style={{fontSize:'12px'}}
-										checked={this.props.showCosts}
-										onCheck={this.toggleCosts.bind(this)}
-									/>
-									<SelectField 
-										floatingLabelFixed={true} 
-										underlineShow={false}
-										disabled={(this.props.preprocessing)||(this.props.userRole === "ReadOnly")}
-										menuItemStyle={{fontSize:'12px'}} 
-										labelStyle={{fontSize:'12px'}} 
-										style={{marginTop:'-15px',width:'230px'}}
-										value={this.props.costname} 
-										onChange={this.changeCostname.bind(this)}
-										children= {this.costnames.map((item)=> {
-											return  <MenuItem 
-												value={item} 
-												key={item} 
-												primaryText={item}
-												style={{fontSize:'12px'}}
-												/>; 
-										})}
-									/> 
 								</div>  
 							</Tab>
 						</Tabs>     

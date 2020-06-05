@@ -6,7 +6,7 @@ let INITIAL_STATE = {costs_filename:'', costname:''};
 class ImportCostsDialog extends React.Component {
 	constructor(props) {
 		super(props);
-		this.state = {INITIAL_STATE}; 
+		this.state = INITIAL_STATE; 
 	}
 	resetState(){
 		this.setState(INITIAL_STATE);
@@ -24,7 +24,10 @@ class ImportCostsDialog extends React.Component {
 	} 
 	deleteCostFileThenClose(){
 		this.props.deleteCostFileThenClose(this.state.costname).then(_=>{
+			//reset the import cost state
 			this.resetState();
+			//close the dialog
+			this.props.closeImportCostsDialog();
 		});
 	}
 	render() {

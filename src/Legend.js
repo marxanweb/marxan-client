@@ -1,5 +1,6 @@
 import * as React from 'react';
 import TransparencyControl from './TransparencyControl';
+import LoadingCheckbox from './LoadingCheckbox';
 import { getMaxNumberOfClasses } from './Helpers.js';
 
 class Legend extends React.Component {
@@ -67,13 +68,21 @@ class Legend extends React.Component {
 		null;
 		return legend_items;
 	}
-	
+	toggleCosts(event, isInputChecked){
+		this.props.toggleCosts(isInputChecked);
+	}
 	render() {
 		let planning_units_legend_items = (this.props.brew && this.props.brew.breaks && this.props.brew.colorCode) ? this.getPlanningUnitsLegend(this.props.brew.colorCode) : <div/> ;
 		let protected_areas_legend_items = this.getProtectedAreasLegend();
 		return <div>
 			<div>{planning_units_legend_items}</div>
 			<div style={{marginTop:'32px'}}>{protected_areas_legend_items}</div>
+			{/*<LoadingCheckbox
+				loading={this.props.costsLoading}
+				style={{fontSize:'12px'}}
+				checked={this.props.showCosts}
+				onCheck={this.toggleCosts.bind(this)}
+			/>*/}
 		</div>;
 	}
 }
