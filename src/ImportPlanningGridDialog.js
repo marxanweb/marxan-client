@@ -36,6 +36,7 @@ class ImportPlanningGridDialog extends React.Component {
 					<React.Fragment key="22">
 						<FileUpload 
 							{...this.props} 
+							fileMatch={'.zip'}
 							destFolder='imports' 
 							mandatory={true} 
 							filename={this.state.zipFilename} 

@@ -4110,6 +4110,25 @@ class App extends React.Component {
     });
   }
 
+  //after clicking cancel in the ImportCostsDialog
+  deleteCostFileThenClose(costname){
+    return new Promise((resolve, reject) => {
+      //delete the cost file
+      this.deleteCost(costname).then(()=>{
+        //close the import costs dialog
+        this.closeImportCostsDialog();
+        resolve();
+      });
+    });
+  }
+  //adds a cost in application state
+  addCost(costname){
+    //update the state
+    let _costnames = this.state.costnames;
+    //add the cost profile
+    _costnames.push(costname);
+    this.setState({ costnames: _costnames});
+  }
   //deletes a cost file on the server
   deleteCost(costname){
     return new Promise((resolve, reject) => {
@@ -4538,9 +4557,10 @@ class App extends React.Component {
           />
           <ImportCostsDialog
             open={this.state.importCostsDialogOpen}
-            onOk={this.closeImportCostsDialog.bind(this)}
-            onCancel={this.closeImportCostsDialog.bind(this)}
+            addCost={this.addCost.bind(this)}
             closeImportCostsDialog={this.closeImportCostsDialog.bind(this)}
+            deleteCostFileThenClose={this.deleteCostFileThenClose.bind(this)}
+            loading={this.state.loading}
             fileUpload={this.uploadFileToProject.bind(this)}            
           />
           <RunSettingsDialog

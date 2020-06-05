@@ -44,7 +44,7 @@ class FileUpload extends React.Component {
 				<div className='uploadFileField'>
 					<div className='uploadFileFieldIcon'>
 						<label htmlFor={this.id}><FontAwesome name='file' title='Click to upload a file' style={{'cursor':'pointer'}}/></label>
-						<input type="file" onChange={this.onChange} onClick={this.onClick.bind(this)} accept=".zip,.mxw" style={{'display':'none', 'width':'10px'}} id={this.id} />
+						<input type="file" onChange={this.onChange} onClick={this.onClick.bind(this)} accept={this.props.fileMatch} style={{'display':'none', 'width':'10px'}} id={this.id} />
 					</div>
 					<div className='uploadFileFieldLabel' style={{width:'168px'}}>{this.props.filename}</div>
 				</div>

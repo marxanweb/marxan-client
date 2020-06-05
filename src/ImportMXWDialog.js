@@ -66,6 +66,7 @@ class ImportMXWDialog extends React.Component {
 						<div>
 						    <FileUpload 
 						    {...this.props} 
+						    fileMatch={'.mxw'}
 						    destFolder='imports' 
 						    mandatory={true} 
 						    filename={this.state.zipFilename} 

@@ -104,6 +104,7 @@ class ImportFeaturesDialog extends React.Component {
 					<div>
 						<FileUpload 
 						{...this.props} 
+						fileMatch={'.zip'}
 						mandatory={true} 
 						filename={this.props.filename} 
 						setFilename={this.props.setFilename} 

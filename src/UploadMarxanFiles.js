@@ -19,6 +19,7 @@ class UploadMarxanFiles extends React.Component {
 					<UploadFolder label="Marxan project folder" filesListed={this.props.filesListed}/> 
 					<FileUpload 
 					{...this.props} 
+					fileMatch={'.zip'}
 					destFolder='imports' 
 					mandatory={true} 
 					filename={this.state.zipFilename} 
