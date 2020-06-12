@@ -77,6 +77,7 @@ import UpdateWDPADialog from './UpdateWDPADialog';
 import ImportGBIFDialog from './ImportGBIFDialog';
 
 //CONSTANTS
+let MARXAN_REGISTRY = "https://marxanweb.github.io/general/registry/marxan.json"; //url to the marxan registry
 let MARXAN_CLIENT_VERSION = packageJson.version; //TODO UPDATE PACKAGE.JSON WHEN THERE IS A NEW VERSION
 let DOCS_ROOT = "https://docs.marxanweb.org/";
 let ERRORS_PAGE = DOCS_ROOT + "errors.html";
@@ -109,9 +110,7 @@ let RESULTS_LAYER_FILL_OPACITY_ACTIVE = 0.9;
 let RESULTS_LAYER_FILL_OPACITY_INACTIVE = 0;
 let WDPA_FILL_LAYER_OPACITY = 0.2;
 let COST_COLORS = ['rgba(255,255,204,0.8)','rgba(255,237,160,0.8)','rgba(254,217,118,0.8)','rgba(254,178,76,0.8)','rgba(253,141,60,0.8)','rgba(252,78,42,0.8)','rgba(227,26,28,0.8)','rgba(189,0,38,0.8)','rgba(128,0,38,0.8)'];
-let timers = []; //array of timers for seeing when asynchronous calls have finished
 let UNIFORM_COST_NAME = 'Equal area';
-
 //an array of feature property information that is used in the Feature Information dialog box - showForOld sets whether that property is shown for old versions of marxan
 let FEATURE_PROPERTIES = [{ name: 'id', key: 'ID',hint: 'The unique identifier for the feature', showForOld: false, showForNew: false},
   { name: 'alias', key: 'Alias',hint: 'A human readable name for the feature', showForOld: false, showForNew: false},
@@ -128,10 +127,14 @@ let FEATURE_PROPERTIES = [{ name: 'id', key: 'ID',hint: 'The unique identifier f
   { name: 'target_area', key: 'Target area',hint: 'The total area that needs to be protected to achieve the target percentage in Km2 (calculated during a Marxan Run)', showForOld: true, showForNew: true},
   { name: 'protected_area', key: 'Area protected',hint: 'The total area protected in the current solution in Km2 (calculated during a Marxan Run)', showForOld: true, showForNew: true}];
 
+//GLOBAL VARIABLES
+let timers = []; //array of timers for seeing when asynchronous calls have finished
+
 class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      registry:undefined,
       marxanServers: [],
       marxanServer: {},
       usersDialogOpen: false,
@@ -190,6 +193,7 @@ class App extends React.Component {
       projectList: [],
       owner: '', // the owner of the project - may be different to the user, e.g. if logged on as guest (user) and accessing someone elses project (owner)
       loggedIn: false,
+      loggingIn: false,
       shareableLink: false,
       userData: {'SHOWWELCOMESCREEN': true, 'REPORTUNITS': "Ha"},
       unauthorisedMethods: [],
@@ -271,12 +275,18 @@ class App extends React.Component {
   //gets various global variables from the marxan registry
   getGlobalVariables(){
     return new Promise((resolve, reject) => {
-      mapboxgl.accessToken = window.MBAT_PUBLIC; //this is my public access token 
-      //initialise the basemaps
-      this.setState({basemaps: window.MAPBOX_BASEMAPS});
-      //get all the information for the marxan servers by polling them
-      this.initialiseServers(window.MARXAN_SERVERS).then((response)=>{
-        resolve(response);
+      fetch(MARXAN_REGISTRY)
+      .then(response => {
+        response.json().then(registryData => {
+          this.setState({registry: registryData});
+          mapboxgl.accessToken = registryData.MBAT_PUBLIC; //this is my public access token 
+          //initialise the basemaps
+          this.setState({basemaps: registryData.MAPBOX_BASEMAPS});
+          //get all the information for the marxan servers by polling them
+          this.initialiseServers(registryData.MARXAN_SERVERS).then((response)=>{
+            resolve(response);
+          });
+        });
       });
     });
   }
@@ -546,7 +556,7 @@ class App extends React.Component {
   //initialises the servers by requesting their capabilities and then filtering the list of available servers
   initialiseServers(marxanServers){
     return new Promise((resolve, reject) => {
-      //get a list of server hosts from the marxan.js registry
+      //get a list of server hosts from the marxan.json registry
       let hosts = marxanServers.map((server) => {
         return server.host;  
       });
@@ -639,7 +649,7 @@ class App extends React.Component {
   selectServer(value){
     this.setState({marxanServer: value});
     //see if there is a new version of the wdpa
-    (value.wdpa_version !== window.WDPA.latest_version) ? this.setState({newWDPAVersion: true}) : this.setState({newWDPAVersion: false});
+    (value.wdpa_version !== this.state.registry.WDPA.latest_version) ? this.setState({newWDPAVersion: true}) : this.setState({newWDPAVersion: false});
     //set the link to the WDPA vector tiles based on the version that is included in the server in the PostGIS database
     this.setWDPAVectorTilesLayerName(value.wdpa_version);
     //if the server is ready only then change the user/password to the guest user
@@ -700,6 +710,7 @@ class App extends React.Component {
   }
   //validates the user and then logs in if successful
   validateUser() {
+    this.setState({loggingIn:true});
     return new Promise((resolve, reject) => {
       this.checkPassword(this.state.user, this.state.password).then(() => {
         //user validated - log them in
@@ -707,7 +718,7 @@ class App extends React.Component {
           resolve("User validated");
         });
       }).catch((error) => {
-        //do something
+        this.setState({loggingIn:false});
       });
     });
   }
@@ -728,6 +739,7 @@ class App extends React.Component {
             //get the users last project and load it 
             this.loadProject(response.userData.LASTPROJECT, this.state.user).then((response)=>{
               resolve("Logged in");
+              this.setState({loggingIn:false});
             });
           });
           //get all planning grids
@@ -851,15 +863,15 @@ class App extends React.Component {
   //parse the notifications 
   parseNotifications(){
     //see if there are any new notifications from the marxan-registry
-    if (window.NOTIFICATIONS.length>0){
-      this.addNotifications(window.NOTIFICATIONS);
+    if (this.state.registry.NOTIFICATIONS.length>0){
+      this.addNotifications(this.state.registry.NOTIFICATIONS);
     }
     //see if there is a new version of the wdpa data - this comes from the Marxan Registry WDPA object - if there is then show a notification to admin users
-    if (this.state.newWDPAVersion) this.addNotifications([{id:'wdpa_update_' + window.WDPA.latest_version, html:"A new version of the WDPA is available. Go to Help | Server Details for more information.", type:"Data Update", showForRoles: ["Admin"]}]);
+    if (this.state.newWDPAVersion) this.addNotifications([{id:'wdpa_update_' + this.state.registry.WDPA.latest_version, html:"A new version of the WDPA is available. Go to Help | Server Details for more information.", type:"Data Update", showForRoles: ["Admin"]}]);
     //see if there is a new version of the marxan-client software
-    if (MARXAN_CLIENT_VERSION !== window.CLIENT_VERSION) this.addNotifications([{id:'marxan_client_update_' + window.CLIENT_VERSION, html:"A new version of marxan-client is available (" + window.CLIENT_VERSION + "). Go to Help | About for more information.", type:"Software Update", showForRoles: ["Admin"]}]);
+    if (MARXAN_CLIENT_VERSION !== this.state.registry.CLIENT_VERSION) this.addNotifications([{id:'marxan_client_update_' + this.state.registry.CLIENT_VERSION, html:"A new version of marxan-client is available (" + this.state.registry.CLIENT_VERSION + "). Go to Help | About for more information.", type:"Software Update", showForRoles: ["Admin"]}]);
     //see if there is a new version of the marxan-server software
-    if (this.state.marxanServer.server_version !== window.SERVER_VERSION) this.addNotifications([{id:'marxan_server_update_' + window.SERVER_VERSION, html:"A new version of marxan-server is available (" + window.SERVER_VERSION + "). Go to Help | Server Details for more information.", type:"Software Update", showForRoles: ["Admin"]}]);
+    if (this.state.marxanServer.server_version !== this.state.registry.SERVER_VERSION) this.addNotifications([{id:'marxan_server_update_' + this.state.registry.SERVER_VERSION, html:"A new version of marxan-server is available (" + this.state.registry.SERVER_VERSION + "). Go to Help | Server Details for more information.", type:"Software Update", showForRoles: ["Admin"]}]);
     //check that there is enough disk space
     if (this.state.marxanServer.disk_space < 1000)  {
       this.addNotifications([{id:'hardware_1000', html:"Disk space < 1Gb", type:"Hardware Issue", showForRoles: ["Admin"]}]);
@@ -2203,7 +2215,7 @@ class App extends React.Component {
   //gets all of the metadata for the tileset
   getMetadata(tilesetId) {
     return new Promise((resolve, reject) => {
-      fetch("https://api.mapbox.com/v4/" + tilesetId + ".json?secure&access_token=" + window.MBAT_PUBLIC)
+      fetch("https://api.mapbox.com/v4/" + tilesetId + ".json?secure&access_token=" + this.state.registry.MBAT_PUBLIC)
       .then(response => response.json())
       .then((response2) => {
         if ((response2.message != null) && (response2.message.indexOf('does not exist') > 0)){
@@ -2314,7 +2326,7 @@ class App extends React.Component {
     //add the source for the wdpa
     let yr = this.state.marxanServer.wdpa_version.substr(-4); //get the year from the wdpa_version
     let attribution = "IUCN and UNEP-WCMC (" + yr + "), The World Database on Protected Areas (WDPA) " + this.state.marxanServer.wdpa_version + ", Cambridge, UK: UNEP-WCMC. Available at: <a href='http://www.protectedplanet.net'>www.protectedplanet.net</a>";
-    let tiles = [window.WDPA.tilesUrl + "layer=marxan:" + this.wdpa_vector_tile_layer + "&tilematrixset=EPSG:900913&Service=WMTS&Request=GetTile&Version=1.0.0&Format=application/x-protobuf;type=mapbox-vector&TileMatrix=EPSG:900913:{z}&TileCol={x}&TileRow={y}"];
+    let tiles = [this.state.registry.WDPA.tilesUrl + "layer=marxan:" + this.wdpa_vector_tile_layer + "&tilematrixset=EPSG:900913&Service=WMTS&Request=GetTile&Version=1.0.0&Format=application/x-protobuf;type=mapbox-vector&TileMatrix=EPSG:900913:{z}&TileCol={x}&TileRow={y}"];
     this.setState({wdpaAttribution: attribution});
     this.map.addSource(WDPA_SOURCE_NAME,{
         "attribution": attribution,
@@ -2778,7 +2790,7 @@ class App extends React.Component {
         resolve("Uploaded to Mapbox");
       }else{
         let timer = setInterval(() => {
-          fetch("https://api.mapbox.com/uploads/v1/" + MAPBOX_USER + "/" + uploadid + "?access_token=" + window.MBAT)
+          fetch("https://api.mapbox.com/uploads/v1/" + MAPBOX_USER + "/" + uploadid + "?access_token=" + this.state.registry.MBAT)
             .then(response => response.json())
             .then((response) => {
               if (response.complete){
@@ -3825,13 +3837,13 @@ class App extends React.Component {
     this.startLogging();
     //call the webservice
     return new Promise((resolve, reject) => {
-      this._ws("updateWDPA?downloadUrl=" + window.WDPA.downloadUrl + "&wdpaVersion=" + window.WDPA.latest_version, this.wsMessageCallback.bind(this)).then((message) => {
+      this._ws("updateWDPA?downloadUrl=" + this.state.registry.WDPA.downloadUrl + "&wdpaVersion=" + this.state.registry.WDPA.latest_version, this.wsMessageCallback.bind(this)).then((message) => {
         //websocket has finished - set the new version of the wdpa
-        let obj = Object.assign(this.state.marxanServer, {wdpa_version: window.WDPA.latest_version});
+        let obj = Object.assign(this.state.marxanServer, {wdpa_version: this.state.registry.WDPA.latest_version});
         //update the state and when it is finished, re-add the wdpa source and layer
         this.setState({newWDPAVersion: false, marxanServer: obj}, ()=> {
           //set the source for the WDPA layer to the new vector tiles
-          this.setWDPAVectorTilesLayerName(window.WDPA.latest_version);
+          this.setWDPAVectorTilesLayerName(this.state.registry.WDPA.latest_version);
           //remove the existing WDPA layer and source
           this.map.removeLayer(WDPA_LAYER_NAME);
           if (this.map && this.map.getSource(WDPA_SOURCE_NAME) !== undefined) this.map.removeSource(WDPA_SOURCE_NAME);
@@ -4190,6 +4202,7 @@ class App extends React.Component {
             onOk={this.validateUser.bind(this)} 
             onCancel={this.openRegisterDialog.bind(this)} 
             loading={this.state.loading} 
+            loggingIn={this.state.loggingIn}
             user={this.state.user} 
             password={this.state.password} 
             changeUserName={this.changeUserName.bind(this)} 
@@ -4407,6 +4420,7 @@ class App extends React.Component {
           />
           <NewProjectDialog
             open={this.state.newProjectDialogOpen}
+            registry={this.state.registry}
             onOk={this.closeNewProjectDialog.bind(this)}
             loading={this.state.loading}
             getPlanningUnitGrids={this.getPlanningUnitGrids.bind(this)}
@@ -4669,6 +4683,7 @@ class App extends React.Component {
             marxanServer={this.state.marxanServer}
             newWDPAVersion={this.state.newWDPAVersion}
             showUpdateWDPADialog={this.openWDPAUpdateDialog.bind(this)}
+            registry={this.state.registry}
           />
           <UpdateWDPADialog
             open={this.state.updateWDPADialogOpen}
@@ -4677,6 +4692,7 @@ class App extends React.Component {
             newWDPAVersion={this.state.newWDPAVersion}
             updateWDPA={this.updateWDPA.bind(this)}
             loading={this.state.preprocessing}
+            registry={this.state.registry}
           />          
           <ChangePasswordDialog  
             open={this.state.changePasswordDialogOpen}

@@ -6,12 +6,12 @@ import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 
 class ServerDetailsDialog extends React.Component {
 	renderWithIcon(cellInfo) {
-	  let newServerSoftware = ((cellInfo.row.key === 'Marxan Server version')&&(this.props.marxanServer.server_version !== window.SERVER_VERSION));
+	  let newServerSoftware = ((cellInfo.row.key === 'Marxan Server version')&&(this.props.marxanServer.server_version !== this.props.registry.SERVER_VERSION));
 		return (
 			<React.Fragment>
 				<div style={{ float: 'left' }}>{cellInfo.row.value}</div>
 				<FontAwesomeIcon icon={faExclamationTriangle} style={{color:'red', display: ((cellInfo.row.key === 'Disk space')&&(cellInfo.row.value.substr(0,1) === '0')) ? 'inline' : 'none', right: '5px', position: 'absolute', marginTop: '5px'}} title={'Disk space running low'}/>
-				<FontAwesomeIcon icon={faExclamationTriangle} style={{color:'red', display: (newServerSoftware) ? 'inline' : 'none', right: '5px', position: 'absolute', marginTop: '5px'}} title={'A new version of Marxan Server is available (' + window.SERVER_VERSION + ')'}/>
+				<FontAwesomeIcon icon={faExclamationTriangle} style={{color:'red', display: (newServerSoftware) ? 'inline' : 'none', right: '5px', position: 'absolute', marginTop: '5px'}} title={'A new version of Marxan Server is available (' + this.props.registry.SERVER_VERSION + ')'}/>
 			  <FontAwesomeIcon icon={faExclamationTriangle} style={{color:'red',display: ((cellInfo.row.key === 'WDPA version')&&(this.props.newWDPAVersion)) ? 'inline' : 'none', position: 'absolute', right:'5px', marginTop: '5px'}} title={'A new version of the WDPA is available - click for details'} onClick={this.props.showUpdateWDPADialog}/>
 			</React.Fragment>
 		);

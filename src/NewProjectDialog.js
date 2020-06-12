@@ -165,6 +165,7 @@ class NewProjectDialog extends React.Component {
 			let c = <div key="k3">
 									{stepIndex === 0 ? <Metadata name={this.state.name} description={this.state.description} setName={this.setName.bind(this)} setDescription={this.setDescription.bind(this)}/> : null}
 									{stepIndex === 1 ? <PlanningUnitsDialog 
+										{...this.props}
 										getPlanningUnitGrids={this.props.getPlanningUnitGrids} 
 										planning_unit_grids={this.props.planning_unit_grids} 
 										changeItem={this.changePU.bind(this)} pu={this.state.pu} 

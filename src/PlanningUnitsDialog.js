@@ -25,6 +25,7 @@ class PlanningUnitsDialog extends React.Component {
 						<div ref={el => this.mapContainer = el} className="absolute top right left bottom" style={{width:'352px',height:'300px', marginTop: '50px',marginLeft: '24px'}}/>
 						<div style={{position: 'absolute', top:'380px', verticalAlign: 'middle'}}>
 							<SelectFieldMapboxLayer 
+								{...this.props}
 								menuItemStyle={{fontSize:'12px'}}
 								labelStyle={{fontSize:'12px'}} 
 								selectedValue={this.props.pu} 

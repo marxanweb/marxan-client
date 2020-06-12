@@ -51,7 +51,7 @@ class SelectFieldMapboxLayer extends React.Component {
 	addLayerToMap(mapboxlayername) {
 		this.mapboxlayername = mapboxlayername;
 		var request = require('request');
-		request('https://api.mapbox.com/v4/' + this.props.mapboxUser + '.' + mapboxlayername + '.json?access_token=' + window.MBAT_PUBLIC + '&secure', this.parseUrlExists.bind(this));
+		request('https://api.mapbox.com/v4/' + this.props.mapboxUser + '.' + mapboxlayername + '.json?access_token=' + this.props.registry.MBAT_PUBLIC + '&secure', this.parseUrlExists.bind(this));
 	}
 
 	parseUrlExists(err, res) {

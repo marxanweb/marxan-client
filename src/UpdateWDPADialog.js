@@ -4,6 +4,7 @@ import ToolbarButton from './ToolbarButton';
 
 class UpdateWDPADialog extends React.PureComponent {
     render() {
+        let html = this.props.registry&&this.props.registry.WDPA.latest_version + " is available. Details <a href='" + (this.props.registry&&this.props.registry.WDPA.metadataUrl) + "' target='_blank'>here</a>. Click below to update. ";
         return (
             <MarxanDialog
                 {...this.props}
@@ -14,7 +15,7 @@ class UpdateWDPADialog extends React.PureComponent {
                 <React.Fragment>
                     <div style={{display: (this.props.newWDPAVersion ? 'block' : 'none')}}>
                       <br/>
-                      <div dangerouslySetInnerHTML={{ __html: window.WDPA.latest_version + " is available. Details <a href='" + window.WDPA.metadataUrl + "' target='_blank'>here</a>. Click below to update. "}}/>
+                      <div dangerouslySetInnerHTML={{ __html: html}}/>
     					<br/>
     					<ToolbarButton title="Update WDPA" onClick={this.props.updateWDPA} label="Update" disabled={this.props.loading}/>
                     </div>
