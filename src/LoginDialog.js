@@ -31,6 +31,7 @@ class LoginDialog extends React.Component {
 					children={[
 					<div key="21">
 						<SelectField  
+							id='SelectMarxanServer'
 							floatingLabelText={'Marxan Server'} 
 							floatingLabelFixed={true} 
 							underlineShow={false}
@@ -54,8 +55,8 @@ class LoginDialog extends React.Component {
 							})}
 						/>
 						<div style={{height:'124px'}} id="logindiv" key="logindiv">
-							<MarxanTextField style={{marginTop:'-14px'}} floatingLabelText="Username" onChange = {(event, value)=>this.props.changeUserName(value)} value={this.props.user} disabled = {(this.props.loading||(this.props.marxanServer&&!this.props.marxanServer.corsEnabled)) ? true : false} onKeyPress={this.handleKeyPress.bind(this)}/>
-							<MarxanTextField floatingLabelText="Password" type="password" onChange = {(event, value)=>this.props.changePassword(value)} value={this.props.password} disabled = {this.props.loading||(this.props.marxanServer&&!this.props.marxanServer.corsEnabled) ? true : false} onKeyPress={this.handleKeyPress.bind(this)}/>
+							<MarxanTextField id='TextUsername' style={{marginTop:'-14px'}} floatingLabelText="Username" onChange = {(event, value)=>this.props.changeUserName(value)} value={this.props.user} disabled = {(this.props.loading||(this.props.marxanServer&&!this.props.marxanServer.corsEnabled)) ? true : false} onKeyPress={this.handleKeyPress.bind(this)}/>
+							<MarxanTextField id='TextPassword' floatingLabelText="Password" type="password" onChange = {(event, value)=>this.props.changePassword(value)} value={this.props.password} disabled = {this.props.loading||(this.props.marxanServer&&!this.props.marxanServer.corsEnabled) ? true : false} onKeyPress={this.handleKeyPress.bind(this)}/>
 							{/*<span onClick={this.props.openResendPasswordDialog.bind(this)} className="forgotLink" title="Click to resend password">Forgot</span>*/}
 						</div>
 						<div style={{position: 'absolute', bottom: '4px', fontSize: '11px'}}>{this.props.marxanClientReleaseVersion}</div>
