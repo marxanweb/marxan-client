@@ -193,7 +193,6 @@ class App extends React.Component {
       projectList: [],
       owner: '', // the owner of the project - may be different to the user, e.g. if logged on as guest (user) and accessing someone elses project (owner)
       loggedIn: false,
-      loggingIn: false,
       shareableLink: false,
       userData: {'SHOWWELCOMESCREEN': true, 'REPORTUNITS': "Ha"},
       unauthorisedMethods: [],
@@ -711,7 +710,6 @@ class App extends React.Component {
   }
   //validates the user and then logs in if successful
   validateUser() {
-    this.setState({loggingIn:true});
     return new Promise((resolve, reject) => {
       this.checkPassword(this.state.user, this.state.password).then(() => {
         //user validated - log them in
@@ -719,7 +717,7 @@ class App extends React.Component {
           resolve("User validated");
         });
       }).catch((error) => {
-        this.setState({loggingIn:false});
+        //
       });
     });
   }
@@ -740,7 +738,6 @@ class App extends React.Component {
             //get the users last project and load it 
             this.loadProject(response.userData.LASTPROJECT, this.state.user).then((response)=>{
               resolve("Logged in");
-              this.setState({loggingIn:false});
             });
           });
           //get all planning grids
@@ -4203,7 +4200,6 @@ class App extends React.Component {
             onOk={this.validateUser.bind(this)} 
             onCancel={this.openRegisterDialog.bind(this)} 
             loading={this.state.loading} 
-            loggingIn={this.state.loggingIn}
             user={this.state.user} 
             password={this.state.password} 
             changeUserName={this.changeUserName.bind(this)} 

@@ -20,11 +20,11 @@ class LoginDialog extends React.Component {
 				<MarxanDialog 
 					{...this.props} 
 					showOverlay={true}
-					okDisabled={(!this.props.user || !this.props.password || this.props.loggingIn ||!this.props.marxanServer||(this.props.marxanServer&&this.props.marxanServer.offline)) ? true : false} 
+					okDisabled={(!this.props.user || !this.props.password || !this.props.marxanServer||(this.props.marxanServer&&this.props.marxanServer.offline)) ? true : false} 
 					okLabel={(this.props.marxanServer&&!this.props.marxanServer.offline&&!this.props.marxanServer.corsEnabled&&this.props.marxanServer.guestUserEnabled) ? "Login (Read-Only)" : "Login"}
 					showCancelButton={true}
 					cancelLabel={"Register"}
-					cancelDisabled={((this.props.marxanServer===undefined) || this.props.loggingIn || (this.props.marxanServer&&this.props.marxanServer.offline) || (this.props.marxanServer&&!this.props.marxanServer.corsEnabled)) ? true : false} 
+					cancelDisabled={((this.props.marxanServer===undefined) || (this.props.marxanServer&&this.props.marxanServer.offline) || (this.props.marxanServer&&!this.props.marxanServer.corsEnabled)) ? true : false} 
 					helpLink={"user.html#log-in-window"}
 					contentWidth={358}
 					offsetY={200}

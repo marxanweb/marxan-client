@@ -1,6 +1,6 @@
 import * as React from 'react';
 import TransparencyControl from './TransparencyControl';
-import LoadingCheckbox from './LoadingCheckbox';
+// import LoadingCheckbox from './LoadingCheckbox';
 import { getMaxNumberOfClasses } from './Helpers.js';
 
 class Legend extends React.Component {
