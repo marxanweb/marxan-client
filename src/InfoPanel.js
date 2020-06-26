@@ -14,6 +14,7 @@ import { faLock } from '@fortawesome/free-solid-svg-icons';
 import { faUnlock } from '@fortawesome/free-solid-svg-icons';
 import { faEraser } from '@fortawesome/free-solid-svg-icons';
 import { faShareAlt } from '@fortawesome/free-solid-svg-icons';
+import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 
 class InfoPanel extends React.Component {
 	constructor(props) {
@@ -175,6 +176,7 @@ class InfoPanel extends React.Component {
 												/>; 
 										})}
 									/> 
+					    	        <FontAwesomeIcon icon={faExclamationTriangle} style={{color:'red', display:(this.props.metadata.IUCN_CATEGORY!=='None' && this.props.protected_area_intersections && this.props.protected_area_intersections.length===0) ? 'inline' : 'none', position:'absolute'}} title={'Protected areas have been updated since you locked these ones in'}/>
 									<div className={'tabTitle'}>Costs</div>
 									<SelectField 
 										floatingLabelText={'Use cost surface'} 

@@ -252,7 +252,8 @@ class App extends React.Component {
       notifications:[],
       gapAnalysis: [],
       showCosts: false,
-      costsLoading: false
+      costsLoading: false,
+      protected_area_intersections:[]
     };
   }
 
@@ -1053,7 +1054,7 @@ class App extends React.Component {
         //set a local variable for the feature preprocessing - this is because we dont need to track state with these variables as they are not bound to anything
         this.feature_preprocessing = response.feature_preprocessing;
         //set a local variable for the protected area intersections - this is because we dont need to track state with these variables as they are not bound to anything
-        this.protected_area_intersections = response.protected_area_intersections;
+        this.setState({protected_area_intersections:response.protected_area_intersections});
         //set a local variable for the selected iucn category
         this.previousIucnCategory = response.metadata.IUCN_CATEGORY;
         //initialise all the interest features with the interest features for this project
@@ -3803,8 +3804,8 @@ class App extends React.Component {
   }
   preprocessProtectedAreas(iucnCategory) {
     //have the intersections already been calculated
-    if (this.protected_area_intersections.length>0) {
-      return Promise.resolve(this.protected_area_intersections);
+    if (this.state.protected_area_intersections.length>0) {
+      return Promise.resolve(this.state.protected_area_intersections);
     }
     else {
       //do the intersection on the server
@@ -3813,8 +3814,8 @@ class App extends React.Component {
         this.startLogging();
         //call the websocket 
         this._ws("preprocessProtectedAreas?user=" + this.state.owner + "&project=" + this.state.project + "&planning_grid_name=" + this.state.metadata.PLANNING_UNIT_NAME, this.wsMessageCallback.bind(this)).then((message) => {
-          //set the local variable
-          this.protected_area_intersections = message.intersections;
+          //set the state
+          this.setState({protected_area_intersections:message.intersections});
           //return a value to the then() call
           resolve(message);
         }).catch((error) => {
@@ -3828,7 +3829,7 @@ class App extends React.Component {
     //get the individual iucn categories
     let _iucn_categories = this.getIndividualIucnCategories(iucnCategory);
     //get the planning units that intersect the protected areas with the passed iucn category
-    return this.protected_area_intersections.filter((item) => { return (_iucn_categories.indexOf(item[0]) > -1); });
+    return this.state.protected_area_intersections.filter((item) => { return (_iucn_categories.indexOf(item[0]) > -1); });
   }
 
   //downloads and updates the WDPA on the server
@@ -3851,7 +3852,7 @@ class App extends React.Component {
           this.addWDPASource();
           this.addWDPALayer();
           //reset the protected area intersections on the client
-          this.protected_area_intersections = [];
+          this.setState({protected_area_intersections:[]});
           //recalculate the protected area intersections and refilter the vector tiles
           this.changeIucnCategory(this.state.metadata.IUCN_CATEGORY);
           //close the dialog
@@ -4347,6 +4348,7 @@ class App extends React.Component {
             loadCostsLayer={this.loadCostsLayer.bind(this)}
             loading={this.state.loading}
             openCostsDialog={this.openCostsDialog.bind(this)}
+            protected_area_intersections={this.state.protected_area_intersections}
           />
           <ResultsPanel
             open={this.state.resultsPanelOpen}
