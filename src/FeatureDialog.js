@@ -47,12 +47,12 @@ class FeatureDialog extends React.Component {
 										<td className='metadataItemValue'>{getArea(this.props.feature_metadata.area, this.props.reportUnits, true)}</td>
 									</tr>
 									<tr>
-										<td className='metadataItemTitle'>Author:</td>
-										<td className='metadataItemValue'>{this.props.feature_metadata.created_by}</td>
-									</tr>
-									<tr>
 										<td className='metadataItemTitle'>Created:</td>
 										<td className='metadataItemValue'>{this.props.feature_metadata.creation_date}</td>
+									</tr>
+									<tr>
+										<td className='metadataItemTitle'>Created by:</td>
+										<td className='metadataItemValue'>{this.props.feature_metadata.created_by}</td>
 									</tr>
 									<tr>
 										<td className='metadataItemTitle'>Source:</td>

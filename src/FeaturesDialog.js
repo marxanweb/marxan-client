@@ -152,6 +152,12 @@ class FeaturesDialog extends React.Component {
     renderSource(row) {
       return <div style={{width: '100%',height: '100%',backgroundColor: '#dadada',borderRadius: '2px'}} title={row.original.source}>{row.original.source}</div>;
     }
+    renderDate(row) {
+      return <div style={{width: '100%',height: '100%',backgroundColor: '#dadada',borderRadius: '2px'}} title={row.original.creation_date}>{row.original.creation_date.substr(0,8)}</div>;
+    }
+    renderCreatedBy(row) {
+      return <div style={{width: '100%',height: '100%',backgroundColor: '#dadada',borderRadius: '2px'}} title={row.original.created_by}>{row.original.created_by}</div>;
+    }
     renderPreview(row) {
       return <div style={{width: '100%',height: '100%',backgroundColor: '#dadada',borderRadius: '2px'}} title='Click to preview'>..</div>;
     }
@@ -171,7 +177,7 @@ class FeaturesDialog extends React.Component {
                         <div id="projectsTable">
                           <MarxanTable 
                             data={this.props.allFeatures} 
-                            searchColumns={['alias','description','source']}
+                            searchColumns={['alias','description','source','created_by']}
                             searchText={this.state.searchText}
                             dataFiltered={this.dataFiltered.bind(this)}
                             addingRemovingFeatures={this.props.addingRemovingFeatures}
@@ -182,7 +188,8 @@ class FeaturesDialog extends React.Component {
                             columns={[{Header: 'Name', accessor: 'alias', width: 193, headerStyle: {'textAlign': 'left'}},  
                             {Header: 'Description', accessor: 'description', width: 246, headerStyle: {'textAlign': 'left'}, Cell: this.renderTitle.bind(this)},
                             {Header: 'Source', accessor: 'source', width: 120, headerStyle: {'textAlign': 'left'}, Cell: this.renderSource.bind(this)}, 
-                            {Header: 'Date', accessor: 'creation_date', width: 115, headerStyle: {'textAlign': 'left'}, sortMethod: this.sortDate.bind(this)},
+                            {Header: 'Created', accessor: 'creation_date', width: 70, headerStyle: {'textAlign': 'left'}, Cell: this.renderDate.bind(this), sortMethod: this.sortDate.bind(this)},
+                            {Header: 'Created by', accessor: 'created_by', width: 70, headerStyle: {'textAlign': 'left'}, Cell: this.renderCreatedBy.bind(this)},
                             {Header: '', width: 8, headerStyle: {'textAlign': 'center'}, Cell: this.renderPreview.bind(this)}]}
                             getTrProps={(state, rowInfo, column) => {
                               return {

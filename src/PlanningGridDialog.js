@@ -58,12 +58,12 @@ class PlanningGridDialog extends React.Component {
 										<td className='metadataItemValue'>{this.props.planning_grid_metadata.planning_unit_count}</td>
 									</tr>
 									<tr>
-										<td className='metadataItemTitle'>Author:</td>
-										<td className='metadataItemValue'>{this.props.planning_grid_metadata.created_by}</td>
-									</tr>
-									<tr>
 										<td className='metadataItemTitle'>Created:</td>
 										<td className='metadataItemValue'>{this.props.planning_grid_metadata.creation_date}</td>
+									</tr>
+									<tr>
+										<td className='metadataItemTitle'>Created by:</td>
+										<td className='metadataItemValue'>{this.props.planning_grid_metadata.created_by}</td>
 									</tr>
 									<tr>
 										<td className='metadataItemTitle'>Source:</td>

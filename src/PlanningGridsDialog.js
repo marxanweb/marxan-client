@@ -43,12 +43,21 @@ class PlanningGridsDialog extends React.Component {
 	preview(planning_grid_metadata){
 		this.props.previewPlanningGrid(planning_grid_metadata);
 	}
+    sortDate(a, b, desc) {
+      return (new Date(a.slice(6, 8), a.slice(3, 5) - 1, a.slice(0, 2), a.slice(9, 11), a.slice(12, 14), a.slice(15, 17)) > new Date(b.slice(6, 8), b.slice(3, 5) - 1, b.slice(0, 2), b.slice(9, 11), b.slice(12, 14), b.slice(15, 17))) ? 1 : -1;
+    }
 	renderName(row){
 		return <div style={{width: '100%',height: '100%',backgroundColor: '#dadada',borderRadius: '2px'}} title={row.original.alias + " (" + row.original.feature_class_name + ")"}>{row.original.alias}</div>;        
 	}
 	renderTitle(row){
 		return <div style={{width: '100%',height: '100%',backgroundColor: '#dadada',borderRadius: '2px'}} title={row.original.description}>{row.original.description}</div>;        
 	}
+    renderDate(row) {
+      return <div style={{width: '100%',height: '100%',backgroundColor: '#dadada',borderRadius: '2px'}} title={row.original.creation_date}>{row.original.creation_date.substr(0,8)}</div>;
+    }
+    renderCreatedBy(row) {
+      return <div style={{width: '100%',height: '100%',backgroundColor: '#dadada',borderRadius: '2px'}} title={row.original.created_by}>{row.original.created_by}</div>;
+    }
 	renderCountry(row){
 		return <div style={{width: '100%',height: '100%',backgroundColor: '#dadada',borderRadius: '2px'}} title={row.original.country}>{row.original.country}</div>;        
 	}
@@ -64,11 +73,13 @@ class PlanningGridsDialog extends React.Component {
 	render() {
 		let tableColumns = [];
 		tableColumns = [
-			{ Header: 'Name', accessor: 'alias', width: 215, headerStyle: { 'textAlign': 'left' }, Cell: this.renderName.bind(this) }, 
-			{ Header: 'Description', accessor: 'description', width: 258, headerStyle: { 'textAlign': 'left' }, Cell: this.renderTitle.bind(this) }, 
-			{ Header: 'Country', accessor: 'country', width: 70, headerStyle: { 'textAlign': 'left' }, Cell: this.renderCountry.bind(this)}, 
-			{ Header: 'Domain', accessor: 'domain', width: 70, headerStyle: { 'textAlign': 'left' }}, 
-			{ Header: 'Area (Km2)', accessor: '_area', width: 73, headerStyle: { 'textAlign': 'left' }, Cell: this.renderArea.bind(this) },
+			{ Header: 'Name', accessor: 'alias', width: 290, headerStyle: { 'textAlign': 'left' }, Cell: this.renderName.bind(this) }, 
+			{ Header: 'Description', accessor: 'description', width: 269, headerStyle: { 'textAlign': 'left' }, Cell: this.renderTitle.bind(this) }, 
+			// { Header: 'Country', accessor: 'country', width: 70, headerStyle: { 'textAlign': 'left' }, Cell: this.renderCountry.bind(this)}, 
+			// { Header: 'Domain', accessor: 'domain', width: 70, headerStyle: { 'textAlign': 'left' }}, 
+			// { Header: 'Area (Km2)', accessor: '_area', width: 73, headerStyle: { 'textAlign': 'left' }, Cell: this.renderArea.bind(this) },
+            { Header: 'Created', accessor: 'creation_date', width: 70, headerStyle: {'textAlign': 'left'}, Cell: this.renderDate.bind(this), sortMethod: this.sortDate.bind(this)},
+            { Header: 'Created by', accessor: 'created_by', width: 70, headerStyle: {'textAlign': 'left'}, Cell: this.renderCreatedBy.bind(this)},
 			{ Header: '', width: 8, headerStyle: { 'textAlign': 'center' }, Cell: this.renderPreview.bind(this) }
 		];
 		return (
@@ -89,7 +100,7 @@ class PlanningGridsDialog extends React.Component {
 								<MarxanTable 
 									data={this.props.planningGrids}
 									columns={tableColumns}
-		                            searchColumns={['country','domain','alias','description']}
+		                            searchColumns={['country','domain','alias','description','created_by']}
 		                            searchText={this.state.searchText}
 		                            selectedPlanningGrid={this.state.selectedPlanningGrid}
 		                            changePlanningGrid={this.changePlanningGrid.bind(this)}

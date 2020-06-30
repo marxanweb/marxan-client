@@ -671,11 +671,12 @@ div.rt-tbody>div>div>div>div[contenteditable="true"] {
 .metadataItemTitle {
   /*color: rgb(255, 64, 129);*/
   font-style: italic;
-  width: 63px;
+  width: 65px;
 }
 
 .metadataItemValue {
   padding-left: 10px;
+  max-width:200px;
 }
 
 .metadataItemValue2 {
