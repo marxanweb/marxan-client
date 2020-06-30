@@ -3719,7 +3719,7 @@ class App extends React.Component {
         retValue = ['Ia', 'Ib', 'II', 'III', 'IV', 'V', 'VI'];
         break;
       case 'All':
-        retValue = ['Ia', 'Ib', 'II', 'III', 'IV', 'V', 'VI','Not Reported'];
+        retValue = ['Ia', 'Ib', 'II', 'III', 'IV', 'V', 'VI','Not Reported','Not Applicable','Not Assigned'];
         break;
       default:
     }
