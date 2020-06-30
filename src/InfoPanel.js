@@ -122,6 +122,10 @@ class InfoPanel extends React.Component {
 									{(this.props.userRole === "ReadOnly") ? <div className={'description'} title={this.props.metadata.DESCRIPTION} dangerouslySetInnerHTML={{__html: this.props.metadata.DESCRIPTION}}/> : <div className={'description'} onClick={this.startEditingDescription.bind(this)} style={{'display': (!this.state.editingDescription) ? 'block' : 'none'}} title="Click to edit" dangerouslySetInnerHTML={{__html: this.props.metadata.DESCRIPTION}}/>}
 									<div className={'tabTitle tabTitleTopMargin'}>Created</div>
 									<div className={'createDate'}>{this.props.metadata.CREATEDATE}</div>
+									<div style={{display: (this.props.user!==this.props.owner) ? 'block' : 'none'}}>
+										<div className={'tabTitle tabTitleTopMargin'}>Created by</div>
+										<div className={'createDate'}>{this.props.owner}</div>
+									</div>
 									<div className={'tabTitle tabTitleTopMargin'}>{(this.props.metadata.OLDVERSION) ? "Imported project" : ""}</div>
 									<div style={{position:'absolute', top:'413px', display: (this.props.userRole === "ReadOnly") ? 'none' : 'block'}}>
 										<Checkbox

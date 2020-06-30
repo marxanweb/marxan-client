@@ -4307,6 +4307,8 @@ class App extends React.Component {
           <InfoPanel
             open={this.state.infoPanelOpen}
             activeTab={this.state.activeTab}
+            user={this.state.user}
+            owner={this.state.owner}
             project={this.state.project}
             metadata={this.state.metadata}
             runMarxan={this.runMarxan.bind(this)} 
