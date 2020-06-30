@@ -2797,14 +2797,16 @@ class App extends React.Component {
             .then((response) => {
               if (response.complete){
                 resolve("Uploaded to Mapbox");
-                this.log({info: 'Uploaded',status:'UploadComplete'});
+                this.log({info: 'Uploaded', status:'UploadComplete'});
                 //clear the timer
-                let _timer = timers.find(timer => timer.uploadid === uploadid);
-                clearInterval(_timer.timer);
-                //remove the timer from the timers array
-                timers = timers.filter(timer => timer.uploadid !== uploadid);
-                //reset state
-                if (timers.length === 0) this.setState({uploading: false});
+                this.clearMapboxTimer(uploadid);
+              }
+              //if there is an error from mapbox then raise it
+              if (response.error){
+                reject(response.error);
+                this.log({error: response.error, status:'UploadFailed'});
+                //clear the timer
+                this.clearMapboxTimer(uploadid);
               }
             })
             .catch((error) => {
@@ -2816,7 +2818,16 @@ class App extends React.Component {
       }
     });
   }
-  
+  //resets a timer for a mapbox upload poll
+  clearMapboxTimer(uploadid){
+    //clear the timer
+    let _timer = timers.find(timer => timer.uploadid === uploadid);
+    clearInterval(_timer.timer);
+    //remove the timer from the timers array
+    timers = timers.filter(timer => timer.uploadid !== uploadid);
+    //reset state
+    if (timers.length === 0) this.setState({uploading: false});
+  }
   closeWelcomeDialog(){
     this.setState({ welcomeDialogOpen: false });
   }

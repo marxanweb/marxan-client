@@ -21,6 +21,7 @@ class Log extends React.Component {
 					break;
 				case 'Finished':
 				case 'UploadComplete':
+				case 'UploadFailed':
 					className = 'logItem logFinish';
 					break;
 				default:
