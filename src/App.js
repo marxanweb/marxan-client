@@ -674,10 +674,14 @@ class App extends React.Component {
     this.setState({logMessages: []});
   }
   
-  //can be called from components to update the log
+  //centralised logging method - all log messages are routed through this method (can be called from components to update the log)
   log(message){
+    //add a timestamp to the message
+    Object.assign(message, {'timestamp': new Date()});
     let _messages = this.state.logMessages;
+    //add the message to the existing log
     _messages.push(message);
+    //set the state
     this.setState({logMessages: _messages});
   }
 
