@@ -1140,3 +1140,14 @@ a {
   font-size: 9px;
   padding-right: 3px;
 }
+
+.username {
+  display: inline-block;
+  float: right;
+  padding-right: 6px;
+}
+
+.marxanServer {
+  display: inline-block;
+  padding-left: 6px;
+}

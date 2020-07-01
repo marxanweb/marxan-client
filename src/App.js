@@ -4779,6 +4779,7 @@ class App extends React.Component {
             showToolsMenu={this.showToolsMenu.bind(this)}
             showUserMenu={this.showUserMenu.bind(this)}
             showHelpMenu={this.showHelpMenu.bind(this)}
+            marxanServer={this.state.marxanServer.name}
           />
         </React.Fragment>
       </MuiThemeProvider>
