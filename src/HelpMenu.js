@@ -3,7 +3,6 @@ import Menu from 'material-ui/Menu';
 import MenuItem from 'material-ui/MenuItem';
 import Popover from 'material-ui/Popover';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faServer} from '@fortawesome/free-solid-svg-icons';
 import {faQuestionCircle} from '@fortawesome/free-solid-svg-icons';
 import {faInfoCircle} from '@fortawesome/free-solid-svg-icons';
 
@@ -24,7 +23,6 @@ class HelpMenu extends React.Component {
 				>
 				<Menu desktop={true} onMouseLeave={this.props.hideHelpMenu} menuItemStyle={{backgroundColor:'rgb(0, 188, 212)', color:'white'}} listStyle={{width:'120px',backgroundColor:'rgb(0, 188, 212)'}} selectedMenuItemStyle={{color:'rgb(24,24,24)'}} width={'102px'}>
 					<MenuItem primaryText="Documentation" onClick={this.openDocumentation.bind(this)} leftIcon={<FontAwesomeIcon style={{height: '18px', marginTop:'4px',fontSize: '18px'}} icon={faQuestionCircle} color={'white'}/>}/>
-					<MenuItem primaryText="Server Details" onClick={this.props.openServerDetailsDialog} leftIcon={<FontAwesomeIcon style={{height: '18px', marginTop:'4px',fontSize: '18px'}} icon={faServer} color={'white'}/>}/>
 					<MenuItem primaryText="About" onClick={this.props.openAboutDialog} leftIcon={<FontAwesomeIcon style={{height: '18px', marginTop:'4px',fontSize: '18px'}} icon={faInfoCircle} color={'white'}/>}/>
 				</Menu>
 			</Popover>

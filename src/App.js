@@ -4279,7 +4279,6 @@ class App extends React.Component {
             menuAnchor={this.state.menuAnchor}
             hideHelpMenu={this.hideHelpMenu.bind(this)} 
             openAboutDialog={this.openAboutDialog.bind(this)}
-            openServerDetailsDialog={this.openServerDetailsDialog.bind(this)}
             DOCS_ROOT={DOCS_ROOT}
           />
           <UserSettingsDialog 
@@ -4780,6 +4779,7 @@ class App extends React.Component {
             showUserMenu={this.showUserMenu.bind(this)}
             showHelpMenu={this.showHelpMenu.bind(this)}
             marxanServer={this.state.marxanServer.name}
+            openServerDetailsDialog={this.openServerDetailsDialog.bind(this)}
           />
         </React.Fragment>
       </MuiThemeProvider>
