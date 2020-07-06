@@ -78,7 +78,7 @@ import ImportGBIFDialog from './ImportGBIFDialog';
 
 //CONSTANTS
 let MARXAN_REGISTRY = "https://marxanweb.github.io/general/registry/marxan.json"; //url to the marxan registry
-let MARXAN_CLIENT_VERSION = packageJson.version; //TODO UPDATE PACKAGE.JSON WHEN THERE IS A NEW VERSION
+let MARXAN_CLIENT_VERSION = packageJson.version; 
 let DOCS_ROOT = "https://docs.marxanweb.org/";
 let ERRORS_PAGE = DOCS_ROOT + "errors.html";
 let SEND_CREDENTIALS = true; //if true all post requests will send credentials
@@ -2467,6 +2467,27 @@ class App extends React.Component {
   ///PLANNING UNIT WORKFLOW AND FUNCTIONS
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+  togglePULayer(show){
+      if (show){
+        //load the planning unit layer
+        this.showLayer(PU_LAYER_NAME);
+      }else{
+        //hide the layer
+        this.hideLayer(PU_LAYER_NAME);
+      }
+  }
+  
+  //show/hide the planning units status layer
+  toggleStatuses(show){
+    if (show){
+      //load the status layer
+      this.showLayer(STATUS_LAYER_NAME);
+    }else{
+      //hide the costs layer
+      this.hideLayer(STATUS_LAYER_NAME);
+    }
+  }
+  
   startPuEditSession() {
     //set the state
     this.setState({puEditing: true});
@@ -3690,6 +3711,15 @@ class App extends React.Component {
   ////////////////////////// PROTECTED AREAS LAYERS STUFF
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+  togglePALayer(show){
+      if (show){
+        //load the planning unit layer
+        this.showLayer(WDPA_LAYER_NAME);
+      }else{
+        //hide the layer
+        this.hideLayer(WDPA_LAYER_NAME);
+      }
+  }
   changeIucnCategory(iucnCategory) {
     //update the state
     let _metadata = this.state.metadata;
@@ -4102,7 +4132,7 @@ class App extends React.Component {
   }
   
   //show/hide the planning units cost layer
-  toggleCosts(show){
+  toggleCostsLayer(show){
     //set the state and wait for it to update
     this.setState({showCosts: show}, ()=>{
       if (show){
@@ -4351,6 +4381,10 @@ class App extends React.Component {
             marxanServer={this.state.marxanServer}
             toggleFeatureLayer={this.toggleFeatureLayer.bind(this)}
             toggleFeaturePUIDLayer={this.toggleFeaturePUIDLayer.bind(this)}
+            togglePULayer={this.togglePULayer.bind(this)}
+            togglePALayer={this.togglePALayer.bind(this)}
+            toggleCostsLayer={this.toggleCostsLayer.bind(this)}
+            toggleStatuses={this.toggleStatuses.bind(this)}
             useFeatureColors={this.state.userData.USEFEATURECOLORS}
             smallLinearGauge={this.state.smallLinearGauge}
             iucn_categories={IUCN_CATEGORIES}
@@ -4384,9 +4418,6 @@ class App extends React.Component {
             results_layer_opacity={this.state.results_layer_opacity}
             wdpa_layer_opacity={this.state.wdpa_layer_opacity}
             userRole={this.state.userData.ROLE}
-            showCosts={this.state.showCosts}
-            costsLoading={this.state.costsLoading}
-            toggleCosts={this.toggleCosts.bind(this)}
           />
           <FeatureInfoDialog
             open={this.state.openInfoDialogOpen}
