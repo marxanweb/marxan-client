@@ -252,7 +252,8 @@ class App extends React.Component {
       gapAnalysis: [],
       showCosts: false,
       costsLoading: false,
-      protected_area_intersections:[]
+      protected_area_intersections:[],
+      marxanLayers:[]
     };
   }
 
@@ -862,6 +863,10 @@ class App extends React.Component {
     });
   }
   
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  ////////////////////////// NOTIFICATIONS
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
   //parse the notifications 
   parseNotifications(){
     //see if there are any new notifications from the marxan-registry
@@ -1170,6 +1175,9 @@ class App extends React.Component {
       this.setState({user: user, password:''});
     });
   }
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  ////////////////////////// PROJECTS
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   //REST call to create a new project from the wizard
   createNewProject(project) {
@@ -1645,6 +1653,10 @@ class App extends React.Component {
     });
   }
   
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  ////////////////////////// SOLUTIONS
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
   //load a specific solution for the current project
   loadSolution(solution) {
     if (solution === "Sum") {
@@ -1730,6 +1742,11 @@ class App extends React.Component {
     });
     return [].concat.apply([], arrays);
   }
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  ////////////////////////// CLASSIFICATION AND RENDERING
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
   //gets the classification and colorbrewer object for doing the rendering
   classifyData(data, numClasses, colorCode, classification) {
     //get a sample of the data to make the renderer classification
@@ -1938,7 +1955,7 @@ class App extends React.Component {
   }
 
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  ///MAP INSTANTIATION, LAYERS ADDING/REMOVING AND INTERACTION
+  ////////////////////////// MAP INSTANTIATION, LAYERS ADDING/REMOVING AND INTERACTION
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   //instantiates the mapboxgl map
@@ -1952,7 +1969,10 @@ class App extends React.Component {
     //add event handlers for the load and error events
     this.map.on("load", this.mapLoaded.bind(this));
     this.map.on("error", this.mapError.bind(this));
+    //click event
     this.map.on("click", this.mapClick.bind(this));
+    //style change, this includes adding/removing layers and showing/hiding layers
+    this.map.on("styledata", this.mapStyleChanged.bind(this));
   }
 
   mapLoaded(e) {
@@ -2034,9 +2054,27 @@ class App extends React.Component {
       let identifyProtectedAreas = this.getFeaturesByLayerStartsWith(clickedFeatures, "marxan_wdpa_");
       //set the state to populate the identify popup
       this.setState({identifyVisible: true, identifyFeatures: identifyFeatures, identifyProtectedAreas:identifyProtectedAreas});
-    }
+    } 
   }
   
+  //called when layers are added/removed or shown/hidden
+  mapStyleChanged(e){
+    //update legend items
+    this.updateLegendItems();
+  }
+  //after a layer has been added/removed/shown/hidden update the legend items
+  updateLegendItems(){
+    let layers = this.map.getStyle().layers;
+    //get the marxan layers
+    let marxanLayers = layers.filter((item) => {
+      return item.id.substr(0,7) === 'marxan_'; 
+    });
+    //get the visible layers
+    let visibleLayers = marxanLayers.filter(item=>{
+      return (item.layout.visibility === 'visible');
+    });
+    console.log(visibleLayers);
+  }
   //gets a set of features that have a layerid that starts with the passed text
   getFeaturesByLayerStartsWith(features, startsWith){
     let matchedFeatures = features.filter(item=>{
@@ -2239,7 +2277,7 @@ class App extends React.Component {
       }
     );
     //add the results layer
-    this.map.addLayer({
+    this.addMapLayer({
       'id': RESULTS_LAYER_NAME,
       'type': "fill",
       'source': PLANNING_UNIT_SOURCE_NAME,
@@ -2250,7 +2288,7 @@ class App extends React.Component {
       }
     }, beforeLayer);
     //add the planning units costs layer
-    this.map.addLayer({
+    this.addMapLayer({
       'id': COSTS_LAYER_NAME,
       'type': "fill",
       'source': PLANNING_UNIT_SOURCE_NAME,
@@ -2266,7 +2304,7 @@ class App extends React.Component {
     //set the result layer in app state so that it can update the Legend component and its opacity control
     this.setState({resultsLayer: this.map.getLayer(RESULTS_LAYER_NAME)});
     //add the planning unit layer 
-    this.map.addLayer({
+    this.addMapLayer({
       'id': PU_LAYER_NAME,
       'type': "fill",
       'source': PLANNING_UNIT_SOURCE_NAME,
@@ -2280,7 +2318,7 @@ class App extends React.Component {
       }
     }, beforeLayer);
     //add the planning units manual edit layer - this layer shows which individual planning units have had their status changed
-    this.map.addLayer({
+    this.addMapLayer({
       'id': STATUS_LAYER_NAME,
       'type': "line",
       'source': PLANNING_UNIT_SOURCE_NAME,
@@ -2294,7 +2332,7 @@ class App extends React.Component {
       }
     }, beforeLayer);
     //add the puvspr planning unit layer - this layer shows the planning unit distribution of a feature from the puvspr file
-    this.map.addLayer({
+    this.addMapLayer({
       'id': PUVSPR_LAYER_NAME,
       'type': "line",
       'source': PLANNING_UNIT_SOURCE_NAME,
@@ -2317,7 +2355,7 @@ class App extends React.Component {
     });
     //remove them from the map
     dynamicLayers.forEach((item) => {
-      this.map.removeLayer(item.id);
+      this.removeMapLayer(item.id);
     });
     //remove the sources if present
     if (this.map.getSource(PLANNING_UNIT_SOURCE_NAME) !== undefined) this.map.removeSource(PLANNING_UNIT_SOURCE_NAME);
@@ -2340,7 +2378,7 @@ class App extends React.Component {
   
   //adds the WDPA vector tile layer - this is a separate function so that if the source vector tiles are updated, the layer can be re-added on its own
   addWDPALayer(){
-    this.map.addLayer({
+    this.addMapLayer({
       "id": WDPA_LAYER_NAME,
       "type": "fill",
       "source": WDPA_SOURCE_NAME,
@@ -2381,7 +2419,14 @@ class App extends React.Component {
   hideLayer(id) {
     if (this.map&&this.map.getLayer(id)) this.map.setLayoutProperty(id, 'visibility', 'none');
   }
-
+  //centralised code to add a layer to the maps current style
+  addMapLayer(mapLayer){
+    this.map.addLayer(mapLayer);
+  }
+  //centralised code to remove a layer from the maps current style
+  removeMapLayer(layerid){
+    this.removeMapLayer(layerid);
+  }
   isLayerVisible(layername){
     return (this.map && this.map.getLayer(layername) && this.map.getLayoutProperty(layername, 'visibility') === 'visible');
   }
@@ -3376,11 +3421,11 @@ class App extends React.Component {
     let layerName = feature.tilesetid.split(".")[1];
     let layerId = "marxan_feature_layer_" + layerName;
     if (this.map.getLayer(layerId)){
-      this.map.removeLayer(layerId);
+      this.removeMapLayer(layerId);
       this.map.removeSource(layerId);
       this.updateFeature(feature, {feature_layer_loaded: false});
     }else{
-      this.map.addLayer({
+      this.addMapLayer({
         'id': layerId,
         'type': "fill",
         'source': {
@@ -3403,13 +3448,13 @@ class App extends React.Component {
     // this.closeFeatureMenu();
     let layerName = "puid_" + feature.id;
     if (this.map.getLayer(layerName)){
-      this.map.removeLayer(layerName);
+      this.removeMapLayer(layerName);
       this.updateFeature(feature, {feature_puid_layer_loaded: false});
     }else{
       //get the planning units where the feature occurs
       this._get("getFeaturePlanningUnits?user=" + this.state.owner + "&project=" + this.state.project + "&oid=" + feature.id).then((response) => {
         //ids retrieved - add the layer
-        this.map.addLayer({
+        this.addMapLayer({
           'id': layerName,
           'type': "line",
           'source': PLANNING_UNIT_SOURCE_NAME,
@@ -3858,7 +3903,7 @@ class App extends React.Component {
           //set the source for the WDPA layer to the new vector tiles
           this.setWDPAVectorTilesLayerName(this.state.registry.WDPA.latest_version);
           //remove the existing WDPA layer and source
-          this.map.removeLayer(WDPA_LAYER_NAME);
+          this.removeMapLayer(WDPA_LAYER_NAME);
           if (this.map && this.map.getSource(WDPA_SOURCE_NAME) !== undefined) this.map.removeSource(WDPA_SOURCE_NAME);
           //re-add the WDPA source and layer
           this.addWDPASource();
