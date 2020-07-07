@@ -23,7 +23,6 @@ module.exports = Object.freeze({
     RESULTS_LAYER_NAME: "marxan_pu_results_layer", //layer for either the sum of solutions or the individual solutions
     WDPA_LAYER_NAME: "marxan_wdpa_polygon_layer", //layer showing the protected areas from the WDPA
     LAYER_TYPE_SUMMED_SOLUTIONS: 'summed_solutions',
-    LAYER_TYPE_RESULTS_LAYER: 'results',
     LAYER_TYPE_PLANNING_UNITS: 'pus',
     LAYER_TYPE_PLANNING_UNITS_COST: 'cost',
     LAYER_TYPE_PLANNING_UNITS_STATUS: 'status',

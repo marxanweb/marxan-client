@@ -106,7 +106,7 @@ class ResultsPanel extends React.Component {
 						<div className="resultsTitle">Results</div>
 						<Tabs contentContainerStyle={{'margin':'20px'}} className={'resultsTabs'} value={this.props.activeResultsTab} id='resultsTabs'>
 							<Tab label="Legend" value="legend" onActive={this.props.legend_tab_active} >
-								<div>
+								<div className={'legendTab'}>
 									<MapLegend {...this.props} brew={this.props.brew}/>
 									<ToolbarButton 
 										icon={<Settings style={{height:'20px',width:'20px'}}/>} 

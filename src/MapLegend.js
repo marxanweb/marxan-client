@@ -5,36 +5,6 @@ import TransparencyControl from './TransparencyControl';
 import Hexagon from 'react-hexagon';
 
 class MapLegend extends React.Component {
-
-    //renders the swatch
-    renderSwatch(key, item, shape) {
-        switch (shape) {
-            case 'hexagon':
-                return <div className={'hexDiv'}><Hexagon className={'hexLegendItem'} style={{fill: item.color, stroke:'lightgray', strokeWidth: 30}}/></div>;
-            default:
-                return <div key={key + '_swatch'} style={ { backgroundColor: item.color, width: '12px', height: '16px', border: '1px lightgray solid', margin: '3px', display: 'inline-flex', verticalAlign: 'top' } }></div>;
-        }
-    }
-    //renders the passed items as hexagons - the items have the attributes color and label
-    renderLegendItems(layer, items, swatchShape = 'usePlanningGridShape') {
-        let shape = '';
-        //get the shape to render in the legend - if we want to use the shape of the planning grid then get it
-        if (swatchShape === 'usePlanningGridShape') {
-            shape = (this.props.metadata && this.props.metadata.PLANNING_UNIT_NAME && this.props.metadata.PLANNING_UNIT_NAME.includes('hexagon')) ? 'hexagon' : 'square';
-        }
-        else { //
-            shape = swatchShape;
-        }
-        //iterate through the legend items and render them
-        return items.map((item, index) => {
-            let key = 'legend_' + layer.id + '_' + index;
-            let swatch = this.renderSwatch(key, item, shape);
-            return <div key={key}>
-    			{swatch}
-    			<div style={ { display: 'inline-flex', verticalAlign: 'top', marginLeft: '7px', fontSize: '12px' } } key={key + '_label'}>{item.label}</div>
-    		 </div>;
-        });
-    }
     //gets the summed solutions legend item
     getSummedSolution(layer, colorCode) {
         let items;
@@ -60,10 +30,10 @@ class MapLegend extends React.Component {
                 let range = (this.props.brew.breaks[item + 1] - this.props.brew.breaks[item] > 1) ? true : false;
                 let suffix = (this.props.brew.breaks[item + 1] === 1) ? " solution" : " solutions";
                 let legendLabel = (range) ? (this.props.brew.breaks[item] + 1) + ' - ' + this.props.brew.breaks[item + 1] + suffix : this.props.brew.breaks[item + 1] + suffix;
-                return { layer: layer, color: colorScheme[classesToShow][item], label: legendLabel };
+                return { layer: layer, fillColor: colorScheme[classesToShow][item], strokeColor: 'lightgray', label: legendLabel };
             });
             //render the items
-            items = this.renderLegendItems(layer, items);
+            items = this.renderLegendItems(layer, items, this.planning_grid_shape);
         }
         else {
             items = <div>
@@ -81,40 +51,42 @@ class MapLegend extends React.Component {
         return items;
     }
 
-    //gets an individual legend item from the layer
-    getLayerLegend(layer) {
+    //renders the swatch either as a square or hexagon
+    renderSwatch(key, item, shape) {
+        switch (shape) {
+            case 'hexagon':
+                return <div className={'hexDiv'} key={key + '_swatch'}><Hexagon key={key + '_swatch_svg'}className={'hexLegendItem'} style={{fill: item.fillColor, stroke: item.strokeColor, strokeWidth: 30}}/></div>;
+            default:
+                return <div key={key + '_swatch'} style={ { backgroundColor: item.fillColor, width: '14px', height: '16px', border: item.strokeColor + ' 1px solid', margin: '3px', display: 'inline-flex', verticalAlign: 'top' } }></div>;
+        }
+    }
+    //renders the passed items as hexagons or squares - the items have the attributes fillColor, strokeColor and label 
+    renderLegendItems(layer, items, shape, range) {
+        //iterate through the legend items and render them
+        return items.map((item, index) => {
+            let key = 'legend_' + layer.id + '_' + index;
+            let swatch = this.renderSwatch(key, item, shape);
+            let separator = (range && index === 1) ? <div className={'separator'}>to</div> : null;
+            return <div key={key} style={{display: (range) ? 'inline' : 'block'}}>
+                {separator}
+    			{swatch}
+    			<div style={ { display: 'inline-flex', verticalAlign: 'top', marginLeft: '7px', fontSize: '12px' } } key={key + '_label'}>{item.label}</div>
+    		 </div>;
+        });
+    }
+
+    //gets an individual legend item from the layer - the subItems can be passed in as an array of fillColor, strokeColor and label objects
+    //if range if true then the subItems are shown as a range
+    getLayerLegend(layer, subItems, swatchShape = 'usePlanningGridShape', range = false) {
+        //get the shape to render in the legend - if we want to use the shape of the planning grid then get it
+        let shape = (swatchShape === 'usePlanningGridShape') ? this.planning_grid_shape : swatchShape;
         let children = [];
         switch (layer.metadata.type) {
-            case CONSTANTS.LAYER_TYPE_SUMMED_SOLUTIONS:
+            case CONSTANTS.LAYER_TYPE_SUMMED_SOLUTIONS: //get the summed solutions legend
                 children = (this.props.brew && this.props.brew.breaks && this.props.brew.colorCode) ? this.getSummedSolution(layer, this.props.brew.colorCode) : <div/>;
                 break;
-            case CONSTANTS.LAYER_TYPE_RESULTS_LAYER:
-                break;
-            case CONSTANTS.LAYER_TYPE_PLANNING_UNITS:
-                children = this.getPlanningUnit(layer);
-                break;
-            case CONSTANTS.LAYER_TYPE_PLANNING_UNITS_COST:
-                break;
-            case CONSTANTS.LAYER_TYPE_PLANNING_UNITS_STATUS:
-                break;
-            case CONSTANTS.LAYER_TYPE_PROTECTED_AREAS:
-                children =
-                    <div>
-                        <div>
-                			<div key={'marine'} style={ { backgroundColor: 'rgba(63,127,191)', width: '12px', height: '16px', border: '1px lightgray solid', margin: '3px', display: 'inline-flex', verticalAlign: 'top' } }></div>
-                			<div style={ { display: 'inline-flex', verticalAlign: 'top', marginLeft: '7px', fontSize: '12px' } } key={ 'label_marine'}>Marine</div>
-                		</div>
-            			<div>
-            				<div key={'terrestrial'} style={ { backgroundColor: 'rgba(99,148,69)', width: '12px', height: '16px', border: '1px lightgray solid', margin: '3px', display: 'inline-flex', verticalAlign: 'top' } }></div>
-            				<div style={ { display: 'inline-flex', verticalAlign: 'top', marginLeft: '7px', fontSize: '12px' } } key={ 'label_terrestrial'}>Terrestrial</div>
-            			</div>
-            		</div>;
-                break;
-            case CONSTANTS.LAYER_TYPE_FEATURE_LAYER:
-                break;
-            case CONSTANTS.LAYER_TYPE_FEATURE_PLANNING_UNIT_LAYER:
-                break;
             default:
+                children = this.renderLegendItems(layer, subItems, shape, range);
         }
         return (
             <React.Fragment>
@@ -123,14 +95,59 @@ class MapLegend extends React.Component {
             </React.Fragment>
         );
     }
+    
     render() {
-        //get the legend items
-        let items = this.props.visibleLayers.map((layer) => {
-            return this.getLayerLegend(layer);
+        //get the planning grid shape
+        this.planning_grid_shape = (this.props.metadata && this.props.metadata.PLANNING_UNIT_NAME && this.props.metadata.PLANNING_UNIT_NAME.includes('hexagon')) ? 'hexagon' : 'square';
+        //get the legend items for non-feature layers
+        let nonFeatureLegendItems = this.props.visibleLayers.map((layer) => {
+            //create the legend for non-feature layers
+            if (layer.metadata.type!==CONSTANTS.LAYER_TYPE_FEATURE_LAYER){
+                switch (layer.metadata.type) {
+                    case CONSTANTS.LAYER_TYPE_SUMMED_SOLUTIONS: //get the summed solutions legend
+                        let subItems = (this.props.brew && this.props.brew.breaks && this.props.brew.colorCode) ? this.getSummedSolution(layer, this.props.brew.colorCode) : null;
+                        return this.getLayerLegend(layer, subItems);
+                    case CONSTANTS.LAYER_TYPE_PLANNING_UNITS:
+                        return null;
+                    case CONSTANTS.LAYER_TYPE_PLANNING_UNITS_COST:
+                        let minColor = layer.paint['fill-color'][3]; //min paint color
+                        let maxColor = layer.paint['fill-color'][layer.paint['fill-color'].length-2]; //max paint color
+                        //if the min and max costs are the same only create a single legend item
+                        if (layer.metadata.min === layer.metadata.max){
+                            return this.getLayerLegend(layer, [{fillColor: minColor, strokeColor:'lightgray', label: layer.metadata.min}]);
+                        }else{
+                            return this.getLayerLegend(layer, [{fillColor: minColor, strokeColor:'lightgray', label: layer.metadata.min}, {fillColor: maxColor, strokeColor:'lightgray', label: layer.metadata.max}], this.planning_grid_shape, true);
+                        }
+                    case CONSTANTS.LAYER_TYPE_PLANNING_UNITS_STATUS:
+                        return this.getLayerLegend(layer, [{fillColor:'none', strokeColor:'lightgray', label: 'Normal planning unit'}, {fillColor:'none', strokeColor:'blue', label: 'Locked in'},{fillColor:'none', strokeColor:'red', label: 'Locked out'}]);
+                    case CONSTANTS.LAYER_TYPE_PROTECTED_AREAS:
+                        return this.getLayerLegend(layer, [{fillColor:'rgba(63,127,191)', strokeColor:'lightgray', label: 'Marine'},{fillColor:'rgba(99,148,69)', strokeColor:'lightgray', label: 'Terrestrial'}], 'square');
+                    default:
+                        return null;
+                }
+            }else{
+                return null;
+            }
         });
+        //get any feature legend items - these are combined into a single legend - first populate the legend items for each feature
+        let featureLayers = this.props.visibleLayers.filter(layer => (layer.metadata.type===CONSTANTS.LAYER_TYPE_FEATURE_LAYER));
+        let items = featureLayers.map((layer) => {
+            return {fillColor: layer.paint['fill-color'], strokeColor:'lightgray', label: layer.metadata.name};
+        });
+        //now create the legend for features
+        let featureLegendItems = (items.length > 0) ? this.getLayerLegend({metadata:{name:'Features'}}, items, "square") : null;
+        //get any feature planning unit legend items - these are combined into a single legend - first populate the legend items for each feature planning unit
+        let featurePUIDLayers = this.props.visibleLayers.filter(layer => (layer.metadata.type===CONSTANTS.LAYER_TYPE_FEATURE_PLANNING_UNIT_LAYER));
+        items = featurePUIDLayers.map((layer) => {
+            return {fillColor: 'none', strokeColor: layer.metadata.lineColor, label: layer.metadata.name};
+        });
+        //now create the legend for feature planning grids
+        let featurePUIDLegendItems = (items.length > 0) ? this.getLayerLegend({metadata:{name:'Planning units for features'}}, items) : null;
         return (
             <React.Fragment>
-                {items}
+                {nonFeatureLegendItems}
+                {featureLegendItems}
+                {featurePUIDLegendItems}
     	    </React.Fragment>
         );
     }

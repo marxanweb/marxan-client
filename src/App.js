@@ -201,7 +201,6 @@ class App extends React.Component {
       shareableLinkUrl: "",
       notifications:[],
       gapAnalysis: [],
-      showCosts: false,
       costsLoading: false,
       protected_area_intersections:[],
       visibleLayers:[]
@@ -1099,7 +1098,6 @@ class App extends React.Component {
     this.resetRun();
     //reset the cost data
     this.cost_data = undefined;
-    this.setState({ showCosts: false});
     //reset any feature layers that are shown
     this.hideFeatureLayer();
   }
@@ -1873,11 +1871,11 @@ class App extends React.Component {
   renderPuCostLayer(cost_data) {
     return new Promise((resolve, reject) => {
       let expression;
-      if (cost_data.length > 0) {
+      if (cost_data.data.length > 0) {
         //build an expression to get the matching puids with different costs
         expression = ["match", ["get", "puid"]];
         //iterate through the cost data and set the expressions
-        cost_data.forEach((row, index) => {
+        cost_data.data.forEach((row, index) => {
           //add the color to the expression with the puids
           expression.push(row[1], CONSTANTS.COST_COLORS[index]);
         });
@@ -1890,6 +1888,8 @@ class App extends React.Component {
       }
       //set the render paint property
       this.map.setPaintProperty(CONSTANTS.COSTS_LAYER_NAME, "fill-color", expression);
+      //set the min/max properties in the layer as metadata
+      this.setLayerMetadata(CONSTANTS.COSTS_LAYER_NAME, {min: cost_data.min, max: cost_data.max});
       //show the layer
       this.showLayer(CONSTANTS.COSTS_LAYER_NAME);
       resolve("Costs rendered");
@@ -2286,7 +2286,7 @@ class App extends React.Component {
     this.addMapLayer({
       'id': CONSTANTS.STATUS_LAYER_NAME,
       'metadata':{
-        'name':'Planning unit status',
+        'name':'Planning units',
         'type': CONSTANTS.LAYER_TYPE_PLANNING_UNITS_STATUS
       },
       'type': "line",
@@ -2404,6 +2404,12 @@ class App extends React.Component {
     }
   }
 
+  //sets the metadata for the layer
+  setLayerMetadata(layerId, metadata){
+    let layer = this.map.getLayer(layerId);
+    //merge the metadata with the existing metadata
+    if (layer) layer.metadata = Object.assign(layer.metadata, metadata);
+  }
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   ///ACTIVATION/DEACTIVATION OF TABS
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2436,6 +2442,10 @@ class App extends React.Component {
     this.previousResultsOpacity = this.state.results_layer_opacity;
     //show the planning units status layer 
     this.showLayer(CONSTANTS.STATUS_LAYER_NAME);
+    //show the planning units costs layer 
+    this.loadCostsLayer();
+    //set the opacity of the costs layer
+    // this.changeOpacity(CONSTANTS.COSTS_LAYER_NAME,0);
     //render the planning units status layer_edit layer
     this.renderPuEditLayer(CONSTANTS.STATUS_LAYER_NAME);
   }
@@ -3429,8 +3439,9 @@ class App extends React.Component {
         this.addMapLayer({
           'id': layerName,
           'metadata':{
-            'name': 'Planning units for ' + feature.alias,
-            'type': CONSTANTS.LAYER_TYPE_FEATURE_PLANNING_UNIT_LAYER
+            'name': feature.alias,
+            'type': CONSTANTS.LAYER_TYPE_FEATURE_PLANNING_UNIT_LAYER,
+            'lineColor': feature.color
           },
           'type': "line",
           'source': CONSTANTS.PLANNING_UNIT_SOURCE_NAME,
@@ -4133,16 +4144,13 @@ class App extends React.Component {
   
   //loads the costs layer
   loadCostsLayer(forceReload=false){
-    //if the costs layer is visible
-    if (this.state.showCosts){
-      this.setState({costsLoading:true});
-      this.getPlanningUnitsCostData(forceReload).then((cost_data)=>{
-        this.renderPuCostLayer(cost_data).then(()=>{
-          this.setState({costsLoading:false});
-          //do something
-        });
+    this.setState({costsLoading:true});
+    this.getPlanningUnitsCostData(forceReload).then((cost_data)=>{
+      this.renderPuCostLayer(cost_data).then(()=>{
+        this.setState({costsLoading:false});
+        //do something
       });
-    }
+    });
   }
 
   //gets the cost data either from cache (if it has already been loaded) or from the server
@@ -4154,8 +4162,8 @@ class App extends React.Component {
       }else{
         this._get("getPlanningUnitsCostData?user=" + this.state.owner + "&project=" + this.state.project).then((response) => {
           //save the cost data to a local variable
-          this.cost_data = response.data;
-          resolve(response.data);
+          this.cost_data = response;
+          resolve(response);
         }).catch((error) => {
           //do something
         });

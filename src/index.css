@@ -158,7 +158,10 @@ body {
 .resultsTabs {
   height: 561px;
 }
-
+.legendTab{
+  height:475px;
+  overflow:auto;
+}
 #log {
   height: 472px;
   width: 360px;
@@ -1169,4 +1172,10 @@ a {
 }
 .hexDiv{
   display:inline;
+}
+.separator{
+  display: inline-flex;
+  font-size:12px;
+  vertical-align:top;
+  padding: 0px 30px;
 }
