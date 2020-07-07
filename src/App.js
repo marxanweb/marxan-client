@@ -2512,27 +2512,6 @@ class App extends React.Component {
   ///PLANNING UNIT WORKFLOW AND FUNCTIONS
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  togglePULayer(show){
-      if (show){
-        //load the planning unit layer
-        this.showLayer(PU_LAYER_NAME);
-      }else{
-        //hide the layer
-        this.hideLayer(PU_LAYER_NAME);
-      }
-  }
-  
-  //show/hide the planning units status layer
-  toggleStatuses(show){
-    if (show){
-      //load the status layer
-      this.showLayer(STATUS_LAYER_NAME);
-    }else{
-      //hide the costs layer
-      this.hideLayer(STATUS_LAYER_NAME);
-    }
-  }
-  
   startPuEditSession() {
     //set the state
     this.setState({puEditing: true});
@@ -4176,20 +4155,6 @@ class App extends React.Component {
     });
   }
   
-  //show/hide the planning units cost layer
-  toggleCostsLayer(show){
-    //set the state and wait for it to update
-    this.setState({showCosts: show}, ()=>{
-      if (show){
-        //load the costs layer
-        this.loadCostsLayer();
-      }else{
-        //hide the costs layer
-        this.hideLayer(COSTS_LAYER_NAME);
-      }
-    });
-  }
-  
   //loads the costs layer
   loadCostsLayer(forceReload=false){
     //if the costs layer is visible
@@ -4426,10 +4391,6 @@ class App extends React.Component {
             marxanServer={this.state.marxanServer}
             toggleFeatureLayer={this.toggleFeatureLayer.bind(this)}
             toggleFeaturePUIDLayer={this.toggleFeaturePUIDLayer.bind(this)}
-            togglePULayer={this.togglePULayer.bind(this)}
-            togglePALayer={this.togglePALayer.bind(this)}
-            toggleCostsLayer={this.toggleCostsLayer.bind(this)}
-            toggleStatuses={this.toggleStatuses.bind(this)}
             useFeatureColors={this.state.userData.USEFEATURECOLORS}
             smallLinearGauge={this.state.smallLinearGauge}
             iucn_categories={IUCN_CATEGORIES}

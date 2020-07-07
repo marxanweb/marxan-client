@@ -9,7 +9,6 @@ import Settings from 'material-ui/svg-icons/action/settings';
 import ToolbarButton from './ToolbarButton';
 import Checkbox from 'material-ui/Checkbox';
 import Textarea from 'react-textarea-autosize';
-import MarxanToggle from './MarxanToggle';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faLock } from '@fortawesome/free-solid-svg-icons';
 import { faUnlock } from '@fortawesome/free-solid-svg-icons';
@@ -181,12 +180,10 @@ class InfoPanel extends React.Component {
 								<div>
 									<div>
 										<div className={'tabTitle tabTitleInlineBlock'}>Planning grid</div>
-										<MarxanToggle onToggle={this.togglePlanningUnits.bind(this)} toggled={this.state.showPlanningGrid}/>
 									</div>
 									<div className={'description'}>{this.props.metadata.pu_alias}</div>
 									<div>
 										<div className={'tabTitle tabTitleTopMargin tabTitleInlineBlock'}>Protected areas</div>
-										<MarxanToggle onToggle={this.toggleProtectedAreas.bind(this)} toggled={this.state.showProtectedAreas}/>
 									</div>
 									<SelectField 
 										floatingLabelText={'Lock in'} 
@@ -210,7 +207,6 @@ class InfoPanel extends React.Component {
 					    	        {/*<FontAwesomeIcon icon={faExclamationTriangle} style={{color:'red', display:(this.props.metadata.IUCN_CATEGORY!=='None' && this.props.protected_area_intersections && this.props.protected_area_intersections.length===0) ? 'inline' : 'none', position:'absolute'}} title={'Protected areas have been updated since you locked these ones in'}/>*/}
 					    	        <div>
 										<div className={'tabTitle tabTitleInlineBlock'}>Costs</div>
-										<MarxanToggle onToggle={this.toggleCosts.bind(this)} toggled={this.state.showCosts}/>
 									</div>
 									<SelectField 
 										floatingLabelText={'Use cost surface'} 
@@ -234,7 +230,6 @@ class InfoPanel extends React.Component {
 									<div style={{display: (this.props.userRole === "ReadOnly") ? 'none' : 'block'}}>
 										<div>
 											<div className={'tabTitle tabTitleInlineBlock'}>Statuses</div>
-											<MarxanToggle onToggle={this.toggleStatuses.bind(this)} toggled={this.state.showStatuses}/>
 										</div>
 										<FontAwesomeIcon icon={(this.props.puEditing) ? faUnlock : faLock} onClick={this.startStopPuEditSession.bind(this)} title={(this.props.puEditing) ? "Save" : "Click to edit"} style={{cursor:'pointer', marginRight: '10px', color: 'rgba(255, 64, 129, 0.7)'}}/>
 										<div className={'description'} style={{display: 'inline-block',fontSize:'12px'}}>{(this.props.puEditing) ? "Click on the map to change the status" : "Click to edit"}</div>
