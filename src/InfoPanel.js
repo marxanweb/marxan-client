@@ -9,6 +9,7 @@ import Settings from 'material-ui/svg-icons/action/settings';
 import ToolbarButton from './ToolbarButton';
 import Checkbox from 'material-ui/Checkbox';
 import Textarea from 'react-textarea-autosize';
+import MarxanToggle from './MarxanToggle';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faLock } from '@fortawesome/free-solid-svg-icons';
 import { faUnlock } from '@fortawesome/free-solid-svg-icons';
@@ -19,7 +20,7 @@ import { faShareAlt } from '@fortawesome/free-solid-svg-icons';
 class InfoPanel extends React.Component {
 	constructor(props) {
 		super(props);
-		this.state = {editingProjectName:false, editingDescription: false};
+		this.state = {editingProjectName:false, editingDescription: false, showPlanningGrid: true, showProtectedAreas: false, showCosts:false, showStatuses:true};
 	}
 	componentDidUpdate(prevProps, prevState, snapshot) {
 		//if the input box for renaming the project has been made visible and it has no value, then initialise it with the project name and focus it
@@ -99,6 +100,26 @@ class InfoPanel extends React.Component {
 	stopProcess(){
 		this.props.stopProcess(this.props.pid);
 	}
+	togglePlanningUnits(event, isInputChecked) {
+		//toggles the visibility of the planning grid
+		this.setState({showPlanningGrid: !this.state.showPlanningGrid});
+		this.props.togglePULayer(isInputChecked);
+	}
+	toggleProtectedAreas(event, isInputChecked) {
+		//toggles the visibility of the protected areas
+		this.setState({showProtectedAreas: !this.state.showProtectedAreas});
+		this.props.togglePALayer(isInputChecked);
+	}
+	toggleCosts(event, isInputChecked) {
+		//toggles the visibility of the costs
+		this.setState({showCosts: !this.state.showCosts});
+		this.props.toggleCostsLayer(isInputChecked);
+	}
+	toggleStatuses(event, isInputChecked) {
+		//toggles the visibility of the statuses
+		this.setState({showStatuses: !this.state.showStatuses});
+		this.props.toggleStatuses(isInputChecked);
+	}
 	render() {
 		this.costnames = [];
 		//add a custom item to the end of the cost profiles
@@ -158,9 +179,15 @@ class InfoPanel extends React.Component {
 							</Tab>
 							<Tab label="Planning units" onActive={this.props.pu_tab_active} value="planning_units">
 								<div>
-									<div className={'tabTitle'}>Planning grid</div>
+									<div>
+										<div className={'tabTitle tabTitleInlineBlock'}>Planning grid</div>
+										<MarxanToggle onToggle={this.togglePlanningUnits.bind(this)} toggled={this.state.showPlanningGrid}/>
+									</div>
 									<div className={'description'}>{this.props.metadata.pu_alias}</div>
-									<div className={'tabTitle tabTitleTopMargin'}>Protected areas</div>
+									<div>
+										<div className={'tabTitle tabTitleTopMargin tabTitleInlineBlock'}>Protected areas</div>
+										<MarxanToggle onToggle={this.toggleProtectedAreas.bind(this)} toggled={this.state.showProtectedAreas}/>
+									</div>
 									<SelectField 
 										floatingLabelText={'Lock in'} 
 										floatingLabelFixed={true} 
@@ -181,7 +208,10 @@ class InfoPanel extends React.Component {
 										})}
 									/> 
 					    	        {/*<FontAwesomeIcon icon={faExclamationTriangle} style={{color:'red', display:(this.props.metadata.IUCN_CATEGORY!=='None' && this.props.protected_area_intersections && this.props.protected_area_intersections.length===0) ? 'inline' : 'none', position:'absolute'}} title={'Protected areas have been updated since you locked these ones in'}/>*/}
-									<div className={'tabTitle'}>Costs</div>
+					    	        <div>
+										<div className={'tabTitle tabTitleInlineBlock'}>Costs</div>
+										<MarxanToggle onToggle={this.toggleCosts.bind(this)} toggled={this.state.showCosts}/>
+									</div>
 									<SelectField 
 										floatingLabelText={'Use cost surface'} 
 										floatingLabelFixed={true} 
@@ -202,7 +232,10 @@ class InfoPanel extends React.Component {
 										})}
 									/> 
 									<div style={{display: (this.props.userRole === "ReadOnly") ? 'none' : 'block'}}>
-										<div className={'tabTitle'}>Statuses</div>
+										<div>
+											<div className={'tabTitle tabTitleInlineBlock'}>Statuses</div>
+											<MarxanToggle onToggle={this.toggleStatuses.bind(this)} toggled={this.state.showStatuses}/>
+										</div>
 										<FontAwesomeIcon icon={(this.props.puEditing) ? faUnlock : faLock} onClick={this.startStopPuEditSession.bind(this)} title={(this.props.puEditing) ? "Save" : "Click to edit"} style={{cursor:'pointer', marginRight: '10px', color: 'rgba(255, 64, 129, 0.7)'}}/>
 										<div className={'description'} style={{display: 'inline-block',fontSize:'12px'}}>{(this.props.puEditing) ? "Click on the map to change the status" : "Click to edit"}</div>
 										<div style={{display: (this.props.puEditing) ? "block" : "none"}}>

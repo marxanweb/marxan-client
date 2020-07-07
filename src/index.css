@@ -76,6 +76,9 @@ body {
   margin-top: 15px;
 }
 
+.tabTitleInlineBlock{
+  display:inline-block;
+}
 .run {
   position: absolute;
   bottom: 60px;
