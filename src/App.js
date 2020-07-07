@@ -3,6 +3,7 @@
 /*global AbortController*/
 import React from 'react';
 import packageJson from '../package.json';
+import CONSTANTS from './constants';
 /*eslint-disable no-unused-vars*/ 
 import axios, { post } from 'axios';
 /*eslint-enable no-unused-vars*/
@@ -76,58 +77,8 @@ import ResetDialog from './ResetDialog';
 import UpdateWDPADialog from './UpdateWDPADialog';
 import ImportGBIFDialog from './ImportGBIFDialog';
 
-//CONSTANTS
-let MARXAN_REGISTRY = "https://marxanweb.github.io/general/registry/marxan.json"; //url to the marxan registry
-let MARXAN_CLIENT_VERSION = packageJson.version; 
-let DOCS_ROOT = "https://docs.marxanweb.org/";
-let ERRORS_PAGE = DOCS_ROOT + "errors.html";
-let SEND_CREDENTIALS = true; //if true all post requests will send credentials
-let TORNADO_PATH = "/marxan-server/";
-let TIMEOUT = 0; //disable timeout setting
-let MAPBOX_USER = "blishten";
-let MAPBOX_STYLE_PREFIX = 'mapbox://styles/';
-let PLANNING_UNIT_STATUSES = [1, 2, 3];
-let IUCN_CATEGORIES = ['None','IUCN I-II','IUCN I-IV','IUCN I-V','IUCN I-VI','All'];
-//constants for creating new planning grids
-let DOMAINS = ["Marine", "Terrestrial"];
-let SHAPES = ['Hexagon', 'Square'];
-let AREAKM2S = [10, 20, 30, 40, 50, 100];
-//layer source names
-let PLANNING_UNIT_SOURCE_NAME = "marxan_planning_units_source";
-let WDPA_SOURCE_NAME = "marxan_wdpa_source";
-//layer names
-let PU_LAYER_NAME = "marxan_pu_layer"; //layer showing the planning units
-let STATUS_LAYER_NAME = "marxan_pu_status_layer"; //layer showing the status of planning units 
-let COSTS_LAYER_NAME = "marxan_pu_costs_layer"; //layer showing the cost of planning units
-let PUVSPR_LAYER_NAME = "marxan_pu_puvspr_layer"; //layer showing the planning units for a particular feature
-let RESULTS_LAYER_NAME = "marxan_pu_results_layer"; //layer for either the sum of solutions or the individual solutions
-let WDPA_LAYER_NAME = "marxan_wdpa_polygon_layer"; //layer showing the protected areas from the WDPA
-//layer default styles
-let PU_LAYER_OPACITY = 0.4;
-let STATUS_LAYER_LINE_WIDTH = 1.5;
-let PUVSPR_LAYER_LINE_WIDTH = 1.5;
-let RESULTS_LAYER_FILL_OPACITY_ACTIVE = 0.9;
-let RESULTS_LAYER_FILL_OPACITY_INACTIVE = 0;
-let WDPA_FILL_LAYER_OPACITY = 0.2;
-let COST_COLORS = ['rgba(255,255,204,0.8)','rgba(255,237,160,0.8)','rgba(254,217,118,0.8)','rgba(254,178,76,0.8)','rgba(253,141,60,0.8)','rgba(252,78,42,0.8)','rgba(227,26,28,0.8)','rgba(189,0,38,0.8)','rgba(128,0,38,0.8)'];
-let UNIFORM_COST_NAME = 'Equal area';
-//an array of feature property information that is used in the Feature Information dialog box - showForOld sets whether that property is shown for old versions of marxan
-let FEATURE_PROPERTIES = [{ name: 'id', key: 'ID',hint: 'The unique identifier for the feature', showForOld: false, showForNew: false},
-  { name: 'alias', key: 'Alias',hint: 'A human readable name for the feature', showForOld: false, showForNew: false},
-  { name: 'feature_class_name', key: 'Feature class name',hint: 'The internal name for the feature in the PostGIS database', showForOld: false, showForNew: false},
-  { name: 'description', key: 'Description',hint: 'Full description of the feature', showForOld: false, showForNew: false},
-  { name: 'creation_date', key: 'Creation date',hint: 'The date the feature was created or imported', showForOld: false, showForNew: false},
-  { name: 'tilesetid', key: 'Mapbox ID',hint: 'The unique identifier of the feature tileset in Mapbox', showForOld: false, showForNew: false},
-  { name: 'area', key: 'Total area',hint: 'The total area for the feature in Km2 (i.e. globally)', showForOld: false, showForNew: false},
-  { name: 'target_value', key: 'Target percent',hint: 'The target percentage for the feature within the planning grid', showForOld: true, showForNew: true},
-  { name: 'spf', key: 'Species Penalty Factor',hint: 'The species penalty factor is used to weight the likelihood of getting a species in the results', showForOld: true, showForNew: true},
-  { name: 'preprocessed', key: 'Preprocessed',hint: 'Whether or not the feature has been intersected with the planning units', showForOld: false, showForNew: true},
-  { name: 'pu_count', key: 'Planning unit count',hint: 'The number of planning units that intersect the feature (calculated during pre-processing)', showForOld: true, showForNew: true},
-  { name: 'pu_area', key: 'Planning grid area',hint: 'The area of the feature within the planning grid in Km2 (calculated during pre-processing)', showForOld: true, showForNew: true},
-  { name: 'target_area', key: 'Target area',hint: 'The total area that needs to be protected to achieve the target percentage in Km2 (calculated during a Marxan Run)', showForOld: true, showForNew: true},
-  { name: 'protected_area', key: 'Area protected',hint: 'The total area protected in the current solution in Km2 (calculated during a Marxan Run)', showForOld: true, showForNew: true}];
-
 //GLOBAL VARIABLES
+let MARXAN_CLIENT_VERSION = packageJson.version; 
 let timers = []; //array of timers for seeing when asynchronous calls have finished
 
 class App extends React.Component {
@@ -219,8 +170,8 @@ class App extends React.Component {
       projectFeatures: [], //the features for the currently loaded project
       selectedFeatureIds :[],
       addingRemovingFeatures: false,
-      results_layer_opacity: RESULTS_LAYER_FILL_OPACITY_ACTIVE, //initial value
-      wdpa_layer_opacity: WDPA_FILL_LAYER_OPACITY, //initial value
+      results_layer_opacity: CONSTANTS.RESULTS_LAYER_FILL_OPACITY_ACTIVE, //initial value
+      wdpa_layer_opacity: CONSTANTS.WDPA_FILL_LAYER_OPACITY, //initial value
       costnames: [],
       selectedCosts: [],
       countries: [],
@@ -253,7 +204,7 @@ class App extends React.Component {
       showCosts: false,
       costsLoading: false,
       protected_area_intersections:[],
-      marxanLayers:[]
+      visibleLayers:[]
     };
   }
 
@@ -276,7 +227,7 @@ class App extends React.Component {
   //gets various global variables from the marxan registry
   getGlobalVariables(){
     return new Promise((resolve, reject) => {
-      fetch(MARXAN_REGISTRY)
+      fetch(CONSTANTS.MARXAN_REGISTRY)
       .then(response => {
         response.json().then(registryData => {
           this.setState({registry: registryData});
@@ -327,7 +278,7 @@ class App extends React.Component {
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   //makes a GET request and returns a promise which will either be resolved (passing the response) or rejected (passing the error)
-  _get(params, timeout = TIMEOUT){
+  _get(params, timeout = CONSTANTS.TIMEOUT){
     return new Promise((resolve, reject) => {
       //set the global loading flag
       this.setState({loading: true});
@@ -341,14 +292,14 @@ class App extends React.Component {
         }
       }, (err) => {
         this.setState({loading: false});
-        this.setSnackBar("Request timeout - See <a href='" + ERRORS_PAGE + "#request-timeout' target='blank'>here</a>");
+        this.setSnackBar("Request timeout - See <a href='" + CONSTANTS.ERRORS_PAGE + "#request-timeout' target='blank'>here</a>");
         reject(err);
       });
     });
   }
  
   //makes a POST request and returns a promise which will either be resolved (passing the response) or rejected (passing the error)
-  _post(method, formData, timeout = TIMEOUT, withCredentials = SEND_CREDENTIALS){
+  _post(method, formData, timeout = CONSTANTS.TIMEOUT, withCredentials = CONSTANTS.SEND_CREDENTIALS){
     return new Promise((resolve, reject) => {
       //set the global loading flag
       this.setState({loading: true});
@@ -596,9 +547,9 @@ class App extends React.Component {
   //gets the capabilities of the server by making a request to the getServerData method
   async getServerCapabilities(server){
     //get the endpoint for all http/https requests
-    let endpoint = server.protocol + "//" + server.host + ":" + server.port + TORNADO_PATH;
+    let endpoint = server.protocol + "//" + server.host + ":" + server.port + CONSTANTS.TORNADO_PATH;
     //get the WebService endpoint
-    let websocketEndpoint = (server.protocol ==='http:') ? "ws://" + server.host + ":" + server.port + TORNADO_PATH : "wss://" + server.host + ":" + server.port + TORNADO_PATH;
+    let websocketEndpoint = (server.protocol ==='http:') ? "ws://" + server.host + ":" + server.port + CONSTANTS.TORNADO_PATH : "wss://" + server.host + ":" + server.port + CONSTANTS.TORNADO_PATH;
     //set the default properties for the server - by default the server is offline, has no guest access and CORS is not enabled
     server = Object.assign(server, {endpoint: endpoint, websocketEndpoint: websocketEndpoint, offline: true, guestUserEnabled: false, corsEnabled: false});
     //poll the server to make sure tornado is running 
@@ -1050,7 +1001,7 @@ class App extends React.Component {
         this.setState({ loggedIn: true, project: response.project, owner: user, runParams: response.runParameters, files: Object.assign(response.files), metadata: response.metadata, renderer: response.renderer, planning_units: response.planning_units, costnames: response.costnames,infoPanelOpen: true, resultsPanelOpen: true  });
         //if there is a PLANNING_UNIT_NAME passed then change to this planning grid and load the results if there are any available
         if (response.metadata.PLANNING_UNIT_NAME) {
-          this.changePlanningGrid(MAPBOX_USER + "." + response.metadata.PLANNING_UNIT_NAME).then(()=>{
+          this.changePlanningGrid(CONSTANTS.MAPBOX_USER + "." + response.metadata.PLANNING_UNIT_NAME).then(()=>{
             //poll the server to see if results are available for this project - if there are these will be loaded
             this.getResults(user, response.project).then((response)=> {
               resolve("Project loaded");
@@ -1151,8 +1102,6 @@ class App extends React.Component {
     this.setState({ showCosts: false});
     //reset any feature layers that are shown
     this.hideFeatureLayer();
-    //reset the puvspr layer
-    this.hideLayer(PUVSPR_LAYER_NAME);
   }
   //resets state in between runs
   resetRun(){
@@ -1824,9 +1773,9 @@ class App extends React.Component {
     if (!data) return;
     var paintProperties = this.getPaintProperties(data, sum, true);
     //set the render paint property
-    this.map.setPaintProperty(RESULTS_LAYER_NAME, "fill-color", paintProperties.fillColor);
-    this.map.setPaintProperty(RESULTS_LAYER_NAME, "fill-outline-color", paintProperties.oulineColor);
-    this.map.setPaintProperty(RESULTS_LAYER_NAME, "fill-opacity", this.state.results_layer_opacity);
+    this.map.setPaintProperty(CONSTANTS.RESULTS_LAYER_NAME, "fill-color", paintProperties.fillColor);
+    this.map.setPaintProperty(CONSTANTS.RESULTS_LAYER_NAME, "fill-outline-color", paintProperties.oulineColor);
+    this.map.setPaintProperty(CONSTANTS.RESULTS_LAYER_NAME, "fill-opacity", this.state.results_layer_opacity);
   }
 
   //gets the various paint properties for the planning unit layer - if setRenderer is true then it will also update the renderer in the Legend panel
@@ -1916,8 +1865,8 @@ class App extends React.Component {
       expression = "rgba(150, 150, 150, 0)";
     }
     //set the render paint property
-    this.map.setPaintProperty(STATUS_LAYER_NAME, "line-color", expression);
-    this.map.setPaintProperty(STATUS_LAYER_NAME, "line-width", STATUS_LAYER_LINE_WIDTH);
+    this.map.setPaintProperty(CONSTANTS.STATUS_LAYER_NAME, "line-color", expression);
+    this.map.setPaintProperty(CONSTANTS.STATUS_LAYER_NAME, "line-width", CONSTANTS.STATUS_LAYER_LINE_WIDTH);
   }
 
   //renders the planning units cost layer according to the cost for each planning unit
@@ -1930,7 +1879,7 @@ class App extends React.Component {
         //iterate through the cost data and set the expressions
         cost_data.forEach((row, index) => {
           //add the color to the expression with the puids
-          expression.push(row[1], COST_COLORS[index]);
+          expression.push(row[1], CONSTANTS.COST_COLORS[index]);
         });
         // Last value is the default
         expression.push("rgba(150, 150, 150, 0)");
@@ -1940,9 +1889,9 @@ class App extends React.Component {
         expression = "rgba(150, 150, 150, 0.7)";
       }
       //set the render paint property
-      this.map.setPaintProperty(COSTS_LAYER_NAME, "fill-color", expression);
+      this.map.setPaintProperty(CONSTANTS.COSTS_LAYER_NAME, "fill-color", expression);
       //show the layer
-      this.showLayer(COSTS_LAYER_NAME);
+      this.showLayer(CONSTANTS.COSTS_LAYER_NAME);
       resolve("Costs rendered");
     });
   }
@@ -2007,7 +1956,7 @@ class App extends React.Component {
         message = "The tileset '" + e.source.url + "' was not found";
         break;
       case "Bad Request":
-        message = "The tileset from source '" + e.sourceId + "' was not found. See <a href='" + ERRORS_PAGE + "#the-tileset-from-source-source-was-not-found' target='blank'>here</a>";
+        message = "The tileset from source '" + e.sourceId + "' was not found. See <a href='" + CONSTANTS.ERRORS_PAGE + "#the-tileset-from-source-source-was-not-found' target='blank'>here</a>";
         break;
       default:
         message = e.error.message;
@@ -2060,20 +2009,21 @@ class App extends React.Component {
   //called when layers are added/removed or shown/hidden
   mapStyleChanged(e){
     //update legend items
-    this.updateLegendItems();
+    this.updateLegend();
   }
   //after a layer has been added/removed/shown/hidden update the legend items
-  updateLegendItems(){
+  updateLegend(){
     let layers = this.map.getStyle().layers;
-    //get the marxan layers
-    let marxanLayers = layers.filter((item) => {
-      return item.id.substr(0,7) === 'marxan_'; 
+    //get the visible marxan layers
+    let visibleLayers = layers.filter((item) => {
+      if (item.id.substr(0,7) === 'marxan_') {
+        return (item.layout.visibility === 'visible');
+      }else{
+        return false;
+      }
     });
-    //get the visible layers
-    let visibleLayers = marxanLayers.filter(item=>{
-      return (item.layout.visibility === 'visible');
-    });
-    console.log(visibleLayers);
+    //set the state
+    this.setState({visibleLayers: visibleLayers});
   }
   //gets a set of features that have a layerid that starts with the passed text
   getFeaturesByLayerStartsWith(features, startsWith){
@@ -2208,7 +2158,7 @@ class App extends React.Component {
           break;
         default:
           // the style is a url - just return the url - either mapbox or jrc provided
-          resolve(MAPBOX_STYLE_PREFIX + basemap.id);
+          resolve(CONSTANTS.MAPBOX_STYLE_PREFIX + basemap.id);
           break;
       }
     });
@@ -2259,7 +2209,7 @@ class App extends React.Component {
       .then(response => response.json())
       .then((response2) => {
         if ((response2.message != null) && (response2.message.indexOf('does not exist') > 0)){
-          reject("The tileset '" + tilesetId + "' was not found. See <a href='" + ERRORS_PAGE + "#the-tileset-from-source-source-was-not-found' target='blank'>here</a>");
+          reject("The tileset '" + tilesetId + "' was not found. See <a href='" + CONSTANTS.ERRORS_PAGE + "#the-tileset-from-source-source-was-not-found' target='blank'>here</a>");
         }else{
           resolve(response2);
         }
@@ -2271,16 +2221,23 @@ class App extends React.Component {
   addPlanningGridLayers(tileset) {
     var beforeLayer = (this.state.basemap === "North Star" ? "" : "");
     //add the source for the planning unit layers
-    this.map.addSource(PLANNING_UNIT_SOURCE_NAME,{
+    this.map.addSource(CONSTANTS.PLANNING_UNIT_SOURCE_NAME,{
         'type': "vector",
         'url': "mapbox://" + tileset.id
       }
     );
     //add the results layer
     this.addMapLayer({
-      'id': RESULTS_LAYER_NAME,
+      'id': CONSTANTS.RESULTS_LAYER_NAME,
+      'metadata':{
+        'name': 'Summed solutions',
+        'type': CONSTANTS.LAYER_TYPE_SUMMED_SOLUTIONS
+      },
       'type': "fill",
-      'source': PLANNING_UNIT_SOURCE_NAME,
+      'source': CONSTANTS.PLANNING_UNIT_SOURCE_NAME,
+      "layout": {
+        "visibility": "visible"
+      },
       'source-layer': tileset.name,
       'paint': {
         'fill-color': "rgba(0, 0, 0, 0)",
@@ -2289,9 +2246,13 @@ class App extends React.Component {
     }, beforeLayer);
     //add the planning units costs layer
     this.addMapLayer({
-      'id': COSTS_LAYER_NAME,
+      'id': CONSTANTS.COSTS_LAYER_NAME,
+      'metadata':{
+        'name': 'Costs',
+        'type': CONSTANTS.LAYER_TYPE_PLANNING_UNITS_COST
+      },
       'type': "fill",
-      'source': PLANNING_UNIT_SOURCE_NAME,
+      'source': CONSTANTS.PLANNING_UNIT_SOURCE_NAME,
       "layout": {
         "visibility": "none"
       },
@@ -2302,47 +2263,41 @@ class App extends React.Component {
       }
     }, beforeLayer);
     //set the result layer in app state so that it can update the Legend component and its opacity control
-    this.setState({resultsLayer: this.map.getLayer(RESULTS_LAYER_NAME)});
+    this.setState({resultsLayer: this.map.getLayer(CONSTANTS.RESULTS_LAYER_NAME)});
     //add the planning unit layer 
     this.addMapLayer({
-      'id': PU_LAYER_NAME,
+      'id': CONSTANTS.PU_LAYER_NAME,
+      'metadata':{
+        'name':'Planning units',
+        'type': CONSTANTS.LAYER_TYPE_PLANNING_UNITS
+      },
       'type': "fill",
-      'source': PLANNING_UNIT_SOURCE_NAME,
+      'source': CONSTANTS.PLANNING_UNIT_SOURCE_NAME,
       "layout": {
         "visibility": "none"
       },
       'source-layer': tileset.name,
       'paint': {
         'fill-color': "rgba(0, 0, 0, 0)",
-        'fill-outline-color': "rgba(150, 150, 150, " + PU_LAYER_OPACITY + ")"
+        'fill-outline-color': "rgba(150, 150, 150, " + CONSTANTS.PU_LAYER_OPACITY + ")"
       }
     }, beforeLayer);
     //add the planning units manual edit layer - this layer shows which individual planning units have had their status changed
     this.addMapLayer({
-      'id': STATUS_LAYER_NAME,
+      'id': CONSTANTS.STATUS_LAYER_NAME,
+      'metadata':{
+        'name':'Planning unit status',
+        'type': CONSTANTS.LAYER_TYPE_PLANNING_UNITS_STATUS
+      },
       'type': "line",
-      'source': PLANNING_UNIT_SOURCE_NAME,
+      'source': CONSTANTS.PLANNING_UNIT_SOURCE_NAME,
       "layout": {
         "visibility": "none"
       },
       'source-layer': tileset.name,
       'paint': {
         'line-color': "rgba(150, 150, 150, 0)",
-        'line-width': STATUS_LAYER_LINE_WIDTH
-      }
-    }, beforeLayer);
-    //add the puvspr planning unit layer - this layer shows the planning unit distribution of a feature from the puvspr file
-    this.addMapLayer({
-      'id': PUVSPR_LAYER_NAME,
-      'type': "line",
-      'source': PLANNING_UNIT_SOURCE_NAME,
-      "layout": {
-        "visibility": "none"
-      },
-      'source-layer': tileset.name,
-      'paint': {
-        'line-color': "rgba(255, 255, 255, 1)",
-        'line-width': PUVSPR_LAYER_LINE_WIDTH
+        'line-width': CONSTANTS.STATUS_LAYER_LINE_WIDTH
       }
     }, beforeLayer);
   }
@@ -2351,14 +2306,14 @@ class App extends React.Component {
     let layers = this.map.getStyle().layers;
     //get the dynamically added layers
     let dynamicLayers = layers.filter((item) => {
-      return (item.source === PLANNING_UNIT_SOURCE_NAME);
+      return (item.source === CONSTANTS.PLANNING_UNIT_SOURCE_NAME);
     });
     //remove them from the map
     dynamicLayers.forEach((item) => {
       this.removeMapLayer(item.id);
     });
     //remove the sources if present
-    if (this.map.getSource(PLANNING_UNIT_SOURCE_NAME) !== undefined) this.map.removeSource(PLANNING_UNIT_SOURCE_NAME);
+    if (this.map.getSource(CONSTANTS.PLANNING_UNIT_SOURCE_NAME) !== undefined) this.map.removeSource(CONSTANTS.PLANNING_UNIT_SOURCE_NAME);
   }
   
   //adds the WDPA vector tile layer source - this is a separate function so that if the source vector tiles are updated, the layer can be re-added on its own
@@ -2368,7 +2323,7 @@ class App extends React.Component {
     let attribution = "IUCN and UNEP-WCMC (" + yr + "), The World Database on Protected Areas (WDPA) " + this.state.marxanServer.wdpa_version + ", Cambridge, UK: UNEP-WCMC. Available at: <a href='http://www.protectedplanet.net'>www.protectedplanet.net</a>";
     let tiles = [this.state.registry.WDPA.tilesUrl + "layer=marxan:" + this.wdpa_vector_tile_layer + "&tilematrixset=EPSG:900913&Service=WMTS&Request=GetTile&Version=1.0.0&Format=application/x-protobuf;type=mapbox-vector&TileMatrix=EPSG:900913:{z}&TileCol={x}&TileRow={y}"];
     this.setState({wdpaAttribution: attribution});
-    this.map.addSource(WDPA_SOURCE_NAME,{
+    this.map.addSource(CONSTANTS.WDPA_SOURCE_NAME,{
         "attribution": attribution,
         "type": "vector",
         "tiles": tiles 
@@ -2379,9 +2334,13 @@ class App extends React.Component {
   //adds the WDPA vector tile layer - this is a separate function so that if the source vector tiles are updated, the layer can be re-added on its own
   addWDPALayer(){
     this.addMapLayer({
-      "id": WDPA_LAYER_NAME,
+      "id": CONSTANTS.WDPA_LAYER_NAME,
+      'metadata':{
+        'name':'Protected Areas',
+        'type': CONSTANTS.LAYER_TYPE_PROTECTED_AREAS
+      },
       "type": "fill",
-      "source": WDPA_SOURCE_NAME,
+      "source": CONSTANTS.WDPA_SOURCE_NAME,
       "source-layer": this.wdpa_vector_tile_layer,
       "layout": {
         "visibility": "visible"
@@ -2410,7 +2369,7 @@ class App extends React.Component {
       }
     });
     //set the wdpa layer in app state so that it can update the Legend component and its opacity control
-    this.setState({wdpaLayer: this.map.getLayer(WDPA_LAYER_NAME)});
+    this.setState({wdpaLayer: this.map.getLayer(CONSTANTS.WDPA_LAYER_NAME)});
   }
   
   showLayer(id) {
@@ -2420,12 +2379,16 @@ class App extends React.Component {
     if (this.map&&this.map.getLayer(id)) this.map.setLayoutProperty(id, 'visibility', 'none');
   }
   //centralised code to add a layer to the maps current style
-  addMapLayer(mapLayer){
-    this.map.addLayer(mapLayer);
+  addMapLayer(mapLayer, beforeLayer){
+    if (beforeLayer){
+      this.map.addLayer(mapLayer, beforeLayer);
+    }else{
+      this.map.addLayer(mapLayer);
+    }
   }
   //centralised code to remove a layer from the maps current style
   removeMapLayer(layerid){
-    this.removeMapLayer(layerid);
+    this.map.removeLayer(layerid);
   }
   isLayerVisible(layername){
     return (this.map && this.map.getLayer(layername) && this.map.getLayoutProperty(layername, 'visibility') === 'visible');
@@ -2436,8 +2399,8 @@ class App extends React.Component {
     if (this.map && this.map.getLayer(layerId)){
       this.map.setPaintProperty(layerId, 'fill-opacity', opacity);
       //set the state
-      if (layerId === RESULTS_LAYER_NAME) this.setState({results_layer_opacity: opacity});
-      if (layerId === WDPA_LAYER_NAME) this.setState({wdpa_layer_opacity: opacity});
+      if (layerId === CONSTANTS.RESULTS_LAYER_NAME) this.setState({results_layer_opacity: opacity});
+      if (layerId === CONSTANTS.WDPA_LAYER_NAME) this.setState({wdpa_layer_opacity: opacity});
     }
   }
 
@@ -2465,32 +2428,26 @@ class App extends React.Component {
   //fired when the planning unit tab is selected
   pu_tab_active() {
     this.setState({ activeTab: "planning_units" });
-    //set a flag to capture if the outlined planning units layer needs to be reshown when switching back to any other tab
-    this.reinstatePuvsprLayer = this.isLayerVisible(PUVSPR_LAYER_NAME);
-    //hide the outlined planning units layer
-    this.hideLayer(PUVSPR_LAYER_NAME);
     //show the planning units layer 
-    this.showLayer(PU_LAYER_NAME);
+    this.showLayer(CONSTANTS.PU_LAYER_NAME);
     //hide the results layer
-    this.changeOpacity(RESULTS_LAYER_NAME, RESULTS_LAYER_FILL_OPACITY_INACTIVE);
+    this.hideLayer(CONSTANTS.RESULTS_LAYER_NAME);
     //store the values for the result layers opacities
     this.previousResultsOpacity = this.state.results_layer_opacity;
     //show the planning units status layer 
-    this.showLayer(STATUS_LAYER_NAME);
+    this.showLayer(CONSTANTS.STATUS_LAYER_NAME);
     //render the planning units status layer_edit layer
-    this.renderPuEditLayer(STATUS_LAYER_NAME);
+    this.renderPuEditLayer(CONSTANTS.STATUS_LAYER_NAME);
   }
 
   //fired whenever another tab is selected
   pu_tab_inactive() {
-    //reinstate the outlined planning units layer if needs be
-    if (this.reinstatePuvsprLayer) this.showLayer(PUVSPR_LAYER_NAME);
-    //change the opacity on the results layer to back to what it was
-    this.changeOpacity(RESULTS_LAYER_NAME, (this.previousResultsOpacity) ? this.previousResultsOpacity : RESULTS_LAYER_FILL_OPACITY_ACTIVE);
+    //show the results layer 
+    this.showLayer(CONSTANTS.RESULTS_LAYER_NAME);
     //hide the planning units layer 
-    this.hideLayer(PU_LAYER_NAME);
+    this.hideLayer(CONSTANTS.PU_LAYER_NAME);
     //hide the planning units edit layer 
-    this.hideLayer(STATUS_LAYER_NAME);
+    this.hideLayer(CONSTANTS.STATUS_LAYER_NAME);
   }
 
   //fired when the legend tab is selected
@@ -2519,10 +2476,10 @@ class App extends React.Component {
     this.map.getCanvas().style.cursor = "crosshair";
     //add the left mouse click event to the planning unit layer
     this.onClickRef = this.moveStatusUp.bind(this); //using bind creates a new function instance so we need to get a reference to that to be able to remove it later
-    this.map.on("click", PU_LAYER_NAME, this.onClickRef); 
+    this.map.on("click", CONSTANTS.PU_LAYER_NAME, this.onClickRef); 
     //add the mouse right click event to the planning unit layer 
     this.onContextMenu = this.resetStatus.bind(this); //using bind creates a new function instance so we need to get a reference to that to be able to remove it later
-    this.map.on("contextmenu", PU_LAYER_NAME, this.onContextMenu); 
+    this.map.on("contextmenu", CONSTANTS.PU_LAYER_NAME, this.onContextMenu); 
   }
 
   stopPuEditSession() {
@@ -2531,9 +2488,9 @@ class App extends React.Component {
     //reset the cursor
     this.map.getCanvas().style.cursor = "pointer";
     //remove the mouse left click event
-    this.map.off("click", PU_LAYER_NAME, this.onClickRef);
+    this.map.off("click", CONSTANTS.PU_LAYER_NAME, this.onClickRef);
     //remove the mouse right click event
-    this.map.off("contextmenu", PU_LAYER_NAME, this.onContextMenu);
+    this.map.off("contextmenu", CONSTANTS.PU_LAYER_NAME, this.onContextMenu);
     //update the pu.dat file
     this.updatePuDatFile();
   }
@@ -2584,7 +2541,7 @@ class App extends React.Component {
 
   changeStatus(e, direction) {
     //get the feature that the user has clicked 
-    var features = this.getRenderedFeatures(e.point, [PU_LAYER_NAME]);
+    var features = this.getRenderedFeatures(e.point, [CONSTANTS.PU_LAYER_NAME]);
     //get the featureid
     if (features.length > 0) {
       //get the puid
@@ -2609,7 +2566,7 @@ class App extends React.Component {
   getStatusLevel(puid) {
     //iterate through the planning unit statuses to see which status the clicked planning unit belongs to, i.e. 1, 2 or 3
     let status_level = 0; //default level as the getPlanningUnits REST call only returns the planning units with non-default values
-    PLANNING_UNIT_STATUSES.forEach((item) => {
+    CONSTANTS.PLANNING_UNIT_STATUSES.forEach((item) => {
       let planning_units = this.getPlanningUnitsByStatus(item);
       if (planning_units.indexOf(puid) > -1) {
         status_level = item;
@@ -2837,7 +2794,7 @@ class App extends React.Component {
         resolve("Uploaded to Mapbox");
       }else{
         let timer = setInterval(() => {
-          fetch("https://api.mapbox.com/uploads/v1/" + MAPBOX_USER + "/" + uploadid + "?access_token=" + this.state.registry.MBAT)
+          fetch("https://api.mapbox.com/uploads/v1/" + CONSTANTS.MAPBOX_USER + "/" + uploadid + "?access_token=" + this.state.registry.MBAT)
             .then(response => response.json())
             .then((response) => {
               if (response.complete){
@@ -3414,7 +3371,7 @@ class App extends React.Component {
   //toggles the feature layer on the map
   toggleFeatureLayer(feature){
     if (feature.tilesetid === ''){
-      this.setSnackBar("This feature does not have an associated tileset on Mapbox. See <a href='" + ERRORS_PAGE + "#the-tileset-from-source-source-was-not-found' target='blank'>here</a>");
+      this.setSnackBar("This feature does not have an associated tileset on Mapbox. See <a href='" + CONSTANTS.ERRORS_PAGE + "#the-tileset-from-source-source-was-not-found' target='blank'>here</a>");
       return;
     }
     // this.closeFeatureMenu();
@@ -3425,12 +3382,27 @@ class App extends React.Component {
       this.map.removeSource(layerId);
       this.updateFeature(feature, {feature_layer_loaded: false});
     }else{
+      //if a planning units layer for a feature is visible then we need to add the feature layer before it - first get the feature puid layer
+      var layers = this.map.getStyle().layers;
+      //get all the marxan feature layers which are prefixed with marxan_
+      var featurePUIDLayers = layers.filter(item=>{
+        return item.id.startsWith('marxan_puid_'); 
+      });
+      //get the before layer
+      let beforeLayer = (featurePUIDLayers.length > 0) ? featurePUIDLayers[0].id : "";
       this.addMapLayer({
         'id': layerId,
+        'metadata':{
+          'name': feature.alias,
+          'type': CONSTANTS.LAYER_TYPE_FEATURE_LAYER
+        },
         'type': "fill",
         'source': {
           'type': "vector",
           'url': "mapbox://" + feature.tilesetid
+        },
+        "layout": {
+          "visibility": "visible"
         },
         'source-layer': layerName,
         'paint': {
@@ -3438,15 +3410,15 @@ class App extends React.Component {
           'fill-opacity': 0.9,
           'fill-outline-color': "rgba(0, 0, 0, 0.2)"
         }
-      }, PUVSPR_LAYER_NAME); //add it before the layer that shows the planning unit outlines for the feature
+      }, beforeLayer); //add it before the layer that shows the planning unit outlines for the feature
       this.updateFeature(feature, {feature_layer_loaded: true});
     }
   }
   
-  //toggles the feature layer on the map
+  //toggles the planning unit feature layer on the map
   toggleFeaturePUIDLayer(feature){
     // this.closeFeatureMenu();
-    let layerName = "puid_" + feature.id;
+    let layerName = "marxan_puid_" + feature.id;
     if (this.map.getLayer(layerName)){
       this.removeMapLayer(layerName);
       this.updateFeature(feature, {feature_puid_layer_loaded: false});
@@ -3456,11 +3428,15 @@ class App extends React.Component {
         //ids retrieved - add the layer
         this.addMapLayer({
           'id': layerName,
+          'metadata':{
+            'name': 'Planning units for ' + feature.alias,
+            'type': CONSTANTS.LAYER_TYPE_FEATURE_PLANNING_UNIT_LAYER
+          },
           'type': "line",
-          'source': PLANNING_UNIT_SOURCE_NAME,
+          'source': CONSTANTS.PLANNING_UNIT_SOURCE_NAME,
           'source-layer': this.state.tileset.name,
           "layout": {
-            "visibility": "none"
+            "visibility": "visible"
           }
         }); 
         //update the paint property for the layer
@@ -3738,10 +3714,10 @@ class App extends React.Component {
   togglePALayer(show){
       if (show){
         //load the planning unit layer
-        this.showLayer(WDPA_LAYER_NAME);
+        this.showLayer(CONSTANTS.WDPA_LAYER_NAME);
       }else{
         //hide the layer
-        this.hideLayer(WDPA_LAYER_NAME);
+        this.hideLayer(CONSTANTS.WDPA_LAYER_NAME);
       }
   }
   changeIucnCategory(iucnCategory) {
@@ -3764,7 +3740,7 @@ class App extends React.Component {
     //filter the vector tiles for those iucn categories - and if the planning unit name has an iso3 country code - then use that as well. e.g. pu_ton_marine_hexagon_50 (has iso3 code) or pu_a4402723a92444ff829e9411f07e7 (no iso3 code)
     //let filterExpr = (this.state.metadata.PLANNING_UNIT_NAME.match(/_/g).length> 1) ? ['all', ['in', 'IUCN_CAT'].concat(iucnCategories), ['==', 'PARENT_ISO', this.state.metadata.PLANNING_UNIT_NAME.substr(3, 3).toUpperCase()]] : ['all', ['in', 'IUCN_CAT'].concat(iucnCategories)];
     let filterExpr = ['all', ['in', 'iucn_cat'].concat(iucnCategories)]; // no longer filter by ISO code
-    this.map.setFilter(WDPA_LAYER_NAME, filterExpr);
+    this.map.setFilter(CONSTANTS.WDPA_LAYER_NAME, filterExpr);
     //turn on/off the protected areas legend
     (iucnCategory === "None") ? this.hidePALegend() : this.showPALegend();
   }
@@ -3814,7 +3790,7 @@ class App extends React.Component {
       if (clashingPuids.length > 0){
         //remove them from the puids
         puids = puids.filter((item) => !clashingPuids.includes(item));
-        this.setSnackBar("Not all planning units have been added. See <a href='" + ERRORS_PAGE + "#not-all-planning-units-have-been-added' target='blank'>here</a>");
+        this.setSnackBar("Not all planning units have been added. See <a href='" + CONSTANTS.ERRORS_PAGE + "#not-all-planning-units-have-been-added' target='blank'>here</a>");
       }
       //get all the puids for the existing iucn category - these will come from the previousPuids rather than getPuidsFromIucnCategory as there may have been some clashes and not all of the puids from getPuidsFromIucnCategory may actually be renderered
       //if the previousPuids are undefined then get them from the projects previousIucnCategory
@@ -3912,8 +3888,8 @@ class App extends React.Component {
           //set the source for the WDPA layer to the new vector tiles
           this.setWDPAVectorTilesLayerName(this.state.registry.WDPA.latest_version);
           //remove the existing WDPA layer and source
-          this.removeMapLayer(WDPA_LAYER_NAME);
-          if (this.map && this.map.getSource(WDPA_SOURCE_NAME) !== undefined) this.map.removeSource(WDPA_SOURCE_NAME);
+          this.removeMapLayer(CONSTANTS.WDPA_LAYER_NAME);
+          if (this.map && this.map.getSource(CONSTANTS.WDPA_SOURCE_NAME) !== undefined) this.map.removeSource(CONSTANTS.WDPA_SOURCE_NAME);
           //re-add the WDPA source and layer
           this.addWDPASource();
           this.addWDPALayer();
@@ -4319,7 +4295,6 @@ class App extends React.Component {
             menuAnchor={this.state.menuAnchor}
             hideHelpMenu={this.hideHelpMenu.bind(this)} 
             openAboutDialog={this.openAboutDialog.bind(this)}
-            DOCS_ROOT={DOCS_ROOT}
           />
           <UserSettingsDialog 
             open={this.state.UserSettingsDialogOpen}
@@ -4393,7 +4368,6 @@ class App extends React.Component {
             toggleFeaturePUIDLayer={this.toggleFeaturePUIDLayer.bind(this)}
             useFeatureColors={this.state.userData.USEFEATURECOLORS}
             smallLinearGauge={this.state.smallLinearGauge}
-            iucn_categories={IUCN_CATEGORIES}
             costname={this.state.metadata.COSTS}
             costnames={this.state.costnames}
             changeCostname={this.changeCostname.bind(this)}
@@ -4424,6 +4398,8 @@ class App extends React.Component {
             results_layer_opacity={this.state.results_layer_opacity}
             wdpa_layer_opacity={this.state.wdpa_layer_opacity}
             userRole={this.state.userData.ROLE}
+            visibleLayers={this.state.visibleLayers}
+            metadata={this.state.metadata}
           />
           <FeatureInfoDialog
             open={this.state.openInfoDialogOpen}
@@ -4432,7 +4408,6 @@ class App extends React.Component {
             loading={this.state.loading}
             feature={this.state.currentFeature}
             updateFeature={this.updateFeature.bind(this)}
-            FEATURE_PROPERTIES={FEATURE_PROPERTIES}
             userRole={this.state.userData.ROLE}
             reportUnits={this.state.userData.REPORTUNITS}
           />
@@ -4488,10 +4463,6 @@ class App extends React.Component {
             onOk={this.closeNewProjectWizardDialog.bind(this)}
             okDisabled={true}
             countries={this.state.countries}
-    				domains={DOMAINS}
-    				shapes={SHAPES}
-    				areakm2s={AREAKM2S}
-            iucn_categories={IUCN_CATEGORIES}
             closeNewProjectWizardDialog={this.closeNewProjectWizardDialog.bind(this)}
             createNewNationalProject={this.createNewNationalProject.bind(this)}
           />
@@ -4502,10 +4473,6 @@ class App extends React.Component {
             createNewPlanningUnitGrid={this.createNewPlanningUnitGrid.bind(this)}
             countries={this.state.countries}
             setSnackBar={this.setSnackBar.bind(this)}
-    				domains={DOMAINS}
-    				shapes={SHAPES}
-    				areakm2s={AREAKM2S}
-            ERRORS_PAGE={ERRORS_PAGE}
           />
           <ImportPlanningGridDialog
             open={this.state.importPlanningGridDialogOpen} 
@@ -4636,7 +4603,6 @@ class App extends React.Component {
             openImportCostsDialog={this.openImportCostsDialog.bind(this)}
             deleteCost={this.deleteCost.bind(this)}
             data={this.state.costnames}
-            uniformCostname={UNIFORM_COST_NAME}
           />
           <ImportCostsDialog
             open={this.state.importCostsDialogOpen}
@@ -4675,7 +4641,6 @@ class App extends React.Component {
             onOk={this.hideClumpingDialog.bind(this)}
             onCancel={this.hideClumpingDialog.bind(this)}
             tileset={this.state.tileset}
-            RESULTS_LAYER_NAME={RESULTS_LAYER_NAME}
             map0_paintProperty={this.state.map0_paintProperty}
             map1_paintProperty={this.state.map1_paintProperty}
             map2_paintProperty={this.state.map2_paintProperty}

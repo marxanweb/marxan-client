@@ -1,4 +1,5 @@
 import React from 'react';
+import CONSTANTS from './constants';
 import Menu from 'material-ui/Menu';
 import MenuItem from 'material-ui/MenuItem';
 import Popover from 'material-ui/Popover';
@@ -8,7 +9,7 @@ import {faInfoCircle} from '@fortawesome/free-solid-svg-icons';
 
 class HelpMenu extends React.Component {
 	openDocumentation(){
-		window.open(this.props.DOCS_ROOT);
+		window.open(CONSTANTS.DOCS_ROOT);
 	}
 
   render() {

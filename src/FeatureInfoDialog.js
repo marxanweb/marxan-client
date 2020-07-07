@@ -1,4 +1,5 @@
 import React from 'react';
+import CONSTANTS from './constants';
 import MarxanDialog from './MarxanDialog';
 import ReactTable from "react-table";
 import {getArea, isNumber, isValidTargetValue} from './Helpers.js'; 
@@ -87,7 +88,7 @@ class FeatureInfoDialog extends React.Component {
 			if (this.props.feature){
 				let data =[];
 				//iterate through the feature properties and set the data to bind to the table - if it is a feature from the old version of marxan then showForOld must be true for that property to be shown
-				this.props.FEATURE_PROPERTIES.forEach((item)=>{
+				CONSTANTS.FEATURE_PROPERTIES.forEach((item)=>{
 					if ((!this.props.feature.old_version && item.showForNew) || (this.props.feature.old_version && item.showForOld)){
 						data.push({key: item.key, value: this.props.feature[item.name], hint: item.hint});
 					}

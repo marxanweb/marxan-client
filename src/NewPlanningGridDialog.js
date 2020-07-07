@@ -1,4 +1,5 @@
 import * as React from "react";
+import CONSTANTS from './constants';
 import MarxanDialog from "./MarxanDialog";
 import SelectField from "material-ui/SelectField";
 import MenuItem from "material-ui/MenuItem";
@@ -15,7 +16,7 @@ class NewPlanningGridDialog extends React.Component {
 			let iso3 = this.props.countries[value].iso3;
 			if (['FJI', 'KIR', 'NZL', 'RUS', 'TUV', 'USA', 'WLF'].includes(iso3)) { //no support currently for countries that span the meridian
 				// this.setState({iso3: undefined});
-				// this.props.setSnackBar("Countries that span the meridian are currently not supported. See <a href='" + this.props.ERRORS_PAGE + "#planning-grids-cannot-be-created-for-countries-that-span-the-meridian' target='blank'>here</a>");
+				// this.props.setSnackBar("Countries that span the meridian are currently not supported. See <a href='" + CONSTANTS.ERRORS_PAGE + "#planning-grids-cannot-be-created-for-countries-that-span-the-meridian' target='blank'>here</a>");
 				this.setState({ iso3: this.props.countries[value].iso3 });
 			}
 			else {
@@ -31,13 +32,13 @@ class NewPlanningGridDialog extends React.Component {
 			}
 		}
 		changeDomain(evt, value) {
-			this.setState({ domain: this.props.domains[value] });
+			this.setState({ domain: CONSTANTS.DOMAINS[value] });
 		}
 		changeShape(evt, value) {
-			this.setState({ shape: this.props.shapes[value] });
+			this.setState({ shape: CONSTANTS.SHAPES[value] });
 		}
 		changeAreaKm2(evt, value) {
-			this.setState({ areakm2: this.props.areakm2s[value] });
+			this.setState({ areakm2: CONSTANTS.AREAKM2S[value] });
 		}
 		onOk() {
 			//create the new planning grid
@@ -78,7 +79,7 @@ class NewPlanningGridDialog extends React.Component {
 						</div>
 						<div>
 							<SelectField menuItemStyle={{ fontSize: "12px" }} labelStyle={{ fontSize: "12px" }} onChange={this.changeDomain.bind(this)} value={this.state.domain} style={dropDownStyle} floatingLabelText="Domain" floatingLabelFixed={true} disabled={!this.state.domainEnabled}>
-								{this.props.domains.map(item => {
+								{CONSTANTS.DOMAINS.map(item => {
 									return (
 										<MenuItem
 											style={{ fontSize: "12px" }}
@@ -92,7 +93,7 @@ class NewPlanningGridDialog extends React.Component {
 						</div>
 						<div>
 							<SelectField menuItemStyle={{ fontSize: "12px" }} labelStyle={{ fontSize: "12px" }} onChange={this.changeShape.bind(this)} value={this.state.shape} style={dropDownStyle} floatingLabelText="Planning unit shape" floatingLabelFixed={true}>
-								{this.props.shapes.map(item => {
+								{CONSTANTS.SHAPES.map(item => {
 									return (
 										<MenuItem
 											style={{ fontSize: "12px" }}
@@ -106,7 +107,7 @@ class NewPlanningGridDialog extends React.Component {
 						</div>
 						<div>
 							<SelectField menuItemStyle={{ fontSize: "12px" }} labelStyle={{ fontSize: "12px" }} onChange={this.changeAreaKm2.bind(this)} value={this.state.areakm2} style={dropDownStyle} floatingLabelText="Area of each planning unit" floatingLabelFixed={true}>
-								{this.props.areakm2s.map(item => {
+								{CONSTANTS.AREAKM2S.map(item => {
 									return (
 										<MenuItem
 											style={{ fontSize: "12px" }}

@@ -1,4 +1,5 @@
 import * as React from 'react';
+import CONSTANTS from './constants';
 import MarxanDialog from './MarxanDialog';
 import ToolbarButton from './ToolbarButton';
 import SelectField from "material-ui/SelectField";
@@ -45,13 +46,13 @@ class NewProjectWizardDialog extends React.Component {
 		this.setState({iso3: this.props.countries[value].iso3, country: this.props.countries[value].name_iso31}, () => this.getComplete());
 	}
 	changeDomain(evt, value) {
-		this.setState({domain: this.props.domains[value]}, () => this.getComplete());
+		this.setState({domain: CONSTANTS.DOMAINS[value]}, () => this.getComplete());
 	}
 	changeShape(evt, value) {
-		this.setState({shape: this.props.shapes[value]}, () => this.getComplete());
+		this.setState({shape: CONSTANTS.SHAPES[value]}, () => this.getComplete());
 	}
 	changeAreaKm2(evt, value) {
-		this.setState({areakm2: this.props.areakm2s[value]}, () => this.getComplete());
+		this.setState({areakm2: CONSTANTS.AREAKM2S[value]}, () => this.getComplete());
 	}
     toggleWorldEcosystems(evt, isInputChecked){
         this.setState({worldEcosystems: isInputChecked});
@@ -69,7 +70,7 @@ class NewProjectWizardDialog extends React.Component {
         this.setState({includeExistingPAs: isInputChecked});
     }
     changeIucnCategory(evt, value){
-		this.setState({iucn_category: this.props.iucn_categories[value]});
+		this.setState({iucn_category: CONSTANTS.IUCN_CATEGORIES[value]});
     }
     //create a new national project
 	createNewNationalProject(){
@@ -100,7 +101,7 @@ class NewProjectWizardDialog extends React.Component {
         							</SelectField> 
         							<br/>
         							<SelectField menuItemStyle={{ fontSize: "12px" }} labelStyle={{ fontSize: "12px" }} onChange={this.changeDomain.bind(this)} value={this.state.domain} style={dropDownStyle} floatingLabelText="Domain" floatingLabelFixed={true} disabled={!this.state.domainEnabled}>
-        								{this.props.domains.map(item => {
+        								{CONSTANTS.DOMAINS.map(item => {
         									return (
         										<MenuItem style={{ fontSize: "12px" }} value={item} primaryText={item} key={item} />
         									);
@@ -112,7 +113,7 @@ class NewProjectWizardDialog extends React.Component {
                                 <React.Fragment key={'_wiz02'}>
                                     <div>Choose the shape and size of the planning units</div>
         							<SelectField menuItemStyle={{ fontSize: "12px" }} labelStyle={{ fontSize: "12px" }} onChange={this.changeShape.bind(this)} value={this.state.shape} style={dropDownStyle} floatingLabelText="Planning unit shape" floatingLabelFixed={true}>
-        								{this.props.shapes.map(item => {
+        								{CONSTANTS.SHAPES.map(item => {
         									return (
         										<MenuItem style={{ fontSize: "12px" }} value={item} primaryText={item} key={item} />
         									);
@@ -120,7 +121,7 @@ class NewProjectWizardDialog extends React.Component {
         							</SelectField>
         							<br/>
         							<SelectField menuItemStyle={{ fontSize: "12px" }} labelStyle={{ fontSize: "12px" }} onChange={this.changeAreaKm2.bind(this)} value={this.state.areakm2} style={dropDownStyle} floatingLabelText="Area of each planning unit" floatingLabelFixed={true}>
-        								{this.props.areakm2s.map(item => {
+        								{CONSTANTS.AREAKM2S.map(item => {
         									return (
         										<MenuItem style={{ fontSize: "12px" }} value={item} primaryText={item + " Km2"} key={item} />
         									);
@@ -152,7 +153,7 @@ class NewProjectWizardDialog extends React.Component {
                                     <div className={'speciesList'}>
                                         <Checkbox label={"Include existing protected areas"} style={{fontSize:'12px'}} onCheck={this.toggleIncludeExistingPAs.bind(this)} />
             							<SelectField menuItemStyle={{ fontSize: "12px" }} labelStyle={{ fontSize: "12px" }} onChange={this.changeIucnCategory.bind(this)} value={this.state.iucn_category} style={dropDownStyle} floatingLabelText="IUCN Category" floatingLabelFixed={true} disabled={!this.state.includeExistingPAs}>
-            								{this.props.iucn_categories.map((item)=> {
+            								{CONSTANTS.IUCN_CATEGORIES.map((item)=> {
     											return  <MenuItem value={item} key={item} primaryText={item} style={{fontSize:'12px'}} />; 
     										})}
             							</SelectField>

@@ -5,7 +5,7 @@ import { faEraser } from '@fortawesome/free-solid-svg-icons';
 import ReactTable from "react-table";
 import Paper from 'material-ui/Paper';
 import { Tabs, Tab } from 'material-ui/Tabs';
-import Legend from './Legend';
+import MapLegend from './MapLegend';
 import Log from './Log'; 
 import Settings from 'material-ui/svg-icons/action/settings';
 import Clipboard from 'material-ui/svg-icons/action/assignment';
@@ -107,16 +107,7 @@ class ResultsPanel extends React.Component {
 						<Tabs contentContainerStyle={{'margin':'20px'}} className={'resultsTabs'} value={this.props.activeResultsTab} id='resultsTabs'>
 							<Tab label="Legend" value="legend" onActive={this.props.legend_tab_active} >
 								<div>
-									<Legend
-										{...this.props}
-										brew={this.props.brew}
-										resultsLayer={ this.props.resultsLayer }
-										wdpaLayer={ this.props.wdpaLayer }
-										pa_layer_visible={this.props.pa_layer_visible}
-										changeOpacity={this.props.changeOpacity}
-										results_layer_opacity={this.props.results_layer_opacity}
-										wdpa_layer_opacity={this.props.wdpa_layer_opacity}
-									/>
+									<MapLegend {...this.props} brew={this.props.brew}/>
 									<ToolbarButton 
 										icon={<Settings style={{height:'20px',width:'20px'}}/>} 
 										title="Legend Settings"

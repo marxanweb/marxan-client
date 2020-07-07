@@ -1162,3 +1162,11 @@ a {
   /*text-decoration: underline;*/
   /*text-decoration-color:rgb(255, 64, 129);*/
 }
+.hexLegendItem{
+  width:17px;
+  height:17px;
+  vertical-align:text-top;
+}
+.hexDiv{
+  display:inline;
+}

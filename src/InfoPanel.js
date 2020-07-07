@@ -1,4 +1,5 @@
 import React from 'react';
+import CONSTANTS from './constants';
 import 'react-table/react-table.css';
 import Paper from 'material-ui/Paper';
 import { Tabs, Tab } from 'material-ui/Tabs';
@@ -77,7 +78,7 @@ class InfoPanel extends React.Component {
 	}
 	
 	changeIucnCategory(event,key,payload){
-		this.props.changeIucnCategory(this.props.iucn_categories[key]);
+		this.props.changeIucnCategory(CONSTANTS.IUCN_CATEGORIES[key]);
 	}
 	changeCostname(event,key,payload){
 		//get the costname
@@ -195,7 +196,7 @@ class InfoPanel extends React.Component {
 										style={{marginTop:'-15px',width:'140px'}}
 										value={this.props.metadata.IUCN_CATEGORY} 
 										onChange={this.changeIucnCategory.bind(this)}
-										children= {this.props.iucn_categories.map((item)=> {
+										children= {CONSTANTS.IUCN_CATEGORIES.map((item)=> {
 											return  <MenuItem 
 												value={item} 
 												key={item} 
