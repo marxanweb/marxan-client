@@ -1186,7 +1186,8 @@ a {
   display: inline-flex;
   font-size: 12px;
   vertical-align: top;
-  padding: 0px 10px;
+  padding-left: 6px;
+  padding-right: 4px;
 }
 
 .transparencyControl {

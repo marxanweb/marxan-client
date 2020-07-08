@@ -2223,7 +2223,7 @@ class App extends React.Component {
     this.addMapLayer({
       'id': CONSTANTS.RESULTS_LAYER_NAME,
       'metadata':{
-        'name': 'Summed solutions',
+        'name': 'Results',
         'type': CONSTANTS.LAYER_TYPE_SUMMED_SOLUTIONS
       },
       'type': "fill",

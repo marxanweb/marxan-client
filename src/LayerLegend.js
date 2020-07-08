@@ -60,7 +60,7 @@ class LayerLegend extends React.Component {
         });
         return (
             <React.Fragment>
-                <div className={"tabTitle tabTitleInlineBlock"} key={'legend_' + this.props.layer.id}>{this.props.layer.metadata.name}</div>
+                <div className={"tabTitle tabTitleInlineBlock"} style={{marginTop: (this.props.hasOwnProperty('topMargin')) ? this.props.topMargin : 'unset'}} key={'legend_' + this.props.layer.id}>{this.props.layer.metadata.name}</div>
     			<TransparencyControl changeOpacity={this.changeOpacity.bind(this)} opacity={this.state.opacity}/>
                 <div>{items}</div>
             </React.Fragment>
