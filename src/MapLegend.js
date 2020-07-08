@@ -76,7 +76,7 @@ class MapLegend extends React.Component {
                         //get the layers that will be subLayers in the legend
                         let puLayer = layers.filter(layer => (layer.id === CONSTANTS.PU_LAYER_NAME))[0];
                         let puStatusLayer = layers.filter(layer => (layer.id === CONSTANTS.STATUS_LAYER_NAME))[0];
-                        return <LayerLegend topMargin={'15px'}  changeOpacity={this.props.changeOpacity} layer={layer} subLayers={[puLayer, puStatusLayer]} items={[{fillColor:'none', strokeColor:'lightgray', label: 'Normal planning unit'}, {fillColor:'none', strokeColor:'blue', label: 'Locked in'},{fillColor:'none', strokeColor:'red', label: 'Locked out'}]} shape={this.planning_grid_shape} />;
+                        return <LayerLegend topMargin={'15px'} changeOpacity={this.props.changeOpacity} layer={layer} subLayers={[puLayer, puStatusLayer]} items={[{fillColor:'none', strokeColor:'lightgray', label: 'Default'}, {fillColor:'none', strokeColor:'blue', label: 'Locked in'},{fillColor:'none', strokeColor:'red', label: 'Locked out'}]} shape={this.planning_grid_shape} />;
                     case CONSTANTS.LAYER_TYPE_PROTECTED_AREAS:
                         return <LayerLegend changeOpacity={this.props.changeOpacity} layer={layer} items={[{fillColor:'rgba(63,127,191)', strokeColor:'lightgray', label: 'Marine'},{fillColor:'rgba(99,148,69)', strokeColor:'lightgray', label: 'Terrestrial'}]} shape={'square'} />;
                     default:

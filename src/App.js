@@ -1970,7 +1970,7 @@ class App extends React.Component {
     //if the user is not editing planning units or creating a new feature then show the identify features for the clicked point
     if ((!this.state.puEditing)&&(!this.map.getSource('mapbox-gl-draw-cold'))){ 
       //get a list of the layers that we want to query for features
-      var featureLayers = this.getLayers([CONSTANTS.LAYER_TYPE_SUMMED_SOLUTIONS, CONSTANTS.LAYER_TYPE_PROTECTED_AREAS, CONSTANTS.LAYER_TYPE_FEATURE_LAYER]);
+      var featureLayers = this.getLayers([CONSTANTS.LAYER_TYPE_PLANNING_UNITS, CONSTANTS.LAYER_TYPE_SUMMED_SOLUTIONS, CONSTANTS.LAYER_TYPE_PROTECTED_AREAS, CONSTANTS.LAYER_TYPE_FEATURE_LAYER]);
       //get the feature layer ids
       let featureLayerIds = featureLayers.map(item=>item.id);
       //get a list of all of the rendered features that were clicked on - these will be planning units, features and protected areas
@@ -2263,7 +2263,7 @@ class App extends React.Component {
     this.addMapLayer({
       'id': CONSTANTS.PU_LAYER_NAME,
       'metadata':{
-        'name':'Planning units',
+        'name':'Planning unit',
         'type': CONSTANTS.LAYER_TYPE_PLANNING_UNITS
       },
       'type': "fill",
@@ -2282,7 +2282,7 @@ class App extends React.Component {
     this.addMapLayer({
       'id': CONSTANTS.STATUS_LAYER_NAME,
       'metadata':{
-        'name':'Planning units',
+        'name':'Planning unit status',
         'type': CONSTANTS.LAYER_TYPE_PLANNING_UNITS_STATUS
       },
       'type': "line",
