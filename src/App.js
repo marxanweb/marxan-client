@@ -170,8 +170,6 @@ class App extends React.Component {
       projectFeatures: [], //the features for the currently loaded project
       selectedFeatureIds :[],
       addingRemovingFeatures: false,
-      results_layer_opacity: CONSTANTS.RESULTS_LAYER_FILL_OPACITY_ACTIVE, //initial value
-      wdpa_layer_opacity: CONSTANTS.WDPA_FILL_LAYER_OPACITY, //initial value
       costnames: [],
       selectedCosts: [],
       countries: [],
@@ -1773,7 +1771,6 @@ class App extends React.Component {
     //set the render paint property
     this.map.setPaintProperty(CONSTANTS.RESULTS_LAYER_NAME, "fill-color", paintProperties.fillColor);
     this.map.setPaintProperty(CONSTANTS.RESULTS_LAYER_NAME, "fill-outline-color", paintProperties.oulineColor);
-    this.map.setPaintProperty(CONSTANTS.RESULTS_LAYER_NAME, "fill-opacity", this.state.results_layer_opacity);
   }
 
   //gets the various paint properties for the planning unit layer - if setRenderer is true then it will also update the renderer in the Legend panel
@@ -2238,7 +2235,7 @@ class App extends React.Component {
       'paint': {
         'fill-color': "rgba(0, 0, 0, 0)",
         'fill-outline-color': "rgba(0, 0, 0, 0)",
-        "fill-opacity": 0.9
+        "fill-opacity": CONSTANTS.RESULTS_LAYER_OPACITY
       }
     }, beforeLayer);
     //add the planning units costs layer
@@ -2364,7 +2361,7 @@ class App extends React.Component {
             ["2", "rgb(63,127,191)"]
           ]
         },
-        "fill-opacity": this.state.wdpa_layer_opacity
+        "fill-opacity": CONSTANTS.WDPA_FILL_LAYER_OPACITY
       }
     });
     //set the wdpa layer in app state so that it can update the Legend component and its opacity control
@@ -2407,9 +2404,6 @@ class App extends React.Component {
         default:
           // code
       }
-      //set the state
-      if (layerId === CONSTANTS.RESULTS_LAYER_NAME) this.setState({results_layer_opacity: opacity});
-      if (layerId === CONSTANTS.WDPA_LAYER_NAME) this.setState({wdpa_layer_opacity: opacity});
     }
   }
 
@@ -2481,8 +2475,6 @@ class App extends React.Component {
     this.hideLayer(CONSTANTS.RESULTS_LAYER_NAME);
     //hide the feature layer and feature puid layers
     this.showHideLayerTypes([CONSTANTS.LAYER_TYPE_FEATURE_LAYER,CONSTANTS.LAYER_TYPE_FEATURE_PLANNING_UNIT_LAYER], false);
-    //store the values for the result layers opacities
-    this.previousResultsOpacity = this.state.results_layer_opacity;
     //render the planning units status layer_edit layer
     this.renderPuEditLayer(CONSTANTS.STATUS_LAYER_NAME);
   }
@@ -3454,7 +3446,7 @@ class App extends React.Component {
         'source-layer': layerName,
         'paint': {
           'fill-color': feature.color,
-          'fill-opacity': 0.9,
+          'fill-opacity': CONSTANTS.FEATURE_LAYER_OPACITY,
           'fill-outline-color': "rgba(0, 0, 0, 0.2)"
         }
       }, beforeLayer); //add it before the layer that shows the planning unit outlines for the feature
@@ -3487,7 +3479,7 @@ class App extends React.Component {
             "visibility": "visible"
           },
           'paint':{
-            'line-opacity': 0.9
+            'line-opacity': CONSTANTS.FEATURE_PLANNING_GRID_LAYER_OPACITY
           }
         }); 
         //update the paint property for the layer
@@ -4434,8 +4426,6 @@ class App extends React.Component {
             wdpaLayer={ this.state.wdpaLayer }
             pa_layer_visible={this.state.pa_layer_visible}
             changeOpacity={this.changeOpacity.bind(this)}
-            results_layer_opacity={this.state.results_layer_opacity}
-            wdpa_layer_opacity={this.state.wdpa_layer_opacity}
             userRole={this.state.userData.ROLE}
             visibleLayers={this.state.visibleLayers}
             metadata={this.state.metadata}

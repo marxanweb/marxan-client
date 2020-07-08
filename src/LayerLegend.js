@@ -21,6 +21,7 @@ class LayerLegend extends React.Component {
         this.state = {opacity: opacity};
     }
     changeOpacity(opacity){
+        console.log('Changing opacity for: ' + this.props.layer.metadata.name + ' to ' + opacity)
         //set the state
         this.setState({opacity: opacity});
         //the layer legend may in fact represent many separate layers (e.g. for features) - these are passed in as subLayers and each needs to have the opacity set
@@ -50,7 +51,7 @@ class LayerLegend extends React.Component {
             //get the swatch
             let swatch = this.renderSwatch(key, item, this.props.shape);
             //if the legend is showing a range in values then put in a horizontal separator between the items
-            let separator = (this.props.range && index === 1) ? <div className={'separator'}>to</div> : null;
+            let separator = (this.props.range && index === 1) ? <div className={'separator'}>-</div> : null;
             return <div key={key} style={{display: (this.props.range) ? 'inline' : 'block'}}>
                 {separator}
     			{swatch}

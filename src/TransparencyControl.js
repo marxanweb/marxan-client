@@ -43,11 +43,11 @@ class TransparencyControl extends React.Component {
 
 	render() {
 		return (
-			<div className={'transparencyControl'}>
-				<div onMouseEnter={ this.mouseEnter.bind(this) } onMouseLeave={ this.mouseLeave.bind(this) } title={ "Click to toggle visibility" }>
+			<div className={'transparencyControl'} onMouseEnter={ this.mouseEnter.bind(this) } onMouseLeave={ this.mouseLeave.bind(this) } title={ "Click to toggle visibility" }>
+				<div className={'opacityToggleContainer'}>
 					<FontAwesomeIcon icon={(this.props.opacity === 0 ) ? faEyeSlash : faEye } style={ { color: 'gainsboro' } } onClick={ this.toggleLayer.bind(this) } />
-					<Slider value={ this.props.opacity } onChange={ this.onChange.bind(this) } style={ { display: (this.state.showSlider) ? "inline-block" : "none", width: '100px' } } sliderStyle={ { margin: '0px' } } />
 				</div>
+				<Slider value={ this.props.opacity } onChange={ this.onChange.bind(this) } className={'opacitySlider'} style={ { display: (this.state.showSlider) ? "inline-block" : "none", width: '100px' } } sliderStyle={ { margin: '0px' } } />
 			</div>
 		);
 	}

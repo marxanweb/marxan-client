@@ -34,9 +34,10 @@ module.exports = Object.freeze({
     PU_LAYER_OPACITY: 0.6,
     PU_COSTS_LAYER_OPACITY: 0.1,
     STATUS_LAYER_LINE_WIDTH: 1.5,
-    RESULTS_LAYER_FILL_OPACITY_ACTIVE: 0.9,
-    RESULTS_LAYER_FILL_OPACITY_INACTIVE: 0,
     WDPA_FILL_LAYER_OPACITY: 0.2,
+    FEATURE_LAYER_OPACITY: 0.9,
+    FEATURE_PLANNING_GRID_LAYER_OPACITY: 0.9,
+    RESULTS_LAYER_OPACITY: 0.8,
     COST_COLORS: ['rgba(255,255,204,0.8)', 'rgba(255,237,160,0.8)', 'rgba(254,217,118,0.8)', 'rgba(254,178,76,0.8)', 'rgba(253,141,60,0.8)', 'rgba(252,78,42,0.8)', 'rgba(227,26,28,0.8)', 'rgba(189,0,38,0.8)', 'rgba(128,0,38,0.8)'],
     UNIFORM_COST_NAME: 'Equal area',
     //an array of feature property information that is used in the Feature Information dialog box - showForOld sets whether that property is shown for old versions of marxan

@@ -76,9 +76,10 @@ body {
   margin-top: 15px;
 }
 
-.tabTitleInlineBlock{
-  display:inline-block;
+.tabTitleInlineBlock {
+  display: inline-block;
 }
+
 .run {
   position: absolute;
   bottom: 60px;
@@ -158,10 +159,12 @@ body {
 .resultsTabs {
   height: 561px;
 }
-.legendTab{
-  height:475px;
-  overflow:auto;
+
+.legendTab {
+  height: 475px;
+  overflow: auto;
 }
+
 #log {
   height: 472px;
   width: 360px;
@@ -1152,7 +1155,7 @@ a {
   display: inline-block;
   float: right;
   padding-right: 6px;
-  padding-left:10px;
+  padding-left: 10px;
   cursor: pointer;
 }
 
@@ -1161,26 +1164,40 @@ a {
   padding-left: 6px;
   cursor: pointer;
 }
+
 .marxanServer:hover {
   /*text-decoration: underline;*/
   /*text-decoration-color:rgb(255, 64, 129);*/
 }
-.hexLegendItem{
-  width:17px;
-  height:17px;
-  vertical-align:text-top;
+
+.hexLegendItem {
+  width: 17px;
+  height: 17px;
+  vertical-align: text-top;
 }
-.hexDiv{
-  display:inline-block;
-  margin-left:2px;
-  margin-right:2px;
+
+.hexDiv {
+  display: inline-block;
+  margin-left: 2px;
+  margin-right: 2px;
 }
-.separator{
+
+.separator {
   display: inline-flex;
-  font-size:12px;
-  vertical-align:top;
+  font-size: 12px;
+  vertical-align: top;
   padding: 0px 10px;
 }
-.transparencyControl{
-  display:inline-block;
+
+.transparencyControl {
+  display: inline-flex;
+  margin-left: 7px;
+}
+
+.opacitySlider {
+  margin-left: 10px;
+  padding-top: 3px;
+}
+.opacityToggleContainer{
+  height:18px;
 }
