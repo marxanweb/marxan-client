@@ -1,3 +1,4 @@
+//application level global constants
 module.exports = Object.freeze({
     MARXAN_REGISTRY: "https://marxanweb.github.io/general/registry/marxan.json", //url to the marxan registry
     DOCS_ROOT: "https://docs.marxanweb.org/",
@@ -30,7 +31,8 @@ module.exports = Object.freeze({
     LAYER_TYPE_FEATURE_LAYER: 'feature',
     LAYER_TYPE_FEATURE_PLANNING_UNIT_LAYER: 'feature_puid',
     //layer default styles
-    PU_LAYER_OPACITY: 0.4,
+    PU_LAYER_OPACITY: 0.6,
+    PU_COSTS_LAYER_OPACITY: 0.1,
     STATUS_LAYER_LINE_WIDTH: 1.5,
     RESULTS_LAYER_FILL_OPACITY_ACTIVE: 0.9,
     RESULTS_LAYER_FILL_OPACITY_INACTIVE: 0,

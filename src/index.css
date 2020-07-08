@@ -1171,11 +1171,16 @@ a {
   vertical-align:text-top;
 }
 .hexDiv{
-  display:inline;
+  display:inline-block;
+  margin-left:2px;
+  margin-right:2px;
 }
 .separator{
   display: inline-flex;
   font-size:12px;
   vertical-align:top;
-  padding: 0px 30px;
+  padding: 0px 10px;
+}
+.transparencyControl{
+  display:inline-block;
 }

@@ -13,23 +13,20 @@ class TransparencyControl extends React.Component {
 		this.old_opacity = 0.5;
 	}
 	onChange(evt, newValue) {
-		if (this.props.layer) {
-			//set a local property to capture the old opacity
-			this.old_opacity = this.props.opacity;
-			this.props.changeOpacity(this.props.layer.id, newValue);
-		}
+		//set a local property to capture the old opacity
+		this.old_opacity = this.props.opacity;
+		this.props.changeOpacity(newValue);
 	}
 
 	toggleLayer() {
-		if (this.props.layer) {
-			//see if the layer is currently visible
-			if (this.props.opacity > 0) {
-				//hide the layer
-				this.onChange(undefined, 0);
-			} else {
-				//show the layer
-				this.onChange(undefined, this.old_opacity);
-			}
+		//see if the layer is currently visible
+		if (this.props.opacity > 0) {
+			//hide the layer
+			this.onChange(undefined, 0);
+		}
+		else {
+			//show the layer
+			this.onChange(undefined, this.old_opacity);
 		}
 	}
 	mouseEnter(event) {
@@ -46,13 +43,13 @@ class TransparencyControl extends React.Component {
 
 	render() {
 		return (
-			<div style={ this.props.style }>
-				<div onMouseEnter={ this.mouseEnter.bind(this) } onMouseLeave={ this.mouseLeave.bind(this) } style={ { position: 'absolute', width: '132px', height: '23px' } } title={ "Change transparency - click to toggle layer" }>
+			<div className={'transparencyControl'}>
+				<div onMouseEnter={ this.mouseEnter.bind(this) } onMouseLeave={ this.mouseLeave.bind(this) } title={ "Click to toggle visibility" }>
 					<FontAwesomeIcon icon={(this.props.opacity === 0 ) ? faEyeSlash : faEye } style={ { color: 'gainsboro' } } onClick={ this.toggleLayer.bind(this) } />
-					<Slider value={ this.props.opacity } onChange={ this.onChange.bind(this) } style={ { display: (this.state.showSlider) ? "inline-block" : "none", width: '100px', position: 'absolute', top: '2px', left: '26px' } } sliderStyle={ { margin: '0px' } } />
+					<Slider value={ this.props.opacity } onChange={ this.onChange.bind(this) } style={ { display: (this.state.showSlider) ? "inline-block" : "none", width: '100px' } } sliderStyle={ { margin: '0px' } } />
 				</div>
 			</div>
-			);
+		);
 	}
 }
 

@@ -1973,11 +1973,7 @@ class App extends React.Component {
     //if the user is not editing planning units or creating a new feature then show the identify features for the clicked point
     if ((!this.state.puEditing)&&(!this.map.getSource('mapbox-gl-draw-cold'))){ 
       //get a list of the layers that we want to query for features
-      var layers = this.map.getStyle().layers;
-      //get all the marxan feature layers which are prefixed with marxan_
-      var featureLayers = layers.filter(item=>{
-        return item.id.substr(0,7) === 'marxan_'; 
-      });
+      var featureLayers = this.getLayers([CONSTANTS.LAYER_TYPE_SUMMED_SOLUTIONS, CONSTANTS.LAYER_TYPE_PROTECTED_AREAS, CONSTANTS.LAYER_TYPE_FEATURE_LAYER]);
       //get the feature layer ids
       let featureLayerIds = featureLayers.map(item=>item.id);
       //get a list of all of the rendered features that were clicked on - these will be planning units, features and protected areas
@@ -2113,8 +2109,8 @@ class App extends React.Component {
             this.addPlanningGridLayers(this.state.tileset);
             //get the results, if any
             if (this.state.owner) this.getResults(this.state.owner, this.state.project);
-            //filter the wdpa vector tiles
-            this.filterWdpaByIucnCategory(this.state.metadata.IUCN_CATEGORY);
+            //filter the wdpa vector tiles - NO LONGER USED
+            // this.filterWdpaByIucnCategory(this.state.metadata.IUCN_CATEGORY);
             //turn on/off layers depending on which tab is selected
             if (this.state.activeTab === "planning_units") this.pu_tab_active();
             resolve();
@@ -2192,8 +2188,8 @@ class App extends React.Component {
         if (tileset.bounds != null) zoomToBounds(this.map, tileset.bounds);
         //set the state
         this.setState({ tileset: tileset });
-        //filter the wdpa vector tiles as the map doesn't respond to state changes
-        this.filterWdpaByIucnCategory(this.state.metadata.IUCN_CATEGORY);
+        //filter the wdpa vector tiles as the map doesn't respond to state changes - NO LONGER USED
+        // this.filterWdpaByIucnCategory(this.state.metadata.IUCN_CATEGORY);
         resolve();
       }).catch((error) => {
         this.setSnackBar(error);
@@ -2241,7 +2237,8 @@ class App extends React.Component {
       'source-layer': tileset.name,
       'paint': {
         'fill-color': "rgba(0, 0, 0, 0)",
-        'fill-outline-color': "rgba(0, 0, 0, 0)"
+        'fill-outline-color': "rgba(0, 0, 0, 0)",
+        "fill-opacity": 0.9
       }
     }, beforeLayer);
     //add the planning units costs layer
@@ -2259,7 +2256,8 @@ class App extends React.Component {
       'source-layer': tileset.name,
       'paint': {
         'fill-color': "rgba(255, 0, 0, 0)",
-        'fill-outline-color': "rgba(150, 150, 150, 0)"
+        'fill-outline-color': "rgba(150, 150, 150, 0)",
+        'fill-opacity': CONSTANTS.PU_COSTS_LAYER_OPACITY
       }
     }, beforeLayer);
     //set the result layer in app state so that it can update the Legend component and its opacity control
@@ -2279,7 +2277,8 @@ class App extends React.Component {
       'source-layer': tileset.name,
       'paint': {
         'fill-color': "rgba(0, 0, 0, 0)",
-        'fill-outline-color': "rgba(150, 150, 150, " + CONSTANTS.PU_LAYER_OPACITY + ")"
+        'fill-outline-color': "rgba(150, 150, 150, " + CONSTANTS.PU_LAYER_OPACITY + ")",
+        'fill-opacity': CONSTANTS.PU_LAYER_OPACITY
       }
     }, beforeLayer);
     //add the planning units manual edit layer - this layer shows which individual planning units have had their status changed
@@ -2345,7 +2344,7 @@ class App extends React.Component {
       "layout": {
         "visibility": "visible"
       },
-      "filter": ["==", "wdpaid", -1],
+      // "filter": ["==", "wdpaid", -1],
       "paint": {
         "fill-color": {
           "type": "categorical",
@@ -2396,8 +2395,18 @@ class App extends React.Component {
   
   //changes the layers opacity
   changeOpacity(layerId, opacity){
-    if (this.map && this.map.getLayer(layerId)){
-      this.map.setPaintProperty(layerId, 'fill-opacity', opacity);
+    if (this.map){
+      let layer = this.map.getLayer(layerId);
+      switch (layer.type) {
+        case 'fill':
+          this.map.setPaintProperty(layerId, 'fill-opacity', opacity);
+          break;
+        case 'line':
+          this.map.setPaintProperty(layerId, 'line-opacity', opacity);
+          break;
+        default:
+          // code
+      }
       //set the state
       if (layerId === CONSTANTS.RESULTS_LAYER_NAME) this.setState({results_layer_opacity: opacity});
       if (layerId === CONSTANTS.WDPA_LAYER_NAME) this.setState({wdpa_layer_opacity: opacity});
@@ -2410,6 +2419,34 @@ class App extends React.Component {
     //merge the metadata with the existing metadata
     if (layer) layer.metadata = Object.assign(layer.metadata, metadata);
   }
+  
+  //gets a particular set of layers based on the layer types (layerTypes is an array of layer types)
+  getLayers(layerTypes){
+    //get the map layers
+    var allLayers = this.map.getStyle().layers;
+    //iterate through the layers to get the matching ones
+    return allLayers.filter(layer =>{
+      if (layer.hasOwnProperty('metadata') && layer.metadata.hasOwnProperty('type')){
+        return layerTypes.includes(layer.metadata.type);
+      }else{
+        return false;
+      }
+    });
+  }
+
+  //shows/hides layers of a particular type (layerTypes is an array of layer types)
+  showHideLayerTypes(layerTypes, show){
+    //get the marxan layers
+    let layers = this.getLayers(layerTypes);
+    layers.forEach(layer => {
+      if (show){
+        this.showLayer(layer.id);  
+      }else{
+        this.hideLayer(layer.id);
+      }
+    });
+  }
+  
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   ///ACTIVATION/DEACTIVATION OF TABS
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2436,16 +2473,16 @@ class App extends React.Component {
     this.setState({ activeTab: "planning_units" });
     //show the planning units layer 
     this.showLayer(CONSTANTS.PU_LAYER_NAME);
-    //hide the results layer
-    this.hideLayer(CONSTANTS.RESULTS_LAYER_NAME);
-    //store the values for the result layers opacities
-    this.previousResultsOpacity = this.state.results_layer_opacity;
     //show the planning units status layer 
     this.showLayer(CONSTANTS.STATUS_LAYER_NAME);
     //show the planning units costs layer 
     this.loadCostsLayer();
-    //set the opacity of the costs layer
-    // this.changeOpacity(CONSTANTS.COSTS_LAYER_NAME,0);
+    //hide the results layer
+    this.hideLayer(CONSTANTS.RESULTS_LAYER_NAME);
+    //hide the feature layer and feature puid layers
+    this.showHideLayerTypes([CONSTANTS.LAYER_TYPE_FEATURE_LAYER,CONSTANTS.LAYER_TYPE_FEATURE_PLANNING_UNIT_LAYER], false);
+    //store the values for the result layers opacities
+    this.previousResultsOpacity = this.state.results_layer_opacity;
     //render the planning units status layer_edit layer
     this.renderPuEditLayer(CONSTANTS.STATUS_LAYER_NAME);
   }
@@ -2454,10 +2491,14 @@ class App extends React.Component {
   pu_tab_inactive() {
     //show the results layer 
     this.showLayer(CONSTANTS.RESULTS_LAYER_NAME);
+    //show the feature layer and feature puid layers
+    this.showHideLayerTypes([CONSTANTS.LAYER_TYPE_FEATURE_LAYER,CONSTANTS.LAYER_TYPE_FEATURE_PLANNING_UNIT_LAYER], true);
     //hide the planning units layer 
     this.hideLayer(CONSTANTS.PU_LAYER_NAME);
     //hide the planning units edit layer 
     this.hideLayer(CONSTANTS.STATUS_LAYER_NAME);
+    //hide the planning units cost layer 
+    this.hideLayer(CONSTANTS.COSTS_LAYER_NAME);
   }
 
   //fired when the legend tab is selected
@@ -3393,13 +3434,9 @@ class App extends React.Component {
       this.updateFeature(feature, {feature_layer_loaded: false});
     }else{
       //if a planning units layer for a feature is visible then we need to add the feature layer before it - first get the feature puid layer
-      var layers = this.map.getStyle().layers;
-      //get all the marxan feature layers which are prefixed with marxan_
-      var featurePUIDLayers = layers.filter(item=>{
-        return item.id.startsWith('marxan_puid_'); 
-      });
+      var layers = this.getLayers([CONSTANTS.LAYER_TYPE_FEATURE_PLANNING_UNIT_LAYER]);
       //get the before layer
-      let beforeLayer = (featurePUIDLayers.length > 0) ? featurePUIDLayers[0].id : "";
+      let beforeLayer = (layers.length > 0) ? layers[0].id : "";
       this.addMapLayer({
         'id': layerId,
         'metadata':{
@@ -3448,6 +3485,9 @@ class App extends React.Component {
           'source-layer': this.state.tileset.name,
           "layout": {
             "visibility": "visible"
+          },
+          'paint':{
+            'line-opacity': 0.9
           }
         }); 
         //update the paint property for the layer
@@ -3722,15 +3762,6 @@ class App extends React.Component {
   ////////////////////////// PROTECTED AREAS LAYERS STUFF
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  togglePALayer(show){
-      if (show){
-        //load the planning unit layer
-        this.showLayer(CONSTANTS.WDPA_LAYER_NAME);
-      }else{
-        //hide the layer
-        this.hideLayer(CONSTANTS.WDPA_LAYER_NAME);
-      }
-  }
   changeIucnCategory(iucnCategory) {
     //update the state
     let _metadata = this.state.metadata;
@@ -3738,8 +3769,8 @@ class App extends React.Component {
     this.setState({ metadata: _metadata });
     //update the input.dat file
     this.updateProjectParameter("IUCN_CATEGORY", iucnCategory);
-    //filter the wdpa vector tiles
-    this.filterWdpaByIucnCategory(iucnCategory);
+    //filter the wdpa vector tiles - NO LONGER USED
+    // this.filterWdpaByIucnCategory(iucnCategory);
     //render the wdpa intersections on the grid
     this.renderPAGridIntersections(iucnCategory);
   }
