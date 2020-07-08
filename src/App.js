@@ -2242,7 +2242,7 @@ class App extends React.Component {
     this.addMapLayer({
       'id': CONSTANTS.COSTS_LAYER_NAME,
       'metadata':{
-        'name': 'Costs',
+        'name': 'Planning Unit Cost',
         'type': CONSTANTS.LAYER_TYPE_PLANNING_UNITS_COST
       },
       'type': "fill",
@@ -2263,7 +2263,7 @@ class App extends React.Component {
     this.addMapLayer({
       'id': CONSTANTS.PU_LAYER_NAME,
       'metadata':{
-        'name':'Planning unit',
+        'name':'Planning Unit',
         'type': CONSTANTS.LAYER_TYPE_PLANNING_UNITS
       },
       'type': "fill",
@@ -2282,7 +2282,7 @@ class App extends React.Component {
     this.addMapLayer({
       'id': CONSTANTS.STATUS_LAYER_NAME,
       'metadata':{
-        'name':'Planning unit status',
+        'name':'Planning Unit Status',
         'type': CONSTANTS.LAYER_TYPE_PLANNING_UNITS_STATUS
       },
       'type': "line",
