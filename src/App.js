@@ -428,7 +428,7 @@ class App extends React.Component {
         break;
       case 'Finished': //from the close method of all MarxanWebSocketHandler subclasses
         //reset the pid
-        this.setState({pid: 0});
+        this.resetPID();
         //remove all preprocessing messages
         this.removeMessageFromLog("Preprocessing");
         break;
@@ -437,6 +437,10 @@ class App extends React.Component {
     }
   }
   
+  //resets the pid value
+  resetPID(){
+    this.setState({pid: 0});  
+  }
   //logs the message if necessary - this removes duplicates
   logMessage(message){
     //log the message from the websocket
@@ -444,6 +448,8 @@ class App extends React.Component {
       this.log({method:message.method, status:'Finished', error:"The WebSocket connection closed unexpectedly"});
       //remove the Preprocessing messages which show the processing spinner
       this.removeMessageFromLog("Preprocessing");
+      //reset the PID
+      this.resetPID();
     }else{
       //see if the message has a pid and if it does then see if the status has changed since the last message - if it has then log the message - this does not apply to RunningMarxan messages as all of these need to be logged
       if (message.hasOwnProperty('pid') && (message.status !=='RunningMarxan')) {
@@ -467,8 +473,8 @@ class App extends React.Component {
           this.log(message);
         }
       }else{
-        //remove duplicate messages from the log (unless they are from the marxan run)
-        if (message.status !== 'RunningMarxan') this.removeMessageFromLog(message.status);
+        //remove duplicate messages from the log (unless they are from the marxan run or have a status of started or finished)
+        if (!((message.status === 'RunningMarxan')||(message.status === 'Started')||(message.status === 'Finished'))) this.removeMessageFromLog(message.status);
         //log the message
         this.log(message);
       }

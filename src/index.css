@@ -573,13 +573,13 @@ div.rt-tbody>div>div>div>div[contenteditable="true"] {
 
 .runtime {
   position: absolute;
-  top: 0px;
+  bottom: -22px;
   right: 2px;
-  background-color: aliceblue;
+  /*background-color: aliceblue;*/
   padding: 0px 10px 0px 10px;
-  font-size: 12px;
+  font-size: 10px;
   color: #666666;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  /*border: 1px solid rgba(0, 0, 0, 0.1);*/
 }
 
 .table_column_right_align {
