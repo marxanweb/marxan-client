@@ -137,7 +137,7 @@ class IdentifyPopup extends React.Component {
 					/>
 				</div>
 				<div style={{display: this.props.identifyPlanningUnits && this.props.identifyPlanningUnits.features && this.props.identifyPlanningUnits.features.length === 0 ? "block" : "none"}}>
-					<div className={'featureList'}>No features occur in this planning grid</div>
+					<div className={'featureList'}>No features occur in this planning unit</div>
 				</div>
 			</Tab> : null;
 		let featuresTab = (this.props.identifyFeatures && this.props.identifyFeatures.length) ?

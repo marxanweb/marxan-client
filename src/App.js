@@ -4596,7 +4596,7 @@ class App extends React.Component {
           <ImportGBIFDialog
             open={this.state.importGBIFDialogOpen} 
             onCancel={this.closeImportGBIFDialog.bind(this)}
-            loading={this.state.loading || this.state.preprocessing}
+            loading={this.state.loading || this.state.preprocessing || this.state.uploading}
             importGBIFData={this.importGBIFData.bind(this)}
             gbifSpeciesSuggest={this.gbifSpeciesSuggest.bind(this)}
             addToProject={this.state.addToProject}
