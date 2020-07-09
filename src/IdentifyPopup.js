@@ -1,11 +1,14 @@
 import React from 'react';
+import CONSTANTS from './constants';
 import ReactTable from "react-table";
 import Sync from 'material-ui/svg-icons/notification/sync';
+import Swatch from './Swatch';
 import { Tabs, Tab } from 'material-ui/Tabs';
 import { getArea } from './Helpers.js';
 
 const TITLE_LINK = "Click to open in the Protected Planet website";
 const URL_PP = "https://www.protectedplanet.net/";
+const TAB_STYLE = {fontWeight:'normal', textTransform:'none', height:'34px', fontSize:'15px'};
 
 class IdentifyPopup extends React.Component {
 	constructor(props){
@@ -80,37 +83,37 @@ class IdentifyPopup extends React.Component {
 	render() {
 		let left = this.props.xy.x + 25 + 'px';
 		let top = this.props.xy.y - 25 + 'px';
-		let puType = '';
+		let item = {};
 		//get the status for the planning unit
 		switch (this.props.identifyPlanningUnits && this.props.identifyPlanningUnits.puData && this.props.identifyPlanningUnits.puData.status) {
 			case 0:
-				puType = "Normal planning unit";
+				item = CONSTANTS.PU_STATUS_DEFAULT;
 				break;
 			case 1:
-				puType = "Included in the initial reserve system but may or may not be in the final solution";
+				//Included in the initial reserve system but may or may not be in the final solution
 				break;
 			case 2:
-				puType = "This planning unit is fixed in the reserve system ('locked in'). It starts in the initial reserve system and cannot be removed.";
+				item = CONSTANTS.PU_STATUS_LOCKED_IN;
 				break;
 			case 3:
-				puType = "This planning unit is fixed outside the reserve system ('locked out'). It is not included in the initial reserve system and cannot be added.";
+				item = CONSTANTS.PU_STATUS_LOCKED_OUT;
 				break;
 			default:
 				// code
 		}
-		//get the text for how many features there are in the planning
-		let feature_text = (this.props.identifyPlanningUnits.features&&this.props.identifyPlanningUnits.features.length === 1) ? "One feature:" : (this.props.identifyPlanningUnits.features&&this.props.identifyPlanningUnits.features.length) + " features:";
+		//get the planning unit shape
+		let shape = (this.props.metadata && this.props.metadata.PLANNING_UNIT_NAME && this.props.metadata.PLANNING_UNIT_NAME.includes('hexagon')) ? 'hexagon' : 'square';
 		//get the tabs which are needed
 		let puTab = (this.props.identifyPlanningUnits && this.props.identifyPlanningUnits.puData) ?
-			<Tab label="Planning units" value="pu" key="pu">
-				<Sync className='spin' style={{display: this.props.loading ? "inline-block" : "none", color: 'rgb(255, 64, 129)', position: 'absolute', top: '-56px', left: '-7px'}} key={"spinner"}/>
+			<Tab label="Planning units" value="pu" key="pu" buttonStyle={TAB_STYLE}>
+				<Sync className='spin' style={{display: this.props.loading ? "inline-block" : "none", color: 'rgb(255, 64, 129)', position: 'absolute', top: '-49px', left: '-7px'}} key={"spinner"}/>
 				<div className={'identifyPlanningUnitsHeader'}>
-					<div>{puType}</div>
-					<span>Planning Unit ID: {this.props.identifyPlanningUnits&&this.props.identifyPlanningUnits.puData&&this.props.identifyPlanningUnits.puData.id}</span><span style={{paddingLeft:'10px'}}/>
+					<span><Swatch item={item} key={'key_' + item.label + '_identify'} shape={shape}/><span style={{paddingLeft:'5px'}}/>{item.label}</span>
 					<span>Cost: {this.props.identifyPlanningUnits&&this.props.identifyPlanningUnits.puData&&this.props.identifyPlanningUnits.puData.cost}</span>
+					<span>ID: {this.props.identifyPlanningUnits&&this.props.identifyPlanningUnits.puData&&this.props.identifyPlanningUnits.puData.id}</span>
 				</div>
 				<div style={{display: this.props.identifyPlanningUnits && this.props.identifyPlanningUnits.features && this.props.identifyPlanningUnits.features.length ? "block" : "none"}}>
-					<div>{feature_text}</div>
+					<div className={'featureList'}>{'Features in planning unit:'}</div>
 					<ReactTable
 						showPagination={false}
 						className={'identifyPUFeaturesInfoTable'}
@@ -121,24 +124,24 @@ class IdentifyPopup extends React.Component {
 						columns={[{
 							 Header: 'Name',
 							 accessor: 'alias',
-							 width: 275,
+							 width: 215,
 							 headerStyle:{'textAlign':'left'},
 							 Cell: this.renderName.bind(this)
 						},{
 							 Header: 'Amount',
 							 accessor: 'amount',
-							 width: 123,
+							 width: 65,
 							 headerStyle:{'textAlign':'left'},
 							 Cell: this.renderAmount.bind(this)
 						}]}
 					/>
 				</div>
 				<div style={{display: this.props.identifyPlanningUnits && this.props.identifyPlanningUnits.features && this.props.identifyPlanningUnits.features.length === 0 ? "block" : "none"}}>
-					<div>No features occur in this planning grid</div>
+					<div className={'featureList'}>No features occur in this planning grid</div>
 				</div>
 			</Tab> : null;
 		let featuresTab = (this.props.identifyFeatures && this.props.identifyFeatures.length) ?
-			<Tab label="Features" value="features" key="features">
+			<Tab label="Features" value="features" key="features" buttonStyle={TAB_STYLE}>
 				<ReactTable
 					showPagination={false}
 					className={'identifyFeaturesInfoTable'}					
@@ -149,20 +152,20 @@ class IdentifyPopup extends React.Component {
 					columns={[{
 						 Header: 'Name',
 						 accessor: 'alias',
-						 width: 275,
+						 width: 140,
 						 headerStyle:{'textAlign':'left'},
 							 Cell: this.renderFeatureName.bind(this)
 					},{
 						 Header: 'Description',
 						 accessor: 'description',
-						 width: 123,
+						 width: 140,
 						 headerStyle:{'textAlign':'left'},
 							 Cell: this.renderFeatureDescription.bind(this)
 					}]}
 				/> 
 			</Tab> : null;
 		let protectedAreasTab = (this.props.identifyProtectedAreas && this.props.identifyProtectedAreas.length) ?
-			<Tab label="Protected areas" value="pas" key="pas">
+			<Tab label="Protected areas" value="pas" key="pas" buttonStyle={TAB_STYLE}>
 				<ReactTable
 					showPagination={false}
 					className={'identifyProtectedAreasInfoTable'}					
@@ -173,24 +176,24 @@ class IdentifyPopup extends React.Component {
 					columns={[{
 						 Header: 'Name',
 						 accessor: 'properties.name',
-						 width: 145,
+						 width: 134,
 						 headerStyle:{'textAlign':'left'},
 							 Cell: this.renderPAName.bind(this)
 					},{
 						 Header: 'Designation',
 						 accessor: 'properties.desig',
-						 width: 145,
+						 width: 70,
 						 headerStyle:{'textAlign':'left'},
 							 Cell: this.renderPADesignation.bind(this)
 					},{
 						 Header: 'IUCN Category',
 						 accessor: 'properties.iucn_cat',
-						 width: 95,
+						 width: 33,
 						 headerStyle:{'textAlign':'left'},
 							 Cell: this.renderPAIUCNCategory.bind(this)
 					},{
 						 Header: 'Link',
-						 width: 61,
+						 width: 43,
 						 Cell: this.renderPALink.bind(this)
 					}]}
 				/>
@@ -201,7 +204,7 @@ class IdentifyPopup extends React.Component {
 		let onlyPA = (!puTab && !featuresTab && protectedAreasTab);
 		return (
 			<div style={{'display': this.props.visible && tabs.length ? 'block' : 'none','left': left,'top':top}} id="popup" onMouseLeave={this.mouseLeave.bind(this)} onMouseEnter={this.mouseEnter.bind(this)}>
-				<Tabs contentContainerStyle={{'margin':'20px'}} className={'identifyPopup'} value={(onlyPA) ? "pas" : this.state.selectedValue} onChange={this.changeTab.bind(this)}>
+				<Tabs tabItemContainerStyle={{height:'34px'}} contentContainerStyle={{'margin':'20px'}} className={'identifyPopup'} value={(onlyPA) ? "pas" : this.state.selectedValue} onChange={this.changeTab.bind(this)}>
 					{tabs}
 				</Tabs>
 			</div>

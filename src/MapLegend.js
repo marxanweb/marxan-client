@@ -56,29 +56,31 @@ class MapLegend extends React.Component {
             layers = this.props.visibleLayers;
         }
         //get the legend items for non-feature layers
-        let nonFeatureLegendItems = layers.map((layer) => {
+        let nonFeatureLegendItems = layers.map(layer => {
+            //get a unique key
+            let key = 'legend_' + layer.id;
             //create the legend for non-feature layers
             if (layer.metadata.type!==CONSTANTS.LAYER_TYPE_FEATURE_LAYER){
                 switch (layer.metadata.type) {
                     case CONSTANTS.LAYER_TYPE_SUMMED_SOLUTIONS: //get the summed solutions legend
                         let items = (this.props.brew && this.props.brew.breaks && this.props.brew.colorCode) ? this.getSummedSolution(layer, this.props.brew.colorCode) : [];
-                        return <LayerLegend topMargin={'15px'} changeOpacity={this.props.changeOpacity} layer={layer} items={items} shape={this.planning_grid_shape} setSymbology={this.props.openClassificationDialog}/>;
+                        return <LayerLegend key={key} topMargin={'15px'} changeOpacity={this.props.changeOpacity} layer={layer} items={items} shape={this.planning_grid_shape} setSymbology={this.props.openClassificationDialog}/>;
                     case CONSTANTS.LAYER_TYPE_PLANNING_UNITS_COST:
                         let minColor = layer.paint['fill-color'][3]; //min paint color
                         let maxColor = layer.paint['fill-color'][layer.paint['fill-color'].length-2]; //max paint color
                         //if the min and max costs are the same only create a single legend item
                         if (layer.metadata.min === layer.metadata.max){
-                            return <LayerLegend loading={this.props.costsLoading} topMargin={'15px'} changeOpacity={this.props.changeOpacity} layer={layer} items={[{fillColor: minColor, strokeColor:'lightgray', label: layer.metadata.min}]} shape={this.planning_grid_shape} />;
+                            return <LayerLegend key={key} loading={this.props.costsLoading} topMargin={'15px'} changeOpacity={this.props.changeOpacity} layer={layer} items={[{fillColor: minColor, strokeColor:'lightgray', label: layer.metadata.min}]} shape={this.planning_grid_shape} />;
                         }else{
-                            return <LayerLegend loading={this.props.costsLoading} topMargin={'15px'}  changeOpacity={this.props.changeOpacity} layer={layer} items={[{fillColor: minColor, strokeColor:'lightgray', label: layer.metadata.min}, {fillColor: maxColor, strokeColor:'lightgray', label: layer.metadata.max}]} shape={this.planning_grid_shape} range={true} />;
+                            return <LayerLegend key={key} loading={this.props.costsLoading} topMargin={'15px'}  changeOpacity={this.props.changeOpacity} layer={layer} items={[{fillColor: minColor, strokeColor:'lightgray', label: layer.metadata.min}, {fillColor: maxColor, strokeColor:'lightgray', label: layer.metadata.max}]} shape={this.planning_grid_shape} range={true} />;
                         }
                     case CONSTANTS.LAYER_TYPE_PLANNING_UNITS_STATUS:
                         //get the layers that will be subLayers in the legend
                         let puLayer = layers.filter(layer => (layer.id === CONSTANTS.PU_LAYER_NAME))[0];
                         let puStatusLayer = layers.filter(layer => (layer.id === CONSTANTS.STATUS_LAYER_NAME))[0];
-                        return <LayerLegend topMargin={'15px'} changeOpacity={this.props.changeOpacity} layer={layer} subLayers={[puLayer, puStatusLayer]} items={[{fillColor:'none', strokeColor:'lightgray', label: 'Default'}, {fillColor:'none', strokeColor:'blue', label: 'Locked in'},{fillColor:'none', strokeColor:'red', label: 'Locked out'}]} shape={this.planning_grid_shape} />;
+                        return <LayerLegend key={key} topMargin={'15px'} changeOpacity={this.props.changeOpacity} layer={layer} subLayers={[puLayer, puStatusLayer]} items={[CONSTANTS.PU_STATUS_DEFAULT, CONSTANTS.PU_STATUS_LOCKED_IN, CONSTANTS.PU_STATUS_LOCKED_OUT]} shape={this.planning_grid_shape} />;
                     case CONSTANTS.LAYER_TYPE_PROTECTED_AREAS:
-                        return <LayerLegend changeOpacity={this.props.changeOpacity} layer={layer} items={[{fillColor:'rgba(63,127,191)', strokeColor:'lightgray', label: 'Marine'},{fillColor:'rgba(99,148,69)', strokeColor:'lightgray', label: 'Terrestrial'}]} shape={'square'} />;
+                        return <LayerLegend key={key} changeOpacity={this.props.changeOpacity} layer={layer} items={[{fillColor:'rgba(63,127,191)', strokeColor:'lightgray', label: 'Marine'},{fillColor:'rgba(99,148,69)', strokeColor:'lightgray', label: 'Terrestrial'}]} shape={'square'} />;
                     default:
                         return null;
                 }

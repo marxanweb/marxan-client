@@ -30,6 +30,10 @@ module.exports = Object.freeze({
     LAYER_TYPE_PROTECTED_AREAS: 'pas',
     LAYER_TYPE_FEATURE_LAYER: 'feature',
     LAYER_TYPE_FEATURE_PLANNING_UNIT_LAYER: 'feature_puid',
+    //planning unit statuses
+    PU_STATUS_DEFAULT: {fillColor:'none', strokeColor:'lightgray', label: 'Default'},
+    PU_STATUS_LOCKED_IN: {fillColor:'none', strokeColor:'blue', label: 'Locked in'},
+    PU_STATUS_LOCKED_OUT: {fillColor:'none', strokeColor:'red', label: 'Locked out'},
     //layer default styles
     PU_LAYER_OPACITY: 0.6,
     PU_COSTS_LAYER_OPACITY: 0.1,

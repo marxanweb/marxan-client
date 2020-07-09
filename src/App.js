@@ -4460,6 +4460,7 @@ class App extends React.Component {
             loading={this.state.loading}
             hideIdentifyPopup={this.hideIdentifyPopup.bind(this)}
             reportUnits={this.state.userData.REPORTUNITS}
+            metadata={this.state.metadata}
           />
           <ProjectsDialog 
             open={this.state.projectsDialogOpen} 

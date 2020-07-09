@@ -219,17 +219,17 @@ body {
 }
 
 .identifyPUFeaturesInfoTable {
-  width: 400px;
+  width: 280px;
   max-height: 300px;
 }
 
 .identifyFeaturesInfoTable {
-  width: 400px;
+  width: 280px;
   max-height: 300px;
 }
 
 .identifyProtectedAreasInfoTable {
-  width: 450px;
+  width: 280px;
   max-height: 300px;
 }
 
@@ -711,6 +711,7 @@ div.rt-tbody>div>div>div>div[contenteditable="true"] {
   background-color: white;
   box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 10px, rgba(0, 0, 0, 0.23) 0px 3px 10px;
   border-radius: 3px;
+  width: 320px;
 }
 
 .wdpaPopup {
@@ -1121,8 +1122,10 @@ a {
 
 .identifyPlanningUnitsHeader {
   font-size: 12px;
-  width: 400px;
+  width: 280px;
   padding-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
 }
 
 .radioButton {
@@ -1199,19 +1202,27 @@ a {
   margin-left: 10px;
   padding-top: 3px;
 }
-.opacityToggleContainer{
-  height:18px;
+
+.opacityToggleContainer {
+  height: 18px;
 }
-.setSymbologyBtn{
+
+.setSymbologyBtn {
   margin-left: 7px;
-  cursor:pointer;
+  cursor: pointer;
 }
-.costsLayerSpinner{
+
+.costsLayerSpinner {
   color: rgb(255, 64, 129) !important;
-  height:16px !important;
-  width:22px !important;
+  height: 16px !important;
+  width: 22px !important;
 }
-.puManualEditContainer{
-}
-.puManualEditClear{
+
+.puManualEditContainer {}
+
+.puManualEditClear {}
+.featureList{
+  font-size:12px;
+  padding-bottom:3px;
+  padding-top:7px;
 }
