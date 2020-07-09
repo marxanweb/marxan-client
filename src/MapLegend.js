@@ -92,6 +92,14 @@ class MapLegend extends React.Component {
         let items = featureLayers.map((layer) => {
             return {fillColor: layer.paint['fill-color'], strokeColor:'lightgray', label: layer.metadata.name};
         });
+        //sort the items by label
+        items.sort((a, b) => {
+          if (a.label.toLowerCase() < b.label.toLowerCase())
+            return -1;
+          if (a.label.toLowerCase() > b.label.toLowerCase())
+            return 1;
+          return 0;
+        });
         //now create the legend for features
         let featureLegendItems = (items.length > 0) ? <LayerLegend topMargin={'15px'}  changeOpacity={this.props.changeOpacity} layer ={{metadata:{name:'Features'}}} subLayers={featureLayers} items={items} shape={'square'}/> : null;
         //get any feature planning unit legend items - these are combined into a single legend - first populate the legend items for each feature planning unit

@@ -14,7 +14,7 @@ class FeaturesList extends React.Component {
 		this.props.updateFeature(targetIcon.props.interestFeature, {target_value: newValue});
 	}
 	itemClick(feature, evt){
-		if (evt.ctrlKey){
+		if (evt.altKey){
 			//toggle the layers puid visibility
 			feature.feature_puid_layer_loaded = !feature.feature_puid_layer_loaded;
 			//add/remove it from the map
