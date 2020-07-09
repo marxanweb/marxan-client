@@ -108,13 +108,6 @@ class ResultsPanel extends React.Component {
 							<Tab label="Legend" value="legend" onActive={this.props.legend_tab_active} >
 								<div className={'legendTab'}>
 									<MapLegend {...this.props} brew={this.props.brew}/>
-									<ToolbarButton 
-										icon={<Settings style={{height:'20px',width:'20px'}}/>} 
-										title="Legend Settings"
-										onClick={this.props.openClassificationDialog} 
-										style={{ top:'447px', position:'absolute', marginLeft:'-7px'}}
-										show={(this.props.resultsLayer !== undefined)}
-									/>
 								</div>
 							</Tab>
 							<Tab label="Solutions" value="solutions" onActive={this.props.solutions_tab_active} >

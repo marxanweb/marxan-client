@@ -1,6 +1,8 @@
 import * as React from 'react';
 import Hexagon from 'react-hexagon';
 import TransparencyControl from './TransparencyControl';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCog } from '@fortawesome/free-solid-svg-icons';
 
 class LayerLegend extends React.Component {
     constructor(props){
@@ -21,7 +23,6 @@ class LayerLegend extends React.Component {
         this.state = {opacity: opacity};
     }
     changeOpacity(opacity){
-        console.log('Changing opacity for: ' + this.props.layer.metadata.name + ' to ' + opacity)
         //set the state
         this.setState({opacity: opacity});
         //the layer legend may in fact represent many separate layers (e.g. for features) - these are passed in as subLayers and each needs to have the opacity set
@@ -58,9 +59,12 @@ class LayerLegend extends React.Component {
     			<div style={ { display: 'inline-flex', verticalAlign: 'top', marginLeft: '7px', fontSize: '12px' } } key={key + '_label'}>{item.label}</div>
     		 </div>;
         });
+        //set symbology button
+        let setSymbologyBtn = (this.props.hasOwnProperty('setSymbology')) ? <FontAwesomeIcon className={'setSymbologyBtn'} icon={faCog} style={{color: 'gainsboro'}} onClick={this.props.setSymbology} title={'Configure symbology'}/> : null;
         return (
             <React.Fragment>
                 <div className={"tabTitle tabTitleInlineBlock"} style={{marginTop: (this.props.hasOwnProperty('topMargin')) ? this.props.topMargin : 'unset'}} key={'legend_' + this.props.layer.id}>{this.props.layer.metadata.name}</div>
+                {setSymbologyBtn}
     			<TransparencyControl changeOpacity={this.changeOpacity.bind(this)} opacity={this.state.opacity}/>
                 <div>{items}</div>
             </React.Fragment>

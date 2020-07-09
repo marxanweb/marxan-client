@@ -62,7 +62,7 @@ class MapLegend extends React.Component {
                 switch (layer.metadata.type) {
                     case CONSTANTS.LAYER_TYPE_SUMMED_SOLUTIONS: //get the summed solutions legend
                         let items = (this.props.brew && this.props.brew.breaks && this.props.brew.colorCode) ? this.getSummedSolution(layer, this.props.brew.colorCode) : [];
-                        return <LayerLegend topMargin={'15px'}  changeOpacity={this.props.changeOpacity} layer={layer} items={items} shape={this.planning_grid_shape} />;
+                        return <LayerLegend topMargin={'15px'} changeOpacity={this.props.changeOpacity} layer={layer} items={items} shape={this.planning_grid_shape} setSymbology={this.props.openClassificationDialog}/>;
                     case CONSTANTS.LAYER_TYPE_PLANNING_UNITS_COST:
                         let minColor = layer.paint['fill-color'][3]; //min paint color
                         let maxColor = layer.paint['fill-color'][layer.paint['fill-color'].length-2]; //max paint color

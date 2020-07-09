@@ -1202,3 +1202,7 @@ a {
 .opacityToggleContainer{
   height:18px;
 }
+.setSymbologyBtn{
+  margin-left: 7px;
+  cursor:pointer;
+}
