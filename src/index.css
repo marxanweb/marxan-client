@@ -1206,3 +1206,12 @@ a {
   margin-left: 7px;
   cursor:pointer;
 }
+.costsLayerSpinner{
+  color: rgb(255, 64, 129) !important;
+  height:16px !important;
+  width:22px !important;
+}
+.puManualEditContainer{
+}
+.puManualEditClear{
+}

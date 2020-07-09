@@ -3,6 +3,7 @@ import Hexagon from 'react-hexagon';
 import TransparencyControl from './TransparencyControl';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCog } from '@fortawesome/free-solid-svg-icons';
+import Sync from 'material-ui/svg-icons/notification/sync'; 
 
 class LayerLegend extends React.Component {
     constructor(props){
@@ -44,9 +45,9 @@ class LayerLegend extends React.Component {
                 return <div key={key + '_swatch'} style={ { backgroundColor: item.fillColor, width: '14px', height: '16px', border: item.strokeColor + ' 1px solid', margin: '3px', display: 'inline-flex', verticalAlign: 'top' } }></div>;
         }
     }
-    render() {
+    renderItems(){
         //iterate through the items in this layers legend
-        let items = this.props.items.map((item, index) => {
+        return this.props.items.map((item, index) => {
             //get a unique key
             let key = 'legend_' + this.props.layer.id + '_' + index;
             //get the swatch
@@ -59,6 +60,11 @@ class LayerLegend extends React.Component {
     			<div style={ { display: 'inline-flex', verticalAlign: 'top', marginLeft: '7px', fontSize: '12px' } } key={key + '_label'}>{item.label}</div>
     		 </div>;
         });
+    }
+    render() {
+        //get the items to render - if the layer is loading then get a spinner
+        let items = (this.props.loading) ? <Sync className='spin costsLayerSpinner' style={{display: (this.props.loading) ? 'inline-block' : 'none'}} key={"costsspinner"}/>
+        : this.renderItems();
         //set symbology button
         let setSymbologyBtn = (this.props.hasOwnProperty('setSymbology')) ? <FontAwesomeIcon className={'setSymbologyBtn'} icon={faCog} style={{color: 'gainsboro'}} onClick={this.props.setSymbology} title={'Configure symbology'}/> : null;
         return (

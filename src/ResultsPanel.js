@@ -7,7 +7,6 @@ import Paper from 'material-ui/Paper';
 import { Tabs, Tab } from 'material-ui/Tabs';
 import MapLegend from './MapLegend';
 import Log from './Log'; 
-import Settings from 'material-ui/svg-icons/action/settings';
 import Clipboard from 'material-ui/svg-icons/action/assignment';
 import Sync from 'material-ui/svg-icons/notification/sync';
 

@@ -68,9 +68,9 @@ class MapLegend extends React.Component {
                         let maxColor = layer.paint['fill-color'][layer.paint['fill-color'].length-2]; //max paint color
                         //if the min and max costs are the same only create a single legend item
                         if (layer.metadata.min === layer.metadata.max){
-                            return <LayerLegend topMargin={'15px'} changeOpacity={this.props.changeOpacity} layer={layer} items={[{fillColor: minColor, strokeColor:'lightgray', label: layer.metadata.min}]} shape={this.planning_grid_shape} />;
+                            return <LayerLegend loading={this.props.costsLoading} topMargin={'15px'} changeOpacity={this.props.changeOpacity} layer={layer} items={[{fillColor: minColor, strokeColor:'lightgray', label: layer.metadata.min}]} shape={this.planning_grid_shape} />;
                         }else{
-                            return <LayerLegend topMargin={'15px'}  changeOpacity={this.props.changeOpacity} layer={layer} items={[{fillColor: minColor, strokeColor:'lightgray', label: layer.metadata.min}, {fillColor: maxColor, strokeColor:'lightgray', label: layer.metadata.max}]} shape={this.planning_grid_shape} range={true} />;
+                            return <LayerLegend loading={this.props.costsLoading} topMargin={'15px'}  changeOpacity={this.props.changeOpacity} layer={layer} items={[{fillColor: minColor, strokeColor:'lightgray', label: layer.metadata.min}, {fillColor: maxColor, strokeColor:'lightgray', label: layer.metadata.max}]} shape={this.planning_grid_shape} range={true} />;
                         }
                     case CONSTANTS.LAYER_TYPE_PLANNING_UNITS_STATUS:
                         //get the layers that will be subLayers in the legend

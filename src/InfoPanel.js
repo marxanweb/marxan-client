@@ -12,9 +12,9 @@ import Checkbox from 'material-ui/Checkbox';
 import Textarea from 'react-textarea-autosize';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faLock } from '@fortawesome/free-solid-svg-icons';
-import { faUnlock } from '@fortawesome/free-solid-svg-icons';
 import { faEraser } from '@fortawesome/free-solid-svg-icons';
 import { faShareAlt } from '@fortawesome/free-solid-svg-icons';
+import { faSave } from '@fortawesome/free-solid-svg-icons';
 // import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 
 class InfoPanel extends React.Component {
@@ -135,7 +135,7 @@ class InfoPanel extends React.Component {
 							{(this.props.userRole === "ReadOnly") ? <span className={'projectNameEditBox'} title={this.props.project + " (Read-only)"}><FontAwesomeIcon style={{color: 'white', height: '16px', marginTop:'4px',marginBottom: '2px', marginRight: '5px'}} icon={faLock}/>{this.props.project}</span> : <span onClick={this.startEditingProjectName.bind(this)} className={'projectNameEditBox'} title="Click to rename the project">{this.props.project}</span>}
 							{(this.props.userRole === "ReadOnly") ? null : <input id="projectName" style={{position:'absolute', 'display': (this.state.editingProjectName) ? 'block' : 'none',left:'39px',top:'32px',width:'365px', border:'1px lightgray solid'}} className={'projectNameEditBox'} onKeyPress={this.onKeyPress.bind(this)} onBlur={this.onBlur.bind(this)}/>}
 						</Paper>
-						<Tabs contentContainerStyle={{'margin':'20px'}} className={'tabs'} value={this.props.activeTab}>
+						<Tabs contentContainerStyle={{'margin':'20px'}} className={'tabs'} value={this.props.activeTab} style={{backgroundColor: (this.state.puEditing) ? '#eee' : 'unset'}}>
 							<Tab label="Project" onActive={this.props.project_tab_active} value="project" disabled={(this.props.puEditing) ? true : false}>
 								<div>
 									<div className={'tabTitle'}>Description</div>
@@ -183,17 +183,26 @@ class InfoPanel extends React.Component {
 										<div className={'tabTitle tabTitleInlineBlock'}>Planning grid</div>
 									</div>
 									<div className={'description'}>{this.props.metadata.pu_alias}</div>
-									<div>
-										<div className={'tabTitle tabTitleTopMargin tabTitleInlineBlock'}>Protected areas</div>
+									<div style={{display: (this.props.userRole === "ReadOnly") ? 'none' : 'block'}}>
+										<div>
+											<div className={'tabTitle tabTitleTopMargin'}>Statuses</div>
+										</div>
+					    	        <div className={'puManualEditContainer'}>
+										<FontAwesomeIcon icon={(this.props.puEditing) ? faSave : faLock} onClick={this.startStopPuEditSession.bind(this)} title={(this.props.puEditing) ? "Save" : "Manually edit"} style={{cursor:'pointer', marginLeft:'3px',marginRight: '10px', color: 'rgba(255, 64, 129, 0.7)'}}/>
+										<div style={{display: (this.props.puEditing) ? "inline-block" : "none"}} className={'puManualEditClear'}>
+											<FontAwesomeIcon icon={faEraser} onClick={this.props.clearManualEdits.bind(this)} title={'Clear all manual edits'} style={{cursor:'pointer',color: 'rgba(255, 64, 129, 0.7)'}}/>
+										</div>
+										<div className={'description'} style={{display: 'inline-block',fontSize:'12px',paddingLeft:'7px'}}>{(this.props.puEditing) ? "Click on the map to change the status" : "Manually edit"}</div>
+										</div>
 									</div>
 									<SelectField 
-										floatingLabelText={'Lock in'} 
+										floatingLabelText={'Lock in protected areas'} 
 										floatingLabelFixed={true} 
 										underlineShow={false}
 										disabled={(this.props.preprocessing)||(this.props.userRole === "ReadOnly")}
 										menuItemStyle={{fontSize:'12px'}} 
 										labelStyle={{fontSize:'12px'}} 
-										style={{marginTop:'-15px',width:'140px'}}
+										style={{marginTop:'-14px',width:'180px'}}
 										value={this.props.metadata.IUCN_CATEGORY} 
 										onChange={this.changeIucnCategory.bind(this)}
 										children= {CONSTANTS.IUCN_CATEGORIES.map((item)=> {
@@ -207,7 +216,7 @@ class InfoPanel extends React.Component {
 									/> 
 					    	        {/*<FontAwesomeIcon icon={faExclamationTriangle} style={{color:'red', display:(this.props.metadata.IUCN_CATEGORY!=='None' && this.props.protected_area_intersections && this.props.protected_area_intersections.length===0) ? 'inline' : 'none', position:'absolute'}} title={'Protected areas have been updated since you locked these ones in'}/>*/}
 					    	        <div>
-										<div className={'tabTitle tabTitleInlineBlock'}>Costs</div>
+										<div className={'tabTitle'}>Costs</div>
 									</div>
 									<SelectField 
 										floatingLabelText={'Use cost surface'} 
@@ -216,7 +225,7 @@ class InfoPanel extends React.Component {
 										disabled={(this.props.preprocessing)||(this.props.userRole === "ReadOnly")}
 										menuItemStyle={{fontSize:'12px'}} 
 										labelStyle={{fontSize:'12px'}} 
-										style={{marginTop:'-15px',width:'230px'}}
+										style={{marginTop:'-14px',width:'230px'}}
 										value={this.props.costname} 
 										onChange={this.changeCostname.bind(this)}
 										children= {this.costnames.map((item)=> {
@@ -228,22 +237,6 @@ class InfoPanel extends React.Component {
 												/>; 
 										})}
 									/> 
-									<div style={{display: (this.props.userRole === "ReadOnly") ? 'none' : 'block'}}>
-										<div>
-											<div className={'tabTitle tabTitleInlineBlock'}>Statuses</div>
-										</div>
-										<FontAwesomeIcon icon={(this.props.puEditing) ? faUnlock : faLock} onClick={this.startStopPuEditSession.bind(this)} title={(this.props.puEditing) ? "Save" : "Click to edit"} style={{cursor:'pointer', marginRight: '10px', color: 'rgba(255, 64, 129, 0.7)'}}/>
-										<div className={'description'} style={{display: 'inline-block',fontSize:'12px'}}>{(this.props.puEditing) ? "Click on the map to change the status" : "Click to edit"}</div>
-										<div style={{display: (this.props.puEditing) ? "block" : "none"}}>
-											<div className={"statusRow"}><div className={"statusSwatch"} style={{ border: '1px rgba(63, 63, 191, 1) solid'}}></div><div className={"puStatus"}>Locked in the reserve system</div></div>
-											<div className={"statusRow"}><div className={"statusSwatch"} style={{ border: '1px rgba(191, 63, 63, 1) solid'}}></div><div className={"puStatus"}>Locked out of the reserve system</div></div>
-											<ToolbarButton  
-												icon={<FontAwesomeIcon icon={faEraser} />} 
-												title="Clear all manual edits"
-												onClick={this.props.clearManualEdits.bind(this)} 
-											/>
-										</div>
-									</div>
 								</div>  
 							</Tab>
 						</Tabs>     

@@ -1013,6 +1013,8 @@ class App extends React.Component {
         this.previousIucnCategory = response.metadata.IUCN_CATEGORY;
         //initialise all the interest features with the interest features for this project
         this.initialiseInterestFeatures(response.metadata.OLDVERSION, response.features);
+        //preload the costs data instead of loading it when the user clicks on the Planning Units tab
+        this.getPlanningUnitsCostData();
         //activate the project tab
         this.project_tab_active();
       }).catch((error) => {
@@ -4429,6 +4431,7 @@ class App extends React.Component {
             userRole={this.state.userData.ROLE}
             visibleLayers={this.state.visibleLayers}
             metadata={this.state.metadata}
+            costsLoading={this.state.costsLoading}
           />
           <FeatureInfoDialog
             open={this.state.openInfoDialogOpen}
