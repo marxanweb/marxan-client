@@ -1287,6 +1287,8 @@ class App extends React.Component {
           if (!this.checkForErrors(response)) {
             //run completed - get the results
             this.getResults(response.user, response.project);
+            //switch to the features tab
+            this.features_tab_active();
           }else{
             //set state with no solutions
             this.runFinished([]);

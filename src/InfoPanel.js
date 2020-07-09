@@ -180,7 +180,7 @@ class InfoPanel extends React.Component {
 							<Tab label="Planning units" onActive={this.props.pu_tab_active} value="planning_units">
 								<div>
 									<div>
-										<div className={'tabTitle tabTitleInlineBlock'}>Planning grid</div>
+										<div className={'tabTitle tabTitleInlineBlock'}>Planning Grid</div>
 									</div>
 									<div className={'description'}>{this.props.metadata.pu_alias}</div>
 									<div style={{display: (this.props.userRole === "ReadOnly") ? 'none' : 'block'}}>
