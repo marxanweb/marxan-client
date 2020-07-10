@@ -4258,6 +4258,18 @@ class App extends React.Component {
       });
     });
   }
+  
+  //cleans up the server - removes dissolved WDPA feature classes, deletes orphaned feature classes, scratch feature classes and clumping files
+  cleanup(){
+    return new Promise((resolve, reject) => {
+      this._get("cleanup?").then((response) => {
+        resolve();
+      }).catch((error) => {
+        reject(error);
+      });
+    });
+  }
+  
   render() {
     const message = (<span id="snackbar-message-id" dangerouslySetInnerHTML={{ __html: this.state.snackbarMessage }} />);    
     return (
@@ -4318,6 +4330,7 @@ class App extends React.Component {
             userRole={this.state.userData.ROLE}
             marxanServer={this.state.marxanServer}
             metadata={this.state.metadata}
+            cleanup={this.cleanup.bind(this)}
           />
           <UserMenu 
             open={this.state.userMenuOpen} 
