@@ -2891,8 +2891,8 @@ class App extends React.Component {
     this.setState({ welcomeDialogOpen: true });
   }
   openFeaturesDialog(showClearSelectAll) {
-    //refresh the features list if we are using a hosted service - other users could have created/deleted items
-    if (this.state.marxanServer.system !== "Windows") this.refreshFeatures();
+    //refresh the features list if we are using a hosted service (other users could have created/deleted items) and the project is not imported (only project features are shown)
+    if (this.state.marxanServer.system !== "Windows" && !this.state.metadata.OLDVERSION) this.refreshFeatures();
     this.setState({ featuresDialogOpen: true, addingRemovingFeatures: showClearSelectAll});
     if (showClearSelectAll) this.getSelectedFeatureIds();
   }
@@ -3388,9 +3388,9 @@ class App extends React.Component {
   refreshFeatures(){
     //refresh all features
     this.getFeatures().then((response)=>{
-      //get the existing feature ids
+      //get the existing feature ids in the client
       let existingIds = this.getFeatureIds(this.state.allFeatures);
-      //get the new feature ids
+      //get the new feature ids in the server
       let newIds = this.getFeatureIds(response.data);
       //get the features that have been removed as a set
       let removedIds = new Set([...existingIds].filter(x => !newIds.has(x)));
