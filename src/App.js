@@ -410,7 +410,7 @@ class App extends React.Component {
   //called when any websocket message is received - this logic removes duplicate messages
   wsMessageCallback(message){
     //dont log any clumping projects
-    if (this.state.clumpingRunning) return;
+    if (message.user === '_clumping') return;
     //log the message 
     this.logMessage(message);
     switch (message.status) {
