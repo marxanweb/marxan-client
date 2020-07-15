@@ -40,7 +40,7 @@ class UserSettingsDialog extends React.Component {
                                 offsetY={80}
                                 showCancelButton={false}
                                 onOk={this.updateOptions.bind(this)}
-                                helpLink={"user.html#settings"}
+                                helpLink={"user.html#user-settings"}
                                 title="Settings" 
                                 children={
                                         <div key="k14">

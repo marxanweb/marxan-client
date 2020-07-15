@@ -42,7 +42,7 @@ class ImportCostsDialog extends React.Component {
 			onOk={this.onOk.bind(this)}
 			onCancel={this.deleteCostFileThenClose.bind(this)}
 			onRequestClose={this.deleteCostFileThenClose.bind(this)}
-			helpLink={"user.html#import-costs-window"}
+			helpLink={"user.html#importing-a-cost-surface"}
 			children={            
 			<React.Fragment key="k8">
 				<FileUpload 

@@ -32,7 +32,7 @@ class CostsDialog extends React.Component {
 			offsetY={80}
 			title="Costs" 
 			onRequestClose={this.props.closeCostsDialog}
-			helpLink={"user.html#costs-window"}
+			helpLink={"user.html#importing-a-cost-surface"}
 			children={            
 			<React.Fragment key="k8">
 	            <ReactTable 

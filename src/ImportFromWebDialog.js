@@ -183,7 +183,7 @@ class ImportFromWebDialog extends React.Component {
 				children={children} 
 				actions={actions}  
 				onRequestClose={this.closeDialog.bind(this)} 
-				helpLink={"user.html#importing-from-web"}
+				helpLink={"user.html#importing-from-the-web"}
 			/>
 		);
 	}

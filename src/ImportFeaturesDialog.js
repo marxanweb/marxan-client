@@ -151,7 +151,7 @@ class ImportFeaturesDialog extends React.Component {
 				children={children} 
 				actions={actions}  
 				onRequestClose={this.closeDialog.bind(this)} 
-				helpLink={"user.html#importing-existing-features"}
+				helpLink={"user.html#importing-from-a-shapefile"}
 			/>
 		);
 	}

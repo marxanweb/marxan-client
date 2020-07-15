@@ -83,14 +83,14 @@ class ImportProjectDialog extends React.Component {
 		return (
 			<MarxanDialog 
 				{...this.props} 
-				title={'Import existing Marxan project'}
+				title={'Import Marxan DOS project'}
 				contentWidth={390}
 				children={c} 
 				okLabel={"Cancel"}
 				actions={actions} 
 				onOk={this.onOk.bind(this)}
 				onRequestClose={this.onOk.bind(this)} 
-				helpLink={"user.html#importing-existing-marxan-projects"}
+				helpLink={"user.html#importing-marxan-dos-projects"}
 			/>
 		);
 	}

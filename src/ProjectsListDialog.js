@@ -24,7 +24,7 @@ class ProjectsListDialog extends React.Component {
 					bodyStyle={{ padding:'0px 24px 0px 24px'}}
 					title= {this.props.title} 
 					contentWidth={500}
-					helpLink={"user.html#deleting-features"}
+					helpLink={"user.html#projects-list"}
 					children={
 						<React.Fragment key="k24">
 							<div style={{marginBottom:'5px'}}>{this.props.heading}</div>
