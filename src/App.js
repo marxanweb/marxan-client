@@ -2222,7 +2222,6 @@ class App extends React.Component {
 
   //adds the results, planning unit, planning unit edit etc layers to the map
   addPlanningGridLayers(tileset) {
-    var beforeLayer = (this.state.basemap === "North Star" ? "" : "");
     //add the source for the planning unit layers
     this.map.addSource(CONSTANTS.PLANNING_UNIT_SOURCE_NAME,{
         'type': "vector",
@@ -2247,7 +2246,7 @@ class App extends React.Component {
         'fill-outline-color': "rgba(0, 0, 0, 0)",
         "fill-opacity": CONSTANTS.RESULTS_LAYER_OPACITY
       }
-    }, beforeLayer);
+    });
     //add the planning units costs layer
     this.addMapLayer({
       'id': CONSTANTS.COSTS_LAYER_NAME,
@@ -2266,7 +2265,7 @@ class App extends React.Component {
         'fill-outline-color': "rgba(150, 150, 150, 0)",
         'fill-opacity': CONSTANTS.PU_COSTS_LAYER_OPACITY
       }
-    }, beforeLayer);
+    });
     //set the result layer in app state so that it can update the Legend component and its opacity control
     this.setState({resultsLayer: this.map.getLayer(CONSTANTS.RESULTS_LAYER_NAME)});
     //add the planning unit layer 
@@ -2287,7 +2286,7 @@ class App extends React.Component {
         'fill-outline-color': "rgba(150, 150, 150, " + CONSTANTS.PU_LAYER_OPACITY + ")",
         'fill-opacity': CONSTANTS.PU_LAYER_OPACITY
       }
-    }, beforeLayer);
+    });
     //add the planning units manual edit layer - this layer shows which individual planning units have had their status changed
     this.addMapLayer({
       'id': CONSTANTS.STATUS_LAYER_NAME,
@@ -2305,7 +2304,7 @@ class App extends React.Component {
         'line-color': "rgba(150, 150, 150, 0)",
         'line-width': CONSTANTS.STATUS_LAYER_LINE_WIDTH
       }
-    }, beforeLayer);
+    });
   }
 
   removePlanningGridLayers() {
@@ -2386,11 +2385,16 @@ class App extends React.Component {
   }
   //centralised code to add a layer to the maps current style
   addMapLayer(mapLayer, beforeLayer){
-    if (beforeLayer){
-      this.map.addLayer(mapLayer, beforeLayer);
-    }else{
-      this.map.addLayer(mapLayer);
+    //if a beforeLayer is not passed get the first symbol layer (i.e. label layer) and we will add all fill or line layers before this
+    if (!beforeLayer){
+      var allLayers = this.map.getStyle().layers; 
+      //get the symbol layers
+      let symbollayers = allLayers.filter(item => (item.type==='symbol'));
+      //get the first symbol layer if there are some, otherwise an empty string
+      beforeLayer = (symbollayers.length) ? symbollayers[0].id : '';
     }
+    //add the layer
+    this.map.addLayer(mapLayer, beforeLayer);
   }
   //centralised code to remove a layer from the maps current style
   removeMapLayer(layerid){
