@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2020 Andrew Cottam.
+ *
+ * This file is part of marxanweb/marxan-client
+ * (see https://github.com/marxanweb/marxan-client).
+ *
+ * License: European Union Public Licence V. 1.2, see https://opensource.org/licenses/EUPL-1.2
+ */
 //application level global constants
 module.exports = Object.freeze({
     MARXAN_REGISTRY: "https://marxanweb.github.io/general/registry/marxan.json", //url to the marxan registry
