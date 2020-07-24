@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2020 Andrew Cottam.
+ *
+ * This file is part of marxanweb/marxan-client
+ * (see https://github.com/marxanweb/marxan-client).
+ *
+ * License: European Union Public Licence V. 1.2, see https://opensource.org/licenses/EUPL-1.2
+ */
 import React from 'react';
 import MarxanDialog from './MarxanDialog';
 import FileUpload from './FileUpload.js';
@@ -42,7 +50,7 @@ class ImportCostsDialog extends React.Component {
 			onOk={this.onOk.bind(this)}
 			onCancel={this.deleteCostFileThenClose.bind(this)}
 			onRequestClose={this.deleteCostFileThenClose.bind(this)}
-			helpLink={"user.html#import-costs-window"}
+			helpLink={"user.html#importing-a-cost-surface"}
 			children={            
 			<React.Fragment key="k8">
 				<FileUpload 

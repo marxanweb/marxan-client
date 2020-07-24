@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2020 Andrew Cottam.
+ *
+ * This file is part of marxanweb/marxan-client
+ * (see https://github.com/marxanweb/marxan-client).
+ *
+ * License: European Union Public Licence V. 1.2, see https://opensource.org/licenses/EUPL-1.2
+ */
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlusCircle } from '@fortawesome/free-solid-svg-icons';
@@ -172,7 +180,7 @@ class FeaturesDialog extends React.Component {
     render() {
         if (this.props.allFeatures) {
           return (
-              <MarxanDialog {...this.props} autoDetectWindowHeight={ false } bodyStyle={ { padding: '0px 24px 0px 24px' } } title="Features" onOk={ this.onOk.bind(this) } showCancelButton={this.props.addingRemovingFeatures} helpLink={"user.html#the-features-window"} showSearchBox={true} searchTextChanged={this.searchTextChanged.bind(this)}
+              <MarxanDialog {...this.props} autoDetectWindowHeight={ false } bodyStyle={ { padding: '0px 24px 0px 24px' } } title="Features" onOk={ this.onOk.bind(this) } showCancelButton={this.props.addingRemovingFeatures} helpLink={(this.props.addingRemovingFeatures) ? "user.html#adding-and-removing-features" :"user.html#the-features-window"} showSearchBox={true} searchTextChanged={this.searchTextChanged.bind(this)}
           children={ <React.Fragment key="k10">
                         <div id="projectsTable">
                           <MarxanTable 

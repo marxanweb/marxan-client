@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2020 Andrew Cottam.
+ *
+ * This file is part of marxanweb/marxan-client
+ * (see https://github.com/marxanweb/marxan-client).
+ *
+ * License: European Union Public Licence V. 1.2, see https://opensource.org/licenses/EUPL-1.2
+ */
 import React from 'react';
 import MarxanDialog from './MarxanDialog';
 import ToolbarButton from './ToolbarButton';
@@ -83,14 +91,14 @@ class ImportProjectDialog extends React.Component {
 		return (
 			<MarxanDialog 
 				{...this.props} 
-				title={'Import existing Marxan project'}
+				title={'Import Marxan DOS project'}
 				contentWidth={390}
 				children={c} 
 				okLabel={"Cancel"}
 				actions={actions} 
 				onOk={this.onOk.bind(this)}
 				onRequestClose={this.onOk.bind(this)} 
-				helpLink={"user.html#importing-existing-marxan-projects"}
+				helpLink={"user.html#importing-marxan-dos-projects"}
 			/>
 		);
 	}

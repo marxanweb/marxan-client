@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2020 Andrew Cottam.
+ *
+ * This file is part of marxanweb/marxan-client
+ * (see https://github.com/marxanweb/marxan-client).
+ *
+ * License: European Union Public Licence V. 1.2, see https://opensource.org/licenses/EUPL-1.2
+ */
 import React from 'react';
 import CONSTANTS from './constants';
 import MarxanDialog from './MarxanDialog';
@@ -32,7 +40,7 @@ class CostsDialog extends React.Component {
 			offsetY={80}
 			title="Costs" 
 			onRequestClose={this.props.closeCostsDialog}
-			helpLink={"user.html#costs-window"}
+			helpLink={"user.html#importing-a-cost-surface"}
 			children={            
 			<React.Fragment key="k8">
 	            <ReactTable 

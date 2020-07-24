@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2020 Andrew Cottam.
+ *
+ * This file is part of marxanweb/marxan-client
+ * (see https://github.com/marxanweb/marxan-client).
+ *
+ * License: European Union Public Licence V. 1.2, see https://opensource.org/licenses/EUPL-1.2
+ */
 import React from 'react';
 import MarxanDialog from './MarxanDialog';
 import ReactTable from "react-table";
@@ -24,7 +32,7 @@ class ProjectsListDialog extends React.Component {
 					bodyStyle={{ padding:'0px 24px 0px 24px'}}
 					title= {this.props.title} 
 					contentWidth={500}
-					helpLink={"user.html#deleting-features"}
+					helpLink={"user.html#projects-list"}
 					children={
 						<React.Fragment key="k24">
 							<div style={{marginBottom:'5px'}}>{this.props.heading}</div>

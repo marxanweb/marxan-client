@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2020 Andrew Cottam.
+ *
+ * This file is part of marxanweb/marxan-client
+ * (see https://github.com/marxanweb/marxan-client).
+ *
+ * License: European Union Public Licence V. 1.2, see https://opensource.org/licenses/EUPL-1.2
+ */
 import React from "react";
 import MarxanDialog from "./MarxanDialog";
 import MarxanTextField from './MarxanTextField';
@@ -39,7 +47,7 @@ class ImportGBIFDialog extends React.Component {
                 contentWidth={390}
                 offsetY={80}
                 title="Import GBIF data"
-                helpLink={"user.html#import-gbif-data"}
+                helpLink={"user.html#importing-from-the-global-biodiversity-information-facility-gbif"}
                 onOk={this.onOk.bind(this)}
                 okDisabled={this.state.selectedItem===undefined || this.props.loading}
                 showCancelButton={true}

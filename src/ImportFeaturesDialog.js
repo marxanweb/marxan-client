@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2020 Andrew Cottam.
+ *
+ * This file is part of marxanweb/marxan-client
+ * (see https://github.com/marxanweb/marxan-client).
+ *
+ * License: European Union Public Licence V. 1.2, see https://opensource.org/licenses/EUPL-1.2
+ */
 import * as React from 'react';
 import MarxanDialog from './MarxanDialog';
 import MarxanTextField from './MarxanTextField';
@@ -151,7 +159,7 @@ class ImportFeaturesDialog extends React.Component {
 				children={children} 
 				actions={actions}  
 				onRequestClose={this.closeDialog.bind(this)} 
-				helpLink={"user.html#importing-existing-features"}
+				helpLink={"user.html#importing-from-a-shapefile"}
 			/>
 		);
 	}

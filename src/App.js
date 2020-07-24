@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2020 Andrew Cottam.
+ *
+ * This file is part of marxanweb/marxan-client
+ * (see https://github.com/marxanweb/marxan-client).
+ *
+ * License: European Union Public Licence V. 1.2, see https://opensource.org/licenses/EUPL-1.2
+ */
 /*global fetch*/
 /*global URLSearchParams*/
 /*global AbortController*/
@@ -453,8 +461,13 @@ class App extends React.Component {
   //called when any websocket message is received - this logic removes duplicate messages
   wsMessageCallback(message) {
     //dont log any clumping projects
+<<<<<<< HEAD
     if (this.state.clumpingRunning) return;
     //log the message
+=======
+    if (message.user === '_clumping') return;
+    //log the message 
+>>>>>>> 7d553858e717144fb2390ac86bb253c62c5a1fb9
     this.logMessage(message);
     switch (message.status) {
       case "Started": //from the open method of all MarxanWebSocketHandler subclasses
@@ -2857,7 +2870,10 @@ class App extends React.Component {
 
   //adds the results, planning unit, planning unit edit etc layers to the map
   addPlanningGridLayers(tileset) {
+<<<<<<< HEAD
     var beforeLayer = this.state.basemap === "North Star" ? "" : "";
+=======
+>>>>>>> 7d553858e717144fb2390ac86bb253c62c5a1fb9
     //add the source for the planning unit layers
     this.map.addSource(CONSTANTS.PLANNING_UNIT_SOURCE_NAME, {
       type: "vector",
@@ -2883,8 +2899,18 @@ class App extends React.Component {
           "fill-opacity": CONSTANTS.RESULTS_LAYER_OPACITY,
         },
       },
+<<<<<<< HEAD
       beforeLayer
     );
+=======
+      'source-layer': tileset.name,
+      'paint': {
+        'fill-color': "rgba(0, 0, 0, 0)",
+        'fill-outline-color': "rgba(0, 0, 0, 0)",
+        "fill-opacity": CONSTANTS.RESULTS_LAYER_OPACITY
+      }
+    });
+>>>>>>> 7d553858e717144fb2390ac86bb253c62c5a1fb9
     //add the planning units costs layer
     this.addMapLayer(
       {
@@ -2905,8 +2931,18 @@ class App extends React.Component {
           "fill-opacity": CONSTANTS.PU_COSTS_LAYER_OPACITY,
         },
       },
+<<<<<<< HEAD
       beforeLayer
     );
+=======
+      'source-layer': tileset.name,
+      'paint': {
+        'fill-color': "rgba(255, 0, 0, 0)",
+        'fill-outline-color': "rgba(150, 150, 150, 0)",
+        'fill-opacity': CONSTANTS.PU_COSTS_LAYER_OPACITY
+      }
+    });
+>>>>>>> 7d553858e717144fb2390ac86bb253c62c5a1fb9
     //set the result layer in app state so that it can update the Legend component and its opacity control
     this.setState({
       resultsLayer: this.map.getLayer(CONSTANTS.RESULTS_LAYER_NAME),
@@ -2932,8 +2968,18 @@ class App extends React.Component {
           "fill-opacity": CONSTANTS.PU_LAYER_OPACITY,
         },
       },
+<<<<<<< HEAD
       beforeLayer
     );
+=======
+      'source-layer': tileset.name,
+      'paint': {
+        'fill-color': "rgba(0, 0, 0, 0)",
+        'fill-outline-color': "rgba(150, 150, 150, " + CONSTANTS.PU_LAYER_OPACITY + ")",
+        'fill-opacity': CONSTANTS.PU_LAYER_OPACITY
+      }
+    });
+>>>>>>> 7d553858e717144fb2390ac86bb253c62c5a1fb9
     //add the planning units manual edit layer - this layer shows which individual planning units have had their status changed
     this.addMapLayer(
       {
@@ -2953,8 +2999,17 @@ class App extends React.Component {
           "line-width": CONSTANTS.STATUS_LAYER_LINE_WIDTH,
         },
       },
+<<<<<<< HEAD
       beforeLayer
     );
+=======
+      'source-layer': tileset.name,
+      'paint': {
+        'line-color': "rgba(150, 150, 150, 0)",
+        'line-width': CONSTANTS.STATUS_LAYER_LINE_WIDTH
+      }
+    });
+>>>>>>> 7d553858e717144fb2390ac86bb253c62c5a1fb9
   }
 
   removePlanningGridLayers() {
@@ -3046,12 +3101,25 @@ class App extends React.Component {
       this.map.setLayoutProperty(id, "visibility", "none");
   }
   //centralised code to add a layer to the maps current style
+<<<<<<< HEAD
   addMapLayer(mapLayer, beforeLayer) {
     if (beforeLayer) {
       this.map.addLayer(mapLayer, beforeLayer);
     } else {
       this.map.addLayer(mapLayer);
+=======
+  addMapLayer(mapLayer, beforeLayer){
+    //if a beforeLayer is not passed get the first symbol layer (i.e. label layer) and we will add all fill or line layers before this
+    if (!beforeLayer){
+      var allLayers = this.map.getStyle().layers; 
+      //get the symbol layers
+      let symbollayers = allLayers.filter(item => (item.type==='symbol'));
+      //get the first symbol layer if there are some, otherwise an empty string
+      beforeLayer = (symbollayers.length) ? symbollayers[0].id : '';
+>>>>>>> 7d553858e717144fb2390ac86bb253c62c5a1fb9
     }
+    //add the layer
+    this.map.addLayer(mapLayer, beforeLayer);
   }
   //centralised code to remove a layer from the maps current style
   removeMapLayer(layerid) {
@@ -3634,12 +3702,18 @@ class App extends React.Component {
     this.setState({ welcomeDialogOpen: true });
   }
   openFeaturesDialog(showClearSelectAll) {
+<<<<<<< HEAD
     //refresh the features list if we are using a hosted service - other users could have created/deleted items
     if (this.state.marxanServer.system !== "Windows") this.refreshFeatures();
     this.setState({
       featuresDialogOpen: true,
       addingRemovingFeatures: showClearSelectAll,
     });
+=======
+    //refresh the features list if we are using a hosted service (other users could have created/deleted items) and the project is not imported (only project features are shown)
+    if (this.state.marxanServer.system !== "Windows" && !this.state.metadata.OLDVERSION) this.refreshFeatures();
+    this.setState({ featuresDialogOpen: true, addingRemovingFeatures: showClearSelectAll});
+>>>>>>> 7d553858e717144fb2390ac86bb253c62c5a1fb9
     if (showClearSelectAll) this.getSelectedFeatureIds();
   }
   closeFeaturesDialog() {
@@ -4246,10 +4320,15 @@ class App extends React.Component {
   //refreshes the allFeatures state
   refreshFeatures() {
     //refresh all features
+<<<<<<< HEAD
     this.getFeatures().then((response) => {
       //get the existing feature ids
+=======
+    this.getFeatures().then((response)=>{
+      //get the existing feature ids in the client
+>>>>>>> 7d553858e717144fb2390ac86bb253c62c5a1fb9
       let existingIds = this.getFeatureIds(this.state.allFeatures);
-      //get the new feature ids
+      //get the new feature ids in the server
       let newIds = this.getFeatureIds(response.data);
       //get the features that have been removed as a set
       let removedIds = new Set([...existingIds].filter((x) => !newIds.has(x)));
@@ -5308,6 +5387,18 @@ class App extends React.Component {
         });
     });
   }
+  
+  //cleans up the server - removes dissolved WDPA feature classes, deletes orphaned feature classes, scratch feature classes and clumping files
+  cleanup(){
+    return new Promise((resolve, reject) => {
+      this._get("cleanup?").then((response) => {
+        resolve();
+      }).catch((error) => {
+        reject(error);
+      });
+    });
+  }
+  
   render() {
     const message = (
       <span
@@ -5377,6 +5468,7 @@ class App extends React.Component {
             userRole={this.state.userData.ROLE}
             marxanServer={this.state.marxanServer}
             metadata={this.state.metadata}
+            cleanup={this.cleanup.bind(this)}
           />
           <UserMenu
             open={this.state.userMenuOpen}

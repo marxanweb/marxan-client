@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2020 Andrew Cottam.
+ *
+ * This file is part of marxanweb/marxan-client
+ * (see https://github.com/marxanweb/marxan-client).
+ *
+ * License: European Union Public Licence V. 1.2, see https://opensource.org/licenses/EUPL-1.2
+ */
 import React from 'react';
 import CONSTANTS from './constants';
 import 'react-table/react-table.css';
@@ -183,16 +191,16 @@ class InfoPanel extends React.Component {
 										<div className={'tabTitle tabTitleInlineBlock'}>Planning Grid</div>
 									</div>
 									<div className={'description'}>{this.props.metadata.pu_alias}</div>
+									<div>
+										<div className={'tabTitle tabTitleTopMargin'}>Statuses</div>
+									</div>
 									<div style={{display: (this.props.userRole === "ReadOnly") ? 'none' : 'block'}}>
-										<div>
-											<div className={'tabTitle tabTitleTopMargin'}>Statuses</div>
-										</div>
-					    	        <div className={'puManualEditContainer'}>
-										<FontAwesomeIcon icon={(this.props.puEditing) ? faSave : faLock} onClick={this.startStopPuEditSession.bind(this)} title={(this.props.puEditing) ? "Save" : "Manually edit"} style={{cursor:'pointer', marginLeft:'3px',marginRight: '10px', color: 'rgba(255, 64, 129, 0.7)'}}/>
-										<div style={{display: (this.props.puEditing) ? "inline-block" : "none"}} className={'puManualEditClear'}>
-											<FontAwesomeIcon icon={faEraser} onClick={this.props.clearManualEdits.bind(this)} title={'Clear all manual edits'} style={{cursor:'pointer',color: 'rgba(255, 64, 129, 0.7)'}}/>
-										</div>
-										<div className={'description'} style={{display: 'inline-block',fontSize:'12px',paddingLeft:'7px'}}>{(this.props.puEditing) ? "Click on the map to change the status" : "Manually edit"}</div>
+					    	        	<div className={'puManualEditContainer'}>
+											<FontAwesomeIcon icon={(this.props.puEditing) ? faSave : faLock} onClick={this.startStopPuEditSession.bind(this)} title={(this.props.puEditing) ? "Save" : "Manually edit"} style={{cursor:'pointer', marginLeft:'3px',marginRight: '10px', color: 'rgba(255, 64, 129, 0.7)'}}/>
+											<div style={{display: (this.props.puEditing) ? "inline-block" : "none"}} className={'puManualEditClear'}>
+												<FontAwesomeIcon icon={faEraser} onClick={this.props.clearManualEdits.bind(this)} title={'Clear all manual edits'} style={{cursor:'pointer',color: 'rgba(255, 64, 129, 0.7)'}}/>
+											</div>
+											<div className={'description'} style={{display: 'inline-block',fontSize:'12px',paddingLeft:'7px'}}>{(this.props.puEditing) ? "Click on the map to change the status" : "Manually edit"}</div>
 										</div>
 									</div>
 									<SelectField 

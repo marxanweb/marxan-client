@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2020 Andrew Cottam.
+ *
+ * This file is part of marxanweb/marxan-client
+ * (see https://github.com/marxanweb/marxan-client).
+ *
+ * License: European Union Public Licence V. 1.2, see https://opensource.org/licenses/EUPL-1.2
+ */
 /*global fetch*/
 /*global DOMParser*/
 import * as React from 'react';
@@ -183,7 +191,7 @@ class ImportFromWebDialog extends React.Component {
 				children={children} 
 				actions={actions}  
 				onRequestClose={this.closeDialog.bind(this)} 
-				helpLink={"user.html#importing-from-web"}
+				helpLink={"user.html#importing-from-the-web"}
 			/>
 		);
 	}

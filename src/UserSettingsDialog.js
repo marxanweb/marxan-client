@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2020 Andrew Cottam.
+ *
+ * This file is part of marxanweb/marxan-client
+ * (see https://github.com/marxanweb/marxan-client).
+ *
+ * License: European Union Public Licence V. 1.2, see https://opensource.org/licenses/EUPL-1.2
+ */
 import React from 'react';
 import MarxanDialog from './MarxanDialog';
 import SelectField from 'material-ui/SelectField';
@@ -40,7 +48,7 @@ class UserSettingsDialog extends React.Component {
                                 offsetY={80}
                                 showCancelButton={false}
                                 onOk={this.updateOptions.bind(this)}
-                                helpLink={"user.html#settings"}
+                                helpLink={"user.html#user-settings"}
                                 title="Settings" 
                                 children={
                                         <div key="k14">
