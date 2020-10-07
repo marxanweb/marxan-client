@@ -29,7 +29,7 @@ class Log extends React.Component {
     	        {/*all other messages*/}
     	        <div style={{display:'inline'}} dangerouslySetInnerHTML={{__html: this.props.message.info}}/>
     	        {/*timestamp*/}
-    	        <div className='timestamp' style={{display: (this.props.className.includes("logFinish")) ? 'inline' : 'none'}}>{this.props.message.timestamp.toLocaleString()}</div>
+    	        <div className='timestamp' style={{display: (this.props.className.includes("logFinish")) ? 'inline' : 'none'}}>{(this.props.message.hasOwnProperty('timestamp')) ? this.props.message.timestamp.toLocaleString() : ''}</div>
     	    </div>
     	);
 	}
