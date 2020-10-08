@@ -1553,10 +1553,9 @@ class App extends React.Component {
         formData.append('filename', filepath);
         formData.append('value', file);
         this.log({method:'uploadFiles',status:'Uploading',info:"Uploading: " + file.webkitRelativePath});
-        return this._post("uploadFile", formData);
+        await this._post("uploadFile", formData);
       }
     }
-    return 'All files uploaded';
   }
 
   //uploads a single file to the current projects input folder
@@ -2871,7 +2870,7 @@ class App extends React.Component {
               //if there is an error from mapbox then raise it
               if (response.error){
                 reject(response.error);
-                this.log({error: response.error, status:'UploadFailed'});
+                this.log({error: "Mapbox upload error: " + response.error, status:'UploadFailed'});
                 //clear the timer
                 this.clearMapboxTimer(uploadid);
               }
