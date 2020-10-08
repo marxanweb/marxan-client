@@ -1890,8 +1890,8 @@ class App extends React.Component {
         expression = ["match", ["get", "puid"]];
         //iterate through the cost data and set the expressions
         cost_data.data.forEach((row, index) => {
-          //add the color to the expression with the puids
-          expression.push(row[1], CONSTANTS.COST_COLORS[index]);
+          //get the branch labels, i.e. the puids for this histogram bin - they could be empty
+          if (row[1].length > 0) expression.push(row[1], CONSTANTS.COST_COLORS[index]);
         });
         // Last value is the default
         expression.push("rgba(150, 150, 150, 0)");
@@ -2870,7 +2870,11 @@ class App extends React.Component {
               //if there is an error from mapbox then raise it
               if (response.error){
                 reject(response.error);
-                this.log({error: "Mapbox upload error: " + response.error, status:'UploadFailed'});
+                let err = "Mapbox upload error: " + response.error + ". See <a href='" + CONSTANTS.ERRORS_PAGE + "#mapbox-upload-error' target='blank'>here</a>";
+                //log the error
+                this.log({error: err, status:'UploadFailed'});
+                //set the snackbox
+                this.setSnackBar(err);
                 //clear the timer
                 this.clearMapboxTimer(uploadid);
               }
