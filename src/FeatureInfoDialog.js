@@ -66,6 +66,9 @@ class FeatureInfoDialog extends React.Component {
 			case 'Total area':
 				html = (props.row.value === -1) ? this.getHTML("Not calculated", "Total areas are not available for imported projects") : this.getAreaHTML(props, props.original.hint);
 				break;
+			case 'Total':
+				html = this.getHTML(props.row.value);
+				break;
 			case 'Target percent':
 				html = (this.props.userRole === "ReadOnly") ? <div>{props.row.value}</div> : <div contentEditable suppressContentEditableWarning title="Click to edit" onBlur={this.updateFeatureValue.bind(this, "target_value")} onKeyPress={this.onKeyPress.bind(this, "target_value")}>{props.row.value}</div>;
 				break;
@@ -78,14 +81,23 @@ class FeatureInfoDialog extends React.Component {
 			case 'Planning grid area':
 				html = (props.row.value === -1) ? this.getHTML("Not calculated", "Calculated during pre-processing") : this.getAreaHTML(props);
 				break;
+			case 'Planning grid amount':
+				html = (props.row.value === -1) ? this.getHTML("Not calculated", "Calculated during pre-processing") : this.getHTML(props.row.value);
+				break;
 			case 'Planning unit count':
 				html = (props.row.value === -1) ? this.getHTML("Not calculated", "Calculated during pre-processing") : this.getHTML(props.row.value);
 				break;
 			case 'Target area':
 				html = (props.row.value === -1) ? this.getHTML("Not calculated", "Calculated during a Marxan run") : this.getAreaHTML(props);
 				break;
+			case 'Target amount':
+				html = (props.row.value === -1) ? this.getHTML("Not calculated", "Calculated during pre-processing") : this.getHTML(props.row.value);
+				break;
 			case 'Area protected':
 				html = (props.row.value === -1) ? this.getHTML("Not calculated", "Calculated during a Marxan run") : this.getAreaHTML(props);
+				break;
+			case 'Protected amount':
+				html = (props.row.value === -1) ? this.getHTML("Not calculated", "Calculated during pre-processing") : this.getHTML(props.row.value);
 				break;
 			default:
 				break;
@@ -96,7 +108,8 @@ class FeatureInfoDialog extends React.Component {
 			if (this.props.feature){
 				let data =[];
 				//iterate through the feature properties and set the data to bind to the table - if it is a feature from the old version of marxan then showForOld must be true for that property to be shown
-				CONSTANTS.FEATURE_PROPERTIES.forEach((item)=>{
+				let properties = (this.props.feature.source === 'Imported shapefile') ? CONSTANTS.FEATURE_PROPERTIES_POLYGONS : CONSTANTS.FEATURE_PROPERTIES_POINTS;
+				properties.forEach((item)=>{
 					if ((!this.props.feature.old_version && item.showForNew) || (this.props.feature.old_version && item.showForOld)){
 						data.push({key: item.key, value: this.props.feature[item.name], hint: item.hint});
 					}
