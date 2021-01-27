@@ -24,6 +24,9 @@ class FeatureDialog extends React.Component {
 		this.props.getProjectList(this.props.feature_metadata, "feature");
 	}
 	render() {
+		//get the area or amount depending on whether the feature is a polygon or a point layer
+		let amount = (this.props.feature_metadata.source === 'Imported shapefile') ? getArea(this.props.feature_metadata.area, this.props.reportUnits, true) : this.props.feature_metadata.area;
+		let unit = (this.props.feature_metadata.source === 'Imported shapefile') ? 'Area' : 'Amount';
 		return (
 			<MarxanDialog
 				{...this.props}
@@ -51,8 +54,8 @@ class FeatureDialog extends React.Component {
 										<td colSpan='2' className='metadataItemValue2'>{this.props.feature_metadata.description}</td>
 									</tr>
 									<tr>
-										<td className='metadataItemTitle'>Area:</td>
-										<td className='metadataItemValue'>{getArea(this.props.feature_metadata.area, this.props.reportUnits, true)}</td>
+										<td className='metadataItemTitle'>{unit}</td>
+										<td className='metadataItemValue'>{amount}</td>
 									</tr>
 									<tr>
 										<td className='metadataItemTitle'>Created:</td>

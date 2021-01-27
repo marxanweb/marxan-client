@@ -1553,10 +1553,9 @@ class App extends React.Component {
         formData.append('filename', filepath);
         formData.append('value', file);
         this.log({method:'uploadFiles',status:'Uploading',info:"Uploading: " + file.webkitRelativePath});
-        return this._post("uploadFile", formData);
+        await this._post("uploadFile", formData);
       }
     }
-    return 'All files uploaded';
   }
 
   //uploads a single file to the current projects input folder
@@ -1891,8 +1890,8 @@ class App extends React.Component {
         expression = ["match", ["get", "puid"]];
         //iterate through the cost data and set the expressions
         cost_data.data.forEach((row, index) => {
-          //add the color to the expression with the puids
-          expression.push(row[1], CONSTANTS.COST_COLORS[index]);
+          //get the branch labels, i.e. the puids for this histogram bin - they could be empty
+          if (row[1].length > 0) expression.push(row[1], CONSTANTS.COST_COLORS[index]);
         });
         // Last value is the default
         expression.push("rgba(150, 150, 150, 0)");
@@ -2417,6 +2416,9 @@ class App extends React.Component {
     if (this.map){
       let layer = this.map.getLayer(layerId);
       switch (layer.type) {
+        case 'circle':
+          this.map.setPaintProperty(layerId, 'circle-opacity', opacity);
+          break;
         case 'fill':
           this.map.setPaintProperty(layerId, 'fill-opacity', opacity);
           break;
@@ -2871,7 +2873,11 @@ class App extends React.Component {
               //if there is an error from mapbox then raise it
               if (response.error){
                 reject(response.error);
-                this.log({error: response.error, status:'UploadFailed'});
+                let err = "Mapbox upload error: " + response.error + ". See <a href='" + CONSTANTS.ERRORS_PAGE + "#mapbox-upload-error' target='blank'>here</a>";
+                //log the error
+                this.log({error: err, status:'UploadFailed'});
+                //set the snackbox
+                this.setSnackBar(err);
                 //clear the timer
                 this.clearMapboxTimer(uploadid);
               }
@@ -3436,7 +3442,7 @@ class App extends React.Component {
   //toggles the feature layer on the map
   toggleFeatureLayer(feature){
     if (feature.tilesetid === ''){
-      this.setSnackBar("This feature does not have an associated tileset on Mapbox. See <a href='" + CONSTANTS.ERRORS_PAGE + "#the-tileset-from-source-source-was-not-found' target='blank'>here</a>");
+      this.setSnackBar("This feature does not have a tileset on Mapbox. See <a href='" + CONSTANTS.ERRORS_PAGE + "#the-tileset-from-source-source-was-not-found' target='blank'>here</a>");
       return;
     }
     // this.closeFeatureMenu();
@@ -3451,13 +3457,31 @@ class App extends React.Component {
       var layers = this.getLayers([CONSTANTS.LAYER_TYPE_FEATURE_PLANNING_UNIT_LAYER]);
       //get the before layer
       let beforeLayer = (layers.length > 0) ? layers[0].id : "";
+      //get the paint property
+      let paintProperty, typeProperty;
+      if (feature.source !== 'Imported shapefile (points)')  {
+          paintProperty = {
+            'fill-color': feature.color,
+            'fill-opacity': CONSTANTS.FEATURE_LAYER_OPACITY,
+            'fill-outline-color': "rgba(0, 0, 0, 0.2)"
+          };
+          typeProperty = "fill";
+        }else{
+          paintProperty = {
+            'circle-color': feature.color,
+            'circle-opacity': CONSTANTS.FEATURE_LAYER_OPACITY,
+            'circle-stroke-color': "rgba(0, 0, 0, 0.7)",
+            'circle-radius': 3,
+          };
+          typeProperty = "circle";
+        }
       this.addMapLayer({
         'id': layerId,
         'metadata':{
           'name': feature.alias,
           'type': CONSTANTS.LAYER_TYPE_FEATURE_LAYER
         },
-        'type': "fill",
+        'type': typeProperty,
         'source': {
           'type': "vector",
           'url': "mapbox://" + feature.tilesetid
@@ -3466,11 +3490,7 @@ class App extends React.Component {
           "visibility": "visible"
         },
         'source-layer': layerName,
-        'paint': {
-          'fill-color': feature.color,
-          'fill-opacity': CONSTANTS.FEATURE_LAYER_OPACITY,
-          'fill-outline-color': "rgba(0, 0, 0, 0.2)"
-        }
+        'paint': paintProperty,
       }, beforeLayer); //add it before the layer that shows the planning unit outlines for the feature
       this.updateFeature(feature, {feature_layer_loaded: true});
     }

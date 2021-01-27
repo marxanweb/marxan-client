@@ -6,6 +6,17 @@
  *
  * License: European Union Public Licence V. 1.2, see https://opensource.org/licenses/EUPL-1.2
  */
+var FEATURE_PROPERTIES_CORE = [{ name: 'id', key: 'ID', hint: 'The unique identifier for the feature', showForOld: false, showForNew: false },
+    { name: 'alias', key: 'Alias', hint: 'A human readable name for the feature', showForOld: false, showForNew: false },
+    { name: 'feature_class_name', key: 'Feature class name', hint: 'The internal name for the feature in the PostGIS database', showForOld: false, showForNew: false },
+    { name: 'description', key: 'Description', hint: 'Full description of the feature', showForOld: false, showForNew: false },
+    { name: 'creation_date', key: 'Creation date', hint: 'The date the feature was created or imported', showForOld: false, showForNew: false },
+    { name: 'tilesetid', key: 'Mapbox ID', hint: 'The unique identifier of the feature tileset in Mapbox', showForOld: false, showForNew: false },
+    { name: 'target_value', key: 'Target percent', hint: 'The target percentage for the feature within the planning grid', showForOld: true, showForNew: true },
+    { name: 'spf', key: 'Species Penalty Factor', hint: 'The species penalty factor is used to weight the likelihood of getting a species in the results', showForOld: true, showForNew: true },
+    { name: 'preprocessed', key: 'Preprocessed', hint: 'Whether or not the feature has been intersected with the planning units', showForOld: false, showForNew: true },
+    { name: 'pu_count', key: 'Planning unit count', hint: 'The number of planning units that intersect the feature (calculated during pre-processing)', showForOld: true, showForNew: true }
+];
 //application level global constants
 module.exports = Object.freeze({
     MARXAN_REGISTRY: "https://marxanweb.github.io/general/registry/marxan.json", //url to the marxan registry
@@ -53,19 +64,16 @@ module.exports = Object.freeze({
     COST_COLORS: ['rgba(255,255,204,0.8)', 'rgba(255,237,160,0.8)', 'rgba(254,217,118,0.8)', 'rgba(254,178,76,0.8)', 'rgba(253,141,60,0.8)', 'rgba(252,78,42,0.8)', 'rgba(227,26,28,0.8)', 'rgba(189,0,38,0.8)', 'rgba(128,0,38,0.8)'],
     UNIFORM_COST_NAME: 'Equal area',
     //an array of feature property information that is used in the Feature Information dialog box - showForOld sets whether that property is shown for old versions of marxan
-    FEATURE_PROPERTIES: [{ name: 'id', key: 'ID', hint: 'The unique identifier for the feature', showForOld: false, showForNew: false },
-        { name: 'alias', key: 'Alias', hint: 'A human readable name for the feature', showForOld: false, showForNew: false },
-        { name: 'feature_class_name', key: 'Feature class name', hint: 'The internal name for the feature in the PostGIS database', showForOld: false, showForNew: false },
-        { name: 'description', key: 'Description', hint: 'Full description of the feature', showForOld: false, showForNew: false },
-        { name: 'creation_date', key: 'Creation date', hint: 'The date the feature was created or imported', showForOld: false, showForNew: false },
-        { name: 'tilesetid', key: 'Mapbox ID', hint: 'The unique identifier of the feature tileset in Mapbox', showForOld: false, showForNew: false },
+    FEATURE_PROPERTIES_POLYGONS: FEATURE_PROPERTIES_CORE.concat([
         { name: 'area', key: 'Total area', hint: 'The total area for the feature in Km2 (i.e. globally)', showForOld: false, showForNew: false },
-        { name: 'target_value', key: 'Target percent', hint: 'The target percentage for the feature within the planning grid', showForOld: true, showForNew: true },
-        { name: 'spf', key: 'Species Penalty Factor', hint: 'The species penalty factor is used to weight the likelihood of getting a species in the results', showForOld: true, showForNew: true },
-        { name: 'preprocessed', key: 'Preprocessed', hint: 'Whether or not the feature has been intersected with the planning units', showForOld: false, showForNew: true },
-        { name: 'pu_count', key: 'Planning unit count', hint: 'The number of planning units that intersect the feature (calculated during pre-processing)', showForOld: true, showForNew: true },
         { name: 'pu_area', key: 'Planning grid area', hint: 'The area of the feature within the planning grid in Km2 (calculated during pre-processing)', showForOld: true, showForNew: true },
         { name: 'target_area', key: 'Target area', hint: 'The total area that needs to be protected to achieve the target percentage in Km2 (calculated during a Marxan Run)', showForOld: true, showForNew: true },
         { name: 'protected_area', key: 'Area protected', hint: 'The total area protected in the current solution in Km2 (calculated during a Marxan Run)', showForOld: true, showForNew: true }
-    ]
+    ]),
+    FEATURE_PROPERTIES_POINTS: FEATURE_PROPERTIES_CORE.concat([
+        { name: 'area', key: 'Total', hint: 'The total amount for the feature (i.e. globally)', showForOld: false, showForNew: false },
+        { name: 'pu_area', key: 'Planning grid amount', hint: 'The total amount of the feature within the planning grid (calculated during pre-processing)', showForOld: true, showForNew: true },
+        { name: 'target_area', key: 'Target amount', hint: 'The amount that needs to be protected to achieve the target percentage (calculated during a Marxan Run)', showForOld: true, showForNew: true },
+        { name: 'protected_area', key: 'Protected amount', hint: 'The amount protected in the current solution (calculated during a Marxan Run)', showForOld: true, showForNew: true }
+    ])
 });

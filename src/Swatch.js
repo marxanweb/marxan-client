@@ -11,7 +11,7 @@ import Hexagon from 'react-hexagon';
 
 class Swatch extends React.Component {
 	render() {
-	    //get a slightly wider line if hte fill-color is not specified
+	    //get a slightly wider line if the fill-color is not specified
 	    let lineWidth = (this.props.item.fillColor === 'none') ? '1.5px' : '1px';
         switch (this.props.shape) {
             case 'hexagon':

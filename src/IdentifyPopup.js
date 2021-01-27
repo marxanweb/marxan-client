@@ -30,7 +30,11 @@ class IdentifyPopup extends React.Component {
 		if ((this.props.xy.x !== prevProps.xy.x)) this.restartTimer();
 	}
 	renderAmount(row) {
-		return <div title={row.original.amount}>{getArea(row.original.amount, this.props.reportUnits, true)}</div>;
+		if (row.original.source !== 'Imported shapefile (points)'){
+			return <div title={getArea(row.original.amount, this.props.reportUnits)}>{getArea(row.original.amount, this.props.reportUnits, true)}</div>;
+		}else{ //points
+			return <div title={row.original.amount}>{row.original.amount}</div>;
+		}
 	}
 	renderName(row) {
 		return <div title={row.original.alias}>{row.original.alias}</div>;
