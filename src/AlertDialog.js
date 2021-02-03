@@ -20,7 +20,10 @@ class AlertDialog extends React.Component {
         title="Alert"
         children={
           <div key="k23">
-              <div className={'description'}>A new version of the WDPA is available. <br/>Click on Help | Server Details for more information.</div>
+            <div className={"description"}>
+              A new version of the WDPA is available. <br />
+              Click on Help | Server Details for more information.
+            </div>
           </div>
         }
       />

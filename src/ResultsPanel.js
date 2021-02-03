@@ -147,7 +147,7 @@ class ResultsPanel extends React.Component {
               <Tab
                 label="Legend"
                 value="legend"
-                onActive={this.props.setActiveTab("legend")}
+                onActive={() => this.props.setActiveTab("legend")}
               >
                 <div className={"legendTab"}>
                   <MapLegend {...this.props} brew={this.props.brew} />
@@ -156,7 +156,7 @@ class ResultsPanel extends React.Component {
               <Tab
                 label="Solutions"
                 value="solutions"
-                onActive={this.props.setActiveTab("solutions")}
+                onActive={() => this.props.setActiveTab("solutions")}
               >
                 <div
                   id="solutionsPanel"
@@ -226,7 +226,7 @@ class ResultsPanel extends React.Component {
               <Tab
                 label="Log"
                 value="log"
-                onActive={this.props.setActiveTab("log")}
+                onActive={() => this.props.setActiveTab("log")}
                 style={{
                   display:
                     this.props.userRole === "ReadOnly" ? "none" : "block",

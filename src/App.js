@@ -5523,8 +5523,6 @@ class App extends React.Component {
             messages={this.state.logMessages}
             activeResultsTab={this.state.activeResultsTab}
             setActiveTab={this.setActiveTab.bind(this)}
-            setActiveTab={this.setActiveTab.bind(this)}
-            setActiveTab={this.setActiveTab.bind(this)}
             clearLog={this.clearLog.bind(this)}
             owner={this.state.owner}
             resultsLayer={this.state.resultsLayer}

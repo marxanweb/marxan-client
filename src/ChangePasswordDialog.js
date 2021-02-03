@@ -8,39 +8,45 @@
  */
 import React from "react";
 import MarxanDialog from "./MarxanDialog";
-import MarxanTextField from './MarxanTextField';
+import MarxanTextField from "./MarxanTextField";
 
 class ChangePasswordDialog extends React.Component {
-  constructor(props){
+  constructor(props) {
     super(props);
-    this.state = {currentPassword: '', newPassword1: '', newPassword2: '', };
+    this.state = { currentPassword: "", newPassword1: "", newPassword2: "" };
   }
-  setCurrentPassword(event, newValue){
-    this.setState({currentPassword: newValue});
+  setCurrentPassword(event, newValue) {
+    this.setState({ currentPassword: newValue });
   }
-  setNewPassword1(event, newValue){
-    this.setState({newPassword1: newValue});
+  setNewPassword1(event, newValue) {
+    this.setState({ newPassword1: newValue });
   }
-  setNewPassword2(event, newValue){
-    this.setState({newPassword2: newValue});
+  setNewPassword2(event, newValue) {
+    this.setState({ newPassword2: newValue });
   }
-  onOk(evt){
+  onOk(evt) {
     if (this.state.newPassword2 !== this.state.newPassword1) {
       this.passwordsDontMatch();
       return;
     }
-    this.props.checkPassword(this.props.user, this.state.currentPassword).then((response) => {
-      this.props.updateUser({PASSWORD: this.state.newPassword1}).then((response) => {
-        this.props.setSnackBar("Password updated");
-        this.props.onOk();
-      }).catch((error) =>{
-        this.props.setSnackBar("Password not updated");
+    this.props
+      .checkPassword(this.props.user, this.state.currentPassword)
+      .then((response) => {
+        this.props
+          .updateUser({ PASSWORD: this.state.newPassword1 })
+          .then((response) => {
+            this.props.setSnackBar("Password updated");
+            this.props.onOk();
+          })
+          .catch((error) => {
+            this.props.setSnackBar("Password not updated");
+          });
+      })
+      .catch((response) => {
+        this.props.setSnackBar("Invalid password");
       });
-    }).catch((response) => {
-      this.props.setSnackBar("Invalid password");
-    });
   }
-  passwordsDontMatch(){
+  passwordsDontMatch() {
     this.props.setSnackBar("Passwords don't match");
   }
   render() {
@@ -56,9 +62,27 @@ class ChangePasswordDialog extends React.Component {
         title="Change Password"
         children={
           <div key="k5">
-						<MarxanTextField floatingLabelText="Current password" onChange = {this.setCurrentPassword.bind(this)} floatingLabelShrinkStyle={{fontSize:'16px'}} floatingLabelFocusStyle={{fontSize:'16px'}} type="password"/>
-						<MarxanTextField floatingLabelText="New password" onChange = {this.setNewPassword1.bind(this)} floatingLabelShrinkStyle={{fontSize:'16px'}} floatingLabelFocusStyle={{fontSize:'16px'}} type="password"/>
-						<MarxanTextField floatingLabelText="Repeat password" onChange = {this.setNewPassword2.bind(this)} floatingLabelShrinkStyle={{fontSize:'16px'}} floatingLabelFocusStyle={{fontSize:'16px'}} type="password"/>
+            <MarxanTextField
+              floatingLabelText="Current password"
+              onChange={this.setCurrentPassword.bind(this)}
+              floatingLabelShrinkStyle={{ fontSize: "16px" }}
+              floatingLabelFocusStyle={{ fontSize: "16px" }}
+              type="password"
+            />
+            <MarxanTextField
+              floatingLabelText="New password"
+              onChange={this.setNewPassword1.bind(this)}
+              floatingLabelShrinkStyle={{ fontSize: "16px" }}
+              floatingLabelFocusStyle={{ fontSize: "16px" }}
+              type="password"
+            />
+            <MarxanTextField
+              floatingLabelText="Repeat password"
+              onChange={this.setNewPassword2.bind(this)}
+              floatingLabelShrinkStyle={{ fontSize: "16px" }}
+              floatingLabelFocusStyle={{ fontSize: "16px" }}
+              type="password"
+            />
           </div>
         }
       />

@@ -31,6 +31,10 @@ License: European Union Public Licence V. 1.2, see https://opensource.org/licens
 }
 
 @keyframes App-logo-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
