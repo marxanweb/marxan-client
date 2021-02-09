@@ -76,7 +76,7 @@ body {
 }
 
 .tabTitle {
-  font-Size: 14px;
+  font-size: 14px;
   color: rgb(255, 64, 129);
 }
 
@@ -116,7 +116,7 @@ body {
 
 .uploadFileTD {
   width: 155px;
-  background-color: #F7F7F7;
+  background-color: #f7f7f7;
   border-radius: 5px;
   /*border: 1px solid #F0F0F0;*/
 }
@@ -275,7 +275,6 @@ body {
   background-color: #e7e8e642;
 }
 
-
 table input {
   font-size: 13px;
 }
@@ -347,12 +346,11 @@ table input {
   text-decoration: underline;
   color: cadetblue;
   margin-left: 11px;
-
 }
 
 /*for the cells in the run parameters table so that they do not look different to the non-editable cells */
 
-div.rt-tbody>div>div>div>div {
+div.rt-tbody > div > div > div > div {
   background-color: rgba(0, 0, 0, 0) !important;
 }
 
@@ -492,7 +490,7 @@ input:-webkit-autofill {
 
 /*style for editable cells in ReactTables*/
 
-div.rt-tbody>div>div>div>div[contenteditable="true"] {
+div.rt-tbody > div > div > div > div[contenteditable="true"] {
   background-color: #e7e8e642 !important;
   padding-left: 5px !important;
   margin-left: -5px;
@@ -616,7 +614,7 @@ div.rt-tbody>div>div>div>div[contenteditable="true"] {
 .mapboxgl-popup-content {
   padding: 8px !important;
   color: #666666;
-  font-family: 'MuseoSans';
+  font-family: "MuseoSans";
   font-weight: 500;
   font-size: 1rem;
   text-decoration: none;
@@ -741,7 +739,6 @@ div.rt-tbody>div>div>div>div[contenteditable="true"] {
   overflow: auto;
 }
 
-
 .closeWindow {
   float: right;
   cursor: pointer;
@@ -784,7 +781,6 @@ a {
   color: rgba(0, 0, 0, 0.87);
   margin: 10px;
   display: inline-block;
-
 }
 
 .MetChart:hover {
@@ -850,7 +846,8 @@ a {
   position: absolute !important;
 }
 
-.countryMap {}
+.countryMap {
+}
 
 .representationTable {
   position: absolute;
@@ -865,14 +862,14 @@ a {
 }
 
 .representationHeader {
-  background-color: #C5D0D4 !important;
+  background-color: #c5d0d4 !important;
   color: white !important;
   text-align: center !important;
   padding: 7px !important;
 }
 
 .representationBody {
-  background-color: #F2F2F2 !important;
+  background-color: #f2f2f2 !important;
   height: 130px !important;
 }
 
@@ -885,7 +882,7 @@ a {
   top: 70px !important;
   left: 150px !important;
   font-size: 36px !important;
-  color: #B5D661 !important;
+  color: #b5d661 !important;
 }
 
 .coverageLabel {
@@ -924,7 +921,7 @@ a {
 }
 
 .representationFooter {
-  background-color: #E3DFE0 !important;
+  background-color: #e3dfe0 !important;
   /*text-align: center !important;*/
   padding: 7px !important;
   color: rgba(0, 0, 0, 0.6) !important;
@@ -932,7 +929,7 @@ a {
 }
 
 .blueBoxes {
-  background-color: #4472C4;
+  background-color: #4472c4;
   position: absolute !important;
   color: white !important;
   padding: 5px !important;
@@ -942,7 +939,8 @@ a {
   vertical-align: middle !important;
 }
 
-.totalFeatures {}
+.totalFeatures {
+}
 
 .targetsMet {
   left: 135px !important;
@@ -953,7 +951,7 @@ a {
 }
 
 .lightblueBoxes {
-  background-color: #CFD5EA;
+  background-color: #cfd5ea;
   position: absolute !important;
   color: rgba(0, 0, 0, 0.6) !important;
   padding: 5px !important;
@@ -965,7 +963,8 @@ a {
   padding: 10px !important;
 }
 
-.totalFeaturesValue {}
+.totalFeaturesValue {
+}
 
 .targetsMetValue {
   left: 135px !important;
@@ -979,7 +978,7 @@ a {
 
 .targetsFooter {
   position: absolute !important;
-  background-color: #E9EBF5 !important;
+  background-color: #e9ebf5 !important;
   color: rgba(0, 0, 0, 0.6) !important;
   width: 100%;
   padding: 7px !important;
@@ -987,13 +986,17 @@ a {
   font-size: 15px;
 }
 
-.representationChart {}
+.representationChart {
+}
 
-.representationScore {}
+.representationScore {
+}
 
-.representationScoreValue {}
+.representationScoreValue {
+}
 
-.representationScoreColors {}
+.representationScoreColors {
+}
 
 .analysisChartHolder {
   position: absolute !important;
@@ -1069,7 +1072,8 @@ a {
   font-size: 12px;
 }
 
-.welcomeToolbar {}
+.welcomeToolbar {
+}
 
 .showAtStartupChk {
   display: inline-block !important;
@@ -1226,11 +1230,13 @@ a {
   width: 22px !important;
 }
 
-.puManualEditContainer {}
+.puManualEditContainer {
+}
 
-.puManualEditClear {}
-.featureList{
-  font-size:12px;
-  padding-bottom:3px;
-  padding-top:7px;
+.puManualEditClear {
+}
+.featureList {
+  font-size: 12px;
+  padding-bottom: 3px;
+  padding-top: 7px;
 }
