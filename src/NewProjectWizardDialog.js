@@ -322,8 +322,12 @@ class NewProjectWizardDialog extends React.Component {
         title={"New national project"}
         contentWidth={600}
         showCancelButton={true}
-        onCancel={this.props.closeNewProjectWizardDialog}
-        onRequestClose={this.props.closeNewProjectWizardDialog}
+        onCancel={() =>
+          this.props.updateState({ newProjectWizardDialogOpen: false })
+        }
+        onRequestClose={() =>
+          this.props.updateState({ newProjectWizardDialogOpen: false })
+        }
         helpLink={"user.html#creating-new-projects"}
         actions={actions}
         children={children}

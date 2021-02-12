@@ -31,7 +31,7 @@ class ToolsMenu extends React.Component {
     this.props.hideToolsMenu();
   }
   openResetDialog() {
-    this.props.openResetDialog();
+    this.props.updateState({ resetDialogOpen: true });
     this.props.hideToolsMenu();
   }
   render() {

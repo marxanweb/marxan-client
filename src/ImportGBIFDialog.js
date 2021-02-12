@@ -20,10 +20,10 @@ class ImportGBIFDialog extends React.Component {
     this.props
       .importGBIFData(this.state.selectedItem)
       .then((response) => {
-        this.props.onCancel();
+        this.props.updateState({ importGBIFDialogOpen: false });
       })
       .catch((error) => {
-        this.props.onCancel();
+        this.props.updateState({ importGBIFDialogOpen: false });
       });
   }
   changeSearchText(event, value) {

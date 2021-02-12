@@ -34,7 +34,7 @@ class PlanningGridsDialog extends React.Component {
     this.closeDialog();
   }
   openImportDialog() {
-    this.props.openImportPlanningGridDialog();
+    this.props.updateState({ importPlanningGridDialogOpen: true });
     this.closeDialog();
   }
   exportPlanningGrid() {
@@ -50,7 +50,7 @@ class PlanningGridsDialog extends React.Component {
   }
   closeDialog() {
     this.setState({ selectedPlanningGrid: undefined });
-    this.props.onOk();
+    this.props.updateState({ planningGridsDialogOpen: false });
   }
   preview(planning_grid_metadata) {
     this.props.previewPlanningGrid(planning_grid_metadata);

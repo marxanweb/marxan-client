@@ -39,7 +39,9 @@ class CostsDialog extends React.Component {
         bodyStyle={{ padding: "0px 24px 0px 24px" }}
         offsetY={80}
         title="Costs"
-        onRequestClose={this.props.closeCostsDialog}
+        onRequestClose={() =>
+          this.props.updateState({ costsDialogOpen: false })
+        }
         helpLink={"user.html#importing-a-cost-surface"}
         children={
           <React.Fragment key="k8">
@@ -80,7 +82,9 @@ class CostsDialog extends React.Component {
                 icon={<Import style={{ height: "20px", width: "20px" }} />}
                 title="Upload a new costs file"
                 disabled={this.props.loading}
-                onClick={this.props.openImportCostsDialog.bind(this)}
+                onClick={() =>
+                  this.props.updateState({ importCostsDialogOpen: true })
+                }
                 label={"Import"}
               />
               <ToolbarButton
