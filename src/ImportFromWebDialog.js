@@ -141,7 +141,7 @@ class ImportFromWebDialog extends React.Component {
   }
   closeDialog() {
     this.setState(INITIAL_STATE);
-    this.props.onCancel();
+    this.props.onCancel({ importFromWebDialogOpen: false });
   }
   render() {
     let _disabled = false;

@@ -65,7 +65,7 @@ class NewProjectDialog extends React.Component {
   }
   onOk(evt) {
     this.gotoStart();
-    this.props.onOk();
+    this.props.updateState({ newProjectDialogOpen: false });
   }
   gotoStart() {
     //reset to the beginning
@@ -153,6 +153,10 @@ class NewProjectDialog extends React.Component {
     this.onOk();
   }
 
+  openCostsDialog() {
+    this.props.updateState({ costsDialogOpen: true });
+  }
+
   render() {
     const { stepIndex } = this.state;
     const contentStyle = { margin: "0 16px" };
@@ -236,7 +240,7 @@ class NewProjectDialog extends React.Component {
         ) : null}
         {stepIndex === 3 ? (
           <SelectCostFeatures
-            openCostsDialog={this.props.openCostsDialog}
+            openCostsDialog={this.openCostsDialog}
             selectedCosts={this.props.selectedCosts}
           />
         ) : null}

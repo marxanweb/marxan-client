@@ -93,7 +93,9 @@ class RegisterDialog extends React.Component {
         helpLink={"user.html#new-user-registration"}
         title="Register"
         children={c}
-        onRequestClose={this.props.onCancel}
+        onRequestClose={() =>
+          this.props.updateState({ registerDialogOpen: false })
+        }
       />
     );
   }

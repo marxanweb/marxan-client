@@ -58,13 +58,13 @@ class ProjectsDialog extends React.Component {
   }
   showImportProjectPopover(event) {
     this.setState({ importProjectAnchor: event.currentTarget });
-    this.props.showImportProjectPopover();
+    this.props.updateState({ importProjectPopoverOpen: true });
   }
   _new() {
     //get all the features again otherwise the allFeatures state may be bound to an old version of marxans features
     this.props.getAllFeatures().then(
       function () {
-        this.props.openNewProjectDialog();
+        this.props.updateState({ newProjectDialogOpen: true });
         this.closeDialog();
       }.bind(this)
     );
@@ -87,11 +87,11 @@ class ProjectsDialog extends React.Component {
     this.closeDialog();
   }
   openImportProjectDialog() {
-    this.props.openImportProjectDialog();
+    this.props.updateState({ importProjectDialogOpen: true });
     this.closeDialog();
   }
   openImportMXWDialog() {
-    this.props.openImportMXWDialog();
+    this.props.updateState({ importMXWDialogOpen: true });
     this.closeDialog();
   }
   changeProject(event, project) {
@@ -99,7 +99,10 @@ class ProjectsDialog extends React.Component {
   }
   closeDialog() {
     this.setState({ selectedProject: undefined });
-    this.props.onOk();
+    this.props.updateState({
+      projectsDialogOpen: false,
+      importProjectPopoverOpen: false,
+    });
   }
   sortDate(a, b, desc) {
     return new Date(
@@ -305,7 +308,9 @@ class ProjectsDialog extends React.Component {
                   anchorEl={this.state.importProjectAnchor}
                   anchorOrigin={{ horizontal: "left", vertical: "bottom" }}
                   targetOrigin={{ horizontal: "left", vertical: "top" }}
-                  onRequestClose={this.props.hideImportProjectPopover}
+                  onRequestClose={() =>
+                    this.props.updateState({ importProjectPopoverOpen: false })
+                  }
                 >
                   <Menu desktop={true}>
                     <MenuItem

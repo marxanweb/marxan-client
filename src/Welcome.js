@@ -23,9 +23,10 @@ class Welcome extends React.Component {
   toggleShowWelcomeScreen(evt, isInputChecked) {
     this.setState({ checked: isInputChecked });
   }
+
   onOk() {
     this.props.saveOptions({ SHOWWELCOMESCREEN: this.state.checked });
-    this.props.onOk();
+    this.props.updateState({ welcomeDialogOpen: false });
   }
   openNewProjectDialog() {
     this.onOk();

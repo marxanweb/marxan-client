@@ -143,7 +143,7 @@ class LoginDialog extends React.Component {
                   }
                   onKeyPress={this.handleKeyPress.bind(this)}
                 />
-                {/*<span onClick={this.props.openResendPasswordDialog.bind(this)} className="forgotLink" title="Click to resend password">Forgot</span>*/}
+                {/*<span onClick={() => this.props.updateState({ resendPasswordDialogOpen: true })} className="forgotLink" title="Click to resend password">Forgot</span>*/}
               </div>
               <div
                 style={{

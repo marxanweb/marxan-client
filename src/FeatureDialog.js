@@ -40,7 +40,9 @@ class FeatureDialog extends React.Component {
     return (
       <MarxanDialog
         {...this.props}
-        onRequestClose={this.props.onCancel}
+        onRequestClose={() =>
+          this.props.updateState({ featureDialogOpen: false })
+        }
         showCancelButton={false}
         title={this.props.feature_metadata.alias}
         helpLink={"user.html#the-feature-details-window"}

@@ -108,7 +108,7 @@ class InfoPanel extends React.Component {
     //get the costname
     let costname = this.costnames[key];
     if (costname === "Custom..") {
-      this.props.openCostsDialog();
+      this.props.updateState({ costsDialogOpen: true });
     } else {
       //update the cost profile on the server
       this.props.changeCostname(costname).then((_) => {
@@ -446,7 +446,9 @@ class InfoPanel extends React.Component {
               <ToolbarButton
                 icon={<Settings style={{ height: "20px", width: "20px" }} />}
                 title="Run Settings"
-                onClick={this.props.showRunSettingsDialog}
+                onClick={() =>
+                  this.props.updateState({ settingsDialogOpen: true })
+                }
               />
               <div className="toolbarSpacer" />
               <ToolbarButton

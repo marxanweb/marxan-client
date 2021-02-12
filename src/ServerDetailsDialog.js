@@ -64,7 +64,7 @@ class ServerDetailsDialog extends React.Component {
             marginTop: "5px",
           }}
           title={"A new version of the WDPA is available - click for details"}
-          onClick={this.props.showUpdateWDPADialog}
+          onClick={() => this.props.updateState({ updateWDPADialogOpen: true })}
         />
       </React.Fragment>
     );

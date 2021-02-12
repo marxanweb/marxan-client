@@ -25,7 +25,7 @@ class ImportCostsDialog extends React.Component {
     //reset the import cost state
     this.resetState();
     //close the dialog
-    this.props.closeImportCostsDialog();
+    this.props.updateState({ importCostsDialogOpen: false });
   }
   setCostsFilename(filename) {
     this.setState({
@@ -38,7 +38,7 @@ class ImportCostsDialog extends React.Component {
       //reset the import cost state
       this.resetState();
       //close the dialog
-      this.props.closeImportCostsDialog();
+      this.props.updateState({ importCostsDialogOpen: false });
     });
   }
   render() {

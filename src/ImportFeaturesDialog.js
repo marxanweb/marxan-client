@@ -83,13 +83,20 @@ class ImportFeaturesDialog extends React.Component {
         this.closeDialog();
       });
   }
+
+  setFilename(filename) {
+    this.props.updateState({ featureDatasetFilename: filename });
+  }
+
   closeDialog() {
     //delete the zip file and shapefile
     this.props.deleteShapefile(this.props.filename, this.shapefile);
     this.setState(INITIAL_STATE);
     this.shapefile = "";
-    this.props.setFilename("");
-    this.props.onCancel();
+    this.props.updateState({
+      featureDatasetFilename: "",
+      importFeaturesDialogOpen: false,
+    });
   }
   render() {
     let _disabled = false;
@@ -152,7 +159,7 @@ class ImportFeaturesDialog extends React.Component {
               fileMatch={".zip"}
               mandatory={true}
               filename={this.props.filename}
-              setFilename={this.props.setFilename}
+              setFilename={this.setFilename.bind(this)}
               destFolder={"imports"}
               label="Shapefile"
               style={{ paddingTop: "10px" }}
