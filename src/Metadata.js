@@ -17,7 +17,14 @@ class Metadata extends React.Component {
     };
   }
   changeName(event, newValue) {
-    this.props.setName(newValue);
+    let expr = new RegExp(/[/\\?%*:|<>]/);
+    //check there are no invalid characters in the project name
+    if (expr.test(newValue)) {
+      if (this.props.hasOwnProperty('setSnackBar')) this.props.setSnackBar('Invalid character');
+    }
+    else {
+      this.props.setName(newValue);
+    }
   }
   changeDescription(event, newValue) {
     this.props.setDescription(newValue);

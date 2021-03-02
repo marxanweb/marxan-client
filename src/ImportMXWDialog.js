@@ -83,7 +83,7 @@ class ImportMXWDialog extends React.Component {
 						    label="Select *.mxw file" 
 						    style={{'paddingTop':'20px'}}/> 
 						</div> : null}
-						{stepIndex === 1 ? <Metadata name={this.state.name} description={this.state.description} setName={this.setName.bind(this)} setDescription={this.setDescription.bind(this)}/> : null}
+						{stepIndex === 1 ? <Metadata {...this.props} name={this.state.name} description={this.state.description} setName={this.setName.bind(this)} setDescription={this.setDescription.bind(this)}/> : null}
 					</div>
 				</React.Fragment>;
 		return (
