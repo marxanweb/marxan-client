@@ -32,8 +32,8 @@ class FileUpload extends React.Component {
 		if (e.target.files.length) {
 			//set the loading state 
 			this.setState({ loading: true });
-			//get the filename
-			this.filename = e.target.files[0].name;
+			//get the filename - if a unique filename is needed then append the user in front
+			this.filename = (this.props.hasOwnProperty('uniqueName')) ? this.props.user + e.target.files[0].name : e.target.files[0].name;
 			//upload the file
 			this.props.fileUpload(e.target.files[0], this.filename, this.destFolder).then(response=>{
 				this.setState({ loading: false,active:false});

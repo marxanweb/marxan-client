@@ -4756,6 +4756,7 @@ class App extends React.Component {
             fileUpload={this.uploadFileToFolder.bind(this)}
             log={this.log.bind(this)}
             setSnackBar={this.setSnackBar.bind(this)}
+            user={this.state.user}
           />
           <ResetDialog
             open={this.state.resetDialogOpen}

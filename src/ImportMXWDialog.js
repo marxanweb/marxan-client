@@ -76,8 +76,9 @@ class ImportMXWDialog extends React.Component {
 						    {...this.props} 
 						    fileMatch={'.mxw'}
 						    destFolder='imports' 
+						    uniqueName={true}
 						    mandatory={true} 
-						    filename={this.state.zipFilename} 
+						    filename={this.state.zipFilename.substr(this.props.user.length)} 
 						    setFilename={this.setZipFilename.bind(this)} 
 						    label="Select *.mxw file" 
 						    style={{'paddingTop':'20px'}}/> 
