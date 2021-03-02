@@ -29,14 +29,6 @@ class FileUpload extends React.Component {
       : "";
   }
 
-	constructor(props) {
-		super(props);
-		this.state = { loading: false,active:false };
-		this.onChange = this.onChange.bind(this);
-		//the destination folder on the server where the file will be uploaded
-		this.destFolder = (props.hasOwnProperty('destFolder')) ? props.destFolder : '';
-	}
- 
 	onClick(e){
 		this.setState({active:true});
 	}
