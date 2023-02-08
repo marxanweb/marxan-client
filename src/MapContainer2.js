@@ -14,7 +14,7 @@ class MapContainer2 extends React.Component {
   componentDidMount() {
     this.map = new mapboxgl.Map({
       container: this.mapContainer,
-      style: "mapbox://styles/blishten/cjg6jk8vg3tir2spd2eatu5fd", //north star + marine PAs in pacific
+      style: "mapbox://styles/andrewcottam/cjg6jk8vg3tir2spd2eatu5fd", //north star + marine PAs in pacific
       center: [0, 0],
       zoom: 2,
       attributionControl: false,

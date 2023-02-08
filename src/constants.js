@@ -89,7 +89,7 @@ module.exports = Object.freeze({
   SEND_CREDENTIALS: true, //if true all post requests will send credentials
   TORNADO_PATH: "/marxan-server/",
   TIMEOUT: 0, //disable timeout setting
-  MAPBOX_USER: "blishten",
+  MAPBOX_USER: "andrewcottam",
   MAPBOX_STYLE_PREFIX: "mapbox://styles/",
   PLANNING_UNIT_STATUSES: [1, 2, 3],
   IUCN_CATEGORIES: [
