@@ -101,7 +101,7 @@ class SelectFieldMapboxLayer extends React.Component {
         this.props.map.removeSource(this.props.mapboxUser);
       }
       //add the source for this layer
-      this.props.map.addSource("blishten", {
+      this.props.map.addSource("andrewcottam", {
         type: "vector",
         url: "mapbox://" + this.props.mapboxUser + "." + this.mapboxlayername,
       });
