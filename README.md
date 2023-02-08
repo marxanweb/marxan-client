@@ -45,4 +45,4 @@ This runs the docker container.
  - `-p` is the port command. In this instance we are using PORT 5000 on our local machine and matching that to PORT 80 in the docker image. The Dockerfile exposes port 80 so thats the port our container is expecting to run on. The marxan-server image is set to run on PORT 80 locally so we use PORT 5000 to run the client (or any port that you would like) 
  - you can combine `-d` and `-p` together into `-dp`  
  - `--name` gives the container a name of your choice to make interacting with the container easier.  
- - The final item is the name of the image you want to start the container from. 
+ - The final item is the name of the image you want to start the container from.  
